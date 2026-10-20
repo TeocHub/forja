@@ -1,0 +1,309 @@
+[
+  {
+    "id": "audiovisual-videojuegos-2027",
+    "areas": [
+      "videojuego"
+    ],
+    "evento_texto": "Resultados y ejecución durante 2027",
+    "fechas_estimadas": false,
+    "fuente": "https://www.fondosdecultura.cl/wp-content/uploads/2026/07/Rex2214-Videojuegos.pdf",
+    "nombre": "Fondo Audiovisual · Producción de Videojuegos 2027",
+    "notas": "Ya cerrada. La próxima (2028) aparece aparte con fecha estimada.",
+    "organiza": "Ministerio de las Culturas · Fondos Cultura",
+    "postul_fin": "2026-09-04",
+    "postul_inicio": "2026-07-31",
+    "premio": "Financiamiento total o parcial para realizar videojuegos (convocatoria 2026 tuvo $210.000.000 en total).",
+    "requisitos": "Personas mayores de 18 años inscritas en el Registro Civil de Chile o personas jurídicas; ver bases.",
+    "revisado": "2026-10-20",
+    "tipo": "fondo"
+  },
+  {
+    "id": "audiovisual-videojuegos-2028",
+    "areas": [
+      "videojuego"
+    ],
+    "evento_texto": "Ejecución durante 2028",
+    "fechas_estimadas": true,
+    "fuente": "https://www.fondosdecultura.cl/",
+    "nombre": "Fondo Audiovisual · Producción de Videojuegos 2028",
+    "notas": "Estimado según convocatoria 2027 (31 jul - 4 sept 2026). También existen modalidades de videojuegos en la línea de Producción Audiovisual Regional (incluida Semilla Gamedev).",
+    "organiza": "Ministerio de las Culturas · Fondos Cultura",
+    "postul_fin": "2027-09-03",
+    "postul_inicio": "2027-07-30",
+    "premio": "Financiamiento total o parcial para realizar videojuegos.",
+    "revisado": "2026-10-20",
+    "tipo": "fondo"
+  },
+  {
+    "id": "bookstgo-2027",
+    "areas": [
+      "comic"
+    ],
+    "costo": "La participación 2026 tuvo un valor en UTM (ver lineamientos).",
+    "evento_inicio": "2027-04-23",
+    "fechas_estimadas": true,
+    "fuente": "https://www.santiagocultura.cl/wp-content/uploads/2026/03/LINEAMIENTOS-CONVOCATORIA-BOOK-STGO.docx-1.pdf",
+    "lugar": "Terraza Neptuno, Cerro Santa Lucía (edición 2026)",
+    "nombre": "Feria del Libro de Santiago · BookStgo 2027",
+    "notas": "Se realiza en torno al Día del Libro (23 de abril). Fecha exacta 2027 por confirmar.",
+    "organiza": "Municipalidad de Santiago",
+    "postul_texto": "Convocatoria para editoriales, se publica antes de la feria",
+    "requisitos": "Editoriales; se evalúa calidad y coherencia del catálogo y pertinencia con el foco curatorial.",
+    "revisado": "2026-10-20",
+    "tipo": "feria"
+  },
+  {
+    "id": "chile-game-showcase-2027",
+    "areas": [
+      "videojuego"
+    ],
+    "evento_inicio": "2027-09-11",
+    "fechas_estimadas": true,
+    "fuente": "https://seattleindies.org/level-up-your-labor-day-weekend-seattle-indies-expo-six-returns-for-its-16th-edition/",
+    "nombre": "Chile Game Showcase 2027",
+    "notas": "En 2026 tuvo evento el 12 de septiembre en Hub Providencia (con Indie Checkpoint) y selecciones viajaron a Seattle Indies Expo. Fecha 2027 estimada.",
+    "organiza": "Chile Game Showcase",
+    "postul_texto": "Convocatoria de juegos indie: revisar chilegameshowcase.com",
+    "revisado": "2026-10-20",
+    "tipo": "convocatoria"
+  },
+  {
+    "id": "comic-con-2027",
+    "areas": [
+      "comic",
+      "videojuego",
+      "juegomesa"
+    ],
+    "costo": "Entradas 2026: $26.000 por día o $60.000 los tres días.",
+    "evento_fin": "2027-07-04",
+    "evento_inicio": "2027-07-02",
+    "fechas_estimadas": true,
+    "fuente": "https://www.puntoticket.com/cccl26",
+    "lugar": "Espacio Riesco, Huechuraba",
+    "nombre": "Comic Con Chile 2027",
+    "notas": "Estimado según 2025 (4-6 jul) y 2026 (3-5 jul). La organización pide a ilustradores revisar su web para el proceso de postulación.",
+    "organiza": "Comic Con Chile",
+    "postul_texto": "Postulación de ilustradores (Artist Alley) se anuncia en su web",
+    "revisado": "2026-10-20",
+    "tipo": "feria"
+  },
+  {
+    "id": "conjugar-2027",
+    "areas": [
+      "juegomesa"
+    ],
+    "evento_fin": "2027-10-29",
+    "evento_inicio": "2027-10-28",
+    "fechas_estimadas": true,
+    "fuente": "https://26trans.gam.cl/en/what-to-do-in-gam/activities/conjugate-2025-international-congress-of-board-game-design-and-publishing/",
+    "lugar": "Centro Cultural GAM (edición 2025)",
+    "nombre": "Conjugar 2027 · Congreso de diseño y edición de juegos de mesa",
+    "notas": "Se hizo en 2023 y 2025 (30-31 oct), justo antes de Roll a Game. Estimado para fines de octubre de 2027. Charlas sobre fabricación industrial y talleres de pitch.",
+    "organiza": "LudiChile",
+    "postul_texto": "Sin convocatoria pública encontrada",
+    "revisado": "2026-10-20",
+    "tipo": "convocatoria"
+  },
+  {
+    "id": "deviriada-2027",
+    "areas": [
+      "juegomesa"
+    ],
+    "evento_fin": "2027-07-25",
+    "evento_inicio": "2027-07-24",
+    "fechas_estimadas": true,
+    "fuente": "https://www.radioagricultura.cl/entretencion/hoy-se-sale/evento-reune-a-fanaticos-de-los-juegos-de-mesa-en-vina-del-mar_20260725/",
+    "lugar": "Hippocampus Resort, Viña del Mar (edición 2026)",
+    "nombre": "Deviriada Chile 2027",
+    "notas": "Estimado según 2026 (25-26 jul). Útil para conocer comunidad y probar juegos.",
+    "organiza": "Devir Chile",
+    "postul_texto": "Evento de público; sin convocatoria de expositores",
+    "revisado": "2026-10-20",
+    "tipo": "feria"
+  },
+  {
+    "id": "festigame-2026",
+    "areas": [
+      "videojuego"
+    ],
+    "costo": "Entradas desde $12.900 (Fever). Stands: consultar al organizador.",
+    "evento_fin": "2026-12-13",
+    "evento_inicio": "2026-12-10",
+    "fechas_estimadas": false,
+    "fuente": "https://www.radioagricultura.cl/entretencion/hoy-se-sale/festigame-2026-ya-tiene-entradas-a-la-venta-revisa-precios-fechas-y-las-novedades-del-evento-gamer_20261005/",
+    "lugar": "Cenco Florida, Av. Vicuña Mackenna Oriente 6100, La Florida",
+    "nombre": "Festigame 2026",
+    "notas": "Cuatro días; incluye transmisión de The Game Awards y finales de las Clasificatorias Masivas.",
+    "organiza": "Festigame",
+    "postul_texto": "Sin convocatoria pública de expositores encontrada",
+    "revisado": "2026-10-20",
+    "tipo": "feria"
+  },
+  {
+    "id": "fic-santiago-2026",
+    "areas": [
+      "comic"
+    ],
+    "costo": "Entrada gratuita",
+    "evento_fin": "2026-11-16",
+    "evento_inicio": "2026-11-14",
+    "fechas_estimadas": true,
+    "fuente": "https://www.mediabanco.com/festival-internacional-del-comic-de-santiago-anuncia-nueva-edicion-15-16-y-17-de-noviembre/",
+    "lugar": "IP Santo Tomás San Joaquín, Vicuña Mackenna 4835",
+    "nombre": "FIC Santiago 2026 · Festival Internacional del Cómic",
+    "notas": "Fechas por confirmar: históricamente es a mediados de noviembre. Reúne artistas nacionales, editoriales y área FICkids.",
+    "organiza": "FIC Santiago / Santo Tomás",
+    "postul_texto": "Sin convocatoria pública encontrada",
+    "revisado": "2026-10-20",
+    "tipo": "feria"
+  },
+  {
+    "id": "furia-invierno-2027",
+    "areas": [
+      "comic"
+    ],
+    "costo": "Inscripción pagada; si el expositor cancela, devuelven 50%.",
+    "evento_fin": "2027-05-30",
+    "evento_inicio": "2027-05-27",
+    "fechas_estimadas": true,
+    "fuente": "https://lafuriadellibro.com/wp-content/uploads/2026/02/bases-2026.pdf",
+    "lugar": "Centro Cultural Estación Mapocho (edición 2026)",
+    "nombre": "La Furia del Libro · Invierno 2027",
+    "notas": "Estimado según 2026: postulación hasta el 15 de marzo y feria del 28 al 31 de mayo. La apertura exacta de la postulación 2027 aún no se publica.",
+    "organiza": "La Furia del Libro",
+    "postul_fin": "2027-03-15",
+    "postul_inicio": "2027-02-01",
+    "requisitos": "Editoriales independientes y universitarias; selección por comité. Existe modalidad regional para grupos de editoriales de regiones, que exime el pago de inscripción.",
+    "revisado": "2026-10-20",
+    "tipo": "feria"
+  },
+  {
+    "id": "furia-verano-2026",
+    "areas": [
+      "comic"
+    ],
+    "costo": "Entrada gratuita para el público. Stands con pago de inscripción (ver bases).",
+    "evento_fin": "2026-12-20",
+    "evento_inicio": "2026-12-17",
+    "fechas_estimadas": false,
+    "fuente": "https://www.elmostrador.cl/noticias/2026/06/05/la-furia-del-libro-reune-a-66-mil-personas-y-alcanza-la-convocatoria-mas-alta-de-sus-17-anos/",
+    "nombre": "La Furia del Libro · Verano 2026",
+    "notas": "Feria de edición independiente; útil para lanzar cómic o libro propio con una editorial.",
+    "organiza": "La Furia del Libro",
+    "postul_texto": "Postulación de editoriales: revisar sitio oficial",
+    "requisitos": "Para editoriales independientes y universitarias.",
+    "revisado": "2026-10-20",
+    "tipo": "feria"
+  },
+  {
+    "id": "libro-creacion-2027",
+    "areas": [
+      "comic"
+    ],
+    "evento_texto": "Resultados y ejecución durante 2027",
+    "fechas_estimadas": false,
+    "fuente": "https://www.fondosdecultura.cl/wp-content/uploads/2026/07/creacion-libro-2027.pdf",
+    "nombre": "Fondo del Libro · Fomento a la Creación 2027 (cómic y narrativa gráfica)",
+    "notas": "Ya cerrada. La próxima convocatoria (2028) aparece aparte con fecha estimada.",
+    "organiza": "Ministerio de las Culturas · Fondos Cultura",
+    "postul_fin": "2026-09-01",
+    "postul_inicio": "2026-07-28",
+    "requisitos": "Incluye géneros Cómic y Narrativa gráfica y Libro álbum, unipersonal o en co-autoría. Quien fue seleccionado en la misma línea 2026 no puede postular.",
+    "revisado": "2026-10-20",
+    "tipo": "fondo"
+  },
+  {
+    "id": "libro-creacion-2028",
+    "areas": [
+      "comic"
+    ],
+    "evento_texto": "Ejecución durante 2028",
+    "fechas_estimadas": true,
+    "fuente": "https://www.fondosdecultura.cl/",
+    "nombre": "Fondo del Libro · Fomento a la Creación 2028 (cómic y narrativa gráfica)",
+    "notas": "Estimado según la convocatoria 2027 (28 jul - 1 sept 2026).",
+    "organiza": "Ministerio de las Culturas · Fondos Cultura",
+    "postul_fin": "2027-08-31",
+    "postul_inicio": "2027-07-27",
+    "requisitos": "Revisar bases cuando se publiquen. En 2027 incluyó Cómic y Narrativa gráfica y Libro álbum.",
+    "revisado": "2026-10-20",
+    "tipo": "fondo"
+  },
+  {
+    "id": "roll-a-game-2026",
+    "areas": [
+      "juegomesa"
+    ],
+    "costo": "Entrada gratuita (2025)",
+    "evento_fin": "2026-11-08",
+    "evento_inicio": "2026-11-07",
+    "fechas_estimadas": true,
+    "fuente": "https://www.24horas.cl/tendencias/llega-a-chile-gran-feria-de-juegos-de-mesa-descubre-todos-los-detalles",
+    "lugar": "Centro Cultural GAM (edición 2025)",
+    "nombre": "Roll a Game Chile 2026",
+    "notas": "Fecha 2026 sin confirmar; la edición 2025 fue el 1-2 de noviembre en GAM.",
+    "organiza": "LudiChile",
+    "postul_texto": "Sin convocatoria pública encontrada",
+    "premio": "En 2025 hubo concurso de diseño de juegos votado por el público, para juegos inéditos o publicados el último año, y premio Huemul de Oro.",
+    "revisado": "2026-10-20",
+    "tipo": "feria"
+  },
+  {
+    "id": "salon-historieta-2027",
+    "areas": [
+      "comic"
+    ],
+    "costo": "Entrada liberada",
+    "evento_fin": "2027-09-05",
+    "evento_inicio": "2027-09-03",
+    "fechas_estimadas": true,
+    "fuente": "https://www.radioagricultura.cl/entretencion/hoy-se-sale/condorito-historietas-y-premios-pepo-el-gran-encuentro-del-comic-chileno-llega-al-centro-cultural-la-moneda_20260902/",
+    "lugar": "Centro Cultural La Moneda, Santiago",
+    "nombre": "Salón Internacional de la Historieta 2027",
+    "notas": "Estimado según 2026 (4-6 sept, más de 30 expositores).",
+    "organiza": "Centro Cultural La Moneda",
+    "postul_texto": "Sin convocatoria pública encontrada",
+    "premio": "Se entregan los Premios Pepo.",
+    "revisado": "2026-10-20",
+    "tipo": "feria"
+  },
+  {
+    "id": "sercotec-semilla-2027",
+    "areas": [
+      "general"
+    ],
+    "evento_texto": "Subsidio para poner en marcha un negocio",
+    "fechas_estimadas": true,
+    "fuente": "https://www.ventanillaunicasocial.gob.cl/ficha/165/capital-semilla-emprende",
+    "nombre": "Sercotec · Capital Semilla Emprende 2027",
+    "notas": "Estimado según 2026 (29 abr - 13 may). Las fechas cambian por región.",
+    "organiza": "Sercotec",
+    "postul_fin": "2027-05-12",
+    "postul_inicio": "2027-04-28",
+    "premio": "$3.500.000 netos: gestión empresarial (marketing, capacitación) e inversiones (activos, capital de trabajo).",
+    "que_llevar": "Test de preselección, video tipo elevator pitch y documentos que pidan las bases.",
+    "requisitos": "Persona natural mayor de 18 años, sin inicio de actividades en primera categoría ante el SII; idea de negocio que cumpla el foco regional; no haber sido beneficiario de una convocatoria Emprende en años recientes. No financia IVA.",
+    "revisado": "2026-10-20",
+    "tipo": "fondo"
+  },
+  {
+    "id": "valdivia-libro-2027",
+    "areas": [
+      "comic"
+    ],
+    "costo": "Pago por permiso de ventas; donación de dos libros para mediación.",
+    "evento_fin": "2027-09-05",
+    "evento_inicio": "2027-09-03",
+    "fechas_estimadas": true,
+    "fuente": "https://www.ccm-valdivia.cl/FERIA_DEL_LIBRO_2026/Bases_Feria_del_Libro_2026.pdf",
+    "lugar": "Centro de ferias del Parque Saval, Valdivia",
+    "nombre": "Feria del Libro de Valdivia 2027",
+    "notas": "Estimado según 2026 (feria 4-6 sept, postulación hasta 14 ago).",
+    "organiza": "Municipalidad de Valdivia",
+    "postul_fin": "2027-08-14",
+    "postul_inicio": "2027-07-15",
+    "requisitos": "Editoriales, librerías y tiendas con personalidad jurídica vigente; propuesta de actividad.",
+    "revisado": "2026-10-20",
+    "tipo": "feria"
+  }
+]

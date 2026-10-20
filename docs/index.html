@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Oportunidades</title>
+<meta name="description" content="Ferias, fondos y convocatorias en Chile para videojuegos, cómic y juegos de mesa.">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: cartelera de convocatorias — resumen arriba, filtros, lista de fichas con dos contadores (postulación / evento) */
+:root{
+  --bg:#f3f4f7; --card:#ffffff; --fg:#161a26; --muted:#5b6275; --line:#dfe2ea;
+  --accent:#2a3fd1; --accent-soft:#e6e9fb;
+  --open:#0f7a4f; --open-soft:#dff3ea; --soon:#b4330e; --soon-soft:#fbe6dc; --closed:#7a8091; --closed-soft:#eceef2; --wait:#8a5a00; --wait-soft:#fbf0d6;
+  --f-display:"Familjen Grotesk",system-ui,sans-serif; --f-body:"Atkinson Hyperlegible",system-ui,sans-serif; --f-num:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e;
+  --accent:#8c9bff; --accent-soft:#232a52;
+  --open:#4fd19a; --open-soft:#123a2a; --soon:#ff8a63; --soon-soft:#40211a; --closed:#8a90a2; --closed-soft:#23262f; --wait:#e8b84a; --wait-soft:#3a2e12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e;
+  --accent:#8c9bff; --accent-soft:#232a52;
+  --open:#4fd19a; --open-soft:#123a2a; --soon:#ff8a63; --soon-soft:#40211a; --closed:#8a90a2; --closed-soft:#23262f; --wait:#e8b84a; --wait-soft:#3a2e12; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+header h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted)}
+.meta{font-size:13px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+.stat b{display:block;font-family:var(--f-num);font-size:26px;line-height:1.1}
+.stat span{font-size:13px;color:var(--muted)}
+.stat.hot b{color:var(--soon)} .stat.open b{color:var(--open)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
+.chip:focus-visible,select:focus-visible,summary:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+select{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:6px 8px}
+.toggle{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);margin-left:auto;border-radius:6px}
+.list{display:flex;flex-direction:column;gap:12px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;border-left:4px solid var(--line)}
+.item.s-open{border-left-color:var(--open)} .item.s-soon{border-left-color:var(--soon)} .item.s-wait{border-left-color:var(--wait)}
+.top{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.tag.tipo{color:var(--accent);border-color:var(--accent)}
+.tag.est{border-style:dashed}
+.item h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0;text-wrap:balance}
+.org{font-size:14px;color:var(--muted)}
+.clocks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.clock{border-radius:8px;padding:10px 12px;background:var(--closed-soft);min-width:0}
+.clock .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.clock .big{font-family:var(--f-num);font-weight:700;font-size:18px;line-height:1.3}
+.clock .dates{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.clock.open{background:var(--open-soft)} .clock.open .big{color:var(--open)}
+.clock.soon{background:var(--soon-soft)} .clock.soon .big{color:var(--soon)}
+.clock.wait{background:var(--wait-soft)} .clock.wait .big{color:var(--wait)}
+.clock.closed .big{color:var(--closed)}
+details summary{cursor:pointer;color:var(--accent);font-size:14px;border-radius:4px}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:10px 0 0;font-size:14px}
+dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
+a{color:var(--accent)}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:24px;color:var(--muted);text-align:center}
+.legend{font-size:13px;color:var(--muted)}
+@media (max-width:560px){.stats{grid-template-columns:1fr 1fr 1fr}.stat b{font-size:20px}.clocks{grid-template-columns:1fr}.toggle{margin-left:0}dl{grid-template-columns:1fr}dt{margin-top:6px}}
+.brand{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:baseline;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.logo{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em}
+.mods{display:flex;flex-wrap:wrap;gap:12px;font-size:14px}
+.mods a{color:var(--fg);text-decoration:none;border-bottom:2px solid var(--accent)}
+.soon-mod{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <nav class="brand"><span class="logo">Forja</span><span class="mods"><a aria-current="page" href="./">Oportunidades</a><span class="soon-mod" title="Próximamente">Proyectos</span><span class="soon-mod" title="Próximamente">Proveedores</span><span class="soon-mod" title="Próximamente">Campañas</span></span></nav>
+    <h1>Oportunidades</h1>
+    <p>Ferias, fondos y convocatorias en Chile para videojuegos, cómic y juegos de mesa.</p>
+    <div class="meta" id="meta">Cargando…</div>
+  </header>
+
+  <section class="stats" aria-label="Resumen">
+    <div class="stat open"><b id="nOpen">–</b><span>postulaciones abiertas</span></div>
+    <div class="stat hot"><b id="nSoon">–</b><span>cierran en 14 días o menos</span></div>
+    <div class="stat"><b id="nNext">–</b><span>eventos en los próximos 90 días</span></div>
+  </section>
+
+  <div class="filters" role="group" aria-label="Filtrar por área">
+    <button class="chip" data-area="" aria-pressed="true" id="f-all">Todo</button>
+    <button class="chip" data-area="videojuego" aria-pressed="false" id="f-vj">Videojuegos</button>
+    <button class="chip" data-area="comic" aria-pressed="false" id="f-comic">Cómic y libro</button>
+    <button class="chip" data-area="juegomesa" aria-pressed="false" id="f-jm">Juegos de mesa</button>
+    <button class="chip" data-area="general" aria-pressed="false" id="f-gen">Emprendimiento</button>
+    <select id="f-tipo" aria-label="Tipo">
+      <option value="">Todos los tipos</option>
+      <option value="fondo">Fondos</option>
+      <option value="feria">Ferias y festivales</option>
+      <option value="convocatoria">Convocatorias</option>
+    </select>
+    <label class="toggle"><input type="checkbox" id="f-past" checked> Ocultar lo ya terminado</label>
+  </div>
+
+  <p class="legend">Las fechas con ≈ son estimaciones basadas en ediciones anteriores; se reemplazan cuando el organizador las confirma.</p>
+
+  <div class="list" id="list"><div class="empty">Cargando oportunidades…</div></div>
+</div>
+
+<script>
+(function(){
+  var items=[], state={area:"",tipo:"",hidePast:true}, metaDoc=null;
+  var MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  try{var saved=JSON.parse(localStorage.getItem("radar-f")||"null");if(saved){state.area=saved.area||"";state.tipo=saved.tipo||"";state.hidePast=saved.hidePast!==false;}}catch(e){}
+
+  function today(){var d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+  function pd(s){if(!s)return null;var p=String(s).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+  function diff(d){return Math.round((d-today())/864e5);}
+  function fmt(d){return d?d.getDate()+" "+MES[d.getMonth()]+" "+d.getFullYear():"";}
+  function dias(n){return n===1?"1 día":n+" días";}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+  function postul(it){
+    var a=pd(it.postul_inicio),b=pd(it.postul_fin),est=it.fechas_estimadas?"≈ ":"";
+    if(!a&&!b) return {cls:"closed",big:it.postul_texto||"Sin convocatoria publicada",dates:"",k:"none"};
+    var dates=(a?fmt(a):"?")+" → "+(b?fmt(b):"?");
+    if(a&&diff(a)>0) return {cls:"wait",big:est+"Abre en "+dias(diff(a)),dates:dates,k:"wait",next:a};
+    if(b&&diff(b)>=0){var n=diff(b);return {cls:n<=14?"soon":"open",big:(n===0?"Cierra hoy":"Abierta · quedan "+dias(n)),dates:dates,k:"open",next:b,left:n};}
+    if(b) return {cls:"closed",big:"Cerrada",dates:dates,k:"closed"};
+    return {cls:"open",big:"Abierta",dates:dates,k:"open"};
+  }
+  function evento(it){
+    var a=pd(it.evento_inicio),b=pd(it.evento_fin)||a,est=it.fechas_estimadas?"≈ ":"";
+    if(!a) return {cls:"closed",big:it.evento_texto||"Sin evento asociado",dates:"",k:"none"};
+    var dates=fmt(a)+(b&&+b!==+a?" → "+fmt(b):"");
+    if(diff(a)>0) return {cls:"wait",big:est+"En "+dias(diff(a)),dates:dates,k:"future",next:a,left:diff(a)};
+    if(diff(b)>=0) return {cls:"open",big:"En curso",dates:dates,k:"now",next:b};
+    return {cls:"closed",big:"Terminado",dates:dates,k:"past"};
+  }
+  function finished(it,p,e){return (p.k==="closed"||p.k==="none")&&(e.k==="past"||e.k==="none");}
+  function sortKey(p,e){var c=[];if(p.next)c.push(+p.next);if(e.next)c.push(+e.next);return c.length?Math.min.apply(null,c):9e15;}
+
+  function render(){
+    document.querySelectorAll(".chip").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.area===state.area));});
+    document.getElementById("f-tipo").value=state.tipo;
+    document.getElementById("f-past").checked=state.hidePast;
+    var rows=items.map(function(it){var p=postul(it),e=evento(it);return {it:it,p:p,e:e,key:sortKey(p,e),done:finished(it,p,e)};});
+    document.getElementById("nOpen").textContent=rows.filter(function(r){return r.p.k==="open";}).length;
+    document.getElementById("nSoon").textContent=rows.filter(function(r){return r.p.k==="open"&&r.p.left!=null&&r.p.left<=14;}).length;
+    document.getElementById("nNext").textContent=rows.filter(function(r){return r.e.k==="future"&&r.e.left<=90;}).length;
+    var vis=rows.filter(function(r){
+      if(state.area&&(r.it.areas||[]).indexOf(state.area)<0)return false;
+      if(state.tipo&&r.it.tipo!==state.tipo)return false;
+      if(state.hidePast&&r.done)return false;return true;
+    }).sort(function(a,b){return a.key-b.key||String(a.it.nombre).localeCompare(b.it.nombre);});
+    var list=document.getElementById("list");
+    if(!items.length){list.innerHTML='<div class="empty">Todavía no hay oportunidades guardadas. Aparecerán aquí cuando la revisión diaria las agregue.</div>';return;}
+    if(!vis.length){list.innerHTML='<div class="empty">Nada coincide con estos filtros. Prueba con "Todo" o muestra lo ya terminado.</div>';return;}
+    var TIPO={fondo:"Fondo",feria:"Feria / festival",convocatoria:"Convocatoria"};
+    var AREA={videojuego:"Videojuegos",comic:"Cómic y libro",juegomesa:"Juegos de mesa",general:"Emprendimiento"};
+    list.innerHTML=vis.map(function(r){
+      var it=r.it,p=r.p,e=r.e,s=p.k==="open"?(p.cls==="soon"?"s-soon":"s-open"):(p.k==="wait"?"s-wait":"");
+      var tags='<span class="tag tipo">'+esc(TIPO[it.tipo]||it.tipo)+'</span>'+(it.areas||[]).map(function(a){return '<span class="tag">'+esc(AREA[a]||a)+'</span>';}).join("")+(it.fechas_estimadas?'<span class="tag est">Fechas estimadas</span>':'');
+      var det=[["Premio o apoyo",it.premio],["Costo",it.costo],["Requisitos",it.requisitos],["Qué llevar o preparar",it.que_llevar],["Lugar",it.lugar],["Notas",it.notas]].filter(function(x){return x[1];}).map(function(x){return "<dt>"+x[0]+"</dt><dd>"+esc(x[1])+"</dd>";}).join("");
+      if(it.fuente)det+='<dt>Fuente</dt><dd><a href="'+esc(it.fuente)+'" target="_blank" rel="noopener">'+esc(it.fuente.replace(/^https?:\/\/(www\.)?/,"").split("/")[0])+'</a>'+(it.revisado?' · revisado '+esc(it.revisado):'')+'</dd>';
+      return '<article class="item '+s+'"><div class="top">'+tags+'</div><div><h2>'+esc(it.nombre)+'</h2><div class="org">'+esc(it.organiza||"")+'</div></div>'+
+        '<div class="clocks"><div class="clock '+p.cls+'"><div class="lbl">Postulación</div><div class="big">'+esc(p.big)+'</div><div class="dates">'+esc(p.dates)+'</div></div>'+
+        '<div class="clock '+e.cls+'"><div class="lbl">Evento</div><div class="big">'+esc(e.big)+'</div><div class="dates">'+esc(e.dates)+'</div></div></div>'+
+        (det?'<details><summary>Ver premios, requisitos y detalles</summary><dl>'+det+'</dl></details>':'')+'</article>';
+    }).join("");
+  }
+  function save(){try{localStorage.setItem("radar-f",JSON.stringify(state));}catch(e){}}
+  document.querySelectorAll(".chip").forEach(function(b){b.addEventListener("click",function(){state.area=b.dataset.area;save();render();});});
+  document.getElementById("f-tipo").addEventListener("change",function(ev){state.tipo=ev.target.value;save();render();});
+  document.getElementById("f-past").addEventListener("change",function(ev){state.hidePast=ev.target.checked;save();render();});
+  function renderMeta(){
+    var m=document.getElementById("meta");
+    if(metaDoc&&metaDoc.ultima_revision){m.textContent="Última revisión automática: "+metaDoc.ultima_revision+(metaDoc.resumen?" · "+metaDoc.resumen:"");}
+    else m.textContent="Los contadores se recalculan cada vez que abres la página.";
+  }
+  render();
+  Promise.all([fetch("data/oportunidades.json",{cache:"no-cache"}).then(function(r){return r.json();}),fetch("data/meta.json",{cache:"no-cache"}).then(function(r){return r.json();}).catch(function(){return null;})])
+    .then(function(res){items=res[0]||[];metaDoc=res[1];if(metaDoc&&metaDoc.ultima_revision){var d=pd(metaDoc.ultima_revision);if(d)metaDoc.ultima_revision=fmt(d);}render();renderMeta();})
+    .catch(function(){document.getElementById("list").innerHTML='<div class="empty">No se pudieron cargar los datos. Revisa tu conexión y recarga la página.</div>';document.getElementById("meta").textContent="";});
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){});}
+  setInterval(render,36e5);
+})();
+</script>
+</body>
+</html>
