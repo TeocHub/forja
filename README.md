@@ -10,7 +10,7 @@ Web: https://teochub.github.io/forja/ (GitHub Pages, carpeta `docs/`)
 | --- | --- | --- |
 | Oportunidades | Activo | Ferias, fondos y convocatorias en Chile con cuenta regresiva de postulación y evento |
 | Proyectos y entregas | Próximamente | Tareas, fechas y checklist por proyecto y feria |
-| Proveedores y cotizaciones | Próximamente | Directorio y estimación de precios con curvas de costo |
+| Cotizador | Activo (v1) | Cotizaciones por componente, costo real puesto en Chile (IVA, arancel, dólar) y comparación por tirada; datos solo en el navegador |
 | Financiamiento | Próximamente | Apoyo para fondos, Kickstarter y Patreon |
 | Mercado y publicidad | Próximamente | Validación y canales de difusión |
 
@@ -19,6 +19,7 @@ Web: https://teochub.github.io/forja/ (GitHub Pages, carpeta `docs/`)
 ```
 docs/                     sitio publicado en GitHub Pages (app instalable en el celular)
   index.html              módulo Oportunidades
+  cotizador.html          módulo Cotizador (datos en localStorage, con respaldo JSON)
   data/oportunidades.json datos de oportunidades (se actualiza a diario)
   data/meta.json          fecha y resumen de la última revisión
   manifest.webmanifest    datos para instalar la app

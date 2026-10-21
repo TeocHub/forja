@@ -23,3 +23,8 @@ Reglas de datos:
 - No borrar convocatorias cerradas ni eventos del último año (sirven de referencia); sí duplicados.
 - Al terminar una revisión, actualizar `docs/data/meta.json` (`ultima_revision` en `YYYY-MM-DD`, `resumen` en una frase).
 - Validar que el JSON parsea antes de hacer commit.
+
+## Cotizador (`docs/cotizador.html`)
+- Las cotizaciones son privadas: se guardan en localStorage del navegador (clave `forja-cotizador-v1`) y en respaldos JSON que descarga el usuario. Nunca subir cotizaciones reales al repo.
+- Cálculo: proveedor en Chile = precio + envío (+19% IVA si no lo incluye). Extranjero = (precio + envío) en USD × dólar; hasta USD 500 +19% IVA; sobre USD 500 +6% arancel y +19% IVA sobre ese total. Opción para mostrar costos sin IVA.
+- Estimación de otras cantidades: ajuste lineal total = fijo + variable × cantidad por proveedor (mínimo 2 cotizaciones), solo dentro de 1/3 a 3 veces el rango cotizado.

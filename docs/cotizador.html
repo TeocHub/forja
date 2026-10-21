@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Cotizador</title>
+<meta name="description" content="Cotiza los componentes de un producto con varios proveedores y compara el costo real por unidad puesto en Chile.">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: hoja de trabajo — parámetros del proyecto arriba, resumen de costo por juego, y una ficha por componente con sus cotizaciones */
+:root{
+  --bg:#f3f4f7; --card:#ffffff; --fg:#161a26; --muted:#5b6275; --line:#dfe2ea; --field:#f7f8fb;
+  --accent:#2a3fd1; --accent-soft:#e6e9fb;
+  --good:#0f7a4f; --good-soft:#dff3ea; --warn:#8a5a00; --warn-soft:#fbf0d6; --bad:#b4330e;
+  --f-display:"Familjen Grotesk",system-ui,sans-serif; --f-body:"Atkinson Hyperlegible",system-ui,sans-serif; --f-num:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e; --field:#141722;
+  --accent:#8c9bff; --accent-soft:#232a52;
+  --good:#4fd19a; --good-soft:#123a2a; --warn:#e8b84a; --warn-soft:#3a2e12; --bad:#ff8a63; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e; --field:#141722;
+  --accent:#8c9bff; --accent-soft:#232a52;
+  --good:#4fd19a; --good-soft:#123a2a; --warn:#e8b84a; --warn-soft:#3a2e12; --bad:#ff8a63; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.brand{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:baseline;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.logo{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em}
+.mods{display:flex;flex-wrap:wrap;gap:12px;font-size:14px}
+.mods a{color:var(--fg);text-decoration:none}
+.mods a[aria-current="page"]{border-bottom:2px solid var(--accent)}
+.mods a:hover{color:var(--accent)}
+.soon-mod{color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-size:20px;margin:0;line-height:1.2}
+h3{font-family:var(--f-display);font-size:18px;margin:0;line-height:1.2}
+.lead{margin:6px 0 0;color:var(--muted);max-width:65ch}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+input,select,textarea{font:inherit;font-size:15px;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:60px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--fg)}
+.check input{width:auto;margin-top:3px}
+.hint{font-size:13px;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;font-size:14px;border-radius:8px;padding:7px 12px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--card)}
+button.link{border:0;background:none;color:var(--accent);padding:4px 6px}
+button.danger{color:var(--bad)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;background:var(--field)}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+tfoot td{font-weight:700;background:var(--field)}
+.best{background:var(--good-soft)}
+.est{color:var(--warn)}
+.sub{display:block;font-family:var(--f-body);font-size:12px;color:var(--muted);font-weight:400;white-space:normal}
+.comp{border-left:4px solid var(--accent)}
+.comp-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.comp-head input.name{font-family:var(--f-display);font-weight:700;font-size:18px;background:transparent;border-color:transparent;padding:4px 6px;max-width:420px}
+.comp-head input.name:hover{border-color:var(--line)}
+details{border-top:1px solid var(--line);padding-top:10px}
+details summary{cursor:pointer;color:var(--accent);font-size:14px}
+.addq{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:14px;color:var(--muted);font-size:14px}
+.pill{display:inline-block;font-size:12px;border-radius:999px;padding:1px 8px;background:var(--accent-soft);color:var(--accent)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.sugs{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+a{color:var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:14px;z-index:20}
+.formula{font-size:13px;color:var(--muted);max-width:75ch}
+.formula b{color:var(--fg)}
+@media (prefers-reduced-motion:no-preference){button{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <nav class="brand"><span class="logo">Forja</span><span class="mods"><a href="./">Oportunidades</a><a aria-current="page" href="cotizador.html">Cotizador</a><span class="soon-mod" title="Próximamente">Proyectos</span><span class="soon-mod" title="Próximamente">Campañas</span></span></nav>
+    <h1 id="title">Cotizador</h1>
+    <p class="lead">Anota las cotizaciones de cada componente y compara cuánto te cuesta realmente cada juego puesto en Chile, según la cantidad que fabriques.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="h-proy">
+    <h2 id="h-proy">Proyecto</h2>
+    <div class="grid">
+      <label class="f">Nombre del proyecto<input id="p-nombre" type="text" autocomplete="off"></label>
+      <label class="f">Cantidades a comparar (separadas por coma)<input id="p-cant" type="text" inputmode="numeric" autocomplete="off"></label>
+      <label class="f">Dólar (CLP por 1 USD)<input id="p-dolar" type="number" min="1" step="0.01" inputmode="decimal"></label>
+    </div>
+    <div class="row">
+      <button id="b-dolar" type="button">Usar dólar observado de hoy</button>
+      <span class="hint" id="dolar-info"></span>
+    </div>
+    <label class="check"><input id="p-sin-iva" type="checkbox"> <span>Mostrar costos sin IVA <span class="hint">(si compran como empresa con inicio de actividades, el IVA se recupera como crédito)</span></span></label>
+  </section>
+
+  <section class="panel" aria-labelledby="h-res">
+    <h2 id="h-res">Costo por juego</h2>
+    <p class="hint">Para cada componente se usa el proveedor más barato en esa cantidad. Los valores con ≈ son estimaciones calculadas con las otras cotizaciones del mismo proveedor.</p>
+    <div id="resumen"></div>
+  </section>
+
+  <section aria-labelledby="h-comp" style="display:flex;flex-direction:column;gap:14px">
+    <div class="row" style="justify-content:space-between">
+      <h2 id="h-comp">Componentes</h2>
+      <div class="row">
+        <select id="nuevo-tipo" aria-label="Tipo de componente">
+          <option value="libreto">Libreto o manual</option>
+          <option value="hojas">Hojas troqueladas o para escribir</option>
+          <option value="disco">Disco decodificador</option>
+          <option value="caja">Caja</option>
+          <option value="cartas">Cartas</option>
+          <option value="otro">Otro</option>
+        </select>
+        <button id="b-add-comp" type="button" class="primary">Agregar componente</button>
+      </div>
+    </div>
+    <div id="comps" style="display:flex;flex-direction:column;gap:14px"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-calc">
+    <h2 id="h-calc">Cómo se calcula</h2>
+    <div class="formula">
+      <p><b>Proveedor en Chile:</b> precio + envío. Si el precio no incluye IVA, se suma 19%.</p>
+      <p><b>Proveedor extranjero:</b> se convierte a pesos con el dólar indicado. Hasta USD 500 (precio + envío) se suma 19% de IVA. Sobre USD 500 se suma 6% de arancel y luego 19% de IVA sobre ese total. Es una estimación: el valor exacto lo define Aduanas y puede haber cargos del courier.</p>
+      <p><b>Estimación de otras cantidades:</b> con dos o más cotizaciones de un mismo proveedor, se calcula un costo fijo (preparación, planchas) y un costo por unidad, y con eso se estima cualquier cantidad. Mientras más cotizaciones, mejor la estimación.</p>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-datos">
+    <h2 id="h-datos">Tus datos</h2>
+    <p class="hint">Todo se guarda solo en este navegador. Descarga un respaldo de vez en cuando, y úsalo para pasar tus cotizaciones a otro equipo.</p>
+    <div class="row">
+      <button id="b-export" type="button">Descargar respaldo</button>
+      <label class="f" style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)"><span>Cargar respaldo</span><input id="b-import" type="file" accept="application/json,.json" style="max-width:240px"></label>
+      <button id="b-reset" type="button" class="danger">Borrar todo</button>
+    </div>
+    <div id="reset-confirm" hidden class="row">
+      <span>¿Borrar el proyecto y todas las cotizaciones de este navegador?</span>
+      <button id="b-reset-yes" type="button" class="danger">Sí, borrar</button>
+      <button id="b-reset-no" type="button">Cancelar</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var KEY="forja-cotizador-v1";
+  var TIPOS={
+    libreto:{nombre:"Libreto o manual",campos:{medida:"Ej.: A5 (14,8 × 21 cm)",cantidad:"Ej.: 24 páginas",material:"Ej.: interior couché 150 g, tapa 250 g",impresion:"Ej.: 4/4 (color ambas caras)",acabado:"Ej.: corchete (saddle stitch)"}},
+    hojas:{nombre:"Hojas troqueladas o para escribir",campos:{medida:"Ej.: carta (21,6 × 27,9 cm)",cantidad:"Ej.: 10 hojas por juego",material:"Ej.: bond 120 g o cartulina 300 g",impresion:"Ej.: 4/0 (color una cara)",acabado:"Ej.: troquel con piezas desprendibles, prepicado"}},
+    disco:{nombre:"Disco decodificador",campos:{medida:"Ej.: 2 discos de 12 y 9 cm",cantidad:"Ej.: 1 por juego",material:"Ej.: cartón gris 1,5 mm laminado",impresion:"Ej.: 4/4",acabado:"Ej.: troquelado con remache central"}},
+    caja:{nombre:"Caja",campos:{medida:"Ej.: 15 × 22 × 4 cm",cantidad:"Ej.: 1 por juego",material:"Ej.: cartón rígido 2 mm con papel impreso",impresion:"Ej.: 4/0",acabado:"Ej.: tapa y fondo, laminado mate, shrink wrap"}},
+    cartas:{nombre:"Cartas",campos:{medida:"Ej.: 63 × 88 mm (póker)",cantidad:"Ej.: 90 cartas por juego",material:"Ej.: cartulina 300 g con núcleo negro",impresion:"Ej.: 4/4",acabado:"Ej.: esquinas redondeadas, laminado lino"}},
+    otro:{nombre:"Componente",campos:{medida:"Medidas",cantidad:"Cantidad por juego",material:"Material",impresion:"Impresión",acabado:"Acabado"}}
+  };
+  var CAMPOS=[["medida","Medidas"],["cantidad","Cantidad por juego"],["material","Material o papel"],["impresion","Impresión"],["acabado","Acabado"]];
+  var SUG={
+    libreto:[["PrintNinja","https://printninja.com/"],["QinPrinting","https://www.qinprinting.com/"],["BoardGamesMaker","https://boardgamesmaker.com/"]],
+    hojas:[["BoardGamesMaker","https://boardgamesmaker.com/"],["The Game Crafter","https://www.thegamecrafter.com/"]],
+    disco:[["BoardGamesMaker","https://boardgamesmaker.com/"],["The Game Crafter","https://www.thegamecrafter.com/"],["Panda Game Manufacturing","https://pandagm.com/"]],
+    caja:[["BoardGamesMaker","https://boardgamesmaker.com/"],["The Game Crafter","https://www.thegamecrafter.com/"],["LongPack Games","https://www.longpackgames.com/"]],
+    cartas:[["MakePlayingCards","https://www.makeplayingcards.com/"],["BoardGamesMaker","https://boardgamesmaker.com/"],["The Game Crafter","https://www.thegamecrafter.com/"]],
+    otro:[["BoardGamesMaker","https://boardgamesmaker.com/"]]
+  };
+  function uid(){return Math.random().toString(36).slice(2,9);}
+  function defaults(){
+    var t=["libreto","hojas","disco","caja"];
+    return {nombre:"Juego de escape (estilo Exit)",cantidades:[10,100,500],dolar:null,dolarInfo:"",sinIva:false,
+      componentes:t.map(function(k){return {id:uid(),tipo:k,nombre:TIPOS[k].nombre,specs:{}};}),cotizaciones:[]};
+  }
+  var S;
+  try{S=JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){S=null;}
+  if(!S||!Array.isArray(S.componentes))S=defaults();
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast("No se pudo guardar en este navegador. Descarga un respaldo.");}}
+
+  var $=function(id){return document.getElementById(id);};
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function clp(n){return n==null||!isFinite(n)?"–":"$"+Math.round(n).toLocaleString("es-CL");}
+  function clp2(n){if(n==null||!isFinite(n))return "–";return n<1000?"$"+n.toLocaleString("es-CL",{maximumFractionDigits:1}):clp(n);}
+  function num(v){var n=parseFloat(String(v).replace(",","."));return isFinite(n)?n:0;}
+  var tt;function toast(m){var el=document.querySelector(".toast");if(!el){el=document.createElement("div");el.className="toast";el.setAttribute("role","status");document.body.appendChild(el);}el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(function(){el.hidden=true;},2600);}
+
+  /* --- cálculo --- */
+  function landed(q){
+    var precio=num(q.precio),envio=num(q.envio),total,detalle;
+    if(q.moneda==="USD"){
+      if(!S.dolar)return {total:null,detalle:"Falta el valor del dólar"};
+      var cif=precio+envio,arancel=cif>500?cif*0.06:0,iva=S.sinIva?0:(cif+arancel)*0.19;
+      total=(cif+arancel+iva)*S.dolar;
+      detalle="USD "+cif.toLocaleString("es-CL",{maximumFractionDigits:2})+(arancel?" + arancel 6%":"")+(iva?" + IVA 19%":"");
+    } else {
+      var base=precio+envio;
+      if(q.incluyeIva){total=S.sinIva?base/1.19:base;detalle=S.sinIva?"precio sin IVA":"IVA incluido";}
+      else{total=S.sinIva?base:base*1.19;detalle=S.sinIva?"sin IVA":"+ IVA 19%";}
+    }
+    return {total:total,detalle:detalle};
+  }
+  function fit(points){ // total = F + v*q por mínimos cuadrados
+    if(points.length<2)return null;
+    var n=points.length,sx=0,sy=0,sxx=0,sxy=0;
+    points.forEach(function(p){sx+=p.q;sy+=p.t;sxx+=p.q*p.q;sxy+=p.q*p.t;});
+    var den=n*sxx-sx*sx;if(!den)return null;
+    var v=(n*sxy-sx*sy)/den,F=(sy-v*sx)/n;
+    if(v<0){v=0;F=sy/n;} if(F<0){F=0;v=sxy/sxx;}
+    return {F:F,v:v};
+  }
+  function costFor(compId,qty){ // mejor costo por unidad entre proveedores
+    var byProv={};
+    S.cotizaciones.filter(function(q){return q.compId===compId;}).forEach(function(q){
+      var L=landed(q);if(L.total==null||!num(q.cantidad))return;
+      var k=(q.proveedor||"Sin nombre").trim().toLowerCase();
+      (byProv[k]=byProv[k]||{nombre:q.proveedor||"Sin nombre",pts:[]}).pts.push({q:num(q.cantidad),t:L.total});
+    });
+    var best=null;
+    Object.keys(byProv).forEach(function(k){
+      var p=byProv[k],exact=p.pts.filter(function(x){return x.q===qty;})[0],unit,est=false;
+      if(exact)unit=exact.t/qty;
+      else{var f=fit(p.pts);if(!f)return;var minQ=Math.min.apply(null,p.pts.map(function(x){return x.q;})),maxQ=Math.max.apply(null,p.pts.map(function(x){return x.q;}));
+        if(qty<minQ/3||qty>maxQ*3)return; unit=(f.F+f.v*qty)/qty;est=true;}
+      if(!best||unit<best.unit)best={unit:unit,prov:p.nombre,est:est};
+    });
+    return best;
+  }
+
+  /* --- render --- */
+  function renderProyecto(){
+    $("p-nombre").value=S.nombre||"";
+    $("p-cant").value=(S.cantidades||[]).join(", ");
+    $("p-dolar").value=S.dolar||"";
+    $("p-sin-iva").checked=!!S.sinIva;
+    $("dolar-info").textContent=S.dolarInfo||(S.dolar?"":"Necesario para cotizaciones en dólares.");
+    $("title").textContent=S.nombre?"Cotizador · "+S.nombre:"Cotizador";
+  }
+  function renderResumen(){
+    var qs=(S.cantidades||[]).filter(function(n){return n>0;});
+    if(!S.componentes.length){$("resumen").innerHTML='<div class="empty">Agrega componentes para ver el costo por juego.</div>';return;}
+    if(!S.cotizaciones.length){$("resumen").innerHTML='<div class="empty">Aún no hay cotizaciones. Abre un componente más abajo y agrega la primera: proveedor, cantidad y precio. Con eso aparece aquí el costo por juego.</div>';return;}
+    var head='<tr><th>Componente</th>'+qs.map(function(q){return '<th class="num">'+q.toLocaleString("es-CL")+' u.</th>';}).join("")+'</tr>';
+    var totals=qs.map(function(){return {sum:0,missing:0};});
+    var body=S.componentes.map(function(c){
+      return '<tr><td>'+esc(c.nombre)+'</td>'+qs.map(function(q,i){
+        var b=costFor(c.id,q);
+        if(!b){totals[i].missing++;return '<td class="num"><span class="hint">sin datos</span></td>';}
+        totals[i].sum+=b.unit;
+        return '<td class="num'+(b.est?' est':'')+'">'+(b.est?'≈ ':'')+clp2(b.unit)+'<span class="sub">'+esc(b.prov)+'</span></td>';
+      }).join("")+'</tr>';
+    }).join("");
+    var foot='<tr><td>Costo por juego</td>'+totals.map(function(t){return '<td class="num">'+(t.missing?'<span class="pill warn">faltan '+t.missing+'</span><span class="sub">parcial '+clp(t.sum)+'</span>':clp(t.sum))+'</td>';}).join("")+'</tr>'+
+      '<tr><td>Total de la tirada</td>'+totals.map(function(t,i){return '<td class="num">'+(t.missing?'–':clp(t.sum*qs[i]))+'</td>';}).join("")+'</tr>';
+    $("resumen").innerHTML='<div class="tablewrap"><table><thead>'+head+'</thead><tbody>'+body+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
+  }
+  function solicitud(c){
+    var qs=(S.cantidades||[]).join(", ");
+    var L=["Hello, I would like a quote for the following component of a board game (escape room style):","",
+      "Component: "+c.nombre];
+    var EN={medida:"Size",cantidad:"Quantity per game",material:"Material / paper",impresion:"Printing",acabado:"Finishing"};
+    CAMPOS.forEach(function(f){var v=(c.specs||{})[f[0]];if(v)L.push(EN[f[0]]+": "+v);});
+    if(c.specs&&c.specs.notas)L.push("Notes: "+c.specs.notas);
+    L.push("","Quantities (number of games): "+qs,"Shipping to: Santiago, Chile","","Please include unit price for each quantity, shipping cost to Chile, production time and payment terms.","","Thank you!");
+    return L.join("\n");
+  }
+  function renderComps(){
+    var box=$("comps"),keep={},vals={};
+    box.querySelectorAll("details[data-k]").forEach(function(d){keep[d.dataset.k]=d.open;});
+    box.querySelectorAll("form[data-addq] input,form[data-addq] select").forEach(function(i){if(i.id)vals[i.id]=i.type==="checkbox"?i.checked:i.value;});
+    if(!S.componentes.length){box.innerHTML='<div class="empty">No hay componentes. Elige un tipo arriba y presiona “Agregar componente”.</div>';return;}
+    box.innerHTML=S.componentes.map(function(c){
+      var t=TIPOS[c.tipo]||TIPOS.otro,qs=S.cotizaciones.filter(function(q){return q.compId===c.id;}).sort(function(a,b){return num(a.cantidad)-num(b.cantidad);});
+      var specs=CAMPOS.map(function(f){return '<label class="f">'+f[1]+'<input data-c="'+c.id+'" data-spec="'+f[0]+'" id="s-'+c.id+'-'+f[0]+'" value="'+esc((c.specs||{})[f[0]])+'" placeholder="'+esc(t.campos[f[0]])+'"></label>';}).join("")+
+        '<label class="f" style="grid-column:1/-1">Notas<textarea data-c="'+c.id+'" data-spec="notas" id="s-'+c.id+'-notas" placeholder="Detalles para el proveedor">'+esc((c.specs||{}).notas)+'</textarea></label>';
+      var tabla=qs.length?'<div class="tablewrap"><table><thead><tr><th>Proveedor</th><th class="num">Cantidad</th><th class="num">Precio + envío</th><th class="num">Total en Chile</th><th class="num">Por unidad</th><th>Plazo</th><th></th></tr></thead><tbody>'+
+        qs.map(function(q){var L=landed(q),u=L.total!=null&&num(q.cantidad)?L.total/num(q.cantidad):null;
+          return '<tr><td>'+(q.enlace?'<a href="'+esc(q.enlace)+'" target="_blank" rel="noopener">'+esc(q.proveedor||"Sin nombre")+'</a>':esc(q.proveedor||"Sin nombre"))+'<span class="sub">'+(q.origen==="extranjero"?"Extranjero":"Chile")+(q.fecha?" · "+esc(q.fecha):"")+(q.notas?" · "+esc(q.notas):"")+'</span></td>'+
+          '<td class="num">'+num(q.cantidad).toLocaleString("es-CL")+'</td>'+
+          '<td class="num">'+(q.moneda==="USD"?"USD "+(num(q.precio)+num(q.envio)).toLocaleString("es-CL",{maximumFractionDigits:2}):clp(num(q.precio)+num(q.envio)))+'</td>'+
+          '<td class="num">'+clp(L.total)+'<span class="sub">'+esc(L.detalle)+'</span></td>'+
+          '<td class="num">'+clp2(u)+'</td><td>'+esc(q.plazo||"")+'</td>'+
+          '<td><button type="button" class="link danger" data-delq="'+q.id+'" aria-label="Eliminar cotización">Eliminar</button></td></tr>';}).join("")+'</tbody></table></div>':
+        '<div class="empty">Sin cotizaciones para este componente.</div>';
+      var sug=(SUG[c.tipo]||SUG.otro).map(function(s){return '<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[0]+'</a>';}).join("");
+      return '<article class="panel comp" data-comp="'+c.id+'">'+
+        '<div class="comp-head"><input class="name" data-c="'+c.id+'" data-field="nombre" id="n-'+c.id+'" value="'+esc(c.nombre)+'" aria-label="Nombre del componente"><div class="row"><span class="pill">'+qs.length+' cotizaci'+(qs.length===1?'ón':'ones')+'</span><button type="button" class="link danger" data-delc="'+c.id+'">Quitar</button></div></div>'+
+        '<details data-k="spec-'+c.id+'"><summary>Especificaciones</summary><div class="grid" style="margin-top:10px">'+specs+'</div>'+
+        '<div class="row" style="margin-top:10px"><button type="button" data-copy="'+c.id+'">Copiar solicitud de cotización (inglés)</button><span class="hint">Pégala en el formulario o correo del proveedor.</span></div></details>'+
+        tabla+
+        '<details data-k="add-'+c.id+'"'+(qs.length?'':' open')+'><summary>Agregar cotización</summary><form class="addq" data-addq="'+c.id+'">'+
+          '<label class="f">Proveedor<input name="proveedor" id="q-'+c.id+'-prov" required list="provs"></label>'+
+          '<label class="f">Origen<select name="origen" id="q-'+c.id+'-orig"><option value="extranjero">Extranjero</option><option value="chile">Chile</option></select></label>'+
+          '<label class="f">Moneda<select name="moneda" id="q-'+c.id+'-mon"><option value="USD">USD</option><option value="CLP">CLP</option></select></label>'+
+          '<label class="f">Cantidad (juegos)<input name="cantidad" id="q-'+c.id+'-cant" type="number" min="1" step="1" required inputmode="numeric"></label>'+
+          '<label class="f">Precio total<input name="precio" id="q-'+c.id+'-precio" type="number" min="0" step="0.01" required inputmode="decimal"></label>'+
+          '<label class="f">Envío a Chile<input name="envio" id="q-'+c.id+'-envio" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label>'+
+          '<label class="f">Plazo<input name="plazo" id="q-'+c.id+'-plazo" placeholder="Ej.: 4 semanas"></label>'+
+          '<label class="f">Enlace<input name="enlace" id="q-'+c.id+'-link" type="url" placeholder="https://"></label>'+
+          '<label class="f" style="grid-column:1/-1">Notas<input name="notas" id="q-'+c.id+'-notas" placeholder="Ej.: precio de calculadora en línea, incluye muestra"></label>'+
+          '<label class="check" style="grid-column:1/-1"><input type="checkbox" name="incluyeIva" id="q-'+c.id+'-iva"> El precio ya incluye IVA (solo para proveedores en Chile)</label>'+
+          '<div class="row" style="grid-column:1/-1"><button type="submit" class="primary">Guardar cotización</button></div>'+
+        '</form></details>'+
+        '<div class="sugs"><span class="hint">Dónde cotizar:</span>'+sug+'</div>'+
+      '</article>';
+    }).join("");
+    box.querySelectorAll("details[data-k]").forEach(function(d){if(d.dataset.k in keep)d.open=keep[d.dataset.k];});
+    Object.keys(vals).forEach(function(id){var i=document.getElementById(id);if(!i)return;if(i.type==="checkbox")i.checked=vals[id];else i.value=vals[id];});
+    var provs=Array.from(new Set(S.cotizaciones.map(function(q){return q.proveedor;}).filter(Boolean)));
+    var dl=$("provs");if(!dl){dl=document.createElement("datalist");dl.id="provs";document.body.appendChild(dl);}
+    dl.innerHTML=provs.map(function(p){return '<option value="'+esc(p)+'">';}).join("");
+  }
+  function renderAll(){renderProyecto();renderResumen();renderComps();}
+
+  /* --- eventos --- */
+  $("p-nombre").addEventListener("change",function(e){S.nombre=e.target.value.trim();save();renderProyecto();});
+  $("p-cant").addEventListener("change",function(e){
+    var v=e.target.value.split(/[,;\s]+/).map(function(x){return parseInt(x,10);}).filter(function(n){return n>0;});
+    S.cantidades=Array.from(new Set(v)).sort(function(a,b){return a-b;}).slice(0,6);save();renderProyecto();renderResumen();});
+  $("p-dolar").addEventListener("change",function(e){S.dolar=num(e.target.value)||null;S.dolarInfo=S.dolar?"Valor ingresado a mano.":"";save();renderAll();});
+  $("p-sin-iva").addEventListener("change",function(e){S.sinIva=e.target.checked;save();renderResumen();renderComps();});
+  $("b-dolar").addEventListener("click",function(){
+    var b=this;b.disabled=true;b.textContent="Consultando…";
+    fetch("https://mindicador.cl/api/dolar").then(function(r){return r.json();}).then(function(j){
+      var s=j&&j.serie&&j.serie[0];if(!s)throw 0;
+      S.dolar=Math.round(s.valor*100)/100;S.dolarInfo="Dólar observado del "+new Date(s.fecha).toLocaleDateString("es-CL")+" (mindicador.cl).";save();renderAll();toast("Dólar actualizado");
+    }).catch(function(){toast("No se pudo obtener el dólar. Escríbelo a mano.");}).finally(function(){b.disabled=false;b.textContent="Usar dólar observado de hoy";});
+  });
+  $("b-add-comp").addEventListener("click",function(){
+    var k=$("nuevo-tipo").value;S.componentes.push({id:uid(),tipo:k,nombre:TIPOS[k].nombre,specs:{}});save();renderAll();
+  });
+  document.addEventListener("change",function(e){
+    var t=e.target,c;
+    if(t.dataset&&t.dataset.c){c=S.componentes.filter(function(x){return x.id===t.dataset.c;})[0];if(!c)return;
+      if(t.dataset.spec){c.specs=c.specs||{};c.specs[t.dataset.spec]=t.value.trim();save();}
+      if(t.dataset.field==="nombre"){c.nombre=t.value.trim()||TIPOS[c.tipo].nombre;save();renderResumen();}
+    }
+    if(t.name==="origen"){var f=t.form;f.moneda.value=t.value==="chile"?"CLP":"USD";}
+  });
+  document.addEventListener("submit",function(e){
+    var f=e.target;if(!f.dataset.addq)return;e.preventDefault();
+    var q={id:uid(),compId:f.dataset.addq,proveedor:f.proveedor.value.trim(),origen:f.origen.value,moneda:f.moneda.value,cantidad:num(f.cantidad.value),
+      precio:num(f.precio.value),envio:num(f.envio.value),plazo:f.plazo.value.trim(),enlace:f.enlace.value.trim(),notas:f.notas.value.trim(),incluyeIva:f.incluyeIva.checked,fecha:new Date().toLocaleDateString("es-CL")};
+    if(!q.cantidad){toast("Indica la cantidad de juegos.");return;}
+    if(q.moneda==="USD"&&!S.dolar)toast("Guardada. Ingresa el dólar para calcular el costo en pesos.");else toast("Cotización guardada");
+    S.cotizaciones.push(q);f.reset();save();renderResumen();renderComps();
+  });
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("button");if(!t)return;
+    if(t.dataset.delq){S.cotizaciones=S.cotizaciones.filter(function(q){return q.id!==t.dataset.delq;});save();renderResumen();renderComps();toast("Cotización eliminada");}
+    if(t.dataset.delc){
+      if(t.dataset.armed!=="1"){t.dataset.armed="1";t.textContent="¿Quitar con sus cotizaciones?";setTimeout(function(){if(t.isConnected){t.dataset.armed="";t.textContent="Quitar";}},4000);return;}
+      S.componentes=S.componentes.filter(function(c){return c.id!==t.dataset.delc;});S.cotizaciones=S.cotizaciones.filter(function(q){return q.compId!==t.dataset.delc;});save();renderAll();
+    }
+    if(t.dataset.copy){
+      var c=S.componentes.filter(function(x){return x.id===t.dataset.copy;})[0],txt=solicitud(c);
+      (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){toast("Solicitud copiada");}).catch(function(){window.prompt("Copia el texto:",txt);});
+    }
+  });
+  $("b-export").addEventListener("click",function(){
+    var blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);a.download="forja-cotizador-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);
+  });
+  $("b-import").addEventListener("change",function(e){
+    var file=e.target.files&&e.target.files[0];if(!file)return;
+    file.text().then(function(t){var d=JSON.parse(t);if(!d||!Array.isArray(d.componentes)||!Array.isArray(d.cotizaciones))throw 0;S=d;save();renderAll();toast("Respaldo cargado");})
+      .catch(function(){toast("Ese archivo no es un respaldo válido del cotizador.");}).finally(function(){e.target.value="";});
+  });
+  $("b-reset").addEventListener("click",function(){$("reset-confirm").hidden=false;});
+  $("b-reset-no").addEventListener("click",function(){$("reset-confirm").hidden=true;});
+  $("b-reset-yes").addEventListener("click",function(){S=defaults();save();$("reset-confirm").hidden=true;renderAll();toast("Datos borrados");});
+
+  renderAll();
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){});}
+})();
+</script>
+</body>
+</html>

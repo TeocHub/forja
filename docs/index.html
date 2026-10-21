@@ -73,14 +73,16 @@ a{color:var(--accent)}
 .brand{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:baseline;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
 .logo{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em}
 .mods{display:flex;flex-wrap:wrap;gap:12px;font-size:14px}
-.mods a{color:var(--fg);text-decoration:none;border-bottom:2px solid var(--accent)}
+.mods a{color:var(--fg);text-decoration:none}
+.mods a[aria-current="page"]{border-bottom:2px solid var(--accent)}
+.mods a:hover{color:var(--accent)}
 .soon-mod{color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <nav class="brand"><span class="logo">Forja</span><span class="mods"><a aria-current="page" href="./">Oportunidades</a><span class="soon-mod" title="Próximamente">Proyectos</span><span class="soon-mod" title="Próximamente">Proveedores</span><span class="soon-mod" title="Próximamente">Campañas</span></span></nav>
+    <nav class="brand"><span class="logo">Forja</span><span class="mods"><a aria-current="page" href="./">Oportunidades</a><a href="cotizador.html">Cotizador</a><span class="soon-mod" title="Próximamente">Proyectos</span><span class="soon-mod" title="Próximamente">Campañas</span></span></nav>
     <h1>Oportunidades</h1>
     <p>Ferias, fondos y convocatorias en Chile para videojuegos, cómic y juegos de mesa.</p>
     <div class="meta" id="meta">Cargando…</div>
