@@ -186,8 +186,13 @@ a{color:var(--accent)}
     else m.textContent="Los contadores se recalculan cada vez que abres la página.";
   }
   render();
-  Promise.all([fetch("data/oportunidades.json",{cache:"no-cache"}).then(function(r){return r.json();}),fetch("data/meta.json",{cache:"no-cache"}).then(function(r){return r.json();}).catch(function(){return null;})])
-    .then(function(res){items=res[0]||[];metaDoc=res[1];if(metaDoc&&metaDoc.ultima_revision){var d=pd(metaDoc.ultima_revision);if(d)metaDoc.ultima_revision=fmt(d);}render();renderMeta();})
+  // Datos en Supabase (lectura pública); si falla, usa la copia local del repo.
+  var SB="https://gfkiwldxxvffnkjcesws.supabase.co/rest/v1/",KEYH={headers:{apikey:"sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j"}};
+  function getJ(u,o){return fetch(u,o).then(function(r){if(!r.ok)throw r.status;return r.json();});}
+  var opp=getJ(SB+"oportunidades?select=*",KEYH).catch(function(){return getJ("data/oportunidades.json",{cache:"no-cache"});});
+  var met=getJ(SB+"meta?clave=eq.estado&select=*",KEYH).then(function(a){return a&&a[0]||null;}).catch(function(){return getJ("data/meta.json",{cache:"no-cache"}).catch(function(){return null;});});
+  Promise.all([opp,met])
+    .then(function(res){items=(res[0]||[]).map(function(o){Object.keys(o).forEach(function(k){if(o[k]===null)delete o[k];});return o;});metaDoc=res[1];if(metaDoc&&metaDoc.ultima_revision){var d=pd(metaDoc.ultima_revision);if(d)metaDoc.ultima_revision=fmt(d);}render();renderMeta();})
     .catch(function(){document.getElementById("list").innerHTML='<div class="empty">No se pudieron cargar los datos. Revisa tu conexión y recarga la página.</div>';document.getElementById("meta").textContent="";});
   if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){});}
   setInterval(render,36e5);

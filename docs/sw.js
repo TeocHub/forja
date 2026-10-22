@@ -1,6 +1,6 @@
 // Forja: caché simple para que la app abra sin conexión.
 // Los datos se piden primero a la red (siempre lo más nuevo) y solo se usa la caché si no hay conexión.
-const CACHE = "forja-v2";
+const CACHE = "forja-v3";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon.svg", "cotizador.html"];
 self.addEventListener("install", e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener("activate", e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));

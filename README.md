@@ -20,8 +20,7 @@ Web: https://teochub.github.io/forja/ (GitHub Pages, carpeta `docs/`)
 docs/                     sitio publicado en GitHub Pages (app instalable en el celular)
   index.html              módulo Oportunidades
   cotizador.html          módulo Cotizador (datos en localStorage, con respaldo JSON)
-  data/oportunidades.json datos de oportunidades (se actualiza a diario)
-  data/meta.json          fecha y resumen de la última revisión
+  data/                   copia de respaldo de los datos (la fuente principal es Supabase)
   manifest.webmanifest    datos para instalar la app
   sw.js                   caché para abrir sin conexión
 CLAUDE.md                 reglas para Claude al trabajar en este repo
@@ -29,7 +28,7 @@ CLAUDE.md                 reglas para Claude al trabajar en este repo
 
 ## Actualización automática
 
-Una tarea programada de Claude revisa cada mañana (hora de Chile) fuentes oficiales y prensa, actualiza `docs/data/oportunidades.json` y hace commit directo a `main`. GitHub Pages republica el sitio solo.
+Una tarea programada de Claude revisa cada mañana (hora de Chile) fuentes oficiales y prensa y actualiza la base de datos de Supabase (proyecto `forja`). La web lee los datos desde ahí, así que los cambios se ven al instante sin commits. `docs/data/` guarda una copia de respaldo.
 
 ## Datos privados
 

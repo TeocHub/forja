@@ -8,8 +8,10 @@ Proyecto de Teoc (TeocHub) y Skynook, empresa Digital Monster (Chile; no tiene r
 - El repositorio es público: nunca guardar datos privados, claves, cotizaciones reales ni datos personales. Lo privado va a Supabase.
 - Mantener la app instalable (manifest + `sw.js`). Si cambia el shell, subir la versión de `CACHE` en `docs/sw.js`.
 
-## Datos de oportunidades (`docs/data/oportunidades.json`)
-Arreglo de objetos. Campos:
+## Datos de oportunidades
+Fuente principal: Supabase, proyecto `forja` (id `gfkiwldxxvffnkjcesws`), tablas `public.oportunidades` y `public.meta` (fila `clave='estado'`). Lectura pública con la clave publicable; escritura solo con el conector Supabase (la revisión diaria escribe ahí, no en el repo). `docs/data/oportunidades.json` y `docs/data/meta.json` son una copia de respaldo que la web usa si Supabase no responde.
+
+Campos:
 - `id` (minúsculas con guiones, único), `nombre`, `tipo` ("fondo" | "feria" | "convocatoria"), `areas` (array de "videojuego" | "comic" | "juegomesa" | "general")
 - `organiza`, `lugar`
 - `postul_inicio`, `postul_fin`, `evento_inicio`, `evento_fin`: fechas `YYYY-MM-DD`
@@ -21,8 +23,7 @@ Reglas de datos:
 - Una fecha estimada lleva `fechas_estimadas: true` y en `notas` se explica en qué se basa.
 - Si una postulación solo tiene cierre conocido, estimar también la apertura para que no aparezca abierta por error.
 - No borrar convocatorias cerradas ni eventos del último año (sirven de referencia); sí duplicados.
-- Al terminar una revisión, actualizar `docs/data/meta.json` (`ultima_revision` en `YYYY-MM-DD`, `resumen` en una frase).
-- Validar que el JSON parsea antes de hacer commit.
+- Al terminar una revisión, actualizar `public.meta` (`ultima_revision`, `resumen` en una frase).
 
 ## Cotizador (`docs/cotizador.html`)
 - Las cotizaciones son privadas: se guardan en localStorage del navegador (clave `forja-cotizador-v1`) y en respaldos JSON que descarga el usuario. Nunca subir cotizaciones reales al repo.
