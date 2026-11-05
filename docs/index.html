@@ -78,11 +78,13 @@ a{color:var(--accent)}
 .mods a:hover{color:var(--accent)}
 .soon-mod{color:var(--muted)}
 </style>
+<link rel="stylesheet" href="css/forja.css">
+<script type="module">import { nav } from "./js/forja.js"; nav("oportunidades");</script>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <nav class="brand"><span class="logo">Forja</span><span class="mods"><a aria-current="page" href="./">Oportunidades</a><a href="cotizador.html">Cotizador</a><span class="soon-mod" title="Próximamente">Proyectos</span><span class="soon-mod" title="Próximamente">Campañas</span></span></nav>
+    <nav data-forja-nav></nav>
     <h1>Oportunidades</h1>
     <p>Ferias, fondos y convocatorias en Chile para videojuegos, cómic y juegos de mesa.</p>
     <div class="meta" id="meta">Cargando…</div>
@@ -194,7 +196,6 @@ a{color:var(--accent)}
   Promise.all([opp,met])
     .then(function(res){items=(res[0]||[]).map(function(o){Object.keys(o).forEach(function(k){if(o[k]===null)delete o[k];});return o;});metaDoc=res[1];if(metaDoc&&metaDoc.ultima_revision){var d=pd(metaDoc.ultima_revision);if(d)metaDoc.ultima_revision=fmt(d);}render();renderMeta();})
     .catch(function(){document.getElementById("list").innerHTML='<div class="empty">No se pudieron cargar los datos. Revisa tu conexión y recarga la página.</div>';document.getElementById("meta").textContent="";});
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){});}
   setInterval(render,36e5);
 })();
 </script>

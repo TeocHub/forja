@@ -3,7 +3,7 @@
   "short_name": "Forja",
   "description": "Oportunidades, proyectos y campañas de Digital Monster.",
   "lang": "es",
-  "start_url": "./",
+  "start_url": "proyectos.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f4f7",

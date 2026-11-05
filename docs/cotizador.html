@@ -82,20 +82,35 @@ a{color:var(--accent)}
 .formula{font-size:13px;color:var(--muted);max-width:75ch}
 .formula b{color:var(--fg)}
 @media (prefers-reduced-motion:no-preference){button{transition:background .15s,border-color .15s}}
+.hoja{flex-direction:row;flex-wrap:wrap;align-items:end;gap:10px 12px}
+.hoja label.f{flex:1 1 180px}
+#contenido:not([hidden]){display:flex;flex-direction:column;gap:22px}
+#gate:empty{display:none}
+.guardado{font-size:12px;color:var(--muted);font-family:var(--f-num);margin-left:auto}
 </style>
+<link rel="stylesheet" href="css/forja.css">
 </head>
 <body>
 <div class="wrap">
   <header>
-    <nav class="brand"><span class="logo">Forja</span><span class="mods"><a href="./">Oportunidades</a><a aria-current="page" href="cotizador.html">Cotizador</a><span class="soon-mod" title="Próximamente">Proyectos</span><span class="soon-mod" title="Próximamente">Campañas</span></span></nav>
+    <nav data-forja-nav></nav>
     <h1 id="title">Cotizador</h1>
     <p class="lead">Anota las cotizaciones de cada componente y compara cuánto te cuesta realmente cada juego puesto en Chile, según la cantidad que fabriques.</p>
   </header>
 
+  <div id="gate"></div>
+  <div id="contenido" hidden>
+  <section class="panel hoja" aria-label="Cotización abierta">
+    <label class="f">Cotización<select id="h-sel"></select></label>
+    <label class="f">Proyecto<select id="h-proy"><option value="">Sin proyecto</option></select></label>
+    <div class="row"><button id="h-nueva" type="button">+ Nueva</button><button id="h-dup" type="button">Duplicar</button><a id="h-ir" class="hint" hidden>Abrir proyecto</a></div>
+    <span class="guardado" id="h-estado" aria-live="polite"></span>
+  </section>
+
   <section class="panel" aria-labelledby="h-proy">
-    <h2 id="h-proy">Proyecto</h2>
+    <h2 id="h-proy">Datos de la cotización</h2>
     <div class="grid">
-      <label class="f">Nombre del proyecto<input id="p-nombre" type="text" autocomplete="off"></label>
+      <label class="f">Nombre de la cotización<input id="p-nombre" type="text" autocomplete="off"></label>
       <label class="f">Cantidades a comparar (separadas por coma)<input id="p-cant" type="text" inputmode="numeric" autocomplete="off"></label>
       <label class="f">Dólar (CLP por 1 USD)<input id="p-dolar" type="number" min="1" step="0.01" inputmode="decimal"></label>
     </div>
@@ -141,21 +156,24 @@ a{color:var(--accent)}
 
   <section class="panel" aria-labelledby="h-datos">
     <h2 id="h-datos">Tus datos</h2>
-    <p class="hint">Todo se guarda solo en este navegador. Descarga un respaldo de vez en cuando, y úsalo para pasar tus cotizaciones a otro equipo.</p>
+    <p class="hint">Se guarda solo en tu cuenta, así que la ves en cualquier dispositivo con tu correo. El respaldo descarga esta cotización como archivo; al cargar uno, reemplaza la cotización abierta.</p>
     <div class="row">
       <button id="b-export" type="button">Descargar respaldo</button>
       <label class="f" style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)"><span>Cargar respaldo</span><input id="b-import" type="file" accept="application/json,.json" style="max-width:240px"></label>
-      <button id="b-reset" type="button" class="danger">Borrar todo</button>
+      <button id="b-reset" type="button" class="danger">Borrar esta cotización</button>
     </div>
     <div id="reset-confirm" hidden class="row">
-      <span>¿Borrar el proyecto y todas las cotizaciones de este navegador?</span>
+      <span>¿Borrar esta cotización de tu cuenta? No se puede deshacer.</span>
       <button id="b-reset-yes" type="button" class="danger">Sí, borrar</button>
       <button id="b-reset-no" type="button">Cancelar</button>
     </div>
   </section>
+  </div>
 </div>
 
-<script>
+<script type="module">
+import { sb, espacio, conSesion, nav, debounce } from "./js/forja.js";
+nav("cotizador");
 (function(){
   var KEY="forja-cotizador-v1";
   var TIPOS={
@@ -181,10 +199,16 @@ a{color:var(--accent)}
     return {nombre:"Juego de escape (estilo Exit)",cantidades:[10,100,500],dolar:null,dolarInfo:"",sinIva:false,
       componentes:t.map(function(k){return {id:uid(),tipo:k,nombre:TIPOS[k].nombre,specs:{}};}),cotizaciones:[]};
   }
-  var S;
-  try{S=JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){S=null;}
-  if(!S||!Array.isArray(S.componentes))S=defaults();
-  function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast("No se pudo guardar en este navegador. Descarga un respaldo.");}}
+  var S=defaults(),ESP=null,HOJA=null,LISTA=[],PROYS=[];
+  var subir=debounce(function(){
+    if(!HOJA)return;var id=HOJA.id,nombre=(S.nombre||"").trim()||"Sin nombre";
+    sb.from("cotizaciones").update({datos:S,nombre:nombre}).eq("id",id).then(function(r){
+      if(r.error){$("h-estado").textContent="";toast("No se pudo guardar. Revisa tu conexión.");return;}
+      $("h-estado").textContent="Guardado";var it=LISTA.filter(function(x){return x.id===id;})[0];
+      if(it&&it.nombre!==nombre){it.nombre=nombre;pintarHoja();}
+    });
+  },700);
+  function save(){$("h-estado").textContent="Guardando…";subir();}
 
   var $=function(id){return document.getElementById(id);};
   function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
@@ -377,10 +401,67 @@ a{color:var(--accent)}
   });
   $("b-reset").addEventListener("click",function(){$("reset-confirm").hidden=false;});
   $("b-reset-no").addEventListener("click",function(){$("reset-confirm").hidden=true;});
-  $("b-reset-yes").addEventListener("click",function(){S=defaults();save();$("reset-confirm").hidden=true;renderAll();toast("Datos borrados");});
+  $("b-reset-yes").addEventListener("click",function(){
+    var id=HOJA.id;$("reset-confirm").hidden=true;
+    sb.from("cotizaciones").delete().eq("id",id).then(function(r){
+      if(r.error){toast("No se pudo borrar.");return;}
+      LISTA=LISTA.filter(function(x){return x.id!==id;});toast("Cotización borrada");
+      if(LISTA.length)abrir(LISTA[0].id);else nueva(defaults());
+    });
+  });
 
-  renderAll();
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){});}
+  /* --- cotizaciones en la cuenta --- */
+  function valida(d){return d&&Array.isArray(d.componentes)&&Array.isArray(d.cotizaciones);}
+  function pintarHoja(){
+    $("h-sel").innerHTML=LISTA.map(function(c){return '<option value="'+c.id+'"'+(HOJA&&c.id===HOJA.id?" selected":"")+'>'+esc(c.nombre)+'</option>';}).join("");
+    $("h-proy").innerHTML='<option value="">Sin proyecto</option>'+PROYS.map(function(p){return '<option value="'+p.id+'"'+(HOJA&&HOJA.proyecto_id===p.id?" selected":"")+'>'+esc(p.nombre)+'</option>';}).join("");
+    var ir=$("h-ir");if(HOJA&&HOJA.proyecto_id){ir.hidden=false;ir.href="proyectos.html#p="+HOJA.proyecto_id;}else ir.hidden=true;
+  }
+  function abrir(id){
+    return sb.from("cotizaciones").select("id,nombre,proyecto_id,datos").eq("id",id).maybeSingle().then(function(r){
+      if(r.error||!r.data){if(LISTA.length&&id!==LISTA[0].id)return abrir(LISTA[0].id);toast("No se encontró esa cotización.");return;}
+      HOJA=r.data;
+      if(valida(HOJA.datos))S=HOJA.datos;else{S=defaults();S.nombre=HOJA.nombre&&HOJA.nombre!=="Sin nombre"?HOJA.nombre:S.nombre;save();}
+      history.replaceState(null,"","?c="+HOJA.id);
+      $("h-estado").textContent="";pintarHoja();renderAll();
+    });
+  }
+  function nueva(datos,proyecto){
+    var fila={espacio_id:ESP,nombre:(datos.nombre||"").trim()||"Sin nombre",datos:datos,proyecto_id:proyecto||null};
+    return sb.from("cotizaciones").insert(fila).select("id,nombre,actualizado_en").single().then(function(r){
+      if(r.error){toast("No se pudo crear la cotización.");throw r.error;}
+      LISTA.unshift(r.data);return abrir(r.data.id);
+    });
+  }
+  $("h-sel").addEventListener("change",function(e){abrir(e.target.value);});
+  $("h-nueva").addEventListener("click",function(){var d=defaults();d.nombre="Nueva cotización";d.componentes=[];nueva(d);});
+  $("h-dup").addEventListener("click",function(){var d=JSON.parse(JSON.stringify(S));d.nombre=(S.nombre||"Cotización")+" (copia)";nueva(d,HOJA&&HOJA.proyecto_id).then(function(){toast("Duplicada");});});
+  $("h-proy").addEventListener("change",function(e){
+    var v=e.target.value||null;
+    sb.from("cotizaciones").update({proyecto_id:v}).eq("id",HOJA.id).then(function(r){if(r.error){toast("No se pudo ligar al proyecto.");return;}HOJA.proyecto_id=v;pintarHoja();toast(v?"Ligada al proyecto":"Sin proyecto");});
+  });
+
+  conSesion($("gate"),function(){
+    return espacio().then(function(e){
+      ESP=e;if(!ESP)throw new Error("sin espacio");
+      return Promise.all([
+        sb.from("cotizaciones").select("id,nombre,actualizado_en").eq("espacio_id",ESP).order("actualizado_en",{ascending:false}),
+        sb.from("proyectos").select("id,nombre").eq("espacio_id",ESP).neq("estado","archivado").order("nombre")
+      ]);
+    }).then(function(res){
+      if(res[0].error)throw res[0].error;
+      LISTA=res[0].data||[];PROYS=res[1].data||[];
+      $("contenido").hidden=false;
+      // Cotización que estaba guardada solo en este navegador: se sube una vez a la cuenta.
+      var viejo=null;try{viejo=JSON.parse(localStorage.getItem(KEY)||"null");}catch(err){}
+      var subida=false;try{subida=localStorage.getItem(KEY+"-subida")==="1";}catch(err){}
+      if(valida(viejo)&&!subida)return nueva(viejo).then(function(){try{localStorage.setItem(KEY+"-subida","1");}catch(err){}toast("Traje a tu cuenta la cotización que tenías en este navegador.");});
+      var want=new URLSearchParams(location.search).get("c");
+      if(want)return abrir(want);
+      if(LISTA.length)return abrir(LISTA[0].id);
+      return nueva(defaults());
+    });
+  },"Tus cotizaciones son privadas: se guardan en tu cuenta y las ves desde cualquier dispositivo.");
 })();
 </script>
 </body>
