@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Eventos</title>
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: eventos — una línea de tiempo con las fechas de lo que sigues (cierres y eventos, por mes) y, debajo, sugerencias por proyecto */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+a{color:var(--accent)}
+.wrap{max-width:980px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--f-display);font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0}
+h2{font-family:var(--f-display);font-size:20px;margin:0}
+.lead{margin:6px 0 0;color:var(--muted);max-width:62ch}
+section{margin-top:30px;display:flex;flex-direction:column;gap:12px}
+:where(button,a,select):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.linea{position:relative;padding-left:26px;display:flex;flex-direction:column;gap:6px}
+.linea::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.mes{font-family:var(--f-num);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:14px 0 2px -26px;padding-left:26px;position:relative}
+.mes:first-child{margin-top:0}
+.hito{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.hito::before{content:"";position:absolute;left:-23px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--card);border:2.5px solid var(--hc)}
+.hito.cierre{--hc:var(--ember)} .hito.evento{--hc:var(--accent)}
+.hito.pronto{border-color:var(--ember);background:color-mix(in srgb,var(--ember) 6%,var(--card))}
+.dia{text-align:center;line-height:1.05}
+.dia b{display:block;font-family:var(--f-num);font-size:22px}
+.dia small{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.hito .que{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--hc)}
+.hito h3{font-family:var(--f-display);font-size:16px;margin:1px 0;line-height:1.25}
+.hito .para{font-size:13px;color:var(--muted)}
+.hito .para a{color:inherit}
+.faltan{font-family:var(--f-num);font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+.hito.pronto .faltan{color:var(--ember);font-weight:700}
+@media (max-width:560px){.hito{grid-template-columns:52px minmax(0,1fr)}.faltan{grid-column:2;text-align:left}}
+.vacio{border:1.5px dashed var(--line);border-radius:16px;padding:24px;color:var(--muted);text-align:center}
+.grupo{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;border-left:5px solid var(--tc)}
+.grupo h3{font-family:var(--f-display);font-size:17px;margin:0}
+.sugs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.sug{background:var(--field);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.sug b{font-size:14px}
+.sug span{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.sug button{align-self:flex-start;font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:3px 10px;cursor:pointer;margin-top:2px}
+.sug button:hover{border-color:var(--accent)}
+.cab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="app"><div class="fx-empty">Cargando…</div></main>
+</div>
+<script type="module">
+import { sb, $, esc, toast, navApp, espacio, conSesion, proximamente, activarAvisame } from "../js/forja.js";
+import { TIPOS, tc, areaDe } from "../js/guias.js";
+import { funcion } from "../js/planes.js";
+import { pista } from "../js/ayuda.js";
+navApp("eventos");
+const MES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const ESTOP = { interesa: "me interesa", postulando: "postulando", postulado: "postulé", aceptado: "aceptado", descartado: "descartado" };
+const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+const pd = (s) => { if (!s) return null; const [y, m, d] = s.split("-"); return new Date(+y, m - 1, +d); };
+const dias = (d) => Math.round((d - hoy) / 864e5);
+
+let ESP, PROYS = [], SEGS = [], OPS = [];
+conSesion($("app"), async () => {
+  ESP = await espacio();
+  const [p, s, o] = await Promise.all([
+    sb.from("proyectos").select("id,nombre,tipo,formato,estado").eq("espacio_id", ESP),
+    sb.from("proyecto_oportunidades").select("proyecto_id,oportunidad_id,estado").eq("espacio_id", ESP),
+    sb.from("oportunidades").select("*"),
+  ]);
+  if (p.error || s.error) throw p.error || s.error;
+  PROYS = p.data || []; SEGS = s.data || []; OPS = o.data || [];
+  pintar();
+});
+
+function hitos() {
+  const out = [];
+  SEGS.filter((s) => s.estado !== "descartado").forEach((s) => {
+    const op = OPS.find((x) => x.id === s.oportunidad_id), pr = PROYS.find((x) => x.id === s.proyecto_id);
+    if (!op || !pr) return;
+    const add = (fecha, que, cls) => { const d = pd(fecha); if (d && dias(d) >= 0) out.push({ d, que, cls, op, pr, s }); };
+    if (pd(op.postul_inicio) && dias(pd(op.postul_inicio)) > 0) add(op.postul_inicio, "Abre la postulación", "evento");
+    add(op.postul_fin, "Cierra la postulación", "cierre");
+    add(op.evento_inicio, "Evento", "evento");
+  });
+  return out.sort((a, b) => a.d - b.d);
+}
+
+function pintar() {
+  const H = hitos();
+  let mesAnt = "";
+  const linea = H.map((h) => {
+    const m = MES[h.d.getMonth()] + " " + h.d.getFullYear(), n = dias(h.d), pronto = n <= 14;
+    const cab = m !== mesAnt ? '<div class="mes">' + m + "</div>" : ""; mesAnt = m;
+    return cab + '<article class="hito ' + h.cls + (pronto ? " pronto" : "") + '"><div class="dia"><b>' + h.d.getDate() + "</b><small>" + MES[h.d.getMonth()].slice(0, 3) + "</small></div>" +
+      '<div><span class="que">' + h.que + (h.op.fechas_estimadas ? " · fecha estimada" : "") + "</span><h3>" + esc(h.op.nombre) + '</h3><span class="para">Para <a href="../proyecto/?p=' + h.pr.id + '#oportunidades">' + esc(h.pr.nombre) + "</a> · " + ESTOP[h.s.estado] + "</span></div>" +
+      '<span class="faltan">' + (n === 0 ? "hoy" : n === 1 ? "mañana" : "en " + n + " días") + "</span></article>";
+  }).join("");
+
+  const activos = PROYS.filter((x) => x.estado !== "archivado");
+  const vivas = (o) => { const pf = pd(o.postul_fin), ei = pd(o.evento_inicio); return (pf && dias(pf) >= 0) || (ei && dias(ei) > 0); };
+  const sug = activos.map((pr) => {
+    const area = areaDe(pr.tipo, pr.formato);
+    const l = OPS.filter((o) => (o.areas || []).includes(area) && vivas(o) && !SEGS.some((s) => s.proyecto_id === pr.id && s.oportunidad_id === o.id))
+      .sort((a, b) => (pd(a.postul_fin) || pd(a.evento_inicio)) - (pd(b.postul_fin) || pd(b.evento_inicio))).slice(0, 3);
+    return { pr, l };
+  }).filter((x) => x.l.length);
+
+  const fa = funcion("alertas"), ft = funcion("tareas");
+  $("app").innerHTML =
+    '<header><h1>Eventos</h1><p class="lead">Las fechas de las ferias, fondos y convocatorias que siguen tus proyectos, de la más cercana a la más lejana.</p></header>' +
+    '<section aria-labelledby="t-fechas"><div class="cab"><h2 id="t-fechas">Próximas fechas</h2><a href="../oportunidades/" style="font-size:14px">Ver el calendario completo</a></div>' +
+    (H.length ? '<div class="linea">' + linea + "</div>" : '<div class="vacio">Todavía no sigues oportunidades con fechas próximas. Abajo hay algunas que calzan con tus proyectos; también puedes seguirlas desde la pestaña Oportunidades de cada proyecto.</div>') + "</section>" +
+    (sug.length ? '<section aria-labelledby="t-sug"><h2 id="t-sug">Para tus proyectos</h2>' + sug.map(({ pr, l }) =>
+      '<div class="grupo" style="--tc:' + tc(pr.tipo) + '"><h3>' + esc(pr.nombre) + ' <span style="font-size:12px;color:var(--muted);font-family:var(--f-body);font-weight:400">' + esc(TIPOS[pr.tipo]) + '</span></h3><div class="sugs">' +
+      l.map((o) => { const pf = pd(o.postul_fin), ei = pd(o.evento_inicio), t = pf && dias(pf) >= 0 ? "postulación cierra en " + dias(pf) + " días" : "evento en " + dias(ei) + " días";
+        return '<div class="sug"><b>' + esc(o.nombre) + "</b><span>" + (o.fechas_estimadas ? "≈ " : "") + t + '</span><button type="button" data-seguir="' + o.id + '" data-p="' + pr.id + '">Seguir</button></div>'; }).join("") + "</div></div>").join("") + "</section>" : "") +
+    '<section aria-labelledby="t-pronto"><h2 id="t-pronto">Próximamente</h2><div class="sugs">' + proximamente(fa.k, fa.t, fa.d, true) + proximamente(ft.k, ft.t, ft.d, true) + "</div></section>";
+  activarAvisame($("app"));
+  pista($("app").querySelector("header"), "eventos");
+  $("app").querySelectorAll("[data-seguir]").forEach((b) => b.onclick = async () => {
+    const { error } = await sb.from("proyecto_oportunidades").insert({ proyecto_id: b.dataset.p, oportunidad_id: b.dataset.seguir, espacio_id: ESP });
+    if (error) { toast("No se pudo agregar."); return; }
+    SEGS.push({ proyecto_id: b.dataset.p, oportunidad_id: b.dataset.seguir, estado: "interesa" }); pintar(); toast("Agregada a tus eventos");
+  });
+}
+</script>
+</body>
+</html>

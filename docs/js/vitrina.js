@@ -15,6 +15,7 @@ export const TONOS = {
   noche: { n: "Noche", d: "Oscuro, para imágenes con brillo." },
   papel: { n: "Papel", d: "Cálido y con letra de libro." },
 };
+const RAIZ = new URL("../", import.meta.url).href; // raíz del sitio, para enlazar desde cualquier carpeta
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 export const okUrl = (u) => (/^https:\/\/[^\s"'<>]+$/i.test(String(u || "").trim()) ? String(u).trim() : "");
 export const okColor = (c) => (/^#[0-9a-f]{6}$/i.test(c || "") ? c.toLowerCase() : "");
@@ -97,7 +98,7 @@ export function pintarVitrina(raiz, datos, opts = {}) {
     : '<div class="vt-generativa" aria-hidden="true" style="--c2:' + (colores[0] || "var(--vt-acento)") + ";--c3:" + (colores[1] || colores[0] || "var(--vt-acento)") + '"><span>' + esc((d.titulo || "?").trim()[0] || "?") + "</span></div>";
 
   raiz.innerHTML = '<div class="vt' + (d.portada ? "" : " sin-portada") + '" data-tono="' + d.tono + '" style="--vt-acento:' + d.acento + '">' +
-    (previa ? "" : '<div class="vt-barra"><a href="index.html" class="vt-marca">Forja</a><a href="entrar.html" class="vt-crea">Crea la vitrina de tu proyecto</a></div>') +
+    (previa ? "" : '<div class="vt-barra"><a href="' + RAIZ + '" class="vt-marca">Forja</a><a href="' + RAIZ + 'entrar/" class="vt-crea">Crea la vitrina de tu proyecto</a></div>') +
     '<header class="vt-hero' + (d.portada ? " con-imagen" : "") + '">' + fondoHero +
       '<div class="vt-hero-txt">' + (etiqueta ? '<span class="vt-etq">' + esc(etiqueta) + "</span>" : "") +
       "<h1>" + (d.titulo ? esc(d.titulo) : "<i>Sin título</i>") + "</h1>" + (d.lema ? '<p class="vt-lema">' + esc(d.lema) + "</p>" : "") +
@@ -118,7 +119,7 @@ export function pintarVitrina(raiz, datos, opts = {}) {
       '<a href="' + esc(e.url) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + "><b>" + esc(e.nombre || dominio(e.url)) + "</b><small>" + esc(dominio(e.url)) + "</small></a>").join("") + "</div></section>" : "") +
     (!partes.length ? '<p class="vt-vacia">' + (previa ? "Agrega la historia, imágenes o novedades desde el panel y aparecerán aquí." : "Esta vitrina se está preparando.") + "</p>" : "") +
     "</main>" +
-    '<footer class="vt-pie"><span>' + (opts.fecha ? "Actualizada el " + esc(fechaTxt(opts.fecha)) + " · " : "") + 'Vitrina hecha con <a href="index.html"' + (previa ? ' tabindex="-1"' : "") + ">Forja</a></span></footer>" +
+    '<footer class="vt-pie"><span>' + (opts.fecha ? "Actualizada el " + esc(fechaTxt(opts.fecha)) + " · " : "") + 'Vitrina hecha con <a href="' + RAIZ + '"' + (previa ? ' tabindex="-1"' : "") + ">Forja</a></span></footer>" +
     '<dialog class="vt-caja"><button type="button" class="vt-cerrar" aria-label="Cerrar">×</button><figure></figure></dialog></div>';
 
   const vt = raiz.querySelector(".vt");

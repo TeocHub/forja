@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Proyecto</title>
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: página de proyecto — cabecera editable y pestañas (Taller, Referentes, Brújula, Costos, Oportunidades, Bitácora); el Taller es índice de secciones + hoja de escritura */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0}
+a{color:var(--accent)}
+button,select,input,textarea{font:inherit;color:var(--fg)}
+button{cursor:pointer}
+:where(button,select,input,textarea,a,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:13px;color:var(--muted)}
+#app{display:flex;flex-direction:column;gap:18px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn.prim{background:var(--accent);border-color:var(--accent);color:var(--card);font-weight:700}
+.btn.peligro{color:var(--bad)}
+.btn.chico{padding:3px 9px;font-size:13px}
+.vol{font-size:14px;text-decoration:none}
+
+/* cabecera */
+.cabeza{display:flex;flex-direction:column;gap:10px;border-left:5px solid var(--tc);padding-left:14px}
+.cabeza input.nombre{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,38px);line-height:1.15;border:1px solid transparent;border-radius:8px;background:transparent;padding:2px 6px;margin-left:-7px;width:100%}
+.cabeza input.nombre:hover{border-color:var(--line)}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.ctrl select{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 10px;font-size:14px}
+.estados{display:inline-flex;max-width:100%;overflow-x:auto;scrollbar-width:none;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+.estados button{white-space:nowrap;flex:none;border:0;background:transparent;padding:4px 11px;font-size:13px;color:var(--muted)}
+.estados button[aria-pressed="true"]{background:var(--fg);color:var(--bg);font-weight:700}
+.lectura{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border:1.5px solid var(--e-pausa);background:color-mix(in srgb,var(--e-pausa) 8%,var(--card));border-radius:12px;padding:10px 14px;font-size:14px}
+.lectura b{color:var(--e-pausa)}
+:disabled{cursor:not-allowed}
+.total.tope{display:flex;flex-direction:column;gap:5px;--ec:var(--accent)}
+@media (max-width:820px){.total.tope{display:flex;flex:none;min-width:160px;padding:4px 8px}}
+.total.tope.cerca{--ec:var(--e-pausa)}
+.total.tope small{font-family:var(--f-body);font-size:12px;color:var(--e-pausa)}
+.pronto-fila{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+.pronto-cab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:14px}
+.pronto-cab b{font-family:var(--f-display);font-size:15px}
+.pronto-cab a{font-size:13px}
+.pronto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+/* vitrina */
+.vit-vivo{font-size:13px;font-weight:700;color:var(--good)}
+.vit-hero{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:20px;align-items:center}
+.vit-acc{display:flex;gap:8px;flex-wrap:wrap}
+.vit-acc .btn{text-decoration:none;display:inline-flex;align-items:center}
+.vit-ilus{width:100%;height:auto}
+.vit-ilus rect{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+.vit-ilus .h{fill:color-mix(in srgb,var(--tc,var(--accent)) 22%,var(--card));stroke:none}
+.vit-ilus .t{fill:var(--tc,var(--accent));stroke:none}
+.vit-ilus .l{fill:var(--line);stroke:none}
+.vit-ilus .g{fill:color-mix(in srgb,var(--tc,var(--accent)) 12%,var(--field));stroke:none}
+@media (max-width:640px){.vit-hero{grid-template-columns:1fr}.vit-ilus{display:none}}
+/* pizarra: pestañas de pizarras, elección de modo y cabecera */
+.piz-cab{display:flex;flex-direction:column;gap:8px}
+.piz-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:thin;padding-bottom:2px}
+.piz-chips [data-piz]{flex:none;display:flex;align-items:center;gap:9px;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:6px 12px 6px 8px;position:relative}
+.piz-chips [data-piz] svg{width:38px;height:29px;flex:none}
+.piz-chips [data-piz] span{display:flex;flex-direction:column;line-height:1.2}
+.piz-chips [data-piz] b{font-family:var(--f-display);font-size:14px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.piz-chips [data-piz] small{font-size:11.5px;color:var(--muted)}
+.piz-chips [data-piz][aria-selected="true"]{border-color:var(--tc);box-shadow:inset 0 -3px 0 var(--tc)}
+.piz-candado{color:var(--muted);display:flex;margin-left:2px}
+.piz-chips .piz-candado svg{width:14px;height:14px}
+.piz-chips .piz-candado svg *{fill:currentColor;stroke:none}
+.piz-nueva{flex:none;border:1.5px dashed var(--line);background:none;border-radius:12px;padding:8px 14px;font-size:14px;color:var(--muted)}
+.piz-nueva:hover,.piz-nueva[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.piz-modos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px}
+.piz-op{position:relative;display:flex;flex-direction:column;gap:5px;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:12px 14px 14px}
+.piz-op:hover:not(:disabled){border-color:var(--tc);box-shadow:0 6px 20px rgba(10,14,30,.07)}
+.piz-op svg{width:100%;max-width:120px;height:auto;margin-bottom:4px}
+.piz-op b{font-family:var(--f-display);font-size:16px}
+.piz-op span{font-size:13px;color:var(--muted);line-height:1.45}
+.piz-op em{position:absolute;top:10px;right:10px;font-style:normal;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--ember);border:1px solid color-mix(in srgb,var(--ember) 45%,var(--line));border-radius:999px;padding:1px 8px;background:var(--ember-soft)}
+.piz-op.bloq svg{opacity:.55}
+.piz-chips svg *,.piz-op svg *{fill:color-mix(in srgb,var(--tc,var(--accent)) 16%,var(--card));stroke:var(--tc,var(--accent));stroke-width:2}
+.piz-chips svg .l,.piz-op svg .l{fill:none;stroke:var(--muted);stroke-width:2}
+.piz-chips svg .l.r,.piz-op svg .l.r{stroke:var(--ember)}
+.piz-chips svg .l.d,.piz-op svg .l.d{stroke-dasharray:4 4}
+.piz-chips svg .col,.piz-op svg .col{fill:color-mix(in srgb,var(--muted) 10%,var(--card));stroke:var(--line)}
+.piz-chips svg .pin,.piz-op svg .pin{fill:var(--ember);stroke:none}
+.piz-nota{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;border:1.5px dashed var(--ember);background:var(--ember-soft);border-radius:12px;padding:10px 14px;font-size:14px}
+.piz-lock{margin:10px 0 0;align-items:center}
+.piz-lock svg{color:var(--e-pausa);flex:none}
+.piz-titulo{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:14px 0 10px}
+.piz-titulo input{font-family:var(--f-display);font-weight:700;font-size:20px;border:1px solid transparent;border-radius:8px;background:transparent;padding:2px 6px;margin-left:-7px;min-width:0;flex:1 1 220px}
+.piz-titulo input:hover:not(:disabled){border-color:var(--line)}
+.piz-modo{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.piz-pie{margin:10px 0 0}
+.ref.destello{animation:destello 1.6s ease-out}
+@keyframes destello{0%,40%{box-shadow:0 0 0 3px var(--ember)}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.ref.destello{animation:none;box-shadow:0 0 0 3px var(--ember)}}
+.sel{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.sel select{font-size:15px}
+.estado-w{display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--ec) 8%,var(--card));border:1.5px solid color-mix(in srgb,var(--ec) 40%,var(--line));border-radius:14px;padding:10px 12px}
+.estados button[aria-checked="true"]{background:var(--ec);color:#fff;font-weight:700}
+.estados button[aria-checked="true"]::before{content:"● ";font-size:10px}
+.avance-w{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.avance-w .fx-avance{flex:1;height:8px}
+.avance-w b{color:var(--fg);font-family:var(--f-num)}
+.fx-tabs .punto{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ember);margin-left:5px;vertical-align:2px}
+.sugerencia{margin-top:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border:1.5px dashed var(--ember);background:var(--ember-soft);border-radius:14px;padding:12px 14px}
+.sugerencia .ops{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.sugerencia .ops .hint{background:none;border:0;padding:2px 0}
+.sugerencia .ops .menos{text-decoration:line-through;color:var(--muted)}
+.indice .aparte{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 10px 2px;border-top:1px dashed var(--line);margin-top:6px}
+@media (max-width:820px){.indice .aparte{flex:none;border:0;padding:8px 2px 0 8px;margin:0;align-self:center;border-left:1px dashed var(--line)}}
+.sugerencia .ops span{font-size:13px;border-radius:999px;padding:2px 10px;background:var(--card);border:1px solid var(--line)}
+.sugerencia .acc{display:flex;gap:6px}
+.etapa{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.etapa-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.etapa-top b{font-family:var(--f-num);font-size:13px}
+.etapas{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.etapas button{flex:1 0 auto;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:5px 9px;font-size:13px;white-space:nowrap}
+.etapas button[aria-pressed="true"]{background:var(--tc);border-color:var(--tc);color:#fff;font-weight:700}
+.etapa-fina{display:flex;align-items:center;gap:12px}
+.etapa-fina input[type=range]{flex:1;accent-color:var(--tc)}
+.peso{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.peso input{width:64px;border:1px solid var(--line);background:var(--field);border-radius:6px;padding:3px 6px;font-family:var(--f-num)}
+.indice button.sec{position:relative;overflow:hidden}
+.indice button.sec::after{content:"";position:absolute;left:10px;right:10px;bottom:3px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--tc) var(--av),transparent var(--av))}
+.indice button.sec.lista span:first-child::before{content:"✓ ";color:var(--good)}
+.sello{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--ember);color:var(--ember);border-radius:999px;padding:1px 10px;font-weight:700;font-size:13px;background:none}
+textarea.resumen{width:100%;min-height:64px;resize:vertical;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;line-height:1.5}
+.fx-tabs{position:sticky;top:0;z-index:5;background:var(--bg)}
+
+.bloque{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 12px}
+.vacio{border:1.5px dashed var(--line);border-radius:14px;padding:22px;color:var(--muted);text-align:center}
+
+/* taller */
+.taller{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:820px){.taller{grid-template-columns:minmax(0,1fr)}}
+.indice{position:sticky;top:52px;display:flex;flex-direction:column;gap:2px}
+@media (max-width:820px){.indice{position:static;flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px;scrollbar-width:thin}}
+.indice button.sec{display:flex;justify-content:space-between;gap:8px;align-items:baseline;text-align:left;border:0;background:transparent;border-radius:8px;padding:7px 10px;font-size:14px;color:var(--muted)}
+.indice button.sec .w{font-family:var(--f-num);font-size:11px}
+.indice button.sec.lleno{color:var(--fg)}
+.indice button.sec[aria-current="true"]{background:var(--card);color:var(--fg);font-weight:700;box-shadow:inset 3px 0 0 var(--tc)}
+@media (max-width:820px){.indice button.sec{flex:none;border:1px solid var(--line);background:var(--card);white-space:nowrap}.indice button.sec[aria-current="true"]{box-shadow:none;border-color:var(--tc)}}
+.indice .mas{margin-top:8px}
+@media (max-width:820px){.indice .mas{margin-top:0;flex:none}}
+.total{font-size:12px;color:var(--muted);font-family:var(--f-num);padding:8px 10px}
+@media (max-width:820px){.total{display:none}}
+.hoja{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:clamp(16px,3vw,28px);display:flex;flex-direction:column;gap:12px;min-width:0}
+.hoja.foco{position:fixed;inset:0;z-index:40;border-radius:0;overflow:auto;padding:clamp(18px,6vw,80px) max(18px,calc((100vw - 760px)/2))}
+.hoja .tit{font-family:var(--f-display);font-weight:700;font-size:24px;border:1px solid transparent;border-radius:8px;background:transparent;padding:2px 6px;margin-left:-7px;width:100%}
+.hoja .tit:hover{border-color:var(--line)}
+.guia{border:1px solid var(--line);border-radius:12px;background:var(--field)}
+.guia summary{cursor:pointer;padding:8px 12px;font-size:14px;color:var(--accent);list-style:none}
+.guia summary::-webkit-details-marker{display:none}
+.guia summary::before{content:"✦ ";color:var(--ember)}
+.guia .pregs{padding:0 12px 10px;display:flex;flex-direction:column;gap:6px}
+.guia .preg{font-size:14px;color:var(--muted);border-left:2px solid var(--line);padding-left:10px;cursor:pointer;background:none;border-top:0;border-right:0;border-bottom:0;text-align:left}
+.guia .preg:hover{color:var(--fg);border-left-color:var(--ember)}
+textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;background:transparent;font-family:"Literata",Georgia,serif;font-size:17px;line-height:1.75;padding:4px 0;outline:none}
+.hoja.foco textarea.texto{font-size:19px;min-height:70vh}
+.barra{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px}
+.barra .acc{display:flex;flex-wrap:wrap;gap:6px}
+.est{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.menu-sec{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--accent);border-radius:14px;padding:14px}
+.menu-sec .ops{display:flex;flex-wrap:wrap;gap:6px}
+.menu-sec .ops button{border:1px solid var(--line);background:var(--field);border-radius:999px;padding:4px 11px;font-size:13px}
+.menu-sec .ops button:hover{border-color:var(--accent)}
+.menu-sec .fila{display:flex;gap:6px}
+.menu-sec input{flex:1;min-width:0;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:6px 10px}
+
+/* referentes */
+.agregar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.agregar input,.agregar textarea{width:100%;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:9px 12px}
+.agregar .extra{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;gap:8px}
+@media (max-width:640px){.agregar .extra{grid-template-columns:minmax(0,1fr)}}
+.agregar select{border:1px solid var(--line);background:var(--field);border-radius:10px;padding:8px}
+.detecta{grid-column:1/-1;font-size:13px;color:var(--muted);min-height:1.4em}
+.filtro{display:flex;flex-wrap:wrap;gap:6px}
+.filtro button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 11px;font-size:13px}
+.filtro button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.muro{columns:3 260px;column-gap:12px}
+.ref{break-inside:avoid;margin:0 0 12px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.ref .media{position:relative;background:var(--field)}
+.ref img{display:block;width:100%;height:auto}
+.ref .play{position:absolute;inset:0;display:grid;place-items:center;border:0;background:linear-gradient(transparent,rgba(0,0,0,.25));color:#fff;font-size:15px;font-weight:700}
+.ref .play span{background:rgba(0,0,0,.6);border-radius:999px;padding:8px 16px}
+.ref iframe{display:block;width:100%;border:0}
+.ref .video iframe{aspect-ratio:16/9;height:auto}
+.ref .swatch{height:120px;display:flex;align-items:flex-end;padding:10px 12px;font-family:var(--f-num);font-weight:700}
+.ref blockquote{margin:0;padding:18px 18px 8px;font-family:"Literata",Georgia,serif;font-size:17px;line-height:1.6}
+.ref blockquote::before{content:"“";font-size:40px;line-height:0;vertical-align:-14px;color:var(--ember);margin-right:2px}
+.ref .link{padding:14px;display:flex;flex-direction:column;gap:2px;text-decoration:none;color:var(--fg)}
+.ref .link small{font-family:var(--f-num);font-size:11px;color:var(--muted);letter-spacing:.03em}
+.ref .link b{font-family:var(--f-display);font-size:16px;overflow-wrap:anywhere}
+.ref .cuerpo{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px}
+.ref .cuerpo b{font-family:var(--f-display);font-size:15px}
+.ref .cuerpo p{margin:0;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ref .cuerpo .meta{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ref .cuerpo .meta button{border:0;background:none;color:var(--muted);font-size:12px;text-transform:none;letter-spacing:0;padding:0 3px}
+.ref .cuerpo .meta button:hover{color:var(--accent)}
+.ref .cuerpo textarea,.ref .cuerpo input{width:100%;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:6px 8px;font-size:14px}
+
+/* brújula */
+.brujula{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:760px){.brujula{grid-template-columns:minmax(0,1fr)}}
+.leyenda-b{display:flex;justify-content:center;gap:6px 14px;align-items:center;font-size:12px;color:var(--muted);margin:2px 0 0}
+.leyenda-b i{display:inline-block;width:18px;height:0;border-top:2px solid var(--accent);margin-right:-8px}
+.leyenda-b i.l2{border-top:2px dashed var(--ember)}
+.pregunta{min-height:2.8em;text-align:center;font-size:13px;color:var(--muted);max-width:44ch;margin:4px auto 0}
+.veredicto{font-size:15px;max-width:58ch;margin:0 auto;text-align:center}
+.formatos{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.formatos button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:14px;display:inline-flex;gap:6px;align-items:baseline}
+.formatos button small{font-family:var(--f-num);font-size:11px;color:var(--muted)}
+.formatos button[aria-pressed="true"]{border-color:var(--ember);background:var(--ember-soft);font-weight:700}
+
+/* costos y oportunidades */
+.comps{display:flex;flex-wrap:wrap;gap:6px}
+.comps span{font-size:13px;border-radius:8px;padding:3px 10px;background:var(--field);border:1px solid var(--line)}
+.comps span.ok{border-color:var(--good);background:var(--good-soft)}
+.ops2{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.op{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;border-left:4px solid var(--line)}
+.op.pronto{border-left-color:var(--ember)} .op.abierta{border-left-color:var(--good)}
+.op h3{font-family:var(--f-display);font-size:16px;margin:0;line-height:1.25}
+.op .org{font-size:13px;color:var(--muted)}
+.op .reloj{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.op.pronto .reloj{color:var(--ember)} .op.abierta .reloj{color:var(--good)}
+.op .pie{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto}
+.op select{border:1px solid var(--line);background:var(--field);border-radius:6px;padding:3px 6px;font-size:13px}
+.op details{font-size:13px}
+.op details summary{cursor:pointer;color:var(--accent)}
+.op dl{margin:6px 0 0;display:grid;grid-template-columns:max-content 1fr;gap:3px 10px}
+.op dt{color:var(--muted)} .op dd{margin:0;overflow-wrap:anywhere}
+
+/* bitácora */
+.nueva textarea{width:100%;min-height:80px;resize:vertical;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:10px 12px}
+.nueva .fila{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px}
+.hilo{position:relative;display:flex;flex-direction:column;gap:14px;padding-left:18px}
+.hilo::before{content:"";position:absolute;left:4px;top:6px;bottom:6px;width:2px;background:var(--line);border-radius:2px}
+.nota{position:relative}
+.nota::before{content:"";position:absolute;left:-18px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--card);border:2px solid var(--tc)}
+.nota:first-child::before{background:var(--tc)}
+.nota time{font-family:var(--f-num);font-size:11px;color:var(--muted)}
+.nota p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.nota .x{border:0;background:none;color:var(--muted);font-size:12px;padding:0 4px;margin-left:6px}
+.nota .x:hover{color:var(--bad)}
+.pie-ficha{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-top:8px}
+.skeleton{height:160px;border-radius:14px;background:linear-gradient(90deg,var(--card),var(--field),var(--card));background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skeleton{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="app"><div class="skeleton"></div></main>
+</div>
+
+<script type="module">
+import { sb, $, esc, toast, debounce, fecha, hace, navApp, espacio, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame } from "../js/forja.js";
+import { funcion } from "../js/planes.js";
+import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
+import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
+import { montar, MODOS, cuentaTarjetas, normal as normalPiz, CSS_PIZARRA } from "../js/pizarra.js";
+import { pista } from "../js/ayuda.js";
+navApp("proyectos");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + "</style>");
+
+const ID = new URLSearchParams(location.search).get("p");
+const PESTANAS = [["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
+const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
+let ESP, P, PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
+
+if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../proyectos/");
+else conSesion($("app"), async () => {
+  ESP = await espacio();
+  PL = await plan();
+  const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
+  ACT = ac.count || 0;
+  const [pr, se, re, no, co, po, pz, vi] = await Promise.all([
+    sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
+    sb.from("secciones").select("id,titulo,guia,texto,orden,avance,peso").eq("proyecto_id", ID).order("orden"),
+    sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
+    sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
+    sb.from("cotizaciones").select("id,nombre,datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
+    sb.from("proyecto_oportunidades").select("oportunidad_id,estado").eq("proyecto_id", ID),
+    sb.from("pizarras").select("id,nombre,modo,datos,creado_en").eq("proyecto_id", ID).order("creado_en"),
+    sb.from("vitrinas").select("id,slug,publicada,publicado_en,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
+  ]);
+  P = pr.data; VIT = vi.data || null;
+  if (P) try { localStorage.setItem("forja-ultimo-proyecto", P.id); } catch (e) {}
+  if (!P) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
+  SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || []; PIZ = pz.data || [];
+  const h = location.hash.slice(1); if (PESTANAS.some(([k]) => k === h)) pest = h;
+  armar();
+}, "Tus proyectos son privados: solo los ves tú.");
+
+const guardar = async (cambios, aviso) => {
+  Object.assign(P, cambios);
+  const { error } = await sb.from("proyectos").update(cambios).eq("id", P.id);
+  if (error) toast(limite(error) || "No se pudo guardar el cambio."); else if (aviso) toast(aviso);
+  return error;
+};
+const tocarProyecto = debounce(() => sb.from("proyectos").update({ nombre: P.nombre }).eq("id", P.id), 4000);
+const palabras = (t) => (t.trim().match(/\S+/g) || []).length;
+
+/* ================= estructura ================= */
+function armar() {
+  document.title = "Forja · " + P.nombre;
+  RO = !editable(P, ACT, PL);
+  $("app").innerHTML =
+    '<a class="vol" href="../proyectos/">← Proyectos</a>' +
+    '<section class="cabeza" id="cabeza" style="--tc:' + tc(P.tipo) + ";--ec:var(--e-" + P.estado + ')">' +
+    '<label class="fx-sr" for="f-nombre">Nombre del proyecto</label><input class="nombre" id="f-nombre" maxlength="160" value="' + esc(P.nombre) + '">' +
+    '<div class="ctrl"><label class="sel"><span>Categoría</span><select id="f-tipo">' + Object.entries(TIPOS).map(([k, n]) => '<option value="' + k + '"' + (k === P.tipo ? " selected" : "") + ">" + n + "</option>").join("") + "</select></label>" +
+    '<label class="sel" id="w-formato"><span>Formato</span><select id="f-formato"></select></label></div>' +
+    '<div class="estado-w"><div class="estados" role="radiogroup" aria-label="Estado del proyecto">' + Object.entries(ESTADOS).map(([k, n]) => '<button type="button" role="radio" data-est="' + k + '" style="--ec:var(--e-' + k + ')" aria-checked="' + (k === P.estado) + '">' + n + "</button>").join("") + "</div>" +
+    '<div class="avance-w" id="avance-w"></div></div>' +
+    '<label class="fx-sr" for="f-resumen">Resumen</label><textarea class="resumen" id="f-resumen" maxlength="4000" placeholder="¿De qué se trata, en pocas líneas? Se puede reescribir cuando la idea cambie.">' + esc(P.resumen || "") + "</textarea></section>" +
+    (RO ? '<div class="lectura" role="status"><b>Solo lectura</b><span>' + (P.estado === "archivado"
+      ? "Este proyecto está archivado. Puedes verlo y exportarlo; para editarlo cámbialo a otro estado (usa uno de tus " + LIMITES.proyectos + " cupos del plan gratis)."
+      : "Tienes " + ACT + " proyectos en curso y el plan gratis permite " + LIMITES.proyectos + ". Archiva " + (ACT - LIMITES.proyectos) + " (este u otro, desde Mi forja) para seguir editando. Nada se borra.") + "</span></div>" : "") +
+    '<div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
+    '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="../biblia/?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar"><button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button></span></div>';
+
+  $("f-nombre").onchange = (e) => { const v = e.target.value.trim(); if (!v) { e.target.value = P.nombre; return; } guardar({ nombre: v }); document.title = "Forja · " + v; };
+  $("f-tipo").onchange = (e) => cambiarTipo(e.target.value);
+  $("f-formato").onchange = (e) => elegirFormato(e.target.value || null);
+  document.querySelectorAll("[data-est]").forEach((b) => b.onclick = async () => {
+    const antes = P.estado, nuevo = b.dataset.est; if (nuevo === antes) return;
+    const { error } = await sb.from("proyectos").update({ estado: nuevo }).eq("id", P.id);
+    if (error) { toast(limite(error) || "No se pudo cambiar el estado."); return; }
+    P.estado = nuevo;
+    if (antes === "archivado") ACT++; else if (nuevo === "archivado") ACT--;
+    toast("Proyecto: " + ESTADOS[nuevo].toLowerCase());
+    armar();
+  });
+  $("f-resumen").onchange = (e) => guardar({ resumen: e.target.value.trim() || null });
+  $("b-borrar").onclick = () => {
+    $("zona-borrar").innerHTML = '<span class="hint">Se borran su escritura, referentes, pizarras, bitácora y cotización.</span> <button class="btn peligro" id="b-si">Sí, borrar</button> <button class="btn" id="b-no">Cancelar</button>';
+    $("b-no").onclick = () => { $("zona-borrar").innerHTML = '<button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button>'; $("b-borrar").onclick = armar; };
+    $("b-si").onclick = async () => {
+      if (COT) await sb.from("cotizaciones").delete().eq("id", COT.id);
+      const { error } = await sb.from("proyectos").delete().eq("id", P.id);
+      if (error) { toast("No se pudo borrar."); return; }
+      location.href = "../proyectos/";
+    };
+  };
+  pintarFormatos(); pintarAvance(); pintarTabs(); pintarPestana();
+  aplicarSoloLectura();
+}
+// En solo lectura se puede mirar, navegar, exportar y cambiar el estado; nada más.
+let obs = null;
+function aplicarSoloLectura() {
+  if (obs) { obs.disconnect(); obs = null; }
+  if (!RO) return;
+  const libre = (el) => el.closest(".fx-tabs, .estados, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom") || el.id === "h-foco";
+  const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
+  aplicar();
+  obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });
+}
+// El selector de formato muestra solo los que caben en la categoría.
+function pintarFormatos() {
+  const lista = FORMATOS_DE[P.tipo] === null ? FORMATOS.map((f) => f.k) : FORMATOS_DE[P.tipo];
+  $("w-formato").hidden = lista.length < 2; // con un solo formato posible, la categoría ya lo dice
+  $("f-formato").innerHTML = (lista.length > 1 || !P.formato ? '<option value="">Aún no decido</option>' : "") + lista.map((k) => '<option value="' + k + '"' + (k === P.formato ? " selected" : "") + ">" + FORMATOS.find((f) => f.k === k).n + "</option>").join("");
+}
+function pintarAvance() {
+  const a = avance(SECS), listas = SECS.filter((x) => x.avance >= 100).length;
+  $("avance-w").innerHTML = SECS.length ? '<div class="fx-avance" role="img" aria-label="Avance ' + a + '%"><i style="width:' + a + '%"></i></div><span><b>' + a + "%</b> de avance · " + listas + " de " + SECS.length + " secciones listas</span>" : "";
+}
+// Cambiar de categoría: si el formato ya no calza se suelta, y el Taller sugiere las secciones nuevas.
+async function cambiarTipo(t, silencio) {
+  const cambios = { tipo: t };
+  if (!formatoCabe(t, P.formato)) cambios.formato = null;
+  const unico = FORMATOS_DE[t] && FORMATOS_DE[t].length === 1 ? FORMATOS_DE[t][0] : null;
+  if (unico && !cambios.formato && P.formato !== unico) cambios.formato = unico;
+  await guardar(cambios);
+  $("f-tipo").value = t; $("cabeza").style.setProperty("--tc", tc(t));
+  pintarFormatos(); avisarSecciones(silencio); pintarTabs(); if (["oportunidades", "taller"].includes(pest)) pintarPestana();
+}
+// Elegir formato (desde la cabecera o la brújula): si es de otra categoría, la categoría lo sigue.
+async function elegirFormato(f) {
+  if (f && !formatoCabe(P.tipo, f)) {
+    const t = tipoDe(f);
+    await guardar({ formato: f, tipo: t });
+    $("f-tipo").value = t; $("cabeza").style.setProperty("--tc", tc(t));
+    toast("Formato: " + FORMATOS.find((x) => x.k === f).n + ". La categoría pasó a " + TIPOS[t].toLowerCase() + ".");
+  } else { await guardar({ formato: f }); if (f) toast("Formato: " + FORMATOS.find((x) => x.k === f).n); }
+  pintarFormatos(); avisarSecciones(true); pintarTabs(); if (["oportunidades", "taller", "brujula"].includes(pest)) pintarPestana();
+}
+const DESC = () => { try { return JSON.parse(localStorage.getItem("forja-desc-" + P.id) || "[]"); } catch (e) { return []; } };
+const faltantes = () => { const d = DESC(); return sugeridas(P.tipo, P.formato).filter((g) => !SECS.some((s) => s.guia === g) && !d.includes(g)); };
+const vacia = (s) => !s.texto.trim() && !s.avance;
+// Secciones que vinieron de la plantilla de otra categoría o formato y siguen vacías (o repetidas y vacías): se pueden quitar sin perder nada.
+const DE_PLANTILLA = new Set([...Object.values(PLANTILLA).flat(), ...Object.values(PLANTILLA_FORMATO).flat()]);
+function sobrantes() {
+  const ok = new Set(sugeridas(P.tipo, P.formato)), d = DESC(), vistas = new Set();
+  return SECS.filter((s) => {
+    const repetida = s.guia && s.guia !== "libre" && vistas.has(s.guia); if (s.guia) vistas.add(s.guia);
+    if (!vacia(s) || d.includes("-" + s.id)) return false;
+    return repetida || (DE_PLANTILLA.has(s.guia) && !ok.has(s.guia));
+  });
+}
+// Con contenido pero fuera de la categoría actual: se muestran aparte en el índice.
+const fuera = (s) => !vacia(s) && DE_PLANTILLA.has(s.guia) && !sugeridas(P.tipo, P.formato).includes(s.guia);
+function avisarSecciones(silencio) { const n = faltantes().length + sobrantes().length; if (n && !silencio && pest !== "taller") toast("El Taller tiene secciones para ajustar a la nueva categoría."); }
+function pintarTabs() {
+  const n = { taller: SECS.length ? avance(SECS) + "%" : "", referentes: REFS.length, pizarra: PIZ.length, bitacora: NOTAS.length, oportunidades: SEGS.length, vitrina: VIT && VIT.publicada ? "●" : "" };
+  const nuevas = faltantes().length + sobrantes().length;
+  $("tabs").innerHTML = PESTANAS.map(([k, t]) => '<button role="tab" data-p="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? '<span class="n">' + n[k] + "</span>" : "") + (k === "taller" && nuevas ? '<span class="punto" title="Secciones sugeridas nuevas"></span>' : "") + "</button>").join("");
+  $("tabs").querySelectorAll("[data-p]").forEach((b) => b.onclick = () => irA(b.dataset.p));
+}
+function irA(k) { pest = k; history.replaceState(null, "", "#" + k); pintarTabs(); pintarPestana(); }
+function pintarPestana() {
+  if (EDITOR) { EDITOR.destruir(); EDITOR = null; }
+  ({ taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest](); activarAvisame($("panel"));
+  pista($("panel"), pest); // la primera vez en cada herramienta, una nota corta
+}
+// Tarjetas "Próximamente" de Forja Más, por clave de planes.js.
+const pronto = (claves, titulo) => '<section class="pronto-fila" aria-label="' + (titulo || "Próximamente en Forja Más") + '"><div class="pronto-cab"><b>' + (titulo || "Próximamente en Forja Más") + '</b><a href="../planes/">Ver todo lo que trae</a></div><div class="pronto-grid">' +
+  claves.map((k) => { const f = funcion(k); return proximamente(f.k, f.t, f.d, true); }).join("") + "</div></section>";
+
+/* ================= PIZARRA ================= */
+// Plan gratis: una pizarra libre por proyecto (la primera) con hasta 20 tarjetas. Forja Más: sin límite y con los otros modos.
+const ILUS = {
+  libre: '<rect x="6" y="10" width="34" height="20" rx="5"/><rect x="58" y="6" width="36" height="22" rx="5"/><rect x="40" y="44" width="38" height="22" rx="5"/><path class="l" d="M40 20 H56 M30 30 L46 44 M76 28 L68 44"/>',
+  relaciones: '<circle cx="22" cy="22" r="11"/><circle cx="78" cy="20" r="11"/><circle cx="50" cy="56" r="11"/><path class="l" d="M33 22 H67 M28 32 L43 47 M72 30 L57 47"/><path class="l r" d="M33 22 H67"/>',
+  escaleta: '<rect x="4" y="6" width="28" height="64" rx="5" class="col"/><rect x="36" y="6" width="28" height="64" rx="5" class="col"/><rect x="68" y="6" width="28" height="64" rx="5" class="col"/><rect x="8" y="12" width="20" height="12" rx="3"/><rect x="8" y="28" width="20" height="12" rx="3"/><rect x="40" y="12" width="20" height="12" rx="3"/><rect x="72" y="12" width="20" height="12" rx="3"/><rect x="72" y="28" width="20" height="12" rx="3"/><rect x="72" y="44" width="20" height="12" rx="3"/>',
+  mapa: '<path class="col" d="M10 50 C10 30 30 26 40 34 C52 44 58 20 76 24 C92 28 94 52 82 62 C66 74 18 72 10 50Z"/><path class="l d" d="M28 48 C40 40 52 52 66 36"/><path class="pin" d="M28 50c0 0-6-7-6-11a6 6 0 0 1 12 0c0 4-6 11-6 11Z"/><path class="pin" d="M66 38c0 0-6-7-6-11a6 6 0 0 1 12 0c0 4-6 11-6 11Z"/>',
+};
+const primeraLibre = () => PIZ.find((x) => x.modo === "libre");
+const pizEditable = (z) => !RO && (PL.mas || (z.modo === "libre" && primeraLibre() === z));
+const recordarPiz = (id) => { try { localStorage.setItem("forja-piz-" + P.id, id); } catch (e) {} };
+function pizarra() {
+  $("panel").style.setProperty("--tc", tc(P.tipo));
+  if (!PIZ.length) { $("panel").innerHTML = '<section class="bloque piz-intro" style="margin-top:14px"><div class="cab"><h2>Pizarra</h2>' + (PL.mas ? "" : '<span class="hint">Plan gratis: una pizarra con ' + LIMITES.tarjetas + " tarjetas</span>") + '</div><p style="margin:0;max-width:62ch">Un tablero para ordenar el proyecto con las manos: ideas en tarjetas, flechas que las unen y colores. Puedes traer tus secciones del Taller y tus referentes, y abrirlos desde ahí.</p><div id="pz-elegir"></div></section>'; elegirModo(); return; }
+  let guardada = null; try { guardada = localStorage.getItem("forja-piz-" + P.id); } catch (e) {}
+  if (!PIZ.some((x) => x.id === pizSel)) pizSel = PIZ.some((x) => x.id === guardada) ? guardada : PIZ[0].id;
+  const z = PIZ.find((x) => x.id === pizSel), edz = pizEditable(z), pl = primeraLibre();
+  $("panel").style.setProperty("--tc", tc(P.tipo));
+  const motivo = RO || edz ? "" : z.modo !== "libre"
+    ? "<b>Esta pizarra es de Forja Más.</b> En el plan gratis puedes verla, verla en la biblia o borrarla; no se pierde nada."
+    : "<b>El plan gratis incluye una pizarra por proyecto.</b> Puedes seguir editando «" + esc(pl.nombre) + "»; esta queda para ver o borrar.";
+  $("panel").innerHTML = '<div class="piz-cab" style="margin-top:14px"><div class="piz-chips" role="tablist" aria-label="Pizarras del proyecto">' +
+    PIZ.map((x) => '<button type="button" role="tab" class="pz-libre" data-piz="' + x.id + '" aria-selected="' + (x.id === pizSel) + '"><svg viewBox="0 0 100 76" aria-hidden="true">' + ILUS[x.modo] + "</svg><span><b>" + esc(x.nombre) + "</b><small>" + MODOS[x.modo].corto + " · " + cuentaTarjetas(x.datos) + "</small></span>" + (pizEditable(x) || RO ? "" : '<i class="piz-candado" title="Solo lectura" aria-label="Solo lectura">' + CANDADO + "</i>") + "</button>").join("") +
+    '<button type="button" class="piz-nueva pz-libre" id="pz-nueva" aria-expanded="false">+ Nueva pizarra</button></div></div>' +
+    '<div id="pz-elegir"></div>' +
+    (motivo ? '<div class="lectura piz-lock" role="status">' + CANDADO + "<span>" + motivo + MAS_LINK + "</span></div>" : "") +
+    '<div class="piz-titulo"><label class="fx-sr" for="pz-nombre">Nombre de la pizarra</label><input id="pz-nombre" maxlength="120" value="' + esc(z.nombre) + '"' + (edz ? "" : " disabled") + '>' + (z.nombre === MODOS[z.modo].n ? "" : '<span class="piz-modo">' + MODOS[z.modo].n + "</span>") + '<span id="pz-borrar-w"><button type="button" class="btn chico peligro pz-libre" id="pz-borrar">Borrar pizarra</button></span></div>' +
+    '<div id="pz-raiz"></div>' +
+    (PL.mas ? "" : '<p class="hint piz-pie">Plan gratis: una pizarra libre por proyecto, con hasta ' + LIMITES.tarjetas + ' tarjetas. Forja Más suma pizarras sin límite y los modos de relaciones, escaleta y mapa del mundo. <a href="../planes/">Ver Forja Más</a></p>');
+  $("panel").querySelectorAll("[data-piz]").forEach((b) => b.onclick = () => { if (b.dataset.piz === pizSel) return; pizSel = b.dataset.piz; recordarPiz(pizSel); pintarPestana(); });
+  $("pz-nueva").onclick = () => { const ab = $("pz-nueva").getAttribute("aria-expanded") === "true"; $("pz-nueva").setAttribute("aria-expanded", String(!ab)); if (ab) $("pz-elegir").innerHTML = ""; else elegirModo(); };
+  $("pz-nombre").onchange = async (e) => {
+    const v = e.target.value.trim(); if (!v) { e.target.value = z.nombre; return; }
+    const { error } = await sb.from("pizarras").update({ nombre: v }).eq("id", z.id);
+    if (error) { toast(limite(error) || "No se pudo cambiar el nombre."); e.target.value = z.nombre; return; }
+    z.nombre = v; const c = $("panel").querySelector('[data-piz="' + z.id + '"] b'); if (c) c.textContent = v;
+  };
+  $("pz-borrar").onclick = () => {
+    $("pz-borrar-w").innerHTML = '<span class="hint">¿Borrar «' + esc(z.nombre) + '» y sus ' + cuentaTarjetas(z.datos) + ' tarjetas?</span> <button type="button" class="btn chico peligro pz-libre" id="pz-si">Sí, borrar</button> <button type="button" class="btn chico pz-libre" id="pz-no">Cancelar</button>';
+    $("pz-no").onclick = pintarPestana;
+    $("pz-si").onclick = async () => {
+      if (EDITOR) { EDITOR.destruir(); EDITOR = null; }
+      const { error } = await sb.from("pizarras").delete().eq("id", z.id);
+      if (error) { toast("No se pudo borrar la pizarra."); return; }
+      PIZ = PIZ.filter((x) => x !== z); pizSel = null; toast("Pizarra borrada"); pintarTabs(); pintarPestana();
+    };
+  };
+  EDITOR = montar($("pz-raiz"), {
+    piz: z, editable: edz, max: PL.mas ? Infinity : LIMITES.tarjetas,
+    secciones: SECS.slice().sort((a, b) => a.orden - b.orden).map((s) => ({ id: s.id, titulo: s.titulo })), referentes: REFS,
+    guardar: async (datos) => {
+      const { error } = await sb.from("pizarras").update({ datos }).eq("id", z.id);
+      if (error) return limite(error) || "No se pudo guardar la pizarra. Revisa tu conexión.";
+      z.datos = datos; const c = $("panel") && $("panel").querySelector('[data-piz="' + z.id + '"] small'); if (c) c.textContent = MODOS[z.modo].corto + " · " + cuentaTarjetas(datos);
+      return null;
+    },
+    irSeccion: (id) => { secActual = id; irA("taller"); window.scrollTo({ top: 0, behavior: "smooth" }); },
+    irReferente: (id) => { irA("referentes"); requestAnimationFrame(() => { const r = document.querySelector('.ref[data-id="' + id + '"]'); if (r) { r.scrollIntoView({ block: "center", behavior: "smooth" }); r.classList.add("destello"); setTimeout(() => r.classList.remove("destello"), 1800); } }); },
+    ordenarTaller: async (ids) => {
+      const orden = SECS.slice().sort((a, b) => a.orden - b.orden), enl = ids.map((id) => orden.find((s) => s.id === id)).filter(Boolean);
+      let k = 0; const nueva = orden.map((s) => (ids.includes(s.id) ? enl[k++] : s)), cambios = nueva.map((s, i) => [s, i]).filter(([s, i]) => s.orden !== i);
+      const rs = await Promise.all(cambios.map(([s, i]) => sb.from("secciones").update({ orden: i }).eq("id", s.id)));
+      const mal = rs.find((r) => r.error); if (mal) { toast(limite(mal.error) || "No se pudo ordenar el Taller."); return false; }
+      cambios.forEach(([s, i]) => { s.orden = i; }); SECS.sort((a, b) => a.orden - b.orden); return true;
+    },
+    aviso: (m) => toast(m),
+    alLimite: () => toast("El plan gratis permite " + LIMITES.tarjetas + " tarjetas por pizarra. " + MAS_PRONTO),
+  });
+}
+// Elegir el modo de una pizarra nueva. Los de Forja Más se muestran con su etiqueta; tocarlos explica y ofrece "Avísame".
+function elegirModo() {
+  const libreLlena = !PL.mas && PIZ.length >= LIMITES.pizarras;
+  $("pz-elegir").innerHTML = '<div class="piz-modos">' + Object.entries(MODOS).map(([k, m]) => {
+    const bloq = RO || (!PL.mas && (m.mas || libreLlena));
+    return '<button type="button" class="piz-op' + (bloq ? " bloq" : "") + '" data-modo="' + k + '"' + (RO ? " disabled" : "") + '><svg viewBox="0 0 100 76" aria-hidden="true">' + ILUS[k] + "</svg><b>" + m.n + "</b><span>" + m.d + "</span>" +
+      (m.mas && !PL.mas ? '<em>Forja Más</em>' : !m.mas && libreLlena ? "<em>Ya usas la del plan gratis</em>" : "") + "</button>";
+  }).join("") + '</div><div id="pz-nota"></div>';
+  $("pz-elegir").querySelectorAll("[data-modo]").forEach((b) => b.onclick = () => {
+    const k = b.dataset.modo;
+    if (!b.classList.contains("bloq")) { crearPizarra(k); return; }
+    $("pz-nota").innerHTML = '<div class="piz-nota">' + (MODOS[k].mas ? "<b>" + MODOS[k].n + "</b> es parte de Forja Más, que llega pronto. Mientras tanto puedes usar la pizarra libre." : "El plan gratis incluye <b>una pizarra por proyecto</b>. Forja Más llega pronto con pizarras sin límite.") +
+      ' <button type="button" class="fx-avisame" data-avisame="plan-mas">Avísame</button> <a href="../planes/">Ver Forja Más</a></div>';
+    activarAvisame($("pz-nota"));
+  });
+}
+async function crearPizarra(modo) {
+  const { data, error } = await sb.from("pizarras").insert({ espacio_id: ESP, proyecto_id: P.id, modo, nombre: MODOS[modo].n, datos: modo === "escaleta" ? normalPiz({}, "escaleta") : {} }).select("id,nombre,modo,datos,creado_en").single();
+  if (error) { toast(limite(error) || "No se pudo crear la pizarra."); return; }
+  PIZ.push(data); pizSel = data.id; recordarPiz(data.id); pintarTabs(); pintarPestana(); toast(MODOS[modo].n + " lista");
+}
+const CANDADO = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M5 7V5a3 3 0 0 1 6 0v2h.5A1.5 1.5 0 0 1 13 8.5v5A1.5 1.5 0 0 1 11.5 15h-7A1.5 1.5 0 0 1 3 13.5v-5A1.5 1.5 0 0 1 4.5 7H5Zm1.5 0h3V5a1.5 1.5 0 0 0-3 0v2Z"/></svg>';
+
+/* ================= TALLER ================= */
+function taller() {
+  if (!SECS.length) {
+    $("panel").innerHTML = '<div class="vacio" style="margin-top:14px">Este proyecto aún no tiene secciones. <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn prim" id="b-plant">Usar las secciones sugeridas para ' + esc(TIPOS[P.tipo].toLowerCase()) + '</button><button class="btn" id="b-blanca">Empezar con una hoja en blanco</button></div></div>';
+    $("b-plant").onclick = async () => { await crearSecciones(sugeridas(P.tipo, P.formato).map((g) => ({ guia: g, titulo: SECCIONES[g].t }))); pintarTabs(); pintarAvance(); taller(); };
+    $("b-blanca").onclick = async () => { await crearSecciones([{ guia: "libre", titulo: "Notas" }]); taller(); };
+    return;
+  }
+  if (!secActual || !SECS.some((s) => s.id === secActual)) secActual = SECS[0].id;
+  $("panel").innerHTML = '<div id="sugerencia"></div><div class="taller" style="margin-top:14px"><nav class="indice" id="indice" aria-label="Secciones"></nav><div id="hoja-w"></div></div>' +
+    (PL.mas ? "" : pronto(P.tipo === "historia" || P.formato === "comic" ? ["capitulos", "vista-impresion", "historial"] : ["historial", "metas", "notas-margen"], "Para escribir más, próximamente"));
+  pintarSugerencia(); pintarIndice(); pintarHoja();
+}
+function pintarSugerencia() {
+  const f = faltantes(), q = sobrantes(), w = $("sugerencia"); if (!w) return;
+  if (!f.length && !q.length) { w.innerHTML = ""; return; }
+  const fm = FORMATOS.find((x) => x.k === P.formato), para = esc(TIPOS[P.tipo].toLowerCase()) + (fm && fm.n !== TIPOS[P.tipo] ? " · " + esc(fm.n.toLowerCase()) : "");
+  w.innerHTML = '<div class="sugerencia"><div><b>Ajustar el Taller a ' + para + "</b>" +
+    (f.length ? '<div class="ops"><span class="hint">Agregar:</span>' + f.map((g) => '<span class="mas">+ ' + esc(SECCIONES[g].t) + "</span>").join("") + "</div>" : "") +
+    (q.length ? '<div class="ops"><span class="hint">Quitar, porque están vacías y son de otra categoría:</span>' + q.map((x) => '<span class="menos">− ' + esc(x.titulo) + "</span>").join("") + "</div>" : "") +
+    '<span class="hint">Nunca se borra una sección que tenga texto o avance; esas quedan aparte en "Otras secciones".</span></div>' +
+    '<div class="acc"><button class="btn prim" id="sg-si">' + (f.length && q.length ? "Ajustar" : f.length ? "Agregarlas" : "Quitarlas") + '</button><button class="btn" id="sg-no">Ahora no</button></div></div>';
+  $("sg-si").onclick = async () => {
+    $("sg-si").disabled = true;
+    if (q.length) {
+      const { error } = await sb.from("secciones").delete().in("id", q.map((x) => x.id));
+      if (error) { toast("No se pudieron quitar."); $("sg-si").disabled = false; return; }
+      SECS = SECS.filter((x) => !q.includes(x));
+    }
+    if (f.length) await crearSecciones(f.map((g) => ({ guia: g, titulo: SECCIONES[g].t })));
+    toast([f.length ? f.length + (f.length === 1 ? " agregada" : " agregadas") : "", q.length ? q.length + (q.length === 1 ? " quitada" : " quitadas") : ""].filter(Boolean).join(" · "));
+    secActual = null; pintarTabs(); pintarAvance(); taller();
+  };
+  $("sg-no").onclick = () => { try { localStorage.setItem("forja-desc-" + P.id, JSON.stringify(DESC().concat(f, q.map((x) => "-" + x.id)))); } catch (e) {} pintarSugerencia(); pintarTabs(); };
+}
+async function crearSecciones(lista) {
+  const base = SECS.length ? Math.max(...SECS.map((s) => s.orden)) + 1 : 0;
+  const { data, error } = await sb.from("secciones").insert(lista.map((x, i) => ({ espacio_id: ESP, proyecto_id: P.id, titulo: x.titulo, guia: x.guia, orden: base + i, peso: pesoDe(x.guia) }))).select("id,titulo,guia,texto,orden,avance,peso");
+  if (error) { toast(limite(error) || "No se pudo agregar."); return []; }
+  SECS = SECS.concat(data); return data;
+}
+function pintarIndice() {
+  const total = SECS.reduce((a, s) => a + palabras(s.texto), 0);
+  const boton = (s) => { const w = palabras(s.texto); return '<button class="sec' + (w ? " lleno" : "") + (s.avance >= 100 ? " lista" : "") + '" data-s="' + s.id + '" aria-current="' + (s.id === secActual) + '" style="--av:' + s.avance + '%"><span>' + esc(s.titulo) + '</span><span class="w">' + (s.avance ? s.avance + "%" : "") + "</span></button>"; };
+  const aparte = SECS.filter(fuera);
+  $("indice").innerHTML = SECS.filter((s) => !fuera(s)).map(boton).join("") +
+    (aparte.length ? '<span class="aparte" title="Tienen texto, pero son de otra categoría o formato. Se conservan por si las necesitas.">Otras secciones</span>' + aparte.map(boton).join("") : "") +
+    '<button class="btn chico mas" id="b-mas">+ Sección</button>' + (PL.mas ? '<div class="total">' + total.toLocaleString("es-CL") + " palabras en total</div>"
+      : '<div class="total tope' + (total >= LIMITES.palabras * 0.9 ? " cerca" : "") + '"><span>' + total.toLocaleString("es-CL") + " de " + LIMITES.palabras.toLocaleString("es-CL") + ' palabras</span><div class="fx-avance"><i style="width:' + Math.min(100, total / LIMITES.palabras * 100) + '%"></i></div>' + (total >= LIMITES.palabras * 0.9 ? "<small>Cerca del límite del plan gratis. " + MAS_PRONTO + MAS_LINK + "</small>" : "") + "</div>");
+  $("indice").querySelectorAll("[data-s]").forEach((b) => b.onclick = () => { secActual = b.dataset.s; pintarIndice(); pintarHoja(); });
+  $("b-mas").onclick = menuSeccion;
+}
+function menuSeccion() {
+  const usadas = new Set(SECS.map((s) => s.guia));
+  const sug = sugeridas(P.tipo, P.formato).filter((g) => !usadas.has(g));
+  const otras = Object.keys(SECCIONES).filter((g) => !usadas.has(g) && !sug.includes(g) && g !== "libre");
+  const bot = (g) => '<button type="button" data-g="' + g + '">' + esc(SECCIONES[g].t) + "</button>";
+  $("hoja-w").innerHTML = '<div class="menu-sec"><b style="font-family:var(--f-display);font-size:18px">Agregar una sección</b>' +
+    (sug.length ? '<span class="hint">Sugeridas para ' + esc(TIPOS[P.tipo].toLowerCase()) + '</span><div class="ops">' + sug.map(bot).join("") + "</div>" : "") +
+    '<span class="hint">Otras con preguntas guía</span><div class="ops">' + otras.map(bot).join("") + "</div>" +
+    '<span class="hint">O una con el nombre que quieras</span><form class="fila" id="f-libre"><label class="fx-sr" for="f-libre-t">Nombre de la sección</label><input id="f-libre-t" maxlength="120" placeholder="Ej.: Capítulo 1, Bestiario, Banda sonora…"><button class="btn prim">Crear</button></form>' +
+    '<button type="button" class="btn chico" id="b-cancel" style="align-self:flex-start">Cancelar</button></div>';
+  $("hoja-w").querySelectorAll("[data-g]").forEach((b) => b.onclick = async () => { const [s] = await crearSecciones([{ guia: b.dataset.g, titulo: SECCIONES[b.dataset.g].t }]); if (s) { secActual = s.id; pintarTabs(); taller(); } });
+  $("f-libre").onsubmit = async (e) => { e.preventDefault(); const t = $("f-libre-t").value.trim(); if (!t) return; const [s] = await crearSecciones([{ guia: "libre", titulo: t }]); if (s) { secActual = s.id; taller(); } };
+  $("b-cancel").onclick = pintarHoja;
+  $("f-libre-t").focus({ preventScroll: true });
+}
+function pintarHoja() {
+  const s = SECS.find((x) => x.id === secActual), i = SECS.indexOf(s), g = SECCIONES[s.guia];
+  $("hoja-w").innerHTML = '<article class="hoja" id="hoja">' +
+    '<label class="fx-sr" for="h-tit">Título de la sección</label><input class="tit" id="h-tit" maxlength="120" value="' + esc(s.titulo) + '">' +
+    (g && g.p && s.guia !== "libre" ? '<details class="guia"' + (s.texto ? "" : " open") + '><summary>Preguntas para empezar</summary><div class="pregs">' + g.p.map((q) => '<button type="button" class="preg" title="Agregar al texto">' + esc(q) + "</button>").join("") + '<span class="hint">Toca una pregunta para agregarla al texto y responderla debajo. Son una ayuda, no una obligación.</span></div></details>' : "") +
+    '<div class="etapa"><div class="etapa-top"><span class="hint">Avance de esta sección</span><b id="h-av">' + s.avance + "% · " + etapaDe(s.avance) + '</b></div>' +
+    '<div class="etapas" role="group" aria-label="Etapa">' + ETAPAS.map(([v, n]) => '<button type="button" data-av="' + v + '" aria-pressed="' + (s.avance === v) + '">' + n + "</button>").join("") + "</div>" +
+    '<div class="etapa-fina"><label class="fx-sr" for="h-rango">Avance exacto</label><input type="range" id="h-rango" min="0" max="100" step="5" value="' + s.avance + '">' +
+    '<label class="peso" title="Cuánto pesa esta sección en el avance total del proyecto">Peso <input type="number" id="h-peso" min="0" max="100" step="5" value="' + s.peso + '"></label></div></div>' +
+    '<label class="fx-sr" for="h-txt">Texto</label><textarea class="texto" id="h-txt" maxlength="200000" placeholder="Escribe aquí. Se guarda solo.">' + esc(s.texto) + "</textarea>" +
+    '<div class="barra"><span class="est" id="h-est">' + palabras(s.texto) + ' palabras</span><div class="acc">' +
+    '<button class="btn chico" id="h-foco">Pantalla completa</button>' +
+    (i > 0 ? '<button class="btn chico" id="h-up" aria-label="Mover arriba">↑</button>' : "") + (i < SECS.length - 1 ? '<button class="btn chico" id="h-down" aria-label="Mover abajo">↓</button>' : "") +
+    '<span id="h-del"><button class="btn chico peligro" id="h-borrar">Borrar sección</button></span></div></div></article>';
+  const ta = $("h-txt"), crecer = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
+  crecer();
+  const subir = debounce(async () => {
+    const id = s.id, texto = ta.value;
+    const { error } = await sb.from("secciones").update({ texto }).eq("id", id);
+    if ($("h-est") && secActual === id) $("h-est").textContent = palabras(texto) + " palabras · " + (error ? (limite(error) ? "límite de palabras alcanzado: lo último no se guardó" : "no se pudo guardar") : "guardado");
+    if (error && limite(error)) toast(limite(error));
+    if (!error) { tocarProyecto(); pintarIndice(); }
+  }, 900);
+  ta.oninput = () => { s.texto = ta.value; crecer(); $("h-est").textContent = palabras(ta.value) + " palabras · guardando…"; subir(); };
+  $("h-tit").onchange = async (e) => { const t = e.target.value.trim(); if (!t) { e.target.value = s.titulo; return; } s.titulo = t; await sb.from("secciones").update({ titulo: t }).eq("id", s.id); pintarIndice(); };
+  document.querySelectorAll(".preg").forEach((b) => b.onclick = () => {
+    const sep = ta.value && !ta.value.endsWith("\n") ? "\n\n" : ta.value ? "\n" : "";
+    ta.value += sep + "— " + b.textContent + "\n"; ta.dispatchEvent(new Event("input")); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+  });
+  const fijarAvance = debounce(async (v) => {
+    const { error } = await sb.from("secciones").update({ avance: v }).eq("id", s.id);
+    if (error) toast(limite(error) || "No se pudo guardar el avance."); else tocarProyecto();
+  }, 400);
+  const mostrar = (v) => {
+    s.avance = v; $("h-av").textContent = v + "% · " + etapaDe(v); $("h-rango").value = v;
+    document.querySelectorAll("[data-av]").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.av === v)));
+    pintarIndice(); pintarAvance(); pintarTabs(); fijarAvance(v);
+  };
+  document.querySelectorAll("[data-av]").forEach((b) => b.onclick = () => mostrar(+b.dataset.av));
+  $("h-rango").oninput = (e) => mostrar(+e.target.value);
+  $("h-peso").onchange = async (e) => {
+    const v = Math.max(0, Math.min(100, Math.round(+e.target.value || 0))); e.target.value = v; s.peso = v;
+    await sb.from("secciones").update({ peso: v }).eq("id", s.id); pintarAvance(); pintarTabs();
+  };
+  const hoja = $("hoja");
+  $("h-foco").onclick = () => { const on = hoja.classList.toggle("foco"); $("h-foco").textContent = on ? "Salir de pantalla completa" : "Pantalla completa"; document.body.style.overflow = on ? "hidden" : ""; crecer(); ta.focus(); };
+  const mover = async (d) => {
+    const j = i + d, a = SECS[i], b = SECS[j];[a.orden, b.orden] = [b.orden, a.orden];
+    SECS.sort((x, y) => x.orden - y.orden);
+    if (a.orden === b.orden) { SECS.forEach((x, k) => x.orden = k); }
+    await Promise.all([sb.from("secciones").update({ orden: a.orden }).eq("id", a.id), sb.from("secciones").update({ orden: b.orden }).eq("id", b.id)]);
+    pintarIndice(); pintarHoja();
+  };
+  if ($("h-up")) $("h-up").onclick = () => mover(-1);
+  if ($("h-down")) $("h-down").onclick = () => mover(1);
+  $("h-borrar").onclick = () => {
+    $("h-del").innerHTML = '<span class="hint">' + (s.texto ? "Tiene " + palabras(s.texto) + " palabras. " : "") + '¿Borrar?</span> <button class="btn chico peligro" id="h-si">Sí</button> <button class="btn chico" id="h-no">No</button>';
+    $("h-no").onclick = pintarHoja;
+    $("h-si").onclick = async () => {
+      const { error } = await sb.from("secciones").delete().eq("id", s.id);
+      if (error) { toast("No se pudo borrar."); return; }
+      SECS = SECS.filter((x) => x.id !== s.id); secActual = null; document.body.style.overflow = ""; pintarTabs(); pintarAvance(); taller();
+    };
+  };
+}
+
+/* ================= REFERENTES ================= */
+let filtroRef = "";
+const TREF = { imagen: "Imagen", video: "Video", audio: "Audio", enlace: "Enlace", color: "Color", cita: "Cita" };
+const esURL = (v) => /^https?:\/\/[^\s<>"]+$/i.test(v);
+function srcDeIframe(v) { const m = v.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i); return m ? m[1] : null; }
+function detectar(v) {
+  v = v.trim(); const ifr = srcDeIframe(v); if (ifr) v = ifr.startsWith("//") ? "https:" + ifr : ifr;
+  if (/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) return { tipo: "color", valor: "#" + v.replace("#", "").toLowerCase() };
+  if (!esURL(v)) return v ? { tipo: "cita", valor: v } : null;
+  if (yt(v) || vimeo(v)) return { tipo: "video", valor: v };
+  if (/open\.spotify\.com\/(embed\/)?(track|album|playlist|episode|show|artist)\//i.test(v) || /soundcloud\.com\//i.test(v)) return { tipo: "audio", valor: v };
+  if (/\.(jpe?g|png|gif|webp|avif|svg)(\?|#|$)/i.test(v) || /(^https?:\/\/(i\.imgur\.com|i\.pinimg\.com|pbs\.twimg\.com|images\.unsplash\.com)\/)/i.test(v)) return { tipo: "imagen", valor: v };
+  return { tipo: "enlace", valor: v };
+}
+function yt(u) { const m = u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i); return m && m[1]; }
+function vimeo(u) { const m = u.match(/vimeo\.com\/(?:video\/)?(\d+)/i); return m && m[1]; }
+function spotify(u) { const m = u.match(/open\.spotify\.com\/(?:embed\/)?(track|album|playlist|episode|show|artist)\/([\w]+)/i); return m && [m[1], m[2]]; }
+const dominio = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
+
+function referentes() {
+  $("panel").innerHTML = '<div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">' +
+    '<form class="bloque agregar" id="f-ref"><label class="fx-sr" for="r-val">Enlace, color o cita</label>' +
+    '<input id="r-val" placeholder="Pega un enlace (imagen, YouTube, Vimeo, Spotify, cualquier página), un color #e0602f o escribe una cita" autocomplete="off">' +
+    '<button class="btn prim" type="submit">Guardar</button>' +
+    '<div class="detecta" id="r-det"></div>' +
+    '<div class="extra" id="r-extra" hidden><label class="fx-sr" for="r-tit">Título</label><input id="r-tit" maxlength="200" placeholder="Título (opcional)">' +
+    '<label class="fx-sr" for="r-nota">Qué tomas de aquí</label><input id="r-nota" maxlength="4000" placeholder="¿Qué te sirve de este referente? Ej.: la paleta, el ritmo, cómo presenta al villano">' +
+    '<label class="fx-sr" for="r-tipo">Tipo</label><select id="r-tipo">' + Object.entries(TREF).map(([k, n]) => '<option value="' + k + '">' + n + "</option>").join("") + "</select></div>" +
+    (PL.mas ? "" : '<p class="hint" style="grid-column:1/-1;margin:0"><b style="color:var(--fg)">' + REFS.length + " de " + LIMITES.referentes + "</b> referentes del plan gratis en este proyecto.</p>") +
+    '<p class="hint" style="grid-column:1/-1;margin:0">Forja no guarda archivos: solo el enlace. Si la página original borra la imagen o el video, aquí también desaparece.</p></form>' +
+    '<div class="filtro" id="r-filtro"></div><div id="muro"></div></div>';
+  let det = null;
+  $("r-val").oninput = () => {
+    det = detectar($("r-val").value);
+    $("r-extra").hidden = !det;
+    if (det) { $("r-tipo").value = det.tipo; $("r-det").textContent = "Se guardará como " + TREF[det.tipo].toLowerCase() + (det.tipo === "enlace" ? ". Si es una imagen, cambia el tipo a Imagen." : "."); }
+    else $("r-det").textContent = "";
+  };
+  $("f-ref").onsubmit = async (e) => {
+    e.preventDefault(); if (!det) { $("r-val").focus(); return; }
+    let tipo = $("r-tipo").value, valor = det.valor;
+    if (["imagen", "video", "audio", "enlace"].includes(tipo) && !esURL(valor)) { toast("Para ese tipo se necesita un enlace que empiece con https://"); return; }
+    if (tipo === "color" && !/^#[0-9a-f]{3,6}$/i.test(valor)) { toast("Un color se escribe como #e0602f"); return; }
+    const fila = { espacio_id: ESP, proyecto_id: P.id, tipo, valor, titulo: $("r-tit").value.trim() || null, nota: $("r-nota").value.trim() || null };
+    const { data, error } = await sb.from("referentes").insert(fila).select("*").single();
+    if (error) { toast(limite(error) || "No se pudo guardar el referente."); return; }
+    REFS.unshift(data); tocarProyecto(); pintarTabs(); referentes();
+  };
+  pintarMuro();
+}
+function pintarMuro() {
+  const tipos = [...new Set(REFS.map((r) => r.tipo))];
+  $("r-filtro").innerHTML = tipos.length > 1 ? '<button data-f="" aria-pressed="' + (!filtroRef) + '">Todos</button>' + tipos.map((t) => '<button data-f="' + t + '" aria-pressed="' + (filtroRef === t) + '">' + TREF[t] + " · " + REFS.filter((r) => r.tipo === t).length + "</button>").join("") : "";
+  $("r-filtro").querySelectorAll("[data-f]").forEach((b) => b.onclick = () => { filtroRef = b.dataset.f; pintarMuro(); });
+  const vis = REFS.filter((r) => !filtroRef || r.tipo === filtroRef);
+  $("muro").innerHTML = REFS.length ? '<div class="muro">' + vis.map(tarjeta).join("") + "</div>" : '<div class="vacio">Aún no hay referentes. Pega arriba el enlace de una imagen, un video o una canción que tenga algo de lo que buscas.</div>';
+  $("muro").querySelectorAll("img[data-ref]").forEach((img) => img.onerror = () => { const r = REFS.find((x) => x.id === img.dataset.ref); img.closest(".media").outerHTML = linkCard(r.valor, "No se pudo mostrar la imagen; ábrela en su página"); });
+  $("muro").onclick = async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    const card = b.closest(".ref"), r = REFS.find((x) => x.id === card.dataset.id);
+    if (b.classList.contains("play")) { b.closest(".media").innerHTML = reproductor(r.valor); return; }
+    if (b.dataset.a === "edit") {
+      card.querySelector(".cuerpo").innerHTML = '<input data-e="t" maxlength="200" placeholder="Título" value="' + esc(r.titulo || "") + '"><textarea data-e="n" rows="3" maxlength="4000" placeholder="¿Qué tomas de aquí?">' + esc(r.nota || "") + '</textarea><div style="display:flex;gap:6px"><button class="btn chico prim" data-a="ok">Guardar</button><button class="btn chico" data-a="cancel">Cancelar</button></div>';
+      return;
+    }
+    if (b.dataset.a === "cancel") { pintarMuro(); return; }
+    if (b.dataset.a === "ok") {
+      const titulo = card.querySelector('[data-e="t"]').value.trim() || null, nota = card.querySelector('[data-e="n"]').value.trim() || null;
+      const { error } = await sb.from("referentes").update({ titulo, nota }).eq("id", r.id);
+      if (error) { toast(limite(error) || "No se pudo guardar."); return; }
+      Object.assign(r, { titulo, nota }); pintarMuro(); return;
+    }
+    if (b.dataset.a === "del") {
+      if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "¿seguro?"; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ""; b.textContent = "quitar"; } }, 3500); return; }
+      const { error } = await sb.from("referentes").delete().eq("id", r.id);
+      if (error) { toast("No se pudo quitar."); return; }
+      REFS = REFS.filter((x) => x.id !== r.id); pintarTabs(); pintarMuro();
+    }
+  };
+}
+function linkCard(u, sub) { return '<a class="link" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer"><small>' + esc(dominio(u)) + "</small><b>" + esc(sub || u.replace(/^https?:\/\/(www\.)?/, "").slice(0, 90)) + "</b></a>"; }
+function reproductor(u) {
+  const y = yt(u), v = vimeo(u), s = spotify(u);
+  if (y) return '<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/' + y + '?autoplay=1" title="Video de YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
+  if (v) return '<div class="video"><iframe src="https://player.vimeo.com/video/' + v + '?autoplay=1" title="Video de Vimeo" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
+  if (s) return '<iframe src="https://open.spotify.com/embed/' + s[0] + "/" + s[1] + '" height="' + (s[0] === "track" || s[0] === "episode" ? 152 : 352) + '" title="Spotify" allow="encrypted-media" loading="lazy"></iframe>';
+  return linkCard(u);
+}
+function tarjeta(r) {
+  let media = "";
+  if (r.tipo === "imagen") media = '<div class="media"><img data-ref="' + r.id + '" src="' + esc(r.valor) + '" alt="' + esc(r.titulo || "Referente") + '" loading="lazy" referrerpolicy="no-referrer"></div>';
+  else if (r.tipo === "video") { const y = yt(r.valor); media = '<div class="media">' + (y ? '<img src="https://i.ytimg.com/vi/' + y + '/hqdefault.jpg" alt="" loading="lazy"><button class="play" aria-label="Reproducir"><span>▶ Reproducir</span></button>' : vimeo(r.valor) ? '<div style="aspect-ratio:16/9"></div><button class="play" aria-label="Reproducir"><span>▶ Vimeo</span></button>' : linkCard(r.valor)) + "</div>"; }
+  else if (r.tipo === "audio") media = '<div class="media">' + reproductor(r.valor) + "</div>";
+  else if (r.tipo === "color") { const c = r.valor, l = parseInt((c.length === 4 ? c.replace(/#(.)(.)(.)/, "$1$1$2$2$3$3") : c.slice(1)), 16), lum = ((l >> 16) * .299 + ((l >> 8) & 255) * .587 + (l & 255) * .114); media = '<div class="swatch" style="background:' + esc(c) + ";color:" + (lum > 150 ? "#111" : "#fff") + '">' + esc(c.toUpperCase()) + "</div>"; }
+  else if (r.tipo === "cita") media = "<blockquote>" + esc(r.valor) + "</blockquote>";
+  else media = '<div class="media">' + linkCard(r.valor, r.titulo) + "</div>";
+  const abrir = esURL(r.valor) ? '<a href="' + esc(r.valor) + '" target="_blank" rel="noopener noreferrer" style="font-size:12px;text-transform:none;letter-spacing:0">abrir</a>' : "";
+  return '<article class="ref" data-id="' + r.id + '">' + media + '<div class="cuerpo">' + (r.titulo && r.tipo !== "enlace" ? "<b>" + esc(r.titulo) + "</b>" : "") + (r.nota ? "<p>" + esc(r.nota) + "</p>" : "") +
+    '<div class="meta"><span>' + TREF[r.tipo] + " · " + fecha(r.creado_en) + "</span><span>" + abrir + '<button data-a="edit">editar</button><button data-a="del">quitar</button></span></div></div></article>';
+}
+
+/* ================= BRÚJULA ================= */
+function brujula() {
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Brújula de formatos</h2><span class="hint">Parte con la configuración inicial de su categoría o formato. Arrastra cada punto según cuánto pesa en tu idea.</span></div>' +
+    '<div class="brujula"><div><svg class="radar" id="radar"></svg><p class="pregunta" id="pregunta">Toca un eje para ver su pregunta.</p><p class="leyenda-b"><i class="l1"></i>Tu idea <i class="l2"></i>Cómo suele ser este formato</p></div><div><svg class="dial" id="dial"></svg></div></div>' +
+    '<p class="veredicto" id="veredicto" aria-live="polite"></p>' +
+    '<div style="border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px;align-items:center"><b style="font-family:var(--f-display)">¿Qué vas a hacer?</b>' +
+    '<p class="hint" style="margin:0;text-align:center;max-width:58ch">La brújula solo compara tus respuestas con lo que suele lucir en cada formato. Elige el que tú quieras, aunque no sea el primero. Si eliges uno de otra categoría (por ejemplo, juego de mesa en una historia), el proyecto cambia de categoría y el Taller te sugiere las secciones que le faltan.</p>' + (P.tipo === "producto" ? '<p class="hint" style="margin:0;text-align:center">Para un producto la brújula sirve poco; úsala si tu producto también cuenta una historia.</p>' : "") + '' +
+    '<div class="formatos" id="formatos"></div></div></section>';
+  const B = () => base(P.tipo, P.formato);
+  const etiqueta = () => { const f = FORMATOS.find((x) => x.k === P.formato); return f ? "<b>" + esc(f.n.toLowerCase()) + "</b>" : "la categoría <b>" + esc(TIPOS[P.tipo].toLowerCase()) + "</b>"; };
+  let repintar = null;
+  const pintarLectura = () => {
+    if (repintar) repintar();
+    dial($("dial"), P.ejes, P.formato, B());
+    $("veredicto").innerHTML = veredicto(P.ejes, B(), etiqueta()) +
+      (tocado(P.ejes) ? ' <button type="button" class="btn chico" id="b-reset" title="Vuelve a cómo suele ser este formato">Volver a la configuración inicial</button>' : "");
+    if ($("b-reset")) $("b-reset").onclick = () => { P.ejes = {}; guardar({ ejes: {} }, "Configuración inicial restaurada"); pintarLectura(); };
+    const l = Object.fromEntries(lectura(P.ejes, B()).map((f) => [f.k, f.s]));
+    $("formatos").innerHTML = FORMATOS.map((f) => '<button type="button" data-f="' + f.k + '" aria-pressed="' + (P.formato === f.k) + '">' + f.n + " <small>" + pct(l[f.k]) + "</small></button>").join("") +
+      '<button type="button" data-f="" aria-pressed="' + (!P.formato) + '">Aún no decido</button>';
+    $("formatos").querySelectorAll("[data-f]").forEach((b) => b.onclick = async () => { await elegirFormato(b.dataset.f || null); pintarLectura(); });
+  };
+  const subir = debounce(() => guardar({ ejes: P.ejes }), 700);
+  repintar = radar($("radar"), () => P.ejes, (e) => { P.ejes = e; pintarLectura(); subir(); }, $("pregunta"), B);
+  pintarLectura();
+}
+
+/* ================= COSTOS ================= */
+function costos() {
+  if (!COT) {
+    $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><h2>Costos</h2><p style="margin:0">Cada proyecto tiene una cotización propia: una lista de componentes (por ejemplo tablero, cartas, figuras o impresión) con los precios que te dan distintos proveedores. Forja calcula el costo real puesto en Chile y te dice cuál conviene según la cantidad.</p>' +
+      '<p class="hint" style="margin:0">Empieza con los componentes que suele tener ' + esc(TIPOS[P.tipo].toLowerCase()) + '; los puedes quitar o agregar otros.</p><div><button class="btn prim" id="b-cot">Crear la cotización de este proyecto</button></div></section>';
+    $("b-cot").onclick = async () => {
+      const { data, error } = await sb.from("cotizaciones").insert({ espacio_id: ESP, proyecto_id: P.id, nombre: P.nombre, datos: {} }).select("id").single();
+      if (error) { toast(limite(error) || "No se pudo crear la cotización."); return; }
+      location.href = "../cotizador/?c=" + data.id;
+    };
+    $("panel").insertAdjacentHTML("beforeend", pronto(["versiones-precio", "campanas", "presupuesto-fondos"]));
+    return;
+  }
+  const d = COT.datos || {}, comps = d.componentes || [], qs = d.cotizaciones || [];
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Costos</h2><span class="hint">Actualizada ' + hace(COT.actualizado_en) + "</span></div>" +
+    (comps.length ? '<div class="comps">' + comps.map((c) => { const n = qs.filter((q) => q.compId === c.id).length; return '<span class="' + (n ? "ok" : "") + '">' + esc(c.nombre) + (n ? " · " + n : " · sin precios") + "</span>"; }).join("") + "</div>" : '<p class="hint" style="margin:0">La cotización aún no tiene componentes.</p>') +
+    '<p class="hint" style="margin:0">' + qs.length + (qs.length === 1 ? " precio registrado" : " precios registrados") + (d.cantidades && d.cantidades.length ? " · comparando " + d.cantidades.join(", ") + " unidades" : "") + '.</p><div><a class="btn prim" style="text-decoration:none;display:inline-block" href="../cotizador/?c=' + COT.id + '">Abrir la cotización</a></div></section>';
+  $("panel").insertAdjacentHTML("beforeend", pronto(["versiones-precio", "campanas", "presupuesto-fondos"]));
+}
+
+/* ================= OPORTUNIDADES ================= */
+function reloj(o) {
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const d = (s) => { if (!s) return null; const [y, m, dd] = s.split("-"); return Math.round((new Date(+y, m - 1, +dd) - hoy) / 864e5); };
+  const pi = d(o.postul_inicio), pf = d(o.postul_fin), ei = d(o.evento_inicio), ef = d(o.evento_fin) ?? ei, est = o.fechas_estimadas ? "≈ " : "";
+  if (pi != null && pi > 0) return { t: est + "postulación abre en " + pi + " días", k: pi };
+  if (pf != null && pf >= 0) return { t: pf === 0 ? "postulación cierra hoy" : "postulación abierta · cierra en " + pf + " días", c: pf <= 14 ? "pronto" : "abierta", k: pf };
+  if (ei != null && ei > 0) return { t: est + "evento en " + ei + " días", k: ei + 1000 };
+  if (ef != null && ef >= 0) return { t: "evento en curso", k: 0 };
+  return { t: o.postul_texto || o.evento_texto || "sin fechas próximas", fin: pf != null || ef != null, k: 9e9 };
+}
+async function oportunidades() {
+  $("panel").innerHTML = '<div class="skeleton" style="margin-top:14px"></div>';
+  if (!OPS) { const { data } = await sb.from("oportunidades").select("*").order("nombre"); OPS = data || []; }
+  if (pest !== "oportunidades") return;
+  const area = areaDe(P.tipo, P.formato), AREA = { videojuego: "videojuegos", comic: "cómic y libros", juegomesa: "juegos de mesa", general: "emprendimiento" };
+  const sigo = new Set(SEGS.map((s) => s.oportunidad_id));
+  const vivas = OPS.filter((o) => !sigo.has(o.id) && !reloj(o).fin).sort((a, b) => reloj(a).k - reloj(b).k);
+  const sug = vivas.filter((o) => (o.areas || []).includes(area));
+  const generales = vivas.filter((o) => !sug.includes(o) && (o.areas || []).includes("general"));
+  const resto = vivas.filter((o) => !sug.includes(o) && !generales.includes(o));
+  const card = (o, seg) => {
+    const r = reloj(o);
+    const det = [["Premio o apoyo", o.premio], ["Costo", o.costo], ["Requisitos", o.requisitos], ["Qué llevar", o.que_llevar], ["Lugar", o.lugar], ["Notas", o.notas]].filter((x) => x[1]).map((x) => "<dt>" + x[0] + "</dt><dd>" + esc(x[1]) + "</dd>").join("") + (o.fuente ? '<dt>Fuente</dt><dd><a href="' + esc(o.fuente) + '" target="_blank" rel="noopener">' + esc(dominio(o.fuente)) + "</a></dd>" : "");
+    return '<article class="op ' + (r.c || "") + '"><h3>' + esc(o.nombre) + '</h3><span class="org">' + esc(o.organiza || "") + '</span><span class="reloj">' + esc(r.t) + "</span>" +
+      (det ? "<details><summary>Detalles</summary><dl>" + det + "</dl></details>" : "") +
+      '<div class="pie">' + (seg ? '<label class="fx-sr" for="st-' + o.id + '">Estado</label><select id="st-' + o.id + '" data-op="' + o.id + '">' + Object.entries(ESTOP).map(([k, n]) => '<option value="' + k + '"' + (k === seg.estado ? " selected" : "") + ">" + n + "</option>").join("") + '<option value="__quitar">Dejar de seguir</option></select>' : '<span></span><button class="btn chico" data-seguir="' + o.id + '">Seguir</button>') + "</div></article>";
+  };
+  const grupo = (titulo, sub, lista, abierto = true) => lista.length ? '<section style="display:flex;flex-direction:column;gap:10px;margin-top:18px"><div class="cab"><h2>' + titulo + '</h2><span class="hint">' + sub + "</span></div>" + (abierto ? '<div class="ops2">' + lista.map((o) => card(o)).join("") + "</div>" : '<details><summary class="hint" style="cursor:pointer;color:var(--accent)">Mostrar ' + lista.length + '</summary><div class="ops2" style="margin-top:10px">' + lista.map((o) => card(o)).join("") + "</div></details>") + "</section>" : "";
+  $("panel").innerHTML =
+    (SEGS.length ? '<section style="display:flex;flex-direction:column;gap:10px;margin-top:14px"><div class="cab"><h2>Las que sigues</h2><span class="hint">Anota en qué vas con cada una.</span></div><div class="ops2">' + SEGS.map((s) => { const o = OPS.find((x) => x.id === s.oportunidad_id); return o ? card(o, s) : ""; }).join("") + "</div></section>" : "") +
+    (sug.length ? grupo("A qué te puedes presentar", "Según el tipo de proyecto" + (P.formato ? " y el formato elegido" : "") + ": " + AREA[area] + ".", sug)
+      : '<div class="vacio" style="margin-top:14px">Ahora no hay convocatorias abiertas ni eventos próximos de ' + AREA[area] + '. La lista se revisa cada mañana.</div>') +
+    grupo("Para cualquier emprendimiento", "Fondos y ferias generales que también te pueden servir.", generales, sug.length < 3) +
+    grupo("Otras áreas", "Por si tu proyecto cruza a otro lado.", resto, false) + pronto(["alertas", "tareas"]);
+  activarAvisame($("panel"));
+  $("panel").onclick = async (e) => {
+    const b = e.target.closest("[data-seguir]"); if (!b) return;
+    const { error } = await sb.from("proyecto_oportunidades").insert({ proyecto_id: P.id, oportunidad_id: b.dataset.seguir, espacio_id: ESP });
+    if (error) { toast(limite(error) || "No se pudo agregar."); return; }
+    SEGS.push({ oportunidad_id: b.dataset.seguir, estado: "interesa" }); pintarTabs(); oportunidades();
+  };
+  $("panel").onchange = async (e) => {
+    const s = e.target.closest("[data-op]"); if (!s) return;
+    const op = s.dataset.op;
+    if (s.value === "__quitar") {
+      const { error } = await sb.from("proyecto_oportunidades").delete().eq("proyecto_id", P.id).eq("oportunidad_id", op);
+      if (!error) { SEGS = SEGS.filter((x) => x.oportunidad_id !== op); pintarTabs(); oportunidades(); }
+      return;
+    }
+    const { error } = await sb.from("proyecto_oportunidades").update({ estado: s.value }).eq("proyecto_id", P.id).eq("oportunidad_id", op);
+    if (error) toast(limite(error) || "No se pudo guardar."); else SEGS.find((x) => x.oportunidad_id === op).estado = s.value;
+  };
+}
+
+/* ================= BITÁCORA ================= */
+/* ================= VITRINA ================= */
+// La vitrina se edita en su propia página (../vitrina/editar/); aquí se ve su estado y se comparte.
+function vitrina() {
+  $("panel").style.setProperty("--tc", tc(P.tipo));
+  const url = VIT ? new URL("../vitrina/?v=" + VIT.slug, location.href).href : "";
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Vitrina</h2>' + (VIT && VIT.publicada ? '<span class="vit-vivo">● Publicada ' + hace(VIT.publicado_en) + "</span>" : VIT ? '<span class="hint">Borrador sin publicar</span>' : "") + "</div>" +
+    '<div class="vit-hero"><div><p style="margin:0 0 8px;max-width:58ch">La página pública de tu proyecto, para compartir en redes, ferias, fondos o con una editorial. Tú eliges qué mostrar: la historia, imágenes, novedades y, con Forja Más, tus pizarras para explorarlas.</p>' +
+    '<p class="hint" style="margin:0 0 14px">Nada de tu Taller, tu bitácora ni tus pizarras se publica solo: la vitrina usa copias que tú revisas antes de publicar.</p>' +
+    '<div class="vit-acc"><a class="btn prim" href="../vitrina/editar/?p=' + P.id + '">' + (VIT ? "Editar la vitrina" : "Crear la vitrina") + "</a>" + (VIT && VIT.publicada ? '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">Ver la página ↗</a><button type="button" class="btn pz-libre" id="vit-copiar">Copiar enlace</button>' : "") + "</div></div>" +
+    '<svg class="vit-ilus" viewBox="0 0 160 110" aria-hidden="true"><rect x="6" y="6" width="148" height="98" rx="10"/><rect class="h" x="6" y="6" width="148" height="44" rx="10"/><rect class="t" x="18" y="30" width="70" height="8" rx="3"/><rect class="l" x="18" y="60" width="56" height="5" rx="2"/><rect class="l" x="18" y="70" width="44" height="5" rx="2"/><rect class="g" x="90" y="58" width="24" height="18" rx="3"/><rect class="g" x="118" y="58" width="24" height="30" rx="3"/><rect class="g" x="90" y="80" width="24" height="12" rx="3"/></svg></div></section>';
+  const c = $("vit-copiar"); if (c) c.onclick = async () => { try { await navigator.clipboard.writeText(url); toast("Enlace copiado"); } catch (e) { toast(url); } };
+}
+
+function bitacora() {
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Bitácora</h2><span class="hint">Avances, decisiones e ideas sueltas, con fecha.</span></div>' +
+    '<form class="nueva" id="f-nota"><label class="fx-sr" for="f-texto">Nueva entrada</label><textarea id="f-texto" maxlength="20000" placeholder="¿Qué avanzaste o decidiste hoy?"></textarea>' +
+    '<div class="fila"><span class="hint">Ctrl + Enter para guardar</span><button class="btn prim" type="submit">Anotar</button></div></form>' +
+    '<div class="hilo" id="hilo" style="--tc:' + tc(P.tipo) + '"></div></section>';
+  const pintar = () => {
+    $("hilo").innerHTML = NOTAS.length ? NOTAS.map((n) => '<article class="nota"><time datetime="' + n.creado_en + '">' + fecha(n.creado_en) + '</time><button class="x" data-del="' + n.id + '" aria-label="Borrar entrada">borrar</button><p>' + esc(n.texto) + "</p></article>").join("")
+      : '<p class="hint" style="margin:0">Todavía no hay entradas. La primera puede ser por qué te gusta esta idea.</p>';
+  };
+  pintar();
+  $("f-texto").onkeydown = (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) $("f-nota").requestSubmit(); };
+  $("f-nota").onsubmit = async (e) => {
+    e.preventDefault();
+    const texto = $("f-texto").value.trim(); if (!texto) return;
+    const { data, error } = await sb.from("notas").insert({ espacio_id: ESP, proyecto_id: P.id, texto }).select("id,texto,creado_en").single();
+    if (error) { toast(limite(error) || "No se pudo anotar."); return; }
+    NOTAS.unshift(data); $("f-texto").value = ""; pintar(); pintarTabs(); tocarProyecto();
+  };
+  $("hilo").onclick = async (e) => {
+    const b = e.target.closest("[data-del]"); if (!b) return;
+    if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "¿seguro?"; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ""; b.textContent = "borrar"; } }, 3500); return; }
+    const { error } = await sb.from("notas").delete().eq("id", b.dataset.del);
+    if (error) { toast("No se pudo borrar."); return; }
+    NOTAS = NOTAS.filter((n) => n.id !== b.dataset.del); pintar(); pintarTabs();
+  };
+}
+
+</script>
+</body>
+</html>

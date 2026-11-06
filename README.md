@@ -13,18 +13,18 @@ Una portada pública que explica la herramienta, el calendario público de **Opo
 ```
 docs/                     sitio publicado en GitHub Pages (app instalable en el celular)
   index.html              portada pública
-  vitrina.html            vitrina pública de un proyecto (?v=direccion)
-  guia.html               guía de Forja con demos para probar
-  vitrina-editor.html     editor de la vitrina (requiere cuenta)
-  planes.html             planes (gratis y Forja Más, próximamente)
-  entrar.html             entrada por correo
-  eventos.html            fechas de lo que siguen tus proyectos (requiere cuenta)
-  cotizaciones.html       todas las cotizaciones (requiere cuenta)
-  oportunidades.html      ferias, fondos y convocatorias (público)
-  proyectos.html          proyectos (requiere cuenta)
-  proyecto.html           página de cada proyecto (requiere cuenta)
-  cotizador.html          cotización de un proyecto: producción y precio de venta (requiere cuenta)
-  biblia.html             documento imprimible del proyecto (requiere cuenta)
+  vitrina/            vitrina pública de un proyecto (?v=direccion)
+  guia/               guía de Forja con demos para probar
+  vitrina/editar/     editor de la vitrina (requiere cuenta)
+  planes/             planes (gratis y Forja Más, próximamente)
+  entrar/             entrada por correo
+  eventos/            fechas de lo que siguen tus proyectos (requiere cuenta)
+  cotizaciones/       todas las cotizaciones (requiere cuenta)
+  oportunidades/      ferias, fondos y convocatorias (público)
+  proyectos/          proyectos (requiere cuenta)
+  proyecto/           página de cada proyecto (requiere cuenta)
+  cotizador/          cotización de un proyecto: producción y precio de venta (requiere cuenta)
+  biblia/             documento imprimible del proyecto (requiere cuenta)
   js/forja.js             sesión, navegación y utilidades
   js/brujula.js           brújula de formatos
   js/guias.js             tipos de proyecto y preguntas guía

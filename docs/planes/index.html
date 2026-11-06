@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Planes</title>
+<meta name="description" content="Forja es gratis para empezar. Forja Más llega pronto, con proyectos y palabras sin límite y herramientas nuevas.">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: planes — dos tarjetas lado a lado, una comparación corta, un explorador por áreas de lo que trae Forja Más y preguntas */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+a{color:var(--accent)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:clamp(32px,6vw,48px);line-height:1.05;margin-top:8px}
+.lead{color:var(--muted);max-width:56ch;margin:10px 0 0;font-size:17px}
+section{margin-top:44px}
+:where(button,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.planes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;margin-top:28px;align-items:stretch}
+@media (max-width:760px){.planes{grid-template-columns:minmax(0,1fr)}}
+.plan{position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.plan h2{font-size:24px}
+.plan .precio{font-family:var(--f-num);font-size:34px;font-weight:700;line-height:1}
+.plan .precio small{font-family:var(--f-body);font-size:14px;color:var(--muted);font-weight:400}
+.plan .anual{font-size:14px;color:var(--muted)}
+.plan.mas{border:2px solid var(--ember);background:radial-gradient(circle at 100% 0,var(--ember-soft),var(--card) 55%)}
+.cinta{position:absolute;top:-12px;right:18px;background:var(--ember);color:#fff;font-family:var(--f-num);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:4px 12px}
+.actual{align-self:flex-start;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--good);border:1px solid var(--good);border-radius:999px;padding:2px 10px}
+.medidas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.medida{background:var(--field);border-radius:12px;padding:10px;text-align:center}
+.medida b{display:block;font-family:var(--f-num);font-size:22px;line-height:1.1}
+.medida span{font-size:12px;color:var(--muted)}
+.plan.mas .medida b{color:var(--ember)}
+.incluye{font-size:14px;color:var(--muted);margin:0}
+.boton{align-self:flex-start;font:inherit;font-weight:700;border-radius:12px;padding:10px 16px;text-decoration:none;border:1.5px solid var(--accent);color:var(--accent);background:transparent;cursor:pointer}
+.boton.lleno{background:var(--ember);border-color:var(--ember);color:#fff}
+.plan .fx-avisame{font-size:15px;padding:9px 16px;border-radius:12px}
+
+.explorador{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;margin-top:18px;align-items:start}
+@media (max-width:760px){.explorador{grid-template-columns:minmax(0,1fr)}}
+.areas{display:flex;flex-direction:column;gap:4px;position:sticky;top:12px}
+@media (max-width:760px){.areas{position:static;flex-direction:row;overflow-x:auto;scrollbar-width:none;gap:6px}}
+.areas button{font:inherit;text-align:left;border:1px solid transparent;background:transparent;border-radius:12px;padding:9px 12px;cursor:pointer;color:var(--muted);display:flex;flex-direction:column;gap:1px}
+.areas button b{font-family:var(--f-display);font-size:15px;color:var(--fg)}
+.areas button small{font-size:12.5px}
+.areas button[aria-selected="true"]{background:var(--card);border-color:var(--ember)}
+@media (max-width:760px){.areas button{flex:none;border-color:var(--line);background:var(--card)}.areas button small{display:none}}
+.funciones{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.comparar{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:15px;margin-top:16px}
+.comparar th,.comparar td{padding:11px 14px;border-bottom:1px solid var(--line);text-align:left}
+.comparar thead th{font-family:var(--f-display);font-size:16px;background:var(--field)}
+.comparar td:nth-child(2),.comparar td:nth-child(3),.comparar th:nth-child(2),.comparar th:nth-child(3){text-align:center;width:24%}
+.comparar td:nth-child(3){color:var(--ember);font-weight:700}
+.comparar tr:last-child td{border-bottom:0}
+.comparar .n{font-family:var(--f-num)}
+.dudas{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:16px}
+.dudas details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.dudas summary{cursor:pointer;font-family:var(--f-display);font-weight:700}
+.dudas p{margin:8px 0 0;color:var(--muted);font-size:15px}
+.mecenas{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;background:var(--fg);color:var(--bg);border-radius:20px;padding:22px 24px}
+@media (max-width:620px){.mecenas{grid-template-columns:minmax(0,1fr)}}
+.mecenas p{margin:6px 0 0;opacity:.8}
+.mecenas .fx-avisame{border-color:var(--ember);color:var(--ember)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main>
+    <h1>Empieza gratis.<br>Crece cuando lo necesites.</h1>
+    <p class="lead">El plan gratis alcanza para un cuento, un juego chico o un producto. Forja Más, que llega pronto, quita los límites y suma herramientas para proyectos grandes.</p>
+
+    <div class="planes">
+      <article class="plan" aria-labelledby="p-libre">
+        <span class="actual" id="actual-libre" hidden>Tu plan</span>
+        <h2 id="p-libre">Gratis</h2>
+        <div class="precio">$0</div>
+        <div class="medidas"><div class="medida"><b>3</b><span>proyectos en curso</span></div><div class="medida"><b>20 mil</b><span>palabras por proyecto</span></div><div class="medida"><b>30</b><span>referentes por proyecto</span></div></div>
+        <p class="incluye">Taller con preguntas guía, brújula de formatos, cotizador completo con precio de venta, biblia en PDF, oportunidades sugeridas, bitácora y precios de la comunidad.</p>
+        <a class="boton" id="b-libre" href="../entrar/?siguiente=../proyectos/">Empezar gratis</a>
+      </article>
+      <article class="plan mas" aria-labelledby="p-mas">
+        <span class="cinta">Próximamente</span>
+        <span class="actual" id="actual-mas" hidden>Tu plan</span>
+        <h2 id="p-mas">Forja Más</h2>
+        <div class="precio" id="precio-mas"></div>
+        <div class="anual" id="precio-anual"></div>
+        <div class="medidas"><div class="medida"><b>∞</b><span>proyectos</span></div><div class="medida"><b>∞</b><span>palabras</span></div><div class="medida"><b>∞</b><span>referentes</span></div></div>
+        <p class="incluye">Todo lo del plan gratis, sin límites, más <span id="n-func"></span> herramientas de escritura, impresión, pizarras, equipo y más (<span id="n-listas"></span> ya funcionan). Si dejas de pagar, nada se borra.</p>
+        <button type="button" class="fx-avisame" data-avisame="plan-mas">Avísame</button>
+      </article>
+    </div>
+
+    <section aria-labelledby="t-comp">
+      <h2 id="t-comp">Lado a lado</h2>
+      <table class="comparar">
+        <thead><tr><th>En cada proyecto</th><th>Gratis</th><th>Forja Más</th></tr></thead>
+        <tbody>
+          <tr><td>Proyectos en curso al mismo tiempo</td><td class="n">3</td><td>Sin límite</td></tr>
+          <tr><td>Palabras en el Taller</td><td class="n">20.000</td><td>Sin límite</td></tr>
+          <tr><td>Referentes</td><td class="n">30</td><td>Sin límite</td></tr>
+          <tr><td>Pizarras</td><td>1 libre, con 20 tarjetas</td><td>Sin límite, más relaciones, escaleta y mapa del mundo</td></tr>
+          <tr><td>Vitrina pública</td><td>Portada, historia, galería, novedades y enlaces</td><td>Todo eso, más tus pizarras para explorar</td></tr>
+          <tr><td>Biblia del proyecto</td><td>PDF con la marca de Forja</td><td>Con diseño, sin marca, Word y EPUB</td></tr>
+          <tr><td>Trabajar con otras personas</td><td>—</td><td>Sí, ellas no pagan</td></tr>
+          <tr><td>Oportunidades</td><td>Calendario y sugeridas</td><td>+ alertas por correo</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section aria-labelledby="t-func">
+      <h2 id="t-func">Lo que trae Forja Más</h2>
+      <p class="lead" style="font-size:16px">Todo está en construcción. Marca "Avísame" en lo que más te sirva: así sabemos qué hacer primero.</p>
+      <div class="explorador">
+        <div class="areas" role="tablist" aria-label="Áreas" id="areas"></div>
+        <div class="funciones" role="tabpanel" id="funciones" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="mecenas" aria-labelledby="t-mec">
+      <div><h2 id="t-mec">Mecenas de la Forja</h2><p>Un aporte único, del monto que quieras, para ayudar a que Forja siga siendo gratis para empezar. Con insignia y tu nombre en la página de apoyo.</p></div>
+      <button type="button" class="fx-avisame" data-avisame="mecenas">Avísame</button>
+    </section>
+
+    <section aria-labelledby="t-dudas">
+      <h2 id="t-dudas">Preguntas</h2>
+      <div class="dudas">
+        <details><summary>¿Qué pasa si llego al límite?</summary><p>Lo que escribiste queda guardado. Para seguir, archiva un proyecto (queda visible y se puede exportar) o recorta texto. Cuando salga Forja Más, podrás quitar los límites.</p></details>
+        <details><summary>¿Y si después dejo de pagar Forja Más?</summary><p>Nada se borra ni se esconde. Sigues editando lo que esté dentro de los límites gratis; lo que los pase queda en solo lectura hasta que vuelvas o lo reduzcas.</p></details>
+        <details><summary>¿Las personas que invite tienen que pagar?</summary><p>No. Paga quien crea el proyecto; quienes colaboran entran gratis.</p></details>
+        <details><summary>¿Mis proyectos son privados?</summary><p>Sí. Solo los ves tú (y quien invites). Forja no tiene publicidad ni vende datos.</p></details>
+      </div>
+    </section>
+  </main>
+</div>
+<script type="module">
+import { sb, $, esc, nav, navApp, plan, proximamente, activarAvisame } from "../js/forja.js";
+import { PRECIO, AREAS, FUNCIONES } from "../js/planes.js";
+const { data } = await sb.auth.getSession();
+if (data.session) {
+  navApp("plan");
+  const pl = await plan();
+  $(pl.mas ? "actual-mas" : "actual-libre").hidden = false;
+  $("b-libre").href = "../proyectos/"; $("b-libre").textContent = pl.mas ? "Ir a mis proyectos" : "Ir a mis proyectos";
+} else nav("planes");
+
+const $$ = (n) => "$" + n.toLocaleString("es-CL");
+$("precio-mas").innerHTML = $$(PRECIO.mes) + " <small>al mes</small>";
+$("precio-anual").textContent = "o " + $$(PRECIO.anio) + " al año: dos meses gratis";
+$("n-func").textContent = FUNCIONES.length;
+$("n-listas").textContent = FUNCIONES.filter((f) => f.listo).length;
+// Las herramientas que ya existen se muestran como disponibles, con lo que trae el plan gratis.
+const disponible = (f) => '<div class="fx-pronto listo" data-funcion="' + f.k + '"><span class="fx-pronto-tag">Ya disponible</span><b>' + esc(f.t) + "</b><span>" + esc(f.d) + "</span>" + (f.libre ? '<span class="libre">' + esc(f.libre) + "</span>" : "") + "</div>";
+
+let area = "pizarras"; // lo primero que ya funciona
+function pintar() {
+  $("areas").innerHTML = AREAS.map((a) => '<button role="tab" data-a="' + a.k + '" aria-selected="' + (a.k === area) + '"><b>' + esc(a.n) + "</b><small>" + esc(a.d) + "</small></button>").join("");
+  $("areas").querySelectorAll("[data-a]").forEach((b) => b.onclick = () => { area = b.dataset.a; pintar(); });
+  $("funciones").innerHTML = FUNCIONES.filter((f) => f.a === area).map((f) => (f.listo ? disponible(f) : proximamente(f.k, f.t, f.d))).join("");
+  activarAvisame($("funciones"));
+}
+pintar();
+activarAvisame(document.querySelector(".planes"));
+activarAvisame(document.querySelector(".mecenas"));
+</script>
+</body>
+</html>

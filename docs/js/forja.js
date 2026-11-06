@@ -7,10 +7,14 @@ export const SB_URL = "https://gfkiwldxxvffnkjcesws.supabase.co";
 export const SB_KEY = "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j";
 export const sb = createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 
+// Raíz del sitio (la carpeta de index.html), sacada de la ubicación de este archivo: sirve igual en
+// teochub.github.io/forja/ que en un dominio propio. Cada página vive en su carpeta: proyectos/, proyecto/?p=…
+export const RAIZ = new URL("../", import.meta.url).href;
+export const u = (ruta = "") => RAIZ + ruta;
 const PUBLICO = [
-  { href: "oportunidades.html", nombre: "Oportunidades", id: "oportunidades" },
-  { href: "planes.html", nombre: "Planes", id: "planes" },
-  { href: "guia.html", nombre: "Guía", id: "guia" },
+  { href: u("oportunidades/"), nombre: "Oportunidades", id: "oportunidades" },
+  { href: u("planes/"), nombre: "Planes", id: "planes" },
+  { href: u("guia/"), nombre: "Guía", id: "guia" },
 ];
 // Menú de la cuenta. Íconos dibujados a mano, de trazo, para que se lean en la barra del celular.
 const ICONO = {
@@ -20,10 +24,10 @@ const ICONO = {
   plan: '<path d="M12 3.5l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/>',
 };
 const APP = [
-  { href: "proyectos.html", nombre: "Proyectos", id: "proyectos" },
-  { href: "eventos.html", nombre: "Eventos", id: "eventos" },
-  { href: "cotizaciones.html", nombre: "Cotizaciones", id: "cotizaciones" },
-  { href: "planes.html", nombre: "Mejorar plan", id: "plan" },
+  { href: u("proyectos/"), nombre: "Proyectos", id: "proyectos" },
+  { href: u("eventos/"), nombre: "Eventos", id: "eventos" },
+  { href: u("cotizaciones/"), nombre: "Cotizaciones", id: "cotizaciones" },
+  { href: u("planes/"), nombre: "Mejorar plan", id: "plan" },
 ];
 const svg = (k) => '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' + ICONO[k] + "</svg>";
 
@@ -56,10 +60,10 @@ export function nav(actual) {
   if (!el) return;
   el.className = "fx-nav";
   el.innerHTML =
-    '<a class="fx-logo" href="./">Forja</a><span class="fx-mods">' +
+    '<a class="fx-logo" href="' + u() + '">Forja</a><span class="fx-mods">' +
     PUBLICO.map((m) => '<a href="' + m.href + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + m.nombre + "</a>").join("") +
-    '</span><span class="fx-user" id="fx-user"><a class="fx-entrar" href="entrar.html">Entrar</a></span>';
-  sb.auth.getSession().then(({ data }) => { if (data.session && $("fx-user")) $("fx-user").innerHTML = '<a class="fx-entrar lleno" href="proyectos.html">Ir a mi forja</a>'; });
+    '</span><span class="fx-user" id="fx-user"><a class="fx-entrar" href="' + u("entrar/") + '">Entrar</a></span>';
+  sb.auth.getSession().then(({ data }) => { if (data.session && $("fx-user")) $("fx-user").innerHTML = '<a class="fx-entrar lleno" href="' + u("proyectos/") + '">Ir a mi forja</a>'; });
 }
 // Dentro de la cuenta: menú propio (arriba en pantallas grandes, abajo en el celular).
 export function navApp(actual) {
@@ -67,12 +71,12 @@ export function navApp(actual) {
   if (!el) return;
   el.className = "fx-app";
   el.innerHTML =
-    '<a class="fx-logo" href="proyectos.html">Forja</a>' +
+    '<a class="fx-logo" href="' + u("proyectos/") + '">Forja</a>' +
     '<nav class="fx-menu" aria-label="Mi forja">' + APP.map((m) => '<a href="' + m.href + '" class="m-' + m.id + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + svg(m.id) + "<span>" + m.nombre + "</span></a>").join("") + "</nav>" +
     '<button type="button" class="fx-ayuda" id="fx-ayuda" aria-label="Ayuda: cómo funciona esta página" title="Ayuda">?</button>' +
     '<details class="fx-cuenta" id="fx-cuenta"><summary aria-label="Mi cuenta"><span class="fx-ini" id="fx-ini">·</span></summary><div class="fx-pop">' +
     '<span class="fx-mail" id="fx-mail2"></span><span class="fx-planb" id="fx-planb">Plan gratis</span>' +
-    '<a href="guia.html">Guía de Forja</a><button type="button" class="fx-link" id="fx-pistas">Volver a ver las pistas</button><a href="./">Ver el sitio público</a><a href="oportunidades.html">Calendario de oportunidades</a><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
+    '<a href="' + u("guia/") + '">Guía de Forja</a><button type="button" class="fx-link" id="fx-pistas">Volver a ver las pistas</button><a href="' + u() + '">Ver el sitio público</a><a href="' + u("oportunidades/") + '">Calendario de oportunidades</a><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
   document.body.classList.add("fx-con-app");
   sb.auth.getSession().then(async ({ data }) => {
     const ses = data.session; if (!ses) return;
@@ -82,7 +86,7 @@ export function navApp(actual) {
     $("fx-planb").textContent = pl.mas ? "Forja Más" : "Plan gratis";
     $("fx-planb").classList.toggle("mas", pl.mas);
   });
-  $("fx-salir").onclick = async () => { await sb.auth.signOut(); location.href = "./"; };
+  $("fx-salir").onclick = async () => { await sb.auth.signOut(); location.href = u(); };
   // La ayuda se carga solo cuando se pide.
   $("fx-ayuda").onclick = async () => { const a = await import("./ayuda.js"); a.abrirAyuda(); };
   $("fx-pistas").onclick = async () => { const a = await import("./ayuda.js"); a.reiniciarPistas(); toast("Las pistas y los primeros pasos volverán a aparecer."); $("fx-cuenta").open = false; setTimeout(() => location.reload(), 900); };
@@ -126,7 +130,7 @@ export async function activarAvisame(root) {
   const { data: { session } } = await sb.auth.getSession();
   const botones = [...(root || document).querySelectorAll("[data-avisame]")];
   if (!botones.length) return;
-  if (!session) { botones.forEach((b) => { b.textContent = "Entra para que te avisemos"; b.onclick = () => { location.href = "entrar.html?siguiente=" + encodeURIComponent("planes.html"); }; }); return; }
+  if (!session) { botones.forEach((b) => { b.textContent = "Entra para que te avisemos"; b.onclick = () => { location.href = u("entrar/?siguiente=" + encodeURIComponent("planes/")); }; }); return; }
   if (!intereses) { const { data } = await sb.from("interes_funciones").select("funcion"); intereses = new Set((data || []).map((x) => x.funcion)); }
   const marcar = (b) => { const on = intereses.has(b.dataset.avisame); b.textContent = on ? "Te avisaremos ✓" : "Avísame"; b.setAttribute("aria-pressed", String(on)); };
   botones.forEach((b) => {
@@ -142,7 +146,7 @@ export async function activarAvisame(root) {
   });
 }
 export const MAS_PRONTO = "Forja Más llega pronto, con proyectos, palabras y pizarras sin límite.";
-export const MAS_LINK = ' <a href="planes.html">Ver Forja Más</a>';
+export const MAS_LINK = ' <a href="' + u("planes/") + '">Ver Forja Más</a>';
 
 /* --- sesión --- */
 let espacioCache = null;
@@ -156,10 +160,10 @@ export async function espacio() {
   return espacioCache;
 }
 
-// Páginas de la cuenta: si no hay sesión, se va a entrar.html y se vuelve aquí al entrar.
+// Páginas de la cuenta: si no hay sesión, se va a entrar/ y se vuelve aquí al entrar.
 export async function conSesion(caja, listo) {
   const { data } = await sb.auth.getSession();
-  if (!data.session) { location.replace("entrar.html?siguiente=" + encodeURIComponent(location.pathname.split("/").pop() + location.search + location.hash)); return; }
+  if (!data.session) { location.replace(u("entrar/?siguiente=" + encodeURIComponent(location.href.slice(RAIZ.length)))); return; }
   caja.innerHTML = "";
   try { await listo(data.session); } catch (e) { console.error(e); caja.innerHTML = '<div class="fx-empty">No se pudieron cargar tus datos. Revisa tu conexión y recarga la página.</div>'; }
 }
@@ -197,4 +201,4 @@ export function pintarEntrada(caja, texto) {
   $("fx-otro").onclick = () => { $("fx-f2").hidden = true; $("fx-tengo").hidden = true; $("fx-f1").hidden = false; $("fx-msg").textContent = ""; };
 }
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator) navigator.serviceWorker.register(u("sw.js"), { scope: RAIZ }).catch(() => {}); // uno solo, en la raíz, para todas las carpetas

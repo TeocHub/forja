@@ -113,7 +113,7 @@ footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:
       <span class="kicker">Taller gratuito · hecho en Chile</span>
       <h1>De la chispa <em>a la obra.</em></h1>
       <p class="lead">Forja es un lugar para darle forma a tus historias, juegos y productos: escribir con guías, juntar referentes, saber cuánto cuesta producir y encontrar dónde mostrarlo.</p>
-      <div class="ctas"><a class="cta main" href="entrar.html">Entrar a mi forja</a><a class="cta alt" href="oportunidades.html">Ver ferias y fondos</a></div>
+      <div class="ctas"><a class="cta main" href="entrar/">Entrar a mi forja</a><a class="cta alt" href="oportunidades/">Ver ferias y fondos</a></div>
     </div>
     <div class="demo" aria-labelledby="demo-t">
       <div class="cap"><b id="demo-t">Brújula de formatos</b><span>Pruébala: arrastra los puntos</span></div>
@@ -142,7 +142,7 @@ footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:
       <h2 id="vit-t" style="margin-top:8px">Ferias, fondos y convocatorias en Chile.</h2>
       <div class="big"><div><b id="n-open">–</b><span>postulaciones abiertas</span></div><div class="hot"><b id="n-hot">–</b><span>cierran en dos semanas</span></div></div>
       <p style="color:var(--muted);margin:0 0 14px">Se revisan cada mañana en fuentes oficiales. No necesitas cuenta para verlas; con cuenta, cada proyecto te sugiere a cuáles presentarte.</p>
-      <a class="cta alt" href="oportunidades.html">Ver todas</a>
+      <a class="cta alt" href="oportunidades/">Ver todas</a>
     </div>
     <div class="carril" id="carril" aria-live="polite"><div class="fx-empty">Cargando oportunidades…</div></div>
   </section>
@@ -150,9 +150,9 @@ footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:
   <section class="cierre" aria-labelledby="cierre-t">
     <div>
       <h2 id="cierre-t">Tus ideas son solo tuyas.</h2>
-      <p>Entras con tu correo, sin contraseñas. Tus proyectos se guardan en tu cuenta y nadie más los ve; puedes abrirlos desde el celular, la tablet o el computador. Forja no guarda archivos: los referentes son enlaces, así que nada pesa ni se pierde. El plan gratis incluye 3 proyectos en curso, 20.000 palabras y 30 referentes por proyecto; Forja Más llega pronto. <a href="planes.html" style="color:inherit">Ver planes</a></p>
+      <p>Entras con tu correo, sin contraseñas. Tus proyectos se guardan en tu cuenta y nadie más los ve; puedes abrirlos desde el celular, la tablet o el computador. Forja no guarda archivos: los referentes son enlaces, así que nada pesa ni se pierde. El plan gratis incluye 3 proyectos en curso, 20.000 palabras y 30 referentes por proyecto; Forja Más llega pronto. <a href="planes/" style="color:inherit">Ver planes</a></p>
     </div>
-    <a class="cta main" href="entrar.html">Empezar un proyecto</a>
+    <a class="cta main" href="entrar/">Empezar un proyecto</a>
   </section>
 
   <footer><span>Forja · Digital Monster, Chile</span><a href="https://github.com/TeocHub/forja">Código abierto en GitHub</a></footer>
@@ -207,7 +207,7 @@ fetch(SB + "oportunidades?select=nombre,tipo,organiza,postul_inicio,postul_fin,e
     let carril = abiertas.slice(0, 4).map((o) => ({ o, n: dd(o.postul_fin), q: "para postular" }));
     if (carril.length < 4) carril = carril.concat(ops.filter((o) => dd(o.evento_inicio) > 0 && !abiertas.includes(o)).sort((a, b) => dd(a.evento_inicio) - dd(b.evento_inicio)).slice(0, 4 - carril.length).map((o) => ({ o, n: dd(o.evento_inicio), q: "para el evento" })));
     const TIPO = { fondo: "Fondo", feria: "Feria", convocatoria: "Convocatoria" };
-    document.getElementById("carril").innerHTML = carril.length ? carril.map(({ o, n, q }) => '<a class="op' + (n <= 14 ? " hot" : "") + '" href="oportunidades.html"><div class="dias"><b>' + (o.fechas_estimadas ? "≈" : "") + n + "</b><small>" + (n === 1 ? "día" : "días") + "</small></div><div><h3>" + esc(o.nombre) + "</h3><p>" + esc(TIPO[o.tipo] || "") + (o.organiza ? " · " + esc(o.organiza) : "") + " · " + q + "</p></div></a>").join("")
+    document.getElementById("carril").innerHTML = carril.length ? carril.map(({ o, n, q }) => '<a class="op' + (n <= 14 ? " hot" : "") + '" href="oportunidades/"><div class="dias"><b>' + (o.fechas_estimadas ? "≈" : "") + n + "</b><small>" + (n === 1 ? "día" : "días") + "</small></div><div><h3>" + esc(o.nombre) + "</h3><p>" + esc(TIPO[o.tipo] || "") + (o.organiza ? " · " + esc(o.organiza) : "") + " · " + q + "</p></div></a>").join("")
       : '<div class="fx-empty">Ahora no hay convocatorias abiertas. Revisa el calendario completo.</div>';
   }).catch(() => { document.getElementById("carril").innerHTML = '<div class="fx-empty">No se pudieron cargar las oportunidades.</div>'; });
 </script>

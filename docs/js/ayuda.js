@@ -1,5 +1,5 @@
 // Forja · ayuda. Un solo contenido para tres lugares:
-//   guia.html       la guía completa para explorar (con demos reales)
+//   guia/           la guía completa para explorar (con demos reales)
 //   abrirAyuda(id)  el cajón "?" que explica la página donde estás, con buscador
 //   pista(el, id)   una nota corta la primera vez que se abre cada herramienta (se recuerda en localStorage)
 // Al cambiar una herramienta, actualizar aquí su tema.
@@ -23,7 +23,9 @@ const ICO = {
 export const icono = (k, tam = 22) => '<svg viewBox="0 0 24 24" width="' + tam + '" height="' + tam + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICO[k] || ICO.plantar) + "</svg>";
 
 // ctx = { p: id del último proyecto abierto (o null) }
-const enProyecto = (pest) => (ctx) => (ctx && ctx.p ? "proyecto.html?p=" + ctx.p + "#" + pest : "proyectos.html");
+// Direcciones absolutas desde la raíz del sitio (la ayuda se abre desde páginas en distintas carpetas).
+const RAIZ = new URL("../", import.meta.url).href, u = (r = "") => RAIZ + r;
+const enProyecto = (pest) => (ctx) => (ctx && ctx.p ? u("proyecto/?p=" + ctx.p + "#" + pest) : u("proyectos/"));
 
 export const TEMAS = [
   { id: "plantar", linea: true, n: "Plantar un proyecto", donde: "Proyectos",
@@ -32,7 +34,7 @@ export const TEMAS = [
     pasos: ["En Proyectos, escribe el nombre de tu idea y elige su categoría.", "Toca «Plantar»: se abre el proyecto con su Taller listo para escribir.", "Arriba cambias el estado (semilla, en desarrollo, en pausa, listo) y el formato cuando lo tengas claro.", "Cuando un proyecto quede atrás, archívalo: no se borra y libera un cupo."],
     consejo: "No esperes a tener la idea completa. Una semilla con nombre y una frase ya sirve: Forja te va haciendo las preguntas.",
     plan: ["3 proyectos en curso (los archivados no cuentan)", "Proyectos sin límite"],
-    ir: () => "proyectos.html#semilla", claves: "crear nuevo proyecto empezar categoría formato estado archivar semilla cupo" },
+    ir: () => u("proyectos/#semilla"), claves: "crear nuevo proyecto empezar categoría formato estado archivar semilla cupo" },
   { id: "taller", linea: true, n: "El Taller", donde: "Pestaña Taller de cada proyecto",
     corto: "Escribes tu proyecto por secciones, con preguntas que te guían. Cada sección tiene su avance y el proyecto suma todo.",
     para: "El Taller ordena la escritura en secciones (premisa, personajes, mecánicas, reglas…) según lo que estés creando. Cada una trae preguntas guía para no partir de la hoja en blanco, y tu avance se calcula solo.",
@@ -67,7 +69,7 @@ export const TEMAS = [
     pasos: ["Crea la cotización desde la pestaña Costos: parte con las piezas típicas de tu tipo de proyecto.", "Agrega los precios que te den los proveedores para distintas cantidades.", "Mira el costo de una unidad según cuántas mandes a hacer.", "En «A cuánto venderlo» ajusta ganancia, comisión y redondeo hasta que te cuadre."],
     consejo: "Pide precio para al menos dos cantidades al mismo proveedor: así Forja estima las cantidades intermedias.",
     plan: ["Una cotización por proyecto", "Lo mismo, y pronto versiones de precio y presupuesto para fondos"],
-    ir: (ctx) => (ctx && ctx.p ? "proyecto.html?p=" + ctx.p + "#costos" : "cotizaciones.html"), claves: "precio cotizar proveedor imprenta costo unidad iva dólar envío ganancia vender lote tiraje" },
+    ir: (ctx) => (ctx && ctx.p ? u("proyecto/?p=" + ctx.p + "#costos") : u("cotizaciones/")), claves: "precio cotizar proveedor imprenta costo unidad iva dólar envío ganancia vender lote tiraje" },
   { id: "oportunidades", linea: true, n: "Oportunidades", donde: "Calendario y pestaña Oportunidades",
     corto: "Fondos, ferias y convocatorias en Chile, con sus fechas. Cada proyecto sigue las que le sirven.",
     para: "Forja revisa fondos, ferias y convocatorias para creadores en Chile y los pone en un calendario. En cada proyecto ves las que calzan con lo que haces y marcas las que vas a seguir.",
@@ -88,7 +90,7 @@ export const TEMAS = [
     pasos: ["En el proyecto, toca «Exportar la biblia del proyecto (PDF)».", "Marca las partes que quieres incluir.", "Toca «Imprimir o guardar PDF» y elige «Guardar como PDF»."],
     consejo: "Es ideal para enviarla a un fondo, a una editorial o para tener un respaldo de tu proyecto fuera de Forja.",
     plan: ["Incluida", "Incluida"],
-    ir: (ctx) => (ctx && ctx.p ? "biblia.html?p=" + ctx.p : "proyectos.html"), claves: "pdf imprimir exportar documento respaldo descargar" },
+    ir: (ctx) => (ctx && ctx.p ? u("biblia/?p=" + ctx.p) : u("proyectos/")), claves: "pdf imprimir exportar documento respaldo descargar" },
   { id: "bitacora", n: "Bitácora", donde: "Pestaña Bitácora",
     corto: "Tu diario privado del proyecto: notas con fecha de lo que hiciste, decidiste o se te ocurrió.",
     para: "La bitácora guarda notas fechadas que solo ves tú. Sirve para recordar por qué tomaste una decisión o qué quedó pendiente.",
@@ -100,13 +102,13 @@ export const TEMAS = [
     para: "Eventos junta en una línea de tiempo cuándo abren y cierran las postulaciones y cuándo son los eventos que sigues, con cuenta regresiva. También te sugiere oportunidades para cada proyecto.",
     pasos: ["Sigue oportunidades desde cada proyecto o desde las sugerencias de Eventos.", "Mira lo que viene: lo que vence en dos semanas se destaca."],
     consejo: "Revisa Eventos una vez por semana: es lo que más ayuda a no perderse un cierre.",
-    plan: ["Incluido", "Incluido, y pronto alertas"], ir: () => "eventos.html", claves: "fechas plazos calendario cierres recordatorio" },
+    plan: ["Incluido", "Incluido, y pronto alertas"], ir: () => u("eventos/"), claves: "fechas plazos calendario cierres recordatorio" },
   { id: "cuenta", n: "Planes y límites", donde: "Mejorar plan",
     corto: "El plan gratis sirve de verdad; Forja Más quita los límites y suma herramientas. Si dejas de pagar, nada se borra.",
     para: "Con el plan gratis puedes tener 3 proyectos en curso con 20.000 palabras y 30 referentes cada uno, una pizarra libre y tu vitrina. Forja Más (próximamente) quita esos límites y suma herramientas.",
     pasos: ["Mira tu cupo en Proyectos y los contadores en el Taller y Referentes.", "Si llegas a un límite, archiva o recorta: lo anterior queda guardado.", "Si un proyecto queda en solo lectura, igual puedes verlo, exportarlo, archivarlo o borrarlo."],
     consejo: "En «Mejorar plan», el botón «Avísame» en cada herramienta nos dice qué construir primero.",
-    plan: ["Gratis para siempre", "$2.990 al mes (próximamente)"], ir: () => "planes.html", claves: "precio pagar suscripción gratis límite forja más plan cupo solo lectura" },
+    plan: ["Gratis para siempre", "$2.990 al mes (próximamente)"], ir: () => u("planes/"), claves: "precio pagar suscripción gratis límite forja más plan cupo solo lectura" },
   { id: "privacidad", n: "Quién ve qué", donde: "Tu cuenta",
     corto: "Tus proyectos son solo tuyos. Lo único público es lo que publicas en una vitrina.",
     para: "Entras con un enlace a tu correo, sin contraseña. Todo lo que creas queda en tu espacio privado: nadie más lo ve, ni otras cuentas. Lo único que se puede ver sin cuenta es la versión publicada de una vitrina, y los precios que decides compartir en el cotizador van sin tu nombre.",
@@ -123,10 +125,10 @@ export const TEMAS = [
 export const tema = (id) => TEMAS.find((t) => t.id === id);
 
 // Qué tema explica la página donde está la persona.
-export function temaDe(path = location.pathname, hash = location.hash) {
-  const p = (path.split("/").pop() || "index.html").replace(/\?.*/, ""), h = (hash || "").slice(1);
-  if (p === "proyecto.html") return tema(h) ? h : "taller";
-  return ({ "proyectos.html": "plantar", "cotizador.html": "costos", "cotizaciones.html": "costos", "eventos.html": "eventos", "planes.html": "cuenta", "vitrina-editor.html": "vitrina", "biblia.html": "biblia", "oportunidades.html": "oportunidades", "entrar.html": "privacidad" })[p] || "plantar";
+export function temaDe(href = location.href, hash = location.hash) {
+  const rel = href.split(/[?#]/)[0].slice(RAIZ.length).replace(/index\.html$/, ""), h = (hash || "").slice(1);
+  if (rel === "proyecto/") return tema(h) ? h : "taller";
+  return ({ "proyectos/": "plantar", "cotizador/": "costos", "cotizaciones/": "costos", "eventos/": "eventos", "planes/": "cuenta", "vitrina/editar/": "vitrina", "biblia/": "biblia", "oportunidades/": "oportunidades", "entrar/": "privacidad" })[rel] || "plantar";
 }
 export const contexto = () => { let p = null; try { p = localStorage.getItem("forja-ultimo-proyecto"); } catch (e) {} return { p }; };
 
@@ -170,7 +172,7 @@ export function abrirAyuda(id = temaDe()) {
       '<label class="ay-buscar"><span class="ay-sr">Buscar en la ayuda</span><input type="search" placeholder="¿Qué quieres hacer? Ej.: calcular el precio" value="' + esc(q) + '"></label>' +
       (res ? '<div class="ay-res">' + (res.length ? res.slice(0, 5).map((r) => '<button type="button" data-t="' + r.id + '">' + icono(r.id, 18) + "<span><b>" + esc(r.n) + "</b><small>" + esc(r.corto) + "</small></span></button>").join("") : '<p class="ay-nada">No encontré eso. Prueba con otras palabras o abre la guía completa.</p>') + "</div>" : temaHTML(t)) +
       '<div class="ay-otros"><span>Otros temas</span><div>' + TEMAS.filter((x) => x.id !== t.id || res).map((x) => '<button type="button" data-t="' + x.id + '" title="' + esc(x.n) + '">' + icono(x.id, 16) + "<span>" + esc(x.n) + "</span></button>").join("") + "</div></div>" +
-      '<a class="ay-guia" href="guia.html#' + t.id + '">Abrir la guía completa, con ejemplos para probar →</a></div>';
+      '<a class="ay-guia" href="' + u("guia/#" + t.id) + '">Abrir la guía completa, con ejemplos para probar →</a></div>';
     cajon.querySelector(".ay-x").onclick = () => cajon.close();
     cajon.querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { pintar(b.dataset.t); cajon.querySelector(".ay-c").scrollTop = 0; });
     const inp = cajon.querySelector("input");
@@ -217,7 +219,7 @@ export function sendero(contenedor, hecho, p) {
     (listos === PASOS.length ? "Ya conoces el camino de una idea a su vitrina. Lo demás lo descubres a tu ritmo en la guía." : "Cinco pasos para conocer lo esencial. Se marcan solos a medida que avanzas.") + '</p></div><span class="ay-s-n">' + listos + " de " + PASOS.length + '</span></div><div class="ay-ruta">' +
     PASOS.map(([k, n, d], i) => { const t = tema(k), est = hecho[k] ? "hecho" : i === sig ? "siguiente" : "";
       return '<a class="ay-hito ' + est + '" href="' + esc(k === "plantar" ? "#semilla" : t.ir(ctx)) + '"' + (!hecho.plantar && k !== "plantar" ? ' aria-disabled="true" tabindex="-1"' : "") + '><span class="ay-punto">' + (hecho[k] ? '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' : icono(k, 18)) + "</span><span class=\"ay-hito-t\"><b>" + n + "</b><small>" + (hecho[k] ? "Listo" : d) + "</small></span></a>"; }).join("") +
-    '</div><div class="ay-s-pie"><a href="guia.html">Explorar la guía completa</a><button type="button" id="ay-ocultar">' + (listos === PASOS.length ? "Cerrar" : "Ocultar por ahora") + "</button></div></section>";
+    '</div><div class="ay-s-pie"><a href="' + u("guia/") + '">Explorar la guía completa</a><button type="button" id="ay-ocultar">' + (listos === PASOS.length ? "Cerrar" : "Ocultar por ahora") + "</button></div></section>";
   contenedor.querySelector("#ay-ocultar").onclick = () => { try { localStorage.setItem("forja-sendero-oculto", "1"); } catch (e) {} contenedor.innerHTML = ""; };
   const pl = contenedor.querySelector('.ay-hito[href="#semilla"]');
   if (pl) pl.onclick = (e) => { e.preventDefault(); const s = document.getElementById("semilla"); if (s) { s.scrollIntoView({ behavior: "smooth", block: "center" }); const i = s.querySelector("input"); if (i) setTimeout(() => i.focus(), 350); } };
