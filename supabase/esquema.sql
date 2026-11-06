@@ -2,7 +2,7 @@
 -- Solo estructura y reglas de acceso; ningún dato. Aplicado como migraciones:
 -- espacios_privados_proyectos, es_miembro_fuera_de_api y
 -- secciones_referentes_cotizacion_unica, precios_comunidad y
--- precios_comunidad_ocultar_autor y secciones_avance_peso (2026-11-05).
+-- precios_comunidad_ocultar_autor, secciones_avance_peso y limites_plan_libre (2026-11-05).
 
 -- Espacios: cada usuario tiene uno propio (pensados para compartirse más adelante).
 create table public.espacios(
@@ -119,3 +119,9 @@ create table public.precios_comunidad(
 );
 -- RLS: cualquier usuario con cuenta lee; insertar y borrar solo el autor.
 -- La columna autor no se puede leer (permiso de select por columnas, sin autor).
+
+-- Planes: espacios.plan ('libre' | 'mas') y espacios.plan_hasta; los usuarios solo pueden actualizar espacios.nombre.
+-- Límites del plan libre (privado.limite): 3 proyectos en curso, 20.000 palabras por proyecto, 30 referentes por proyecto.
+-- Triggers before insert/update: proyectos (privado.t_proyectos), secciones (t_secciones), referentes (t_referentes),
+-- notas y cotizaciones (t_lectura). Errores: FORJA_LIMITE_PROYECTOS, FORJA_LIMITE_PALABRAS, FORJA_LIMITE_REFERENTES, FORJA_SOLO_LECTURA.
+-- Un proyecto es editable si el espacio es Más, o si no está archivado y el espacio no supera los proyectos en curso.

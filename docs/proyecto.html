@@ -40,6 +40,13 @@ button{cursor:pointer}
 .estados{display:inline-flex;max-width:100%;overflow-x:auto;scrollbar-width:none;border:1px solid var(--line);border-radius:999px;background:var(--card)}
 .estados button{white-space:nowrap;flex:none;border:0;background:transparent;padding:4px 11px;font-size:13px;color:var(--muted)}
 .estados button[aria-pressed="true"]{background:var(--fg);color:var(--bg);font-weight:700}
+.lectura{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border:1.5px solid var(--e-pausa);background:color-mix(in srgb,var(--e-pausa) 8%,var(--card));border-radius:12px;padding:10px 14px;font-size:14px}
+.lectura b{color:var(--e-pausa)}
+:disabled{cursor:not-allowed}
+.total.tope{display:flex;flex-direction:column;gap:5px;--ec:var(--accent)}
+@media (max-width:820px){.total.tope{display:flex;flex:none;min-width:160px;padding:4px 8px}}
+.total.tope.cerca{--ec:var(--e-pausa)}
+.total.tope small{font-family:var(--f-body);font-size:12px;color:var(--e-pausa)}
 .sel{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .sel select{font-size:15px}
 .estado-w{display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--ec) 8%,var(--card));border:1.5px solid color-mix(in srgb,var(--ec) 40%,var(--line));border-radius:14px;padding:10px 12px}
@@ -203,7 +210,7 @@ textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, debounce, fecha, hace, nav, espacio, conSesion } from "./js/forja.js";
+import { sb, $, esc, toast, debounce, fecha, hace, nav, espacio, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO } from "./js/forja.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "./js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "./js/brujula.js";
 nav("mi");
@@ -212,11 +219,14 @@ document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + "</style
 const ID = new URLSearchParams(location.search).get("p");
 const PESTANAS = [["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"]];
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-let ESP, P, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, pest = "taller", secActual = null;
+let ESP, P, PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, pest = "taller", secActual = null;
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("proyectos.html");
 else conSesion($("app"), async () => {
   ESP = await espacio();
+  PL = await plan();
+  const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
+  ACT = ac.count || 0;
   const [pr, se, re, no, co, po] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
     sb.from("secciones").select("id,titulo,guia,texto,orden,avance,peso").eq("proyecto_id", ID).order("orden"),
@@ -235,7 +245,8 @@ else conSesion($("app"), async () => {
 const guardar = async (cambios, aviso) => {
   Object.assign(P, cambios);
   const { error } = await sb.from("proyectos").update(cambios).eq("id", P.id);
-  if (error) toast("No se pudo guardar el cambio."); else if (aviso) toast(aviso);
+  if (error) toast(limite(error) || "No se pudo guardar el cambio."); else if (aviso) toast(aviso);
+  return error;
 };
 const tocarProyecto = debounce(() => sb.from("proyectos").update({ nombre: P.nombre }).eq("id", P.id), 4000);
 const palabras = (t) => (t.trim().match(/\S+/g) || []).length;
@@ -243,6 +254,7 @@ const palabras = (t) => (t.trim().match(/\S+/g) || []).length;
 /* ================= estructura ================= */
 function armar() {
   document.title = "Forja · " + P.nombre;
+  RO = !editable(P, ACT, PL);
   $("app").innerHTML =
     '<a class="vol" href="proyectos.html">← Mi forja</a>' +
     '<section class="cabeza" id="cabeza" style="--tc:' + tc(P.tipo) + ";--ec:var(--e-" + P.estado + ')">' +
@@ -252,16 +264,23 @@ function armar() {
     '<div class="estado-w"><div class="estados" role="radiogroup" aria-label="Estado del proyecto">' + Object.entries(ESTADOS).map(([k, n]) => '<button type="button" role="radio" data-est="' + k + '" style="--ec:var(--e-' + k + ')" aria-checked="' + (k === P.estado) + '">' + n + "</button>").join("") + "</div>" +
     '<div class="avance-w" id="avance-w"></div></div>' +
     '<label class="fx-sr" for="f-resumen">Resumen</label><textarea class="resumen" id="f-resumen" maxlength="4000" placeholder="¿De qué se trata, en pocas líneas? Se puede reescribir cuando la idea cambie.">' + esc(P.resumen || "") + "</textarea></section>" +
+    (RO ? '<div class="lectura" role="status"><b>Solo lectura</b><span>' + (P.estado === "archivado"
+      ? "Este proyecto está archivado. Puedes verlo y exportarlo; para editarlo cámbialo a otro estado (usa uno de tus " + LIMITES.proyectos + " cupos del plan gratis)."
+      : "Tienes " + ACT + " proyectos en curso y el plan gratis permite " + LIMITES.proyectos + ". Archiva " + (ACT - LIMITES.proyectos) + " (este u otro, desde Mi forja) para seguir editando. Nada se borra.") + "</span></div>" : "") +
     '<div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
     '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="biblia.html?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar"><button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button></span></div>';
 
   $("f-nombre").onchange = (e) => { const v = e.target.value.trim(); if (!v) { e.target.value = P.nombre; return; } guardar({ nombre: v }); document.title = "Forja · " + v; };
   $("f-tipo").onchange = (e) => cambiarTipo(e.target.value);
   $("f-formato").onchange = (e) => elegirFormato(e.target.value || null);
-  document.querySelectorAll("[data-est]").forEach((b) => b.onclick = () => {
-    document.querySelectorAll("[data-est]").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
-    $("cabeza").style.setProperty("--ec", "var(--e-" + b.dataset.est + ")");
-    guardar({ estado: b.dataset.est }, "Proyecto: " + ESTADOS[b.dataset.est].toLowerCase());
+  document.querySelectorAll("[data-est]").forEach((b) => b.onclick = async () => {
+    const antes = P.estado, nuevo = b.dataset.est; if (nuevo === antes) return;
+    const { error } = await sb.from("proyectos").update({ estado: nuevo }).eq("id", P.id);
+    if (error) { toast(limite(error) || "No se pudo cambiar el estado."); return; }
+    P.estado = nuevo;
+    if (antes === "archivado") ACT++; else if (nuevo === "archivado") ACT--;
+    toast("Proyecto: " + ESTADOS[nuevo].toLowerCase());
+    armar();
   });
   $("f-resumen").onchange = (e) => guardar({ resumen: e.target.value.trim() || null });
   $("b-borrar").onclick = () => {
@@ -275,6 +294,17 @@ function armar() {
     };
   };
   pintarFormatos(); pintarAvance(); pintarTabs(); pintarPestana();
+  aplicarSoloLectura();
+}
+// En solo lectura se puede mirar, navegar, exportar y cambiar el estado; nada más.
+let obs = null;
+function aplicarSoloLectura() {
+  if (obs) { obs.disconnect(); obs = null; }
+  if (!RO) return;
+  const libre = (el) => el.closest(".fx-tabs, .estados, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco") || el.id === "h-foco";
+  const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
+  aplicar();
+  obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });
 }
 // El selector de formato muestra solo los que caben en la categoría.
 function pintarFormatos() {
@@ -368,7 +398,7 @@ function pintarSugerencia() {
 async function crearSecciones(lista) {
   const base = SECS.length ? Math.max(...SECS.map((s) => s.orden)) + 1 : 0;
   const { data, error } = await sb.from("secciones").insert(lista.map((x, i) => ({ espacio_id: ESP, proyecto_id: P.id, titulo: x.titulo, guia: x.guia, orden: base + i, peso: pesoDe(x.guia) }))).select("id,titulo,guia,texto,orden,avance,peso");
-  if (error) { toast("No se pudo agregar."); return []; }
+  if (error) { toast(limite(error) || "No se pudo agregar."); return []; }
   SECS = SECS.concat(data); return data;
 }
 function pintarIndice() {
@@ -377,7 +407,8 @@ function pintarIndice() {
   const aparte = SECS.filter(fuera);
   $("indice").innerHTML = SECS.filter((s) => !fuera(s)).map(boton).join("") +
     (aparte.length ? '<span class="aparte" title="Tienen texto, pero son de otra categoría o formato. Se conservan por si las necesitas.">Otras secciones</span>' + aparte.map(boton).join("") : "") +
-    '<button class="btn chico mas" id="b-mas">+ Sección</button><div class="total">' + total.toLocaleString("es-CL") + " palabras en total</div>";
+    '<button class="btn chico mas" id="b-mas">+ Sección</button>' + (PL.mas ? '<div class="total">' + total.toLocaleString("es-CL") + " palabras en total</div>"
+      : '<div class="total tope' + (total >= LIMITES.palabras * 0.9 ? " cerca" : "") + '"><span>' + total.toLocaleString("es-CL") + " de " + LIMITES.palabras.toLocaleString("es-CL") + ' palabras</span><div class="fx-avance"><i style="width:' + Math.min(100, total / LIMITES.palabras * 100) + '%"></i></div>' + (total >= LIMITES.palabras * 0.9 ? "<small>Cerca del límite del plan gratis. " + MAS_PRONTO + "</small>" : "") + "</div>");
   $("indice").querySelectorAll("[data-s]").forEach((b) => b.onclick = () => { secActual = b.dataset.s; pintarIndice(); pintarHoja(); });
   $("b-mas").onclick = menuSeccion;
 }
@@ -415,7 +446,8 @@ function pintarHoja() {
   const subir = debounce(async () => {
     const id = s.id, texto = ta.value;
     const { error } = await sb.from("secciones").update({ texto }).eq("id", id);
-    if ($("h-est") && secActual === id) $("h-est").textContent = palabras(texto) + " palabras · " + (error ? "no se pudo guardar" : "guardado");
+    if ($("h-est") && secActual === id) $("h-est").textContent = palabras(texto) + " palabras · " + (error ? (limite(error) ? "límite de palabras alcanzado: lo último no se guardó" : "no se pudo guardar") : "guardado");
+    if (error && limite(error)) toast(limite(error));
     if (!error) { tocarProyecto(); pintarIndice(); }
   }, 900);
   ta.oninput = () => { s.texto = ta.value; crecer(); $("h-est").textContent = palabras(ta.value) + " palabras · guardando…"; subir(); };
@@ -426,7 +458,7 @@ function pintarHoja() {
   });
   const fijarAvance = debounce(async (v) => {
     const { error } = await sb.from("secciones").update({ avance: v }).eq("id", s.id);
-    if (error) toast("No se pudo guardar el avance."); else tocarProyecto();
+    if (error) toast(limite(error) || "No se pudo guardar el avance."); else tocarProyecto();
   }, 400);
   const mostrar = (v) => {
     s.avance = v; $("h-av").textContent = v + "% · " + etapaDe(v); $("h-rango").value = v;
@@ -489,6 +521,7 @@ function referentes() {
     '<div class="extra" id="r-extra" hidden><label class="fx-sr" for="r-tit">Título</label><input id="r-tit" maxlength="200" placeholder="Título (opcional)">' +
     '<label class="fx-sr" for="r-nota">Qué tomas de aquí</label><input id="r-nota" maxlength="4000" placeholder="¿Qué te sirve de este referente? Ej.: la paleta, el ritmo, cómo presenta al villano">' +
     '<label class="fx-sr" for="r-tipo">Tipo</label><select id="r-tipo">' + Object.entries(TREF).map(([k, n]) => '<option value="' + k + '">' + n + "</option>").join("") + "</select></div>" +
+    (PL.mas ? "" : '<p class="hint" style="grid-column:1/-1;margin:0"><b style="color:var(--fg)">' + REFS.length + " de " + LIMITES.referentes + "</b> referentes del plan gratis en este proyecto.</p>") +
     '<p class="hint" style="grid-column:1/-1;margin:0">Forja no guarda archivos: solo el enlace. Si la página original borra la imagen o el video, aquí también desaparece.</p></form>' +
     '<div class="filtro" id="r-filtro"></div><div id="muro"></div></div>';
   let det = null;
@@ -505,7 +538,7 @@ function referentes() {
     if (tipo === "color" && !/^#[0-9a-f]{3,6}$/i.test(valor)) { toast("Un color se escribe como #e0602f"); return; }
     const fila = { espacio_id: ESP, proyecto_id: P.id, tipo, valor, titulo: $("r-tit").value.trim() || null, nota: $("r-nota").value.trim() || null };
     const { data, error } = await sb.from("referentes").insert(fila).select("*").single();
-    if (error) { toast("No se pudo guardar el referente."); return; }
+    if (error) { toast(limite(error) || "No se pudo guardar el referente."); return; }
     REFS.unshift(data); tocarProyecto(); pintarTabs(); referentes();
   };
   pintarMuro();
@@ -529,7 +562,7 @@ function pintarMuro() {
     if (b.dataset.a === "ok") {
       const titulo = card.querySelector('[data-e="t"]').value.trim() || null, nota = card.querySelector('[data-e="n"]').value.trim() || null;
       const { error } = await sb.from("referentes").update({ titulo, nota }).eq("id", r.id);
-      if (error) { toast("No se pudo guardar."); return; }
+      if (error) { toast(limite(error) || "No se pudo guardar."); return; }
       Object.assign(r, { titulo, nota }); pintarMuro(); return;
     }
     if (b.dataset.a === "del") {
@@ -595,7 +628,7 @@ function costos() {
       '<p class="hint" style="margin:0">Empieza con los componentes que suele tener ' + esc(TIPOS[P.tipo].toLowerCase()) + '; los puedes quitar o agregar otros.</p><div><button class="btn prim" id="b-cot">Crear la cotización de este proyecto</button></div></section>';
     $("b-cot").onclick = async () => {
       const { data, error } = await sb.from("cotizaciones").insert({ espacio_id: ESP, proyecto_id: P.id, nombre: P.nombre, datos: {} }).select("id").single();
-      if (error) { toast("No se pudo crear la cotización."); return; }
+      if (error) { toast(limite(error) || "No se pudo crear la cotización."); return; }
       location.href = "cotizador.html?c=" + data.id;
     };
     return;
@@ -644,7 +677,7 @@ async function oportunidades() {
   $("panel").onclick = async (e) => {
     const b = e.target.closest("[data-seguir]"); if (!b) return;
     const { error } = await sb.from("proyecto_oportunidades").insert({ proyecto_id: P.id, oportunidad_id: b.dataset.seguir, espacio_id: ESP });
-    if (error) { toast("No se pudo agregar."); return; }
+    if (error) { toast(limite(error) || "No se pudo agregar."); return; }
     SEGS.push({ oportunidad_id: b.dataset.seguir, estado: "interesa" }); pintarTabs(); oportunidades();
   };
   $("panel").onchange = async (e) => {
@@ -656,7 +689,7 @@ async function oportunidades() {
       return;
     }
     const { error } = await sb.from("proyecto_oportunidades").update({ estado: s.value }).eq("proyecto_id", P.id).eq("oportunidad_id", op);
-    if (error) toast("No se pudo guardar."); else SEGS.find((x) => x.oportunidad_id === op).estado = s.value;
+    if (error) toast(limite(error) || "No se pudo guardar."); else SEGS.find((x) => x.oportunidad_id === op).estado = s.value;
   };
 }
 
@@ -676,7 +709,7 @@ function bitacora() {
     e.preventDefault();
     const texto = $("f-texto").value.trim(); if (!texto) return;
     const { data, error } = await sb.from("notas").insert({ espacio_id: ESP, proyecto_id: P.id, texto }).select("id,texto,creado_en").single();
-    if (error) { toast("No se pudo anotar."); return; }
+    if (error) { toast(limite(error) || "No se pudo anotar."); return; }
     NOTAS.unshift(data); $("f-texto").value = ""; pintar(); pintarTabs(); tocarProyecto();
   };
   $("hilo").onclick = async (e) => {

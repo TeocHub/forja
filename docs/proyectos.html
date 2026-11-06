@@ -40,6 +40,16 @@ button{cursor:pointer}
 .tipo[aria-pressed="true"]{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent);font-weight:700}
 
 .mosaico{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.cupo{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:16px 0 12px;display:flex;flex-direction:column;gap:8px;--ec:var(--accent)}
+.cupo-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px}
+.cupo-top span{font-family:var(--f-num);font-size:13px;color:var(--muted)}
+.cupo p{margin:0;font-size:14px}
+.cupo.lleno{--ec:var(--e-semilla);border-color:color-mix(in srgb,var(--e-semilla) 45%,var(--line))}
+.cupo.pasado{--ec:var(--e-pausa);border-color:var(--e-pausa);background:color-mix(in srgb,var(--e-pausa) 7%,var(--card))}
+.cupo.mas{flex-direction:row;gap:10px;align-items:baseline;border-color:var(--ember)}
+.cupo.mas b{color:var(--ember)}
+.candado{vertical-align:-1px;color:var(--e-pausa)}
+.semilla input:disabled{cursor:not-allowed}
 .buscador{display:flex;flex-direction:column;gap:10px;margin-top:20px}
 .b-fila{display:flex;gap:8px;flex-wrap:wrap}
 .b-fila input{flex:1 1 220px;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;font-size:15px}
@@ -89,7 +99,7 @@ button{cursor:pointer}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, hace, nav, espacio, conSesion } from "./js/forja.js";
+import { sb, $, esc, toast, hace, nav, espacio, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO } from "./js/forja.js";
 import { TIPOS, ESTADOS, tc, PLANTILLA, SECCIONES, pesoDe, avance } from "./js/guias.js";
 import { FORMATOS } from "./js/brujula.js";
 nav("mi");
@@ -98,7 +108,7 @@ nav("mi");
 const viejo = location.hash.match(/^#p=([0-9a-f-]{36})/);
 if (viejo) location.replace("proyecto.html?p=" + viejo[1]);
 
-let ESP = null, PROYS = [], COTS = [], AV = {}, vista = location.hash === "#cotizaciones" ? "cot" : "proy", tipoNuevo = "historia";
+let ESP = null, PL = { mas: false }, PROYS = [], COTS = [], AV = {}, vista = location.hash === "#cotizaciones" ? "cot" : "proy", tipoNuevo = "historia";
 let F = { tipo: "", estado: "", q: "", orden: "recientes" };
 try { Object.assign(F, JSON.parse(localStorage.getItem("forja-filtros") || "{}")); F.q = ""; } catch (e) {}
 const guardarF = () => { try { localStorage.setItem("forja-filtros", JSON.stringify(F)); } catch (e) {} };
@@ -106,6 +116,7 @@ const guardarF = () => { try { localStorage.setItem("forja-filtros", JSON.string
 conSesion($("app"), async () => {
   ESP = await espacio();
   if (!ESP) throw new Error("sin espacio");
+  PL = await plan();
   const [p, c, se] = await Promise.all([
     sb.from("proyectos").select("id,nombre,tipo,estado,resumen,ejes,formato,actualizado_en").eq("espacio_id", ESP).order("actualizado_en", { ascending: false }),
     sb.from("cotizaciones").select("id,nombre,proyecto_id,datos,actualizado_en").eq("espacio_id", ESP).order("actualizado_en", { ascending: false }),
@@ -129,10 +140,21 @@ function pintar() {
   vista === "proy" ? proyectos() : cotizaciones();
 }
 
+const activos = () => PROYS.filter((p) => p.estado !== "archivado").length;
+function cupo() {
+  if (PL.mas) return '<div class="cupo mas"><b>Forja Más</b><span>Proyectos, palabras y referentes sin límite.</span></div>';
+  const n = activos(), max = LIMITES.proyectos, lleno = n >= max, pasado = n > max;
+  return '<div class="cupo' + (lleno ? " lleno" : "") + (pasado ? " pasado" : "") + '"><div class="cupo-top"><b>Plan gratis</b><span>' + n + " de " + max + " proyectos en curso</span></div>" +
+    '<div class="fx-avance"><i style="width:' + Math.min(100, (n / max) * 100) + '%"></i></div>' +
+    (pasado ? '<p>Tienes ' + n + " proyectos en curso y el plan gratis permite " + max + ": quedaron en <b>solo lectura</b>. Archiva " + (n - max) + (n - max === 1 ? " proyecto" : " proyectos") + " para seguir editando. Nada se borra.</p>"
+      : lleno ? "<p>Llegaste al máximo. Para plantar otra idea, archiva un proyecto (queda guardado y se puede ver). " + MAS_PRONTO + "</p>"
+      : '<p class="hint">Archivar un proyecto libera su cupo; lo archivado se puede ver y exportar siempre.</p>') + "</div>";
+}
 function proyectos() {
-  $("panel").innerHTML =
+  const sinCupo = !PL.mas && activos() >= LIMITES.proyectos;
+  $("panel").innerHTML = cupo() +
     '<form class="semilla" id="semilla"><div class="line"><label class="fx-sr" for="s-nombre">Nombre de la idea</label>' +
-    '<input type="text" id="s-nombre" maxlength="160" placeholder="¿Qué idea traes hoy?" autocomplete="off"><button class="plantar" type="submit">Plantar</button></div>' +
+    '<input type="text" id="s-nombre" maxlength="160" placeholder="' + (sinCupo ? "Archiva un proyecto para plantar otra idea" : "¿Qué idea traes hoy?") + '" autocomplete="off"' + (sinCupo ? " disabled" : "") + '><button class="plantar" type="submit"' + (sinCupo ? " disabled" : "") + '>Plantar</button></div>' +
     '<div class="tipos" role="group" aria-label="Tipo de proyecto">' +
     Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipoNuevo) + '">' + n + "</button>").join("") +
     '</div></form><div class="buscador" id="buscador"></div><div id="mosaico" style="margin-top:12px"></div>';
@@ -145,7 +167,7 @@ function proyectos() {
     if (!nombre) { $("s-nombre").focus(); return; }
     const btn = e.target.querySelector(".plantar"); btn.disabled = true;
     const { data, error } = await sb.from("proyectos").insert({ espacio_id: ESP, nombre, tipo: tipoNuevo }).select("id").single();
-    if (error) { btn.disabled = false; toast("No se pudo guardar. Revisa tu conexión."); return; }
+    if (error) { btn.disabled = false; toast(limite(error) || "No se pudo guardar. Revisa tu conexión."); return; }
     // Nace con las secciones que suele necesitar su tipo.
     await sb.from("secciones").insert(PLANTILLA[tipoNuevo].map((g, i) => ({ espacio_id: ESP, proyecto_id: data.id, titulo: SECCIONES[g].t, guia: g, orden: i, peso: pesoDe(g) })));
     location.href = "proyecto.html?p=" + data.id;
@@ -183,10 +205,10 @@ function proyectos() {
 }
 
 function tile(p) {
-  const elegido = FORMATOS.find((f) => f.k === p.formato), av = AV[p.id] || 0;
+  const elegido = FORMATOS.find((f) => f.k === p.formato), av = AV[p.id] || 0, ro = !editable(p, activos(), PL);
   return '<a class="tile e-' + p.estado + '" href="proyecto.html?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')">' +
     '<span class="arriba"><span class="k">' + esc(TIPOS[p.tipo]) + (elegido && elegido.n !== TIPOS[p.tipo] ? " · " + esc(elegido.n) : "") + '</span><span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span>" +
-    "<h3>" + esc(p.nombre) + "</h3>" + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") +
+    "<h3>" + (ro ? '<svg class="candado" viewBox="0 0 16 16" width="15" height="15" aria-label="Solo lectura" role="img"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' : "") + esc(p.nombre) + "</h3>" + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") +
     '<span class="pie"><span class="av"><span class="fx-avance" role="img" aria-label="Avance ' + av + '%"><i style="width:' + av + '%"></i></span><b>' + av + '%</b></span><span>' + hace(p.actualizado_en) + "</span></span></a>";
 }
 

@@ -32,6 +32,13 @@ Reglas de datos:
 - Tablas privadas: `espacios`, `miembros`, `proyectos`, `secciones`, `referentes`, `notas`, `cotizaciones`, `proyecto_oportunidades`. Todas con RLS por `privado.es_miembro(espacio_id)`: cada persona ve solo su espacio. Esquema completo en `supabase/esquema.sql`; todo cambio de esquema se aplica como migración y se refleja ahí.
 - Los espacios están pensados para compartirse más adelante (equipo), pero hoy cada usuario tiene solo el suyo.
 
+## Planes y límites
+- `espacios.plan` ('libre' | 'mas') y `plan_hasta`: solo los cambia el servidor o el conector (los usuarios solo pueden actualizar `nombre`). Para dar Forja Más a alguien: `update public.espacios set plan='mas', plan_hasta=<fecha o null> where creado_por=<user id>`.
+- Límites del plan libre en `privado.limite()` y repetidos en `LIMITES` de `forja.js` (cambiar ambos juntos): 3 proyectos en curso (los archivados no cuentan), 20.000 palabras por proyecto (suma de sus secciones), 30 referentes por proyecto.
+- Se aplican con triggers (`privado.t_proyectos`, `t_secciones`, `t_referentes`, `t_lectura` en notas y cotizaciones), que lanzan `FORJA_LIMITE_PROYECTOS`, `FORJA_LIMITE_PALABRAS`, `FORJA_LIMITE_REFERENTES` o `FORJA_SOLO_LECTURA`; la web traduce esos códigos con `limite(error)`.
+- Solo lectura (plan libre): un proyecto archivado, o todos si hay más proyectos en curso que el límite (pasa al vencer Forja Más). Siempre se puede ver, exportar, archivar, borrar y recortar texto. Reactivar un archivado ocupa un cupo.
+- La web muestra el cupo en Mi forja, el contador de palabras en el Taller y el de referentes, y bloquea los controles en solo lectura (`aplicarSoloLectura` en proyecto.html, `soloLectura` en cotizador.html).
+
 ## Páginas
 - `index.html`: portada pública que explica Forja, con una brújula de prueba (no guarda nada) y las oportunidades en vivo.
 - `oportunidades.html`: calendario público de ferias, fondos y convocatorias.

@@ -56,6 +56,29 @@ export function nav(actual) {
   sb.auth.onAuthStateChange((_e, ses) => pinta(ses));
 }
 
+/* --- plan y límites (los mismos que aplica la base de datos en privado.limite) --- */
+export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30 };
+export const palabras = (t) => ((t || "").trim().match(/\S+/g) || []).length;
+let planCache = null;
+export async function plan() {
+  if (planCache) return planCache;
+  const e = await espacio(); if (!e) return { mas: false };
+  const { data } = await sb.from("espacios").select("plan,plan_hasta").eq("id", e).maybeSingle();
+  const mas = !!data && data.plan === "mas" && (!data.plan_hasta || new Date(data.plan_hasta) > new Date());
+  planCache = { mas, hasta: data && data.plan_hasta };
+  return planCache;
+}
+// Puede editarse si el plan es Más, o si no está archivado y no hay más proyectos en curso que el límite.
+export const editable = (p, activos, pl) => pl.mas || (p.estado !== "archivado" && activos <= LIMITES.proyectos);
+const MSG = {
+  FORJA_LIMITE_PROYECTOS: "El plan gratis permite 3 proyectos en curso. Archiva uno para plantar o reactivar otro.",
+  FORJA_LIMITE_PALABRAS: "Llegaste al límite de 20.000 palabras por proyecto del plan gratis. Lo que escribiste antes está guardado.",
+  FORJA_LIMITE_REFERENTES: "El plan gratis permite 30 referentes por proyecto. Quita uno para agregar otro.",
+  FORJA_SOLO_LECTURA: "Este proyecto está en solo lectura en el plan gratis.",
+};
+export function limite(error) { const m = error && (error.message || ""); const k = Object.keys(MSG).find((c) => m.includes(c)); return k ? MSG[k] : null; }
+export const MAS_PRONTO = "Forja Más llega pronto, con proyectos y palabras sin límite.";
+
 /* --- sesión --- */
 let espacioCache = null;
 export async function espacio() {
