@@ -150,6 +150,9 @@ textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;
 /* brújula */
 .brujula{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:center}
 @media (max-width:760px){.brujula{grid-template-columns:minmax(0,1fr)}}
+.leyenda-b{display:flex;justify-content:center;gap:6px 14px;align-items:center;font-size:12px;color:var(--muted);margin:2px 0 0}
+.leyenda-b i{display:inline-block;width:18px;height:0;border-top:2px solid var(--accent);margin-right:-8px}
+.leyenda-b i.l2{border-top:2px dashed var(--ember)}
 .pregunta{min-height:2.8em;text-align:center;font-size:13px;color:var(--muted);max-width:44ch;margin:4px auto 0}
 .veredicto{font-size:15px;max-width:58ch;margin:0 auto;text-align:center}
 .formatos{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
@@ -202,7 +205,7 @@ textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;
 <script type="module">
 import { sb, $, esc, toast, debounce, fecha, hace, nav, espacio, conSesion } from "./js/forja.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "./js/guias.js";
-import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, CSS_BRUJULA } from "./js/brujula.js";
+import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "./js/brujula.js";
 nav("mi");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + "</style>");
 
@@ -560,22 +563,28 @@ function tarjeta(r) {
 
 /* ================= BRÚJULA ================= */
 function brujula() {
-  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Brújula de formatos</h2><span class="hint">Arrastra cada punto hacia afuera según cuánto pesa en esta idea.</span></div>' +
-    '<div class="brujula"><div><svg class="radar" id="radar"></svg><p class="pregunta" id="pregunta">Toca un eje para ver su pregunta.</p></div><div><svg class="dial" id="dial"></svg></div></div>' +
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Brújula de formatos</h2><span class="hint">Parte con la configuración inicial de su categoría o formato. Arrastra cada punto según cuánto pesa en tu idea.</span></div>' +
+    '<div class="brujula"><div><svg class="radar" id="radar"></svg><p class="pregunta" id="pregunta">Toca un eje para ver su pregunta.</p><p class="leyenda-b"><i class="l1"></i>Tu idea <i class="l2"></i>Cómo suele ser este formato</p></div><div><svg class="dial" id="dial"></svg></div></div>' +
     '<p class="veredicto" id="veredicto" aria-live="polite"></p>' +
     '<div style="border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px;align-items:center"><b style="font-family:var(--f-display)">¿Qué vas a hacer?</b>' +
     '<p class="hint" style="margin:0;text-align:center;max-width:58ch">La brújula solo compara tus respuestas con lo que suele lucir en cada formato. Elige el que tú quieras, aunque no sea el primero. Si eliges uno de otra categoría (por ejemplo, juego de mesa en una historia), el proyecto cambia de categoría y el Taller te sugiere las secciones que le faltan.</p>' + (P.tipo === "producto" ? '<p class="hint" style="margin:0;text-align:center">Para un producto la brújula sirve poco; úsala si tu producto también cuenta una historia.</p>' : "") + '' +
     '<div class="formatos" id="formatos"></div></div></section>';
+  const B = () => base(P.tipo, P.formato);
+  const etiqueta = () => { const f = FORMATOS.find((x) => x.k === P.formato); return f ? "<b>" + esc(f.n.toLowerCase()) + "</b>" : "la categoría <b>" + esc(TIPOS[P.tipo].toLowerCase()) + "</b>"; };
+  let repintar = null;
   const pintarLectura = () => {
-    dial($("dial"), P.ejes, P.formato);
-    $("veredicto").innerHTML = veredicto(P.ejes);
-    const l = tocado(P.ejes) ? Object.fromEntries(lectura(P.ejes).map((f) => [f.k, f.s])) : null;
-    $("formatos").innerHTML = FORMATOS.map((f) => '<button type="button" data-f="' + f.k + '" aria-pressed="' + (P.formato === f.k) + '">' + f.n + (l ? " <small>" + pct(l[f.k]) + "</small>" : "") + "</button>").join("") +
+    if (repintar) repintar();
+    dial($("dial"), P.ejes, P.formato, B());
+    $("veredicto").innerHTML = veredicto(P.ejes, B(), etiqueta()) +
+      (tocado(P.ejes) ? ' <button type="button" class="btn chico" id="b-reset" title="Vuelve a cómo suele ser este formato">Volver a la configuración inicial</button>' : "");
+    if ($("b-reset")) $("b-reset").onclick = () => { P.ejes = {}; guardar({ ejes: {} }, "Configuración inicial restaurada"); pintarLectura(); };
+    const l = Object.fromEntries(lectura(P.ejes, B()).map((f) => [f.k, f.s]));
+    $("formatos").innerHTML = FORMATOS.map((f) => '<button type="button" data-f="' + f.k + '" aria-pressed="' + (P.formato === f.k) + '">' + f.n + " <small>" + pct(l[f.k]) + "</small></button>").join("") +
       '<button type="button" data-f="" aria-pressed="' + (!P.formato) + '">Aún no decido</button>';
     $("formatos").querySelectorAll("[data-f]").forEach((b) => b.onclick = async () => { await elegirFormato(b.dataset.f || null); pintarLectura(); });
   };
   const subir = debounce(() => guardar({ ejes: P.ejes }), 700);
-  radar($("radar"), () => P.ejes, (e) => { P.ejes = e; pintarLectura(); subir(); }, $("pregunta"));
+  repintar = radar($("radar"), () => P.ejes, (e) => { P.ejes = e; pintarLectura(); subir(); }, $("pregunta"), B);
   pintarLectura();
 }
 

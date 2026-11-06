@@ -26,9 +26,15 @@ export const FORMATOS = [
 ];
 
 export const tocado = (ejes) => !!ejes && EJES.some((e) => e.k in ejes);
-export const vals = (ejes) => EJES.map((e) => (ejes && e.k in ejes ? +ejes[e.k] : 2));
-export function lectura(ejes) {
-  const v = vals(ejes);
+// Configuración inicial: cómo suele ser cada formato, o la categoría si aún no hay formato. Es el punto de partida que la persona ajusta.
+export const BASE_TIPO = { historia: [0, 0, 3, 2, 1, 3], videojuego: [4, 3, 1, 3, 3, 3], juegomesa: [3, 4, 0, 2, 0, 1], contenido: [0, 0, 1, 3, 3, 0], producto: [1, 0, 1, 3, 0, 1], otro: [2, 2, 2, 2, 2, 2] };
+export function base(tipo, formato) {
+  const f = FORMATOS.find((x) => x.k === formato);
+  return f ? f.p.slice() : (BASE_TIPO[tipo] || BASE_TIPO.otro).slice();
+}
+export const vals = (ejes, b) => EJES.map((e, i) => (ejes && e.k in ejes ? +ejes[e.k] : b ? b[i] : 2));
+export function lectura(ejes, b) {
+  const v = vals(ejes, b);
   return FORMATOS.map((f) => ({ ...f, s: 1 - f.p.reduce((a, p, i) => a + Math.abs(p - v[i]), 0) / 24 })).sort((a, b) => b.s - a.s);
 }
 export const pct = (s) => Math.round(s * 100) + "%";
@@ -38,22 +44,23 @@ const f1 = (n) => n.toFixed(1);
 const W = 440, C = [220, 168], R = 112;
 
 /* Radar interactivo. `get()` devuelve los ejes actuales; `set(ejes)` recibe los nuevos. */
-export function radar(svg, get, set, pregunta) {
+export function radar(svg, get, set, pregunta, getBase) {
   svg.setAttribute("viewBox", "0 0 " + W + " 336");
   svg.setAttribute("role", "group");
   svg.setAttribute("aria-label", "Radar de la idea: seis ejes de 0 a 4");
   const n = EJES.length, r0 = 10, rad = (v) => r0 + (v / 4) * (R - r0);
   const pintar = () => {
-    const ej = get(), v = vals(ej), sin = !tocado(ej);
+    const ej = get(), b = getBase ? getBase() : null, v = vals(ej, b), sin = !tocado(ej);
     svg.classList.toggle("sin", sin);
     let s = "";
     for (let k = 1; k <= 4; k++) s += '<polygon class="anillo" points="' + EJES.map((_, i) => pt(...C, rad(k), ang(i, n)).map(f1).join(",")).join(" ") + '"/>';
     EJES.forEach((_, i) => { const [x, y] = pt(...C, R, ang(i, n)); s += '<line class="eje" x1="' + C[0] + '" y1="' + C[1] + '" x2="' + f1(x) + '" y2="' + f1(y) + '"/>'; });
+    if (b) s += '<polygon class="base" points="' + b.map((x, i) => pt(...C, rad(x), ang(i, n)).map(f1).join(",")).join(" ") + '"/>';
     s += '<polygon class="forma" points="' + v.map((x, i) => pt(...C, rad(x), ang(i, n)).map(f1).join(",")).join(" ") + '"/>';
     EJES.forEach((e, i) => {
       const a = ang(i, n), [lx, ly] = pt(...C, R + 22, a), anchor = Math.abs(Math.cos(a)) < .2 ? "middle" : Math.cos(a) > 0 ? "start" : "end";
       const dy = Math.sin(a) < -.5 ? -4 : Math.sin(a) > .5 ? 13 : 4;
-      s += '<text x="' + f1(lx) + '" y="' + f1(ly + dy) + '" text-anchor="' + anchor + '">' + e.n + (sin ? "" : ' <tspan class="v">' + v[i] + "</tspan>") + "</text>";
+      s += '<text x="' + f1(lx) + '" y="' + f1(ly + dy) + '" text-anchor="' + anchor + '">' + e.n + (sin && !b ? "" : ' <tspan class="v">' + v[i] + "</tspan>") + "</text>";
     });
     v.forEach((x, i) => {
       const [hx, hy] = pt(...C, rad(x), ang(i, n));
@@ -64,7 +71,7 @@ export function radar(svg, get, set, pregunta) {
   const fijar = (i, v) => {
     v = Math.max(0, Math.min(4, v));
     let ej = get();
-    if (!tocado(ej)) ej = Object.fromEntries(EJES.map((e) => [e.k, 2]));
+    if (!tocado(ej)) { const b0 = vals(null, getBase ? getBase() : null); ej = Object.fromEntries(EJES.map((e, k) => [e.k, b0[k]])); }
     if (ej[EJES[i].k] === v && tocado(get())) return;
     set({ ...ej, [EJES[i].k]: v });
     pintar();
@@ -91,7 +98,7 @@ export function radar(svg, get, set, pregunta) {
     const h = ev.target.closest(".h"); if (!h) return;
     const i = +h.dataset.i, m = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[ev.key];
     if (m == null) return; ev.preventDefault();
-    fijar(i, vals(get())[i] + m); svg.querySelector('[data-i="' + i + '"]').focus();
+    fijar(i, vals(get(), getBase ? getBase() : null)[i] + m); svg.querySelector('[data-i="' + i + '"]').focus();
   };
   svg.addEventListener("focusin", (ev) => { const h = ev.target.closest(".h"); if (h) decir(+h.dataset.i); });
   pintar();
@@ -99,10 +106,10 @@ export function radar(svg, get, set, pregunta) {
 }
 
 /* Dial: los formatos alrededor, un pétalo por formato según cuánto encaja y la aguja al que más encaja. */
-export function dial(svg, ejes, elegido) {
+export function dial(svg, ejes, elegido, b) {
   svg.setAttribute("viewBox", "0 0 " + W + " 336");
   svg.setAttribute("aria-hidden", "true");
-  const n = FORMATOS.length, sin = !tocado(ejes), l = lectura(ejes), max = l[0].s, min = l[l.length - 1].s;
+  const n = FORMATOS.length, sin = !tocado(ejes) && !b, l = lectura(ejes, b), max = l[0].s, min = l[l.length - 1].s;
   const by = Object.fromEntries(l.map((f) => [f.k, f]));
   let s = '<circle class="borde" cx="' + C[0] + '" cy="' + C[1] + '" r="' + R + '"/>';
   FORMATOS.forEach((f, i) => {
@@ -127,9 +134,11 @@ export function dial(svg, ejes, elegido) {
   return { sin, l };
 }
 
-export function veredicto(ejes) {
-  if (!tocado(ejes)) return "Mueve los puntos del radar y la aguja apuntará al formato donde, según tus respuestas, la idea podría lucirse más.";
-  const [a, b, c] = lectura(ejes);
+export function veredicto(ejes, base0, etiqueta) {
+  if (!tocado(ejes)) return base0 && etiqueta
+    ? "Esta es la <b>configuración inicial</b> de " + etiqueta + ": así suele verse en estos seis ejes. Ajusta los puntos para que se parezca a tu idea; la línea punteada queda como referencia."
+    : "Mueve los puntos del radar y la aguja apuntará al formato donde, según tus respuestas, la idea podría lucirse más.";
+  const [a, b, c] = lectura(ejes, base0);
   const cerca = a.s - b.s < .05;
   return "Por cómo la describes, se acerca a <b>" + a.n.toLowerCase() + "</b> (" + pct(a.s) + ")" +
     (cerca ? ", casi a la par con <b>" + b.n.toLowerCase() + "</b> (" + pct(b.s) + ")." : ". Después vienen " + b.n.toLowerCase() + " (" + pct(b.s) + ") y " + c.n.toLowerCase() + " (" + pct(c.s) + ").") +
@@ -154,7 +163,9 @@ export const CSS_BRUJULA = `
 .radar .anillo{fill:none;stroke:var(--line)}
 .radar .eje{stroke:var(--line)}
 .radar .forma{fill:color-mix(in srgb,var(--accent) 18%,transparent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round}
-.radar.sin .forma{fill:none;stroke-dasharray:4 5;stroke:var(--muted)}
+.radar.sin .forma{fill:color-mix(in srgb,var(--accent) 8%,transparent);stroke-dasharray:4 5}
+.radar .base{fill:none;stroke:var(--ember);stroke-width:1.5;stroke-dasharray:3 4;opacity:.8}
+.radar.sin .base{display:none}
 .radar .h{fill:var(--card);stroke:var(--accent);stroke-width:2.5;cursor:grab}
 .radar .h.on{fill:var(--accent)}
 .radar .h:focus-visible{outline:none;stroke:var(--ember);stroke-width:4}
