@@ -172,7 +172,7 @@ textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;
 <script type="module">
 import { sb, $, esc, toast, debounce, fecha, hace, nav, espacio, conSesion } from "./js/forja.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA } from "./js/guias.js";
-import { EJES, FORMATOS, radar, dial, veredicto, lectura, tocado, vals, pct, CSS_BRUJULA } from "./js/brujula.js";
+import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, CSS_BRUJULA } from "./js/brujula.js";
 nav("mi");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + "</style>");
 
@@ -219,13 +219,12 @@ function armar() {
     '<span id="sello"></span></div>' +
     '<label class="fx-sr" for="f-resumen">Resumen</label><textarea class="resumen" id="f-resumen" maxlength="4000" placeholder="¿De qué se trata, en pocas líneas? Se puede reescribir cuando la idea cambie.">' + esc(P.resumen || "") + "</textarea></section>" +
     '<div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
-    '<div class="pie-ficha"><button class="btn" type="button" id="b-claude">Copiar todo para trabajarlo con Claude</button><span id="zona-borrar"><button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button></span></div>';
+    '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="biblia.html?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar"><button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button></span></div>';
 
   $("f-nombre").onchange = (e) => { const v = e.target.value.trim(); if (!v) { e.target.value = P.nombre; return; } guardar({ nombre: v }); document.title = "Forja · " + v; };
   $("f-tipo").onchange = (e) => { guardar({ tipo: e.target.value }); $("cabeza").style.setProperty("--tc", tc(e.target.value)); if (pest === "oportunidades") pintarPestana(); };
   document.querySelectorAll("[data-e]").forEach((b) => b.onclick = () => { document.querySelectorAll("[data-e]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); guardar({ estado: b.dataset.e }); });
   $("f-resumen").onchange = (e) => guardar({ resumen: e.target.value.trim() || null });
-  $("b-claude").onclick = copiarClaude;
   $("b-borrar").onclick = () => {
     $("zona-borrar").innerHTML = '<span class="hint">Se borran su escritura, referentes, bitácora y cotización.</span> <button class="btn peligro" id="b-si">Sí, borrar</button> <button class="btn" id="b-no">Cancelar</button>';
     $("b-no").onclick = () => { $("zona-borrar").innerHTML = '<button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button>'; $("b-borrar").onclick = armar; };
@@ -558,20 +557,6 @@ function bitacora() {
   };
 }
 
-/* ================= contexto para Claude ================= */
-function copiarClaude() {
-  const l = tocado(P.ejes) ? lectura(P.ejes) : null, v = vals(P.ejes), f = FORMATOS.find((x) => x.k === P.formato);
-  const partes = [
-    "# " + P.nombre, TIPOS[P.tipo] + " · " + ESTADOS[P.estado].toLowerCase() + (f ? " · formato elegido: " + f.n.toLowerCase() : ""),
-    P.resumen ? "\n## Resumen\n" + P.resumen : "",
-    ...SECS.filter((s) => s.texto.trim()).map((s) => "\n## " + s.titulo + "\n" + s.texto.trim()),
-    REFS.length ? "\n## Referentes\n" + REFS.map((r) => "- " + TREF[r.tipo] + ": " + (r.titulo ? r.titulo + " — " : "") + r.valor + (r.nota ? " (" + r.nota + ")" : "")).join("\n") : "",
-    l ? "\n## Brújula (0 a 4)\n" + EJES.map((e, i) => e.n + " " + v[i]).join(", ") + ". Formatos más cercanos: " + l.slice(0, 3).map((x) => x.n + " " + pct(x.s)).join(", ") + "." : "",
-    NOTAS.length ? "\n## Bitácora (de lo más antiguo a lo más reciente)\n" + NOTAS.slice().reverse().map((n) => "- " + fecha(n.creado_en) + ": " + n.texto).join("\n") : "",
-  ].filter(Boolean).join("\n");
-  const txt = partes + "\n\nAyúdame a seguir desarrollando este proyecto.";
-  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast("Copiado. Pégalo en tu chat con Claude.")).catch(() => prompt("Copia el texto:", txt));
-}
 </script>
 </body>
 </html>

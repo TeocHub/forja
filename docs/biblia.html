@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Biblia del proyecto</title>
+<meta name="theme-color" content="#2a3fd1">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="css/forja.css">
+<style>
+/* Layout: documento imprimible — barra de opciones arriba (no se imprime) y hojas tamaño A4 con portada, índice y una parte por tema */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(button,input,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.opciones{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
+.opciones h1{font-family:var(--f-display);font-size:24px;margin:0}
+.opciones p{margin:0;color:var(--muted)}
+.partes{display:flex;flex-wrap:wrap;gap:6px}
+.partes label{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;background:var(--field)}
+.partes label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.acciones{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.imprimir{font:inherit;font-weight:700;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:10px;padding:10px 16px;cursor:pointer}
+
+/* el documento: siempre claro, como papel */
+.doc{--ink:#1b1d24;--soft:#5d6271;--rule:#d9dbe2;--paper:#fffdf8;--acc:#2a3fd1;--emb:#c9541f;
+  background:var(--paper);color:var(--ink);font-family:"Literata",Georgia,serif;font-size:11.5pt;line-height:1.65;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 8px 30px rgba(0,0,0,.06);padding:clamp(22px,6vw,64px)}
+.doc h1,.doc h2,.doc h3{font-family:"Familjen Grotesk",system-ui,sans-serif;color:var(--ink);text-wrap:balance}
+.portada{min-height:70vh;display:flex;flex-direction:column;justify-content:space-between;gap:30px;border-left:6px solid var(--tc);padding-left:22px}
+.portada .k{font-family:"JetBrains Mono",monospace;font-size:9.5pt;letter-spacing:.12em;text-transform:uppercase;color:var(--emb)}
+.portada h1{font-size:clamp(34px,7vw,52px);line-height:1.02;margin:10px 0 14px;letter-spacing:-.01em}
+.portada .resumen{font-size:13pt;color:var(--soft);max-width:52ch;font-style:italic}
+.portada .ficha{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;font-family:"Atkinson Hyperlegible",sans-serif;font-size:10pt;color:var(--soft)}
+.portada .ficha b{color:var(--ink);font-weight:700}
+.indice{margin-top:30px;font-family:"Atkinson Hyperlegible",sans-serif;font-size:10.5pt}
+.indice h2{font-size:14pt;margin:0 0 10px}
+.indice ol{margin:0;padding-left:20px;columns:2 220px}
+.parte{margin-top:44px}
+.parte > h2{font-size:22pt;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.parte > .bajada{font-family:"Atkinson Hyperlegible",sans-serif;font-size:9.5pt;color:var(--soft);margin:6px 0 18px}
+.sec{margin-top:26px}
+.sec h3{font-size:14.5pt;margin:0 0 8px}
+.sec p{margin:0 0 .7em;white-space:pre-wrap;overflow-wrap:anywhere}
+.sec p.preg{font-style:italic;color:var(--soft);margin-bottom:.2em}
+.vacia{color:var(--soft);font-style:italic;font-size:10pt}
+.refs{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.ref{break-inside:avoid;border:1px solid var(--rule);border-radius:8px;overflow:hidden;font-size:10pt;font-family:"Atkinson Hyperlegible",sans-serif;background:#fff}
+.ref img{display:block;width:100%;max-height:260px;object-fit:cover}
+.ref .sw{height:70px;display:flex;align-items:flex-end;padding:8px 10px;font-family:"JetBrains Mono",monospace;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ref blockquote{margin:0;padding:12px 14px 4px;font-family:"Literata",serif;font-style:italic;font-size:11pt}
+.ref .t{padding:8px 10px 10px}
+.ref .t b{display:block;font-size:10.5pt}
+.ref .t .u{font-family:"JetBrains Mono",monospace;font-size:8pt;color:var(--soft);overflow-wrap:anywhere}
+.ref .t p{margin:4px 0 0}
+.bru{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center}
+.bru svg{width:100%;height:auto}
+.tabla{width:100%;border-collapse:collapse;font-family:"Atkinson Hyperlegible",sans-serif;font-size:10pt}
+.tabla th,.tabla td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+.tabla th{font-size:8.5pt;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.hilo .n{break-inside:avoid;margin-bottom:12px;padding-left:12px;border-left:2px solid var(--rule)}
+.hilo time{font-family:"JetBrains Mono",monospace;font-size:8.5pt;color:var(--soft)}
+.hilo p{margin:2px 0 0;white-space:pre-wrap}
+.pie-doc{margin-top:48px;font-family:"Atkinson Hyperlegible",sans-serif;font-size:8.5pt;color:var(--soft);border-top:1px solid var(--rule);padding-top:8px}
+@media (max-width:620px){.refs,.bru{grid-template-columns:1fr}}
+.oculto{display:none!important}
+
+@page{size:A4;margin:18mm 16mm 18mm}
+@media print{
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  header,.opciones,.fx-toast{display:none!important}
+  .doc{box-shadow:none;border-radius:0;padding:0;background:#fff;font-size:11pt}
+  .portada{min-height:240mm;break-after:page}
+  .parte{break-before:page;margin-top:0}
+  .sec h3,.parte > h2{break-after:avoid}
+  .refs{grid-template-columns:repeat(2,1fr)}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="app"><div class="fx-empty">Cargando…</div></main>
+</div>
+
+<script type="module">
+import { sb, $, esc, fecha, nav, espacio, conSesion } from "./js/forja.js";
+import { TIPOS, ESTADOS, tc } from "./js/guias.js";
+import { EJES, FORMATOS, radar, dial, lectura, tocado, vals, pct, CSS_BRUJULA } from "./js/brujula.js";
+nav("mi");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + ".doc .radar text,.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .radar .forma{fill:rgba(42,63,209,.15);stroke:#2a3fd1}.doc .dial .petalo{fill:#e6e9fb}.doc .dial .petalo.top{fill:#f6cdb9}.doc .dial .borde{fill:#fafafa;stroke:#d9dbe2}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
+
+const ID = new URLSearchParams(location.search).get("p");
+const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
+const PARTES = [["taller", "Escritura"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"]];
+
+if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("proyectos.html");
+else conSesion($("app"), async () => {
+  await espacio();
+  const [pr, se, re, no, co, po] = await Promise.all([
+    sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
+    sb.from("secciones").select("titulo,texto,orden").eq("proyecto_id", ID).order("orden"),
+    sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en"),
+    sb.from("notas").select("texto,creado_en").eq("proyecto_id", ID).order("creado_en"),
+    sb.from("cotizaciones").select("datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
+    sb.from("proyecto_oportunidades").select("oportunidad_id,estado").eq("proyecto_id", ID),
+  ]);
+  const P = pr.data;
+  if (!P) { $("app").innerHTML = '<div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
+  let OPS = [];
+  if ((po.data || []).length) { const { data } = await sb.from("oportunidades").select("id,nombre,organiza,postul_fin,evento_inicio,evento_fin"); OPS = data || []; }
+  pintar(P, se.data || [], re.data || [], no.data || [], co.data, po.data || [], OPS);
+}, "La biblia reúne todo tu proyecto en un documento. Entra para generarla.");
+
+function parrafos(t) {
+  return t.split(/\n{2,}/).map((b) => b.split("\n").map((l) => l.startsWith("— ") ? '<p class="preg">' + esc(l.slice(2)) + "</p>" : l.trim() ? "<p>" + esc(l) + "</p>" : "").join("")).join("");
+}
+const ytId = (u) => { const m = u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i); return m && m[1]; };
+const segura = (u) => /^https?:\/\//i.test(u || "");
+
+function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS) {
+  document.title = "Biblia · " + P.nombre;
+  const f = FORMATOS.find((x) => x.k === P.formato), conTexto = SECS.filter((s) => s.texto.trim());
+  const palabras = SECS.reduce((a, s) => a + (s.texto.trim().match(/\S+/g) || []).length, 0);
+  const tiene = { taller: conTexto.length, referentes: REFS.length, brujula: tocado(P.ejes) || f, costos: COT && (COT.datos.componentes || []).length, oportunidades: SEGS.length, bitacora: NOTAS.length };
+
+  $("app").innerHTML =
+    '<section class="opciones"><h1>Biblia del proyecto</h1><p>Un documento con todo lo que has trabajado. Elige qué incluir y guárdalo como PDF desde la ventana de impresión (opción “Guardar como PDF”).</p>' +
+    '<div class="partes" id="partes">' + PARTES.map(([k, n]) => '<label><input type="checkbox" data-parte="' + k + '"' + (tiene[k] ? " checked" : " disabled") + "> " + n + (tiene[k] ? "" : " (vacío)") + "</label>").join("") + "</div>" +
+    '<div class="acciones"><button class="imprimir" id="b-print">Guardar como PDF</button><a href="proyecto.html?p=' + P.id + '">Volver al proyecto</a></div></section>' +
+    '<article class="doc" id="doc" style="--tc:' + tc(P.tipo) + '">' +
+    '<section class="portada"><div><span class="k">Biblia del proyecto</span><h1>' + esc(P.nombre) + "</h1>" + (P.resumen ? '<p class="resumen">' + esc(P.resumen) + "</p>" : "") + "</div>" +
+    '<div><div class="ficha"><span>Tipo</span><b>' + esc(TIPOS[P.tipo]) + "</b><span>Estado</span><b>" + esc(ESTADOS[P.estado]) + "</b>" + (f ? "<span>Formato</span><b>" + esc(f.n) + "</b>" : "") +
+    (palabras ? "<span>Escritura</span><b>" + palabras.toLocaleString("es-CL") + " palabras</b>" : "") + "<span>Exportado</span><b>" + fecha(new Date().toISOString()) + "</b></div>" +
+    '<div class="indice" id="indice"></div></div></section>' +
+
+    '<section class="parte" data-p="taller"><h2>Escritura</h2><p class="bajada">Las secciones del taller, en el orden en que las organizaste.</p>' +
+    conTexto.map((s) => '<div class="sec"><h3>' + esc(s.titulo) + "</h3>" + parrafos(s.texto) + "</div>").join("") + "</section>" +
+
+    '<section class="parte" data-p="referentes"><h2>Referentes</h2><p class="bajada">Lo que inspira este proyecto y qué se toma de cada cosa.</p><div class="refs">' +
+    REFS.map((r) => {
+      let m = "";
+      if (r.tipo === "imagen" && segura(r.valor)) m = '<img src="' + esc(r.valor) + '" alt="" referrerpolicy="no-referrer" onerror="this.remove()">';
+      else if (r.tipo === "video" && ytId(r.valor)) m = '<img src="https://i.ytimg.com/vi/' + ytId(r.valor) + '/hqdefault.jpg" alt="" onerror="this.remove()">';
+      else if (r.tipo === "color") m = '<div class="sw" style="background:' + esc(r.valor) + ";color:" + (parseInt(r.valor.slice(1).padEnd(6, r.valor.slice(-1)), 16) > 0x999999 ? "#111" : "#fff") + '">' + esc(r.valor.toUpperCase()) + "</div>";
+      else if (r.tipo === "cita") m = "<blockquote>“" + esc(r.valor) + "”</blockquote>";
+      const url = segura(r.valor) ? '<span class="u">' + esc(r.valor) + "</span>" : "";
+      return '<div class="ref">' + m + '<div class="t">' + (r.titulo ? "<b>" + esc(r.titulo) + "</b>" : "") + url + (r.nota ? "<p>" + esc(r.nota) + "</p>" : "") + "</div></div>";
+    }).join("") + "</div></section>" +
+
+    '<section class="parte" data-p="brujula"><h2>Brújula de formatos</h2><p class="bajada">Cómo se describió la idea en seis ejes (0 a 4) y qué formatos se le parecen. Es una referencia; el formato lo decide quien crea.</p>' +
+    '<div class="bru"><svg class="radar" id="d-radar"></svg><svg class="dial" id="d-dial"></svg></div>' +
+    (tocado(P.ejes) ? '<table class="tabla" style="margin-top:12px"><thead><tr><th>Eje</th><th>Valor</th></tr></thead><tbody>' + EJES.map((e, i) => "<tr><td>" + e.n + '<br><span style="color:var(--soft)">' + esc(e.q) + "</span></td><td>" + vals(P.ejes)[i] + "</td></tr>").join("") + "</tbody></table>" +
+      '<p style="margin-top:12px">Formatos más cercanos: ' + lectura(P.ejes).slice(0, 3).map((x) => esc(x.n) + " (" + pct(x.s) + ")").join(", ") + "." + (f ? " Formato elegido: <b>" + esc(f.n) + "</b>." : "") + "</p>" : (f ? "<p>Formato elegido: <b>" + esc(f.n) + "</b>.</p>" : "")) + "</section>" +
+
+    '<section class="parte" data-p="costos"><h2>Costos</h2><p class="bajada">Componentes a producir y proveedores cotizados. Valores actualizados en Forja el ' + (COT ? fecha(COT.actualizado_en) : "") + ".</p>" + costosHTML(COT) + "</section>" +
+
+    '<section class="parte" data-p="oportunidades"><h2>Oportunidades</h2><p class="bajada">Ferias, fondos y convocatorias que sigue el proyecto.</p><table class="tabla"><thead><tr><th>Oportunidad</th><th>Fechas</th><th>Estado</th></tr></thead><tbody>' +
+    SEGS.map((s) => { const o = OPS.find((x) => x.id === s.oportunidad_id) || { nombre: s.oportunidad_id }; return "<tr><td><b>" + esc(o.nombre) + "</b>" + (o.organiza ? "<br>" + esc(o.organiza) : "") + "</td><td>" + (o.postul_fin ? "Postulación hasta " + esc(o.postul_fin) + "<br>" : "") + (o.evento_inicio ? "Evento " + esc(o.evento_inicio) : "") + "</td><td>" + ESTOP[s.estado] + "</td></tr>"; }).join("") + "</tbody></table></section>" +
+
+    '<section class="parte" data-p="bitacora"><h2>Bitácora</h2><p class="bajada">Cómo avanzó el proyecto, de lo más antiguo a lo más reciente.</p><div class="hilo">' +
+    NOTAS.map((n) => '<div class="n"><time>' + fecha(n.creado_en) + "</time><p>" + esc(n.texto) + "</p></div>").join("") + "</div></section>" +
+    '<p class="pie-doc">Hecho con Forja · teochub.github.io/forja</p></article>';
+
+  if (tocado(P.ejes) || f) { radar($("d-radar"), () => P.ejes, () => {}); dial($("d-dial"), P.ejes, P.formato); $("d-radar").style.pointerEvents = "none"; }
+  else $("d-radar").remove();
+
+  const aplicar = () => {
+    const on = {};
+    document.querySelectorAll("[data-parte]").forEach((c) => { on[c.dataset.parte] = c.checked; });
+    document.querySelectorAll(".parte").forEach((s) => s.classList.toggle("oculto", !on[s.dataset.p]));
+    const vis = PARTES.filter(([k]) => on[k]);
+    $("indice").innerHTML = vis.length ? "<h2>Contenido</h2><ol>" + vis.map(([k, n]) => "<li>" + n + (k === "taller" ? "<ol>" + conTexto.map((s) => "<li>" + esc(s.titulo) + "</li>").join("") + "</ol>" : "") + "</li>").join("") + "</ol>" : "";
+  };
+  $("partes").onchange = aplicar; aplicar();
+  $("b-print").onclick = () => window.print();
+}
+
+function costosHTML(COT) {
+  if (!COT) return "";
+  const d = COT.datos || {}, comps = d.componentes || [], qs = d.cotizaciones || [];
+  const CAMPOS = [["medida", "Medidas"], ["cantidad", "Cantidad"], ["material", "Material"], ["impresion", "Impresión"], ["acabado", "Acabado"], ["notas", "Notas"]];
+  return '<table class="tabla"><thead><tr><th>Componente</th><th>Especificaciones</th><th>Proveedores cotizados</th></tr></thead><tbody>' + comps.map((c) => {
+    const sp = CAMPOS.map(([k, n]) => (c.specs || {})[k] ? n + ": " + esc(c.specs[k]) : "").filter(Boolean).join("<br>");
+    const pv = qs.filter((q) => q.compId === c.id).map((q) => esc(q.proveedor || "Sin nombre") + " · " + Number(q.cantidad).toLocaleString("es-CL") + " u. · " + (q.moneda === "USD" ? "USD " + Number(q.precio).toLocaleString("es-CL") : "$" + Math.round(q.precio).toLocaleString("es-CL"))).join("<br>");
+    return "<tr><td><b>" + esc(c.nombre) + "</b></td><td>" + (sp || '<span class="vacia">Sin especificar</span>') + "</td><td>" + (pv || '<span class="vacia">Sin cotizaciones</span>') + "</td></tr>";
+  }).join("") + "</tbody></table>" + (d.venta && d.venta.manual > 0 ? "<p style=\"margin-top:12px\">Precio de venta en prueba: <b>$" + Math.round(d.venta.manual).toLocaleString("es-CL") + "</b>.</p>" : "");
+}
+</script>
+</body>
+</html>

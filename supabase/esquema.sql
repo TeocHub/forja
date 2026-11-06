@@ -1,7 +1,8 @@
 -- Forja · esquema de datos privados (Supabase, proyecto "forja").
 -- Solo estructura y reglas de acceso; ningún dato. Aplicado como migraciones:
 -- espacios_privados_proyectos, es_miembro_fuera_de_api y
--- secciones_referentes_cotizacion_unica (2026-11-05).
+-- secciones_referentes_cotizacion_unica, precios_comunidad y
+-- precios_comunidad_ocultar_autor (2026-11-05).
 
 -- Espacios: cada usuario tiene uno propio (pensados para compartirse más adelante).
 create table public.espacios(
@@ -96,3 +97,23 @@ create unique index cotizaciones_un_proyecto on public.cotizaciones(proyecto_id)
 -- Triggers: actualizado_en automático; notas, cotizaciones y seguimientos no pueden
 -- apuntar a un proyecto de otro espacio (public.mismo_espacio).
 -- El rol anon no tiene acceso a ninguna de estas tablas.
+
+-- Precios compartidos por la comunidad (opcional por cotización, sin nombre ni proyecto).
+create table public.precios_comunidad(
+  id uuid primary key default gen_random_uuid(),
+  autor uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  componente text not null check (componente ~ '^[a-z]{2,20}$'),
+  proveedor text not null check (char_length(proveedor) between 1 and 120),
+  enlace text check (enlace is null or (enlace ~ '^https://' and char_length(enlace) <= 500)),
+  origen text not null check (origen in ('chile','extranjero')),
+  moneda text not null check (moneda in ('CLP','USD')),
+  cantidad numeric not null check (cantidad > 0 and cantidad <= 10000000),
+  precio numeric not null check (precio >= 0 and precio <= 1000000000),
+  envio numeric not null default 0 check (envio >= 0 and envio <= 1000000000),
+  incluye_iva boolean not null default false,
+  especificaciones text check (char_length(especificaciones) <= 600),
+  plazo text check (char_length(plazo) <= 80),
+  creado_en timestamptz not null default now()
+);
+-- RLS: cualquier usuario con cuenta lee; insertar y borrar solo el autor.
+-- La columna autor no se puede leer (permiso de select por columnas, sin autor).

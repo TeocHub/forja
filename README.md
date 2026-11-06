@@ -6,7 +6,7 @@ Web: https://teochub.github.io/forja/ (GitHub Pages, carpeta `docs/`)
 
 ## Qué tiene
 
-Una portada pública que explica la herramienta, el calendario público de **Oportunidades**, y **Mi forja**, el espacio privado de cada persona: sus proyectos, cada uno en su propia página con escritura guiada según el tipo, referentes por enlace, brújula de formatos, cotización por componentes, oportunidades sugeridas y bitácora.
+Una portada pública que explica la herramienta, el calendario público de **Oportunidades**, y **Mi forja**, el espacio privado de cada persona: sus proyectos, cada uno en su propia página con escritura guiada según el tipo, referentes por enlace, brújula de formatos, cotización por componentes, oportunidades sugeridas, bitácora y una "biblia" exportable en PDF. La cotización de cada proyecto calcula el costo real de producción y el precio de venta, y quien quiera puede compartir sus precios (sin nombre) para que otros sepan dónde cotizar.
 
 ## Estructura
 
@@ -16,7 +16,8 @@ docs/                     sitio publicado en GitHub Pages (app instalable en el 
   oportunidades.html      ferias, fondos y convocatorias (público)
   proyectos.html          Mi forja: proyectos y cotizaciones (requiere cuenta)
   proyecto.html           página de cada proyecto (requiere cuenta)
-  cotizador.html          cotización de un proyecto (requiere cuenta)
+  cotizador.html          cotización de un proyecto: producción y precio de venta (requiere cuenta)
+  biblia.html             documento imprimible del proyecto (requiere cuenta)
   js/forja.js             sesión, navegación y utilidades
   js/brujula.js           brújula de formatos
   js/guias.js             tipos de proyecto y preguntas guía
