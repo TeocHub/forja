@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Layout: hoja de trabajo — parámetros del proyecto arriba, resumen de costo por juego, y una ficha por componente con sus cotizaciones */
+/* Layout: hoja de trabajo — parámetros del proyecto arriba, resumen de costo por unidad, y una ficha por componente con sus cotizaciones */
 :root{
   --bg:#f3f4f7; --card:#ffffff; --fg:#161a26; --muted:#5b6275; --line:#dfe2ea; --field:#f7f8fb;
   --accent:#2a3fd1; --accent-soft:#e6e9fb;
@@ -95,20 +95,19 @@ a{color:var(--accent)}
   <header>
     <nav data-forja-nav></nav>
     <h1 id="title">Cotizador</h1>
-    <p class="lead">Anota las cotizaciones de cada componente y compara cuánto te cuesta realmente cada juego puesto en Chile, según la cantidad que fabriques.</p>
+    <p class="lead">Anota las cotizaciones de cada componente y compara cuánto cuesta realmente producir cada unidad puesta en Chile, según la cantidad que fabriques.</p>
   </header>
 
   <div id="gate"></div>
   <div id="contenido" hidden>
-  <section class="panel hoja" aria-label="Cotización abierta">
-    <label class="f">Cotización<select id="h-sel"></select></label>
-    <label class="f">Proyecto<select id="h-proy"><option value="">Sin proyecto</option></select></label>
-    <div class="row"><button id="h-nueva" type="button">+ Nueva</button><button id="h-dup" type="button">Duplicar</button><a id="h-ir" class="hint" hidden>Abrir proyecto</a></div>
+  <section class="panel hoja" aria-label="Proyecto de esta cotización">
+    <div id="h-de" style="flex:1 1 260px;min-width:0"></div>
+    <a class="hint" href="proyectos.html#cotizaciones">Todas las cotizaciones</a>
     <span class="guardado" id="h-estado" aria-live="polite"></span>
   </section>
 
-  <section class="panel" aria-labelledby="h-proy">
-    <h2 id="h-proy">Datos de la cotización</h2>
+  <section class="panel" aria-labelledby="h-datos-c">
+    <h2 id="h-datos-c">Datos de la cotización</h2>
     <div class="grid">
       <label class="f">Nombre de la cotización<input id="p-nombre" type="text" autocomplete="off"></label>
       <label class="f">Cantidades a comparar (separadas por coma)<input id="p-cant" type="text" inputmode="numeric" autocomplete="off"></label>
@@ -122,7 +121,7 @@ a{color:var(--accent)}
   </section>
 
   <section class="panel" aria-labelledby="h-res">
-    <h2 id="h-res">Costo por juego</h2>
+    <h2 id="h-res">Costo por unidad</h2>
     <p class="hint">Para cada componente se usa el proveedor más barato en esa cantidad. Los valores con ≈ son estimaciones calculadas con las otras cotizaciones del mismo proveedor.</p>
     <div id="resumen"></div>
   </section>
@@ -131,14 +130,7 @@ a{color:var(--accent)}
     <div class="row" style="justify-content:space-between">
       <h2 id="h-comp">Componentes</h2>
       <div class="row">
-        <select id="nuevo-tipo" aria-label="Tipo de componente">
-          <option value="libreto">Libreto o manual</option>
-          <option value="hojas">Hojas troqueladas o para escribir</option>
-          <option value="disco">Disco decodificador</option>
-          <option value="caja">Caja</option>
-          <option value="cartas">Cartas</option>
-          <option value="otro">Otro</option>
-        </select>
+        <select id="nuevo-tipo" aria-label="Tipo de componente"></select>
         <button id="b-add-comp" type="button" class="primary">Agregar componente</button>
       </div>
     </div>
@@ -163,7 +155,7 @@ a{color:var(--accent)}
       <button id="b-reset" type="button" class="danger">Borrar esta cotización</button>
     </div>
     <div id="reset-confirm" hidden class="row">
-      <span>¿Borrar esta cotización de tu cuenta? No se puede deshacer.</span>
+      <span>¿Borrar esta cotización con todos sus componentes y precios? No se puede deshacer.</span>
       <button id="b-reset-yes" type="button" class="danger">Sí, borrar</button>
       <button id="b-reset-no" type="button">Cancelar</button>
     </div>
@@ -173,30 +165,47 @@ a{color:var(--accent)}
 
 <script type="module">
 import { sb, espacio, conSesion, nav, debounce } from "./js/forja.js";
-nav("cotizador");
+nav("mi");
 (function(){
   var KEY="forja-cotizador-v1";
+  var BG=["BoardGamesMaker","https://boardgamesmaker.com/"],TGC=["The Game Crafter","https://www.thegamecrafter.com/"],PANDA=["Panda Game Manufacturing","https://pandagm.com/"],
+      PN=["PrintNinja","https://printninja.com/"],QIN=["QinPrinting","https://www.qinprinting.com/"];
+  // Catálogo de componentes. g: grupo en el selector; c: ejemplos para cada especificación; s: dónde cotizar.
   var TIPOS={
-    libreto:{nombre:"Libreto o manual",campos:{medida:"Ej.: A5 (14,8 × 21 cm)",cantidad:"Ej.: 24 páginas",material:"Ej.: interior couché 150 g, tapa 250 g",impresion:"Ej.: 4/4 (color ambas caras)",acabado:"Ej.: corchete (saddle stitch)"}},
-    hojas:{nombre:"Hojas troqueladas o para escribir",campos:{medida:"Ej.: carta (21,6 × 27,9 cm)",cantidad:"Ej.: 10 hojas por juego",material:"Ej.: bond 120 g o cartulina 300 g",impresion:"Ej.: 4/0 (color una cara)",acabado:"Ej.: troquel con piezas desprendibles, prepicado"}},
-    disco:{nombre:"Disco decodificador",campos:{medida:"Ej.: 2 discos de 12 y 9 cm",cantidad:"Ej.: 1 por juego",material:"Ej.: cartón gris 1,5 mm laminado",impresion:"Ej.: 4/4",acabado:"Ej.: troquelado con remache central"}},
-    caja:{nombre:"Caja",campos:{medida:"Ej.: 15 × 22 × 4 cm",cantidad:"Ej.: 1 por juego",material:"Ej.: cartón rígido 2 mm con papel impreso",impresion:"Ej.: 4/0",acabado:"Ej.: tapa y fondo, laminado mate, shrink wrap"}},
-    cartas:{nombre:"Cartas",campos:{medida:"Ej.: 63 × 88 mm (póker)",cantidad:"Ej.: 90 cartas por juego",material:"Ej.: cartulina 300 g con núcleo negro",impresion:"Ej.: 4/4",acabado:"Ej.: esquinas redondeadas, laminado lino"}},
-    otro:{nombre:"Componente",campos:{medida:"Medidas",cantidad:"Cantidad por juego",material:"Material",impresion:"Impresión",acabado:"Acabado"}}
+    tablero:{g:"Juego de mesa",nombre:"Tablero",c:{medida:"Ej.: 50 × 50 cm, plegado en 4",cantidad:"Ej.: 1 por unidad",material:"Ej.: cartón gris 2 mm con papel impreso",impresion:"Ej.: 4/0",acabado:"Ej.: laminado mate, bordes envueltos"},s:[BG,TGC,PANDA]},
+    cartas:{g:"Juego de mesa",nombre:"Cartas",c:{medida:"Ej.: 63 × 88 mm (póker)",cantidad:"Ej.: 90 cartas por unidad",material:"Ej.: cartulina 300 g con núcleo negro",impresion:"Ej.: 4/4",acabado:"Ej.: esquinas redondeadas, laminado lino"},s:[["MakePlayingCards","https://www.makeplayingcards.com/"],BG,TGC]},
+    fichas:{g:"Juego de mesa",nombre:"Fichas y troquelados",c:{medida:"Ej.: círculos de 2,5 cm",cantidad:"Ej.: 60 fichas por unidad",material:"Ej.: cartón gris 2 mm",impresion:"Ej.: 4/4",acabado:"Ej.: troquelado en planchas"},s:[BG,TGC,PANDA]},
+    figuras:{g:"Juego de mesa",nombre:"Figuras o miniaturas",c:{medida:"Ej.: 28 mm de alto",cantidad:"Ej.: 8 figuras por unidad",material:"Ej.: plástico PVC, resina o madera (meeples)",impresion:"Ej.: sin pintar / un color",acabado:"Ej.: molde propio o de catálogo"},s:[BG,PANDA]},
+    dados:{g:"Juego de mesa",nombre:"Dados",c:{medida:"Ej.: 16 mm, 6 caras",cantidad:"Ej.: 5 por unidad",material:"Ej.: acrílico o madera",impresion:"Ej.: grabado con tinta",acabado:"Ej.: caras personalizadas"},s:[BG,TGC]},
+    caja:{g:"Juego de mesa",nombre:"Caja",c:{medida:"Ej.: 15 × 22 × 4 cm",cantidad:"Ej.: 1 por unidad",material:"Ej.: cartón rígido 2 mm con papel impreso",impresion:"Ej.: 4/0",acabado:"Ej.: tapa y fondo, laminado mate, termoencogible"},s:[BG,TGC,["LongPack Games","https://www.longpackgames.com/"]]},
+    libreto:{g:"Juego de mesa",nombre:"Reglamento o libreto",c:{medida:"Ej.: A5 (14,8 × 21 cm)",cantidad:"Ej.: 16 páginas",material:"Ej.: couché 150 g",impresion:"Ej.: 4/4",acabado:"Ej.: corchetes"},s:[PN,QIN,BG]},
+    inserto:{g:"Juego de mesa",nombre:"Inserto o separador",c:{medida:"Ej.: a la medida de la caja",cantidad:"Ej.: 1 por unidad",material:"Ej.: cartón, plástico termoformado o EVA",impresion:"Ej.: sin impresión",acabado:"Ej.: compartimentos para cartas y fichas"},s:[BG,PANDA]},
+    hojas:{g:"Juego de mesa",nombre:"Hojas o planillas",c:{medida:"Ej.: carta (21,6 × 27,9 cm)",cantidad:"Ej.: block de 50 hojas",material:"Ej.: bond 90 g",impresion:"Ej.: 1/0",acabado:"Ej.: encolado en block, prepicado"},s:[BG,TGC]},
+    libro:{g:"Libro y cómic",nombre:"Impresión del libro",c:{medida:"Ej.: 14 × 21 cm",cantidad:"Ej.: 240 páginas",material:"Ej.: interior bond ahuesado 80 g, tapa 300 g",impresion:"Ej.: interior 1/1, tapa 4/0",acabado:"Ej.: tapa blanda, encuadernación hotmelt, solapas"},s:[PN,QIN]},
+    comic:{g:"Libro y cómic",nombre:"Impresión del cómic o fanzine",c:{medida:"Ej.: 17 × 26 cm",cantidad:"Ej.: 48 páginas",material:"Ej.: couché 115 g, tapa 250 g",impresion:"Ej.: 4/4",acabado:"Ej.: corchetes o tapa dura"},s:[PN,QIN]},
+    ilustracion:{g:"Libro y cómic",nombre:"Ilustración o arte",c:{medida:"Ej.: portada + 10 ilustraciones interiores",cantidad:"Ej.: por pieza o por paquete",material:"Ej.: digital, archivo en alta resolución",impresion:"Ej.: a color / blanco y negro",acabado:"Ej.: derechos de uso comercial"},s:[]},
+    correccion:{g:"Libro y cómic",nombre:"Corrección o diagramación",c:{medida:"Ej.: 60.000 palabras",cantidad:"Ej.: una revisión completa",material:"Ej.: corrección de estilo y ortotipográfica",impresion:"Ej.: diagramación en InDesign",acabado:"Ej.: entrega en PDF para imprenta"},s:[]},
+    marcapaginas:{g:"Libro y cómic",nombre:"Marcapáginas, láminas o postales",c:{medida:"Ej.: 5 × 15 cm",cantidad:"Ej.: 1 por libro",material:"Ej.: cartulina 300 g",impresion:"Ej.: 4/4",acabado:"Ej.: laminado mate"},s:[]},
+    envase:{g:"Producto",nombre:"Envase",c:{medida:"Ej.: frasco de vidrio 200 ml",cantidad:"Ej.: 1 por producto",material:"Ej.: vidrio ámbar, lata, cartón",impresion:"Ej.: serigrafía o sin impresión",acabado:"Ej.: tapa metálica"},s:[]},
+    etiqueta:{g:"Producto",nombre:"Etiqueta",c:{medida:"Ej.: 6 × 4 cm",cantidad:"Ej.: 1 por producto",material:"Ej.: papel adhesivo o vinilo",impresion:"Ej.: 4/0",acabado:"Ej.: troquelado, resistente al agua"},s:[]},
+    empaque:{g:"Producto",nombre:"Empaque o caja",c:{medida:"Ej.: 10 × 10 × 12 cm",cantidad:"Ej.: 1 por producto",material:"Ej.: cartulina kraft",impresion:"Ej.: 1/0 o timbre",acabado:"Ej.: con ventana, cinta"},s:[]},
+    materia:{g:"Producto",nombre:"Materia prima",c:{medida:"Ej.: cera de abeja",cantidad:"Ej.: 150 g por producto",material:"Ej.: calidad, origen",impresion:"",acabado:"Ej.: proveedor local o importado"},s:[]},
+    sticker:{g:"Merch",nombre:"Stickers",c:{medida:"Ej.: 7 × 7 cm",cantidad:"Ej.: 1 hoja de 6",material:"Ej.: vinilo",impresion:"Ej.: 4/0",acabado:"Ej.: troquel al contorno, laminado"},s:[]},
+    pin:{g:"Merch",nombre:"Pines o llaveros",c:{medida:"Ej.: 3 cm",cantidad:"Ej.: 1",material:"Ej.: metal esmaltado o acrílico",impresion:"Ej.: esmalte duro",acabado:"Ej.: cierre mariposa"},s:[]},
+    polera:{g:"Merch",nombre:"Poleras o textiles",c:{medida:"Ej.: tallas S a XL",cantidad:"Ej.: 1",material:"Ej.: algodón 180 g",impresion:"Ej.: serigrafía 2 colores, DTF",acabado:"Ej.: etiqueta propia"},s:[]},
+    servicio:{g:"Servicios",nombre:"Servicio",c:{medida:"Ej.: música original, doblaje, programación",cantidad:"Ej.: 5 temas de 2 minutos",material:"Ej.: qué se entrega",impresion:"Ej.: formato de entrega",acabado:"Ej.: derechos de uso"},s:[]},
+    stand:{g:"Servicios",nombre:"Stand o exhibición",c:{medida:"Ej.: mesa de 2 × 1 m",cantidad:"Ej.: 1 por feria",material:"Ej.: pendón roller, mantel impreso",impresion:"Ej.: 4/0",acabado:"Ej.: estructura reutilizable"},s:[]},
+    otro:{g:"Otros",nombre:"Componente",c:{medida:"Medidas o formato",cantidad:"Cuántos por unidad",material:"Material",impresion:"Impresión o técnica",acabado:"Acabado o detalle"},s:[]}
   };
-  var CAMPOS=[["medida","Medidas"],["cantidad","Cantidad por juego"],["material","Material o papel"],["impresion","Impresión"],["acabado","Acabado"]];
-  var SUG={
-    libreto:[["PrintNinja","https://printninja.com/"],["QinPrinting","https://www.qinprinting.com/"],["BoardGamesMaker","https://boardgamesmaker.com/"]],
-    hojas:[["BoardGamesMaker","https://boardgamesmaker.com/"],["The Game Crafter","https://www.thegamecrafter.com/"]],
-    disco:[["BoardGamesMaker","https://boardgamesmaker.com/"],["The Game Crafter","https://www.thegamecrafter.com/"],["Panda Game Manufacturing","https://pandagm.com/"]],
-    caja:[["BoardGamesMaker","https://boardgamesmaker.com/"],["The Game Crafter","https://www.thegamecrafter.com/"],["LongPack Games","https://www.longpackgames.com/"]],
-    cartas:[["MakePlayingCards","https://www.makeplayingcards.com/"],["BoardGamesMaker","https://boardgamesmaker.com/"],["The Game Crafter","https://www.thegamecrafter.com/"]],
-    otro:[["BoardGamesMaker","https://boardgamesmaker.com/"]]
-  };
+  // Viejos tipos que ya no existen en el catálogo se muestran como el más parecido.
+  TIPOS.disco={g:"Juego de mesa",nombre:"Disco decodificador",c:TIPOS.fichas.c,s:[BG,TGC,PANDA],oculto:true};
+  // Componentes con los que empieza la cotización según el proyecto.
+  var INICIO={juegomesa:["tablero","cartas","fichas","caja","libreto"],historia:["libro"],producto:["envase","etiqueta","empaque"],videojuego:[],contenido:[],otro:[]};
+  var CAMPOS=[["medida","Medidas o formato"],["cantidad","Cantidad por unidad"],["material","Material"],["impresion","Impresión o técnica"],["acabado","Acabado o detalle"]];
   function uid(){return Math.random().toString(36).slice(2,9);}
-  function defaults(){
-    var t=["libreto","hojas","disco","caja"];
-    return {nombre:"Juego de escape (estilo Exit)",cantidades:[10,100,500],dolar:null,dolarInfo:"",sinIva:false,
+  function defaults(tipo,formato){
+    var t=(tipo==="historia"&&formato==="comic")?["comic","ilustracion"]:(INICIO[tipo]||[]);
+    return {nombre:"",cantidades:[10,100,500],dolar:null,dolarInfo:"",sinIva:false,
       componentes:t.map(function(k){return {id:uid(),tipo:k,nombre:TIPOS[k].nombre,specs:{}};}),cotizaciones:[]};
   }
   var S=defaults(),ESP=null,HOJA=null,LISTA=[],PROYS=[];
@@ -270,8 +279,8 @@ nav("cotizador");
   }
   function renderResumen(){
     var qs=(S.cantidades||[]).filter(function(n){return n>0;});
-    if(!S.componentes.length){$("resumen").innerHTML='<div class="empty">Agrega componentes para ver el costo por juego.</div>';return;}
-    if(!S.cotizaciones.length){$("resumen").innerHTML='<div class="empty">Aún no hay cotizaciones. Abre un componente más abajo y agrega la primera: proveedor, cantidad y precio. Con eso aparece aquí el costo por juego.</div>';return;}
+    if(!S.componentes.length){$("resumen").innerHTML='<div class="empty">Agrega componentes para ver cuánto cuesta producir cada unidad.</div>';return;}
+    if(!S.cotizaciones.length){$("resumen").innerHTML='<div class="empty">Aún no hay cotizaciones. Abre un componente más abajo y agrega la primera: proveedor, cantidad y precio. Con eso aparece aquí el costo por unidad.</div>';return;}
     var head='<tr><th>Componente</th>'+qs.map(function(q){return '<th class="num">'+q.toLocaleString("es-CL")+' u.</th>';}).join("")+'</tr>';
     var totals=qs.map(function(){return {sum:0,missing:0};});
     var body=S.componentes.map(function(c){
@@ -282,28 +291,28 @@ nav("cotizador");
         return '<td class="num'+(b.est?' est':'')+'">'+(b.est?'≈ ':'')+clp2(b.unit)+'<span class="sub">'+esc(b.prov)+'</span></td>';
       }).join("")+'</tr>';
     }).join("");
-    var foot='<tr><td>Costo por juego</td>'+totals.map(function(t){return '<td class="num">'+(t.missing?'<span class="pill warn">faltan '+t.missing+'</span><span class="sub">parcial '+clp(t.sum)+'</span>':clp(t.sum))+'</td>';}).join("")+'</tr>'+
+    var foot='<tr><td>Costo por unidad</td>'+totals.map(function(t){return '<td class="num">'+(t.missing?'<span class="pill warn">faltan '+t.missing+'</span><span class="sub">parcial '+clp(t.sum)+'</span>':clp(t.sum))+'</td>';}).join("")+'</tr>'+
       '<tr><td>Total de la tirada</td>'+totals.map(function(t,i){return '<td class="num">'+(t.missing?'–':clp(t.sum*qs[i]))+'</td>';}).join("")+'</tr>';
     $("resumen").innerHTML='<div class="tablewrap"><table><thead>'+head+'</thead><tbody>'+body+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
   }
   function solicitud(c){
     var qs=(S.cantidades||[]).join(", ");
-    var L=["Hello, I would like a quote for the following component of a board game (escape room style):","",
+    var L=["Hello, I would like a quote for the following component"+(S.nombre?" of my project \""+S.nombre+"\"":"")+":","",
       "Component: "+c.nombre];
-    var EN={medida:"Size",cantidad:"Quantity per game",material:"Material / paper",impresion:"Printing",acabado:"Finishing"};
+    var EN={medida:"Size",cantidad:"Quantity per unit",material:"Material / paper",impresion:"Printing",acabado:"Finishing"};
     CAMPOS.forEach(function(f){var v=(c.specs||{})[f[0]];if(v)L.push(EN[f[0]]+": "+v);});
     if(c.specs&&c.specs.notas)L.push("Notes: "+c.specs.notas);
-    L.push("","Quantities (number of games): "+qs,"Shipping to: Santiago, Chile","","Please include unit price for each quantity, shipping cost to Chile, production time and payment terms.","","Thank you!");
+    L.push("","Quantities (number of units): "+qs,"Shipping to: Santiago, Chile","","Please include unit price for each quantity, shipping cost to Chile, production time and payment terms.","","Thank you!");
     return L.join("\n");
   }
   function renderComps(){
     var box=$("comps"),keep={},vals={};
     box.querySelectorAll("details[data-k]").forEach(function(d){keep[d.dataset.k]=d.open;});
     box.querySelectorAll("form[data-addq] input,form[data-addq] select").forEach(function(i){if(i.id)vals[i.id]=i.type==="checkbox"?i.checked:i.value;});
-    if(!S.componentes.length){box.innerHTML='<div class="empty">No hay componentes. Elige un tipo arriba y presiona “Agregar componente”.</div>';return;}
+    if(!S.componentes.length){box.innerHTML='<div class="empty">Aún no hay componentes. Elige arriba qué hay que producir (por ejemplo tablero, cartas, impresión del libro o etiqueta) y presiona “Agregar componente”.</div>';return;}
     box.innerHTML=S.componentes.map(function(c){
       var t=TIPOS[c.tipo]||TIPOS.otro,qs=S.cotizaciones.filter(function(q){return q.compId===c.id;}).sort(function(a,b){return num(a.cantidad)-num(b.cantidad);});
-      var specs=CAMPOS.map(function(f){return '<label class="f">'+f[1]+'<input data-c="'+c.id+'" data-spec="'+f[0]+'" id="s-'+c.id+'-'+f[0]+'" value="'+esc((c.specs||{})[f[0]])+'" placeholder="'+esc(t.campos[f[0]])+'"></label>';}).join("")+
+      var specs=CAMPOS.map(function(f){return '<label class="f">'+f[1]+'<input data-c="'+c.id+'" data-spec="'+f[0]+'" id="s-'+c.id+'-'+f[0]+'" value="'+esc((c.specs||{})[f[0]])+'" placeholder="'+esc(t.c[f[0]]||"")+'"></label>';}).join("")+
         '<label class="f" style="grid-column:1/-1">Notas<textarea data-c="'+c.id+'" data-spec="notas" id="s-'+c.id+'-notas" placeholder="Detalles para el proveedor">'+esc((c.specs||{}).notas)+'</textarea></label>';
       var tabla=qs.length?'<div class="tablewrap"><table><thead><tr><th>Proveedor</th><th class="num">Cantidad</th><th class="num">Precio + envío</th><th class="num">Total en Chile</th><th class="num">Por unidad</th><th>Plazo</th><th></th></tr></thead><tbody>'+
         qs.map(function(q){var L=landed(q),u=L.total!=null&&num(q.cantidad)?L.total/num(q.cantidad):null;
@@ -314,7 +323,7 @@ nav("cotizador");
           '<td class="num">'+clp2(u)+'</td><td>'+esc(q.plazo||"")+'</td>'+
           '<td><button type="button" class="link danger" data-delq="'+q.id+'" aria-label="Eliminar cotización">Eliminar</button></td></tr>';}).join("")+'</tbody></table></div>':
         '<div class="empty">Sin cotizaciones para este componente.</div>';
-      var sug=(SUG[c.tipo]||SUG.otro).map(function(s){return '<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[0]+'</a>';}).join("");
+      var sug=(t.s||[]).map(function(s){return '<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[0]+'</a>';}).join("");
       return '<article class="panel comp" data-comp="'+c.id+'">'+
         '<div class="comp-head"><input class="name" data-c="'+c.id+'" data-field="nombre" id="n-'+c.id+'" value="'+esc(c.nombre)+'" aria-label="Nombre del componente"><div class="row"><span class="pill">'+qs.length+' cotizaci'+(qs.length===1?'ón':'ones')+'</span><button type="button" class="link danger" data-delc="'+c.id+'">Quitar</button></div></div>'+
         '<details data-k="spec-'+c.id+'"><summary>Especificaciones</summary><div class="grid" style="margin-top:10px">'+specs+'</div>'+
@@ -324,7 +333,7 @@ nav("cotizador");
           '<label class="f">Proveedor<input name="proveedor" id="q-'+c.id+'-prov" required list="provs"></label>'+
           '<label class="f">Origen<select name="origen" id="q-'+c.id+'-orig"><option value="extranjero">Extranjero</option><option value="chile">Chile</option></select></label>'+
           '<label class="f">Moneda<select name="moneda" id="q-'+c.id+'-mon"><option value="USD">USD</option><option value="CLP">CLP</option></select></label>'+
-          '<label class="f">Cantidad (juegos)<input name="cantidad" id="q-'+c.id+'-cant" type="number" min="1" step="1" required inputmode="numeric"></label>'+
+          '<label class="f">Cantidad (unidades)<input name="cantidad" id="q-'+c.id+'-cant" type="number" min="1" step="1" required inputmode="numeric"></label>'+
           '<label class="f">Precio total<input name="precio" id="q-'+c.id+'-precio" type="number" min="0" step="0.01" required inputmode="decimal"></label>'+
           '<label class="f">Envío a Chile<input name="envio" id="q-'+c.id+'-envio" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label>'+
           '<label class="f">Plazo<input name="plazo" id="q-'+c.id+'-plazo" placeholder="Ej.: 4 semanas"></label>'+
@@ -333,7 +342,7 @@ nav("cotizador");
           '<label class="check" style="grid-column:1/-1"><input type="checkbox" name="incluyeIva" id="q-'+c.id+'-iva"> El precio ya incluye IVA (solo para proveedores en Chile)</label>'+
           '<div class="row" style="grid-column:1/-1"><button type="submit" class="primary">Guardar cotización</button></div>'+
         '</form></details>'+
-        '<div class="sugs"><span class="hint">Dónde cotizar:</span>'+sug+'</div>'+
+        ''+(sug?'<div class="sugs"><span class="hint">Dónde cotizar:</span>'+sug+'</div>':'')+''+
       '</article>';
     }).join("");
     box.querySelectorAll("details[data-k]").forEach(function(d){if(d.dataset.k in keep)d.open=keep[d.dataset.k];});
@@ -343,6 +352,8 @@ nav("cotizador");
     dl.innerHTML=provs.map(function(p){return '<option value="'+esc(p)+'">';}).join("");
   }
   function renderAll(){renderProyecto();renderResumen();renderComps();}
+  (function(){var gr={};Object.keys(TIPOS).forEach(function(k){if(TIPOS[k].oculto)return;(gr[TIPOS[k].g]=gr[TIPOS[k].g]||[]).push(k);});
+    $("nuevo-tipo").innerHTML=Object.keys(gr).map(function(g){return '<optgroup label="'+g+'">'+gr[g].map(function(k){return '<option value="'+k+'">'+TIPOS[k].nombre+'</option>';}).join("")+'</optgroup>';}).join("");})();
 
   /* --- eventos --- */
   $("p-nombre").addEventListener("change",function(e){S.nombre=e.target.value.trim();save();renderProyecto();});
@@ -373,7 +384,7 @@ nav("cotizador");
     var f=e.target;if(!f.dataset.addq)return;e.preventDefault();
     var q={id:uid(),compId:f.dataset.addq,proveedor:f.proveedor.value.trim(),origen:f.origen.value,moneda:f.moneda.value,cantidad:num(f.cantidad.value),
       precio:num(f.precio.value),envio:num(f.envio.value),plazo:f.plazo.value.trim(),enlace:f.enlace.value.trim(),notas:f.notas.value.trim(),incluyeIva:f.incluyeIva.checked,fecha:new Date().toLocaleDateString("es-CL")};
-    if(!q.cantidad){toast("Indica la cantidad de juegos.");return;}
+    if(!q.cantidad){toast("Indica la cantidad de unidades.");return;}
     if(q.moneda==="USD"&&!S.dolar)toast("Guardada. Ingresa el dólar para calcular el costo en pesos.");else toast("Cotización guardada");
     S.cotizaciones.push(q);f.reset();save();renderResumen();renderComps();
   });
@@ -406,22 +417,26 @@ nav("cotizador");
     sb.from("cotizaciones").delete().eq("id",id).then(function(r){
       if(r.error){toast("No se pudo borrar.");return;}
       LISTA=LISTA.filter(function(x){return x.id!==id;});toast("Cotización borrada");
-      if(LISTA.length)abrir(LISTA[0].id);else nueva(defaults());
+      location.href=HOJA.proyecto_id?"proyecto.html?p="+HOJA.proyecto_id+"#costos":"proyectos.html#cotizaciones";
     });
   });
 
   /* --- cotizaciones en la cuenta --- */
   function valida(d){return d&&Array.isArray(d.componentes)&&Array.isArray(d.cotizaciones);}
   function pintarHoja(){
-    $("h-sel").innerHTML=LISTA.map(function(c){return '<option value="'+c.id+'"'+(HOJA&&c.id===HOJA.id?" selected":"")+'>'+esc(c.nombre)+'</option>';}).join("");
-    $("h-proy").innerHTML='<option value="">Sin proyecto</option>'+PROYS.map(function(p){return '<option value="'+p.id+'"'+(HOJA&&HOJA.proyecto_id===p.id?" selected":"")+'>'+esc(p.nombre)+'</option>';}).join("");
-    var ir=$("h-ir");if(HOJA&&HOJA.proyecto_id){ir.hidden=false;ir.href="proyectos.html#p="+HOJA.proyecto_id;}else ir.hidden=true;
+    var p=PROYS.filter(function(x){return HOJA&&x.id===HOJA.proyecto_id;})[0];
+    if(p){$("h-de").innerHTML='<span class="hint">Cotización del proyecto</span><br><a href="proyecto.html?p='+p.id+'#costos" style="font-family:var(--f-display);font-weight:700;font-size:18px">← '+esc(p.nombre)+'</a>';return;}
+    var libres=PROYS.filter(function(x){return !LISTA.some(function(c){return c.proyecto_id===x.id;});});
+    $("h-de").innerHTML='<label class="f">Esta cotización no está ligada a un proyecto<select id="h-ligar"><option value="">Elegir proyecto…</option>'+libres.map(function(x){return '<option value="'+x.id+'">'+esc(x.nombre)+'</option>';}).join("")+'</select></label>';
+    $("h-ligar").onchange=function(e){var v=e.target.value;if(!v)return;
+      sb.from("cotizaciones").update({proyecto_id:v}).eq("id",HOJA.id).then(function(r){if(r.error){toast("No se pudo ligar al proyecto.");return;}HOJA.proyecto_id=v;LISTA.forEach(function(c){if(c.id===HOJA.id)c.proyecto_id=v;});pintarHoja();toast("Ligada al proyecto");});};
   }
   function abrir(id){
     return sb.from("cotizaciones").select("id,nombre,proyecto_id,datos").eq("id",id).maybeSingle().then(function(r){
       if(r.error||!r.data){if(LISTA.length&&id!==LISTA[0].id)return abrir(LISTA[0].id);toast("No se encontró esa cotización.");return;}
       HOJA=r.data;
-      if(valida(HOJA.datos))S=HOJA.datos;else{S=defaults();S.nombre=HOJA.nombre&&HOJA.nombre!=="Sin nombre"?HOJA.nombre:S.nombre;save();}
+      var pr=PROYS.filter(function(x){return x.id===HOJA.proyecto_id;})[0];
+      if(valida(HOJA.datos))S=HOJA.datos;else{S=defaults(pr&&pr.tipo,pr&&pr.formato);S.nombre=pr?pr.nombre:(HOJA.nombre!=="Sin nombre"?HOJA.nombre:"");save();}
       history.replaceState(null,"","?c="+HOJA.id);
       $("h-estado").textContent="";pintarHoja();renderAll();
     });
@@ -433,24 +448,17 @@ nav("cotizador");
       LISTA.unshift(r.data);return abrir(r.data.id);
     });
   }
-  $("h-sel").addEventListener("change",function(e){abrir(e.target.value);});
-  $("h-nueva").addEventListener("click",function(){var d=defaults();d.nombre="Nueva cotización";d.componentes=[];nueva(d);});
-  $("h-dup").addEventListener("click",function(){var d=JSON.parse(JSON.stringify(S));d.nombre=(S.nombre||"Cotización")+" (copia)";nueva(d,HOJA&&HOJA.proyecto_id).then(function(){toast("Duplicada");});});
-  $("h-proy").addEventListener("change",function(e){
-    var v=e.target.value||null;
-    sb.from("cotizaciones").update({proyecto_id:v}).eq("id",HOJA.id).then(function(r){if(r.error){toast("No se pudo ligar al proyecto.");return;}HOJA.proyecto_id=v;pintarHoja();toast(v?"Ligada al proyecto":"Sin proyecto");});
-  });
-
   conSesion($("gate"),function(){
     return espacio().then(function(e){
       ESP=e;if(!ESP)throw new Error("sin espacio");
       return Promise.all([
-        sb.from("cotizaciones").select("id,nombre,actualizado_en").eq("espacio_id",ESP).order("actualizado_en",{ascending:false}),
-        sb.from("proyectos").select("id,nombre").eq("espacio_id",ESP).neq("estado","archivado").order("nombre")
+        sb.from("cotizaciones").select("id,nombre,proyecto_id,actualizado_en").eq("espacio_id",ESP).order("actualizado_en",{ascending:false}),
+        sb.from("cotizaciones").select("id,proyecto_id").eq("espacio_id",ESP).limit(1),
+        sb.from("proyectos").select("id,nombre,tipo,formato").eq("espacio_id",ESP).order("nombre")
       ]);
     }).then(function(res){
       if(res[0].error)throw res[0].error;
-      LISTA=res[0].data||[];PROYS=res[1].data||[];
+      LISTA=res[0].data||[];PROYS=res[2].data||[];
       $("contenido").hidden=false;
       // Cotización que estaba guardada solo en este navegador: se sube una vez a la cuenta.
       var viejo=null;try{viejo=JSON.parse(localStorage.getItem(KEY)||"null");}catch(err){}
@@ -458,8 +466,7 @@ nav("cotizador");
       if(valida(viejo)&&!subida)return nueva(viejo).then(function(){try{localStorage.setItem(KEY+"-subida","1");}catch(err){}toast("Traje a tu cuenta la cotización que tenías en este navegador.");});
       var want=new URLSearchParams(location.search).get("c");
       if(want)return abrir(want);
-      if(LISTA.length)return abrir(LISTA[0].id);
-      return nueva(defaults());
+      location.replace("proyectos.html#cotizaciones");
     });
   },"Tus cotizaciones son privadas: se guardan en tu cuenta y las ves desde cualquier dispositivo.");
 })();

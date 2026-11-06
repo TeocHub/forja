@@ -28,14 +28,20 @@ Reglas de datos:
 ## Cuentas y datos privados
 - Base común en `docs/js/forja.js` (cliente Supabase, sesión, navegación) y `docs/css/forja.css` (colores y piezas compartidas). Todo módulo nuevo usa `nav()` y `conSesion()`.
 - Entrada sin contraseña: enlace al correo (Supabase Auth, magic link; plantilla por defecto en inglés porque editarla exige SMTP propio). El campo de código queda como opción secundaria. Al registrarse, un trigger crea el espacio personal del usuario.
-- Tablas privadas: `espacios`, `miembros`, `proyectos`, `notas`, `cotizaciones`, `proyecto_oportunidades`. Todas con RLS por `privado.es_miembro(espacio_id)`: cada persona ve solo su espacio. Esquema completo en `supabase/esquema.sql`; todo cambio de esquema se aplica como migración y se refleja ahí.
+- Tablas privadas: `espacios`, `miembros`, `proyectos`, `secciones`, `referentes`, `notas`, `cotizaciones`, `proyecto_oportunidades`. Todas con RLS por `privado.es_miembro(espacio_id)`: cada persona ve solo su espacio. Esquema completo en `supabase/esquema.sql`; todo cambio de esquema se aplica como migración y se refleja ahí.
 - Los espacios están pensados para compartirse más adelante (equipo), pero hoy cada usuario tiene solo el suyo.
 
-## Proyectos (`docs/proyectos.html`)
-- Mesa con todos los proyectos y ficha por proyecto (`#p=<id>`): resumen, brújula de formatos, bitácora, cotizaciones ligadas y oportunidades que sigue.
-- Brújula: 6 ejes de 0 a 4 (decidir, reglas, voz interna, imagen, ritmo y sonido, escala) comparados con el perfil ideal de cada formato (novela, cómic, animación, video corto, videojuego, juego de mesa). Encaje = 1 − suma de diferencias / 24.
+## Páginas
+- `index.html`: portada pública que explica Forja, con una brújula de prueba (no guarda nada) y las oportunidades en vivo.
+- `oportunidades.html`: calendario público de ferias, fondos y convocatorias.
+- `proyectos.html` (Mi forja): inventario de proyectos (mosaico) y pestaña con todas las cotizaciones. Al plantar un proyecto se crean sus secciones según `PLANTILLA` del tipo.
+- `proyecto.html?p=<id>`: cada proyecto en su página, con pestañas (`#taller`, `#referentes`, `#brujula`, `#costos`, `#oportunidades`, `#bitacora`).
+  - Taller: secciones de texto (`public.secciones`) con preguntas guía de `docs/js/guias.js`; se pueden agregar, renombrar, ordenar y borrar; autoguardado y pantalla completa.
+  - Referentes (`public.referentes`): solo enlaces y códigos, nunca archivos. Tipos: imagen, video (YouTube/Vimeo, se carga al tocar), audio (Spotify/SoundCloud), enlace, color (#hex) y cita.
+  - Oportunidades: sugeridas según `areaDe(tipo, formato)`, más las generales y el resto; el proyecto sigue las que marque con estado.
+- Brújula (`docs/js/brujula.js`): 6 ejes de 0 a 4 comparados con 11 formatos (novela, cuento, podcast, video para redes, cortometraje, largometraje, serie, animación, cómic, videojuego, juego de mesa). Encaje = 1 − suma de diferencias / 24. Siempre se presenta como referencia: el formato lo elige la persona, cualquiera de la lista.
 
 ## Cotizador (`docs/cotizador.html`)
-- Cada cotización es una fila de `public.cotizaciones` (estado completo en `datos`, JSON), opcionalmente ligada a un proyecto. Se abre con `?c=<id>`. Una cotización antigua guardada en localStorage (`forja-cotizador-v1`) se sube una vez a la cuenta. Nunca subir cotizaciones reales al repo.
+- Una cotización por proyecto (índice único en `public.cotizaciones.proyecto_id`), con el estado completo en `datos` (JSON). Se crea desde la pestaña Costos del proyecto y se abre con `?c=<id>`; sin `?c` se va al listado. Arranca con los componentes de `INICIO` según el tipo de proyecto (catálogo `TIPOS` agrupado: juego de mesa, libro y cómic, producto, merch, servicios). Sin ejemplos precargados. Una cotización antigua guardada en localStorage (`forja-cotizador-v1`) se sube una vez a la cuenta. Nunca subir cotizaciones reales al repo.
 - Cálculo: proveedor en Chile = precio + envío (+19% IVA si no lo incluye). Extranjero = (precio + envío) en USD × dólar; hasta USD 500 +19% IVA; sobre USD 500 +6% arancel y +19% IVA sobre ese total. Opción para mostrar costos sin IVA.
 - Estimación de otras cantidades: ajuste lineal total = fijo + variable × cantidad por proveedor (mínimo 2 cotizaciones), solo dentro de 1/3 a 3 veces el rango cotizado.

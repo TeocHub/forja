@@ -1,6 +1,7 @@
 -- Forja · esquema de datos privados (Supabase, proyecto "forja").
 -- Solo estructura y reglas de acceso; ningún dato. Aplicado como migraciones:
--- espacios_privados_proyectos y es_miembro_fuera_de_api (2026-11-05).
+-- espacios_privados_proyectos, es_miembro_fuera_de_api y
+-- secciones_referentes_cotizacion_unica (2026-11-05).
 
 -- Espacios: cada usuario tiene uno propio (pensados para compartirse más adelante).
 create table public.espacios(
@@ -64,10 +65,33 @@ create table public.proyecto_oportunidades(
   primary key(proyecto_id,oportunidad_id)
 );
 
+create table public.secciones(     -- escritura guiada del proyecto
+  id uuid primary key default gen_random_uuid(),
+  espacio_id uuid not null references public.espacios(id) on delete cascade,
+  proyecto_id uuid not null references public.proyectos(id) on delete cascade,
+  titulo text not null check (char_length(titulo) between 1 and 120),
+  guia text,                       -- clave de la guía de preguntas (docs/js/guias.js)
+  texto text not null default '' check (char_length(texto) <= 200000),
+  orden int not null default 0,
+  creado_en timestamptz not null default now(),
+  actualizado_en timestamptz not null default now()
+);
+create table public.referentes(    -- solo enlaces y códigos, nunca archivos
+  id uuid primary key default gen_random_uuid(),
+  espacio_id uuid not null references public.espacios(id) on delete cascade,
+  proyecto_id uuid not null references public.proyectos(id) on delete cascade,
+  tipo text not null check (tipo in ('imagen','video','audio','enlace','color','cita')),
+  valor text not null check (char_length(valor) between 1 and 4000),
+  titulo text check (char_length(titulo) <= 200),
+  nota text check (char_length(nota) <= 4000),
+  creado_en timestamptz not null default now()
+);
+create unique index cotizaciones_un_proyecto on public.cotizaciones(proyecto_id) where proyecto_id is not null;
+
 -- RLS en todas: solo los miembros del espacio ven y modifican sus filas.
 --   espacios: ver y renombrar si privado.es_miembro(id)
 --   miembros: ver si privado.es_miembro(espacio_id) (altas solo desde el servidor)
---   proyectos, notas, cotizaciones, proyecto_oportunidades:
+--   proyectos, secciones, referentes, notas, cotizaciones, proyecto_oportunidades:
 --     select / insert / update / delete si privado.es_miembro(espacio_id)
 -- Triggers: actualizado_en automático; notas, cotizaciones y seguimientos no pueden
 -- apuntar a un proyecto de otro espacio (public.mismo_espacio).

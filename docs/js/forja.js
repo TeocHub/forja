@@ -8,9 +8,8 @@ export const SB_KEY = "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j";
 export const sb = createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 
 const MODULOS = [
-  { href: "proyectos.html", nombre: "Proyectos", id: "proyectos" },
-  { href: "./", nombre: "Oportunidades", id: "oportunidades" },
-  { href: "cotizador.html", nombre: "Cotizador", id: "cotizador" },
+  { href: "oportunidades.html", nombre: "Oportunidades", id: "oportunidades" },
+  { href: "proyectos.html", nombre: "Mi forja", id: "mi" },
 ];
 
 export const $ = (id) => document.getElementById(id);
@@ -41,7 +40,7 @@ export function nav(actual) {
   if (!el) return;
   el.className = "fx-nav";
   el.innerHTML =
-    '<a class="fx-logo" href="proyectos.html">Forja</a><span class="fx-mods">' +
+    '<a class="fx-logo" href="./">Forja</a><span class="fx-mods">' +
     MODULOS.map((m) => '<a href="' + m.href + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + m.nombre + "</a>").join("") +
     '</span><span class="fx-user" id="fx-user"></span>';
   const pinta = (ses) => {
@@ -49,8 +48,8 @@ export function nav(actual) {
     if (ses) {
       u.innerHTML = '<span class="fx-mail" title="' + esc(ses.user.email) + '">' + esc(ses.user.email.split("@")[0]) + '</span><button type="button" class="fx-link" id="fx-salir">Salir</button>';
       $("fx-salir").onclick = async () => { await sb.auth.signOut(); location.reload(); };
-    } else if (actual === "oportunidades") {
-      u.innerHTML = '<a href="proyectos.html">Entrar</a>';
+    } else if (actual !== "mi") {
+      u.innerHTML = '<a class="fx-entrar" href="proyectos.html">Entrar</a>';
     } else u.innerHTML = "";
   };
   sb.auth.getSession().then(({ data }) => pinta(data.session));

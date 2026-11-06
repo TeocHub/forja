@@ -4,24 +4,23 @@ Plataforma de Digital Monster para organizar proyectos creativos: oportunidades,
 
 Web: https://teochub.github.io/forja/ (GitHub Pages, carpeta `docs/`)
 
-## Módulos
+## Qué tiene
 
-| Módulo | Estado | Qué hace |
-| --- | --- | --- |
-| Oportunidades | Activo | Ferias, fondos y convocatorias en Chile con cuenta regresiva de postulación y evento |
-| Proyectos | Activo | Ideas con bitácora, brújula de formatos, cotizaciones y oportunidades ligadas; privado por cuenta |
-| Cotizador | Activo (v1) | Cotizaciones por componente, costo real puesto en Chile (IVA, arancel, dólar) y comparación por tirada; guardado en la cuenta |
-| Financiamiento | Próximamente | Apoyo para fondos, Kickstarter y Patreon |
-| Mercado y publicidad | Próximamente | Validación y canales de difusión |
+Una portada pública que explica la herramienta, el calendario público de **Oportunidades**, y **Mi forja**, el espacio privado de cada persona: sus proyectos, cada uno en su propia página con escritura guiada según el tipo, referentes por enlace, brújula de formatos, cotización por componentes, oportunidades sugeridas y bitácora.
 
 ## Estructura
 
 ```
 docs/                     sitio publicado en GitHub Pages (app instalable en el celular)
-  index.html              módulo Oportunidades (público)
-  proyectos.html          módulo Proyectos (requiere cuenta)
-  cotizador.html          módulo Cotizador (requiere cuenta)
-  js/forja.js, css/forja.css  base común: sesión, navegación, estilos
+  index.html              portada pública
+  oportunidades.html      ferias, fondos y convocatorias (público)
+  proyectos.html          Mi forja: proyectos y cotizaciones (requiere cuenta)
+  proyecto.html           página de cada proyecto (requiere cuenta)
+  cotizador.html          cotización de un proyecto (requiere cuenta)
+  js/forja.js             sesión, navegación y utilidades
+  js/brujula.js           brújula de formatos
+  js/guias.js             tipos de proyecto y preguntas guía
+  css/forja.css           estilos comunes
   data/                   copia de respaldo de los datos (la fuente principal es Supabase)
   manifest.webmanifest    datos para instalar la app
   sw.js                   caché para abrir sin conexión

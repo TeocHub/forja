@@ -3,201 +3,213 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Forja · Oportunidades</title>
-<meta name="description" content="Ferias, fondos y convocatorias en Chile para videojuegos, cómic y juegos de mesa.">
+<title>Forja · taller para crear historias, juegos y productos</title>
+<meta name="description" content="Forja es un taller gratuito para quienes crean en Chile: escribe tu idea con guías, junta referentes, calcula lo que cuesta producirla y encuentra ferias y fondos donde mostrarla.">
 <meta name="theme-color" content="#2a3fd1">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="css/forja.css">
 <style>
-/* Layout: cartelera de convocatorias — resumen arriba, filtros, lista de fichas con dos contadores (postulación / evento) */
-:root{
-  --bg:#f3f4f7; --card:#ffffff; --fg:#161a26; --muted:#5b6275; --line:#dfe2ea;
-  --accent:#2a3fd1; --accent-soft:#e6e9fb;
-  --open:#0f7a4f; --open-soft:#dff3ea; --soon:#b4330e; --soon-soft:#fbe6dc; --closed:#7a8091; --closed-soft:#eceef2; --wait:#8a5a00; --wait-soft:#fbf0d6;
-  --f-display:"Familjen Grotesk",system-ui,sans-serif; --f-body:"Atkinson Hyperlegible",system-ui,sans-serif; --f-num:"JetBrains Mono",ui-monospace,monospace;
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e;
-  --accent:#8c9bff; --accent-soft:#232a52;
-  --open:#4fd19a; --open-soft:#123a2a; --soon:#ff8a63; --soon-soft:#40211a; --closed:#8a90a2; --closed-soft:#23262f; --wait:#e8b84a; --wait-soft:#3a2e12; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e;
-  --accent:#8c9bff; --accent-soft:#232a52;
-  --open:#4fd19a; --open-soft:#123a2a; --soon:#ff8a63; --soon-soft:#40211a; --closed:#8a90a2; --closed-soft:#23262f; --wait:#e8b84a; --wait-soft:#3a2e12; color-scheme:dark}
+/* Layout: portada — titular con la brújula jugable al lado, recorrido de cuatro paradas, vitrina de oportunidades en vivo y cierre */
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.wrap{max-width:900px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
-header h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0;text-wrap:balance}
-header p{margin:6px 0 0;color:var(--muted)}
-.meta{font-size:13px;color:var(--muted)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
-.stat b{display:block;font-family:var(--f-num);font-size:26px;line-height:1.1}
-.stat span{font-size:13px;color:var(--muted)}
-.stat.hot b{color:var(--soon)} .stat.open b{color:var(--open)}
-.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:6px 12px;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
-.chip:focus-visible,select:focus-visible,summary:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
-select{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:6px 8px}
-.toggle{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);margin-left:auto;border-radius:6px}
-.list{display:flex;flex-direction:column;gap:12px}
-.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;border-left:4px solid var(--line)}
-.item.s-open{border-left-color:var(--open)} .item.s-soon{border-left-color:var(--soon)} .item.s-wait{border-left-color:var(--wait)}
-.top{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.tag{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
-.tag.tipo{color:var(--accent);border-color:var(--accent)}
-.tag.est{border-style:dashed}
-.item h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0;text-wrap:balance}
-.org{font-size:14px;color:var(--muted)}
-.clocks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.clock{border-radius:8px;padding:10px 12px;background:var(--closed-soft);min-width:0}
-.clock .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-.clock .big{font-family:var(--f-num);font-weight:700;font-size:18px;line-height:1.3}
-.clock .dates{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-.clock.open{background:var(--open-soft)} .clock.open .big{color:var(--open)}
-.clock.soon{background:var(--soon-soft)} .clock.soon .big{color:var(--soon)}
-.clock.wait{background:var(--wait-soft)} .clock.wait .big{color:var(--wait)}
-.clock.closed .big{color:var(--closed)}
-details summary{cursor:pointer;color:var(--accent);font-size:14px;border-radius:4px}
-dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:10px 0 0;font-size:14px}
-dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
 a{color:var(--accent)}
-.empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:24px;color:var(--muted);text-align:center}
-.legend{font-size:13px;color:var(--muted)}
-@media (max-width:560px){.stats{grid-template-columns:1fr 1fr 1fr}.stat b{font-size:20px}.clocks{grid-template-columns:1fr}.toggle{margin-left:0}dl{grid-template-columns:1fr}dt{margin-top:6px}}
-.brand{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:baseline;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.logo{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em}
-.mods{display:flex;flex-wrap:wrap;gap:12px;font-size:14px}
-.mods a{color:var(--fg);text-decoration:none}
-.mods a[aria-current="page"]{border-bottom:2px solid var(--accent)}
-.mods a:hover{color:var(--accent)}
-.soon-mod{color:var(--muted)}
+.wrap{max-width:1080px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(button,a,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+section{margin-top:72px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+.kicker{font-family:var(--f-num);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ember)}
+
+/* titular */
+.hero{margin-top:28px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:32px;align-items:center}
+@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr);gap:20px}}
+.hero h1{font-size:clamp(38px,7vw,66px);line-height:1;letter-spacing:-.02em;margin:10px 0 18px}
+.hero h1 em{font-style:normal;color:var(--ember)}
+.hero p.lead{font-size:clamp(17px,2.2vw,19px);color:var(--muted);max-width:46ch;margin:0}
+.ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.cta{font-weight:700;border-radius:12px;padding:12px 18px;text-decoration:none;border:1.5px solid var(--accent)}
+.cta.main{background:var(--accent);color:var(--card)}
+.cta.alt{color:var(--accent);background:transparent}
+.demo{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px 14px 16px;position:relative;overflow:hidden}
+.demo::after{content:"";position:absolute;inset:auto -60px -80px auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,var(--ember-soft),transparent 70%);pointer-events:none}
+.demo .cap{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:0 6px}
+.demo .cap b{font-family:var(--f-display);font-size:17px}
+.demo .cap span{font-size:13px;color:var(--muted)}
+.demo .pair{display:grid;grid-template-columns:1fr 1fr;gap:4px;align-items:center}
+@media (max-width:520px){.demo .pair{grid-template-columns:1fr}}
+.demo .ver{font-size:14px;color:var(--muted);text-align:center;margin:6px 8px 0;min-height:3em;position:relative;z-index:1}
+.demo .ver b{color:var(--fg)}
+.q{font-size:13px;color:var(--muted);text-align:center;min-height:2.6em;margin:2px 8px 0}
+
+/* recorrido */
+.ruta-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:end}
+.ruta-head h2{font-size:clamp(28px,4.5vw,40px);line-height:1.05;max-width:20ch}
+.ruta-head p{color:var(--muted);max-width:40ch;margin:0}
+.paradas{position:relative;display:grid;grid-template-columns:repeat(4,1fr);margin-top:30px}
+.paradas::before{content:"";position:absolute;left:12.5%;right:12.5%;top:21px;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 14px)}
+.parada{position:relative;background:none;border:0;padding:0 6px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;color:var(--muted);font:inherit}
+.parada .pto{width:44px;height:44px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:grid;place-items:center;font-family:var(--f-num);font-weight:700;font-size:14px;transition:all .2s ease}
+.parada .nom{font-family:var(--f-display);font-weight:700;font-size:16px}
+.parada[aria-selected="true"]{color:var(--fg)}
+.parada[aria-selected="true"] .pto{background:var(--ember);border-color:var(--ember);color:#fff;transform:scale(1.08)}
+.escena{margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center;min-height:300px}
+@media (max-width:760px){.escena{grid-template-columns:minmax(0,1fr)}.parada .nom{font-size:14px}}
+.escena h3{font-size:26px;line-height:1.1;margin-bottom:10px}
+.escena p{margin:0 0 10px;color:var(--muted)}
+.escena p b{color:var(--fg)}
+.boceto{border-radius:14px;background:var(--field);border:1px solid var(--line);padding:16px;font-size:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.boceto .linea{height:9px;border-radius:5px;background:var(--line)}
+.boceto .tag{align-self:flex-start;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;border-radius:999px;padding:2px 9px;border:1px solid currentColor}
+.boceto .nota{background:var(--card);border-radius:10px;padding:10px 12px;border:1px solid var(--line)}
+.boceto .nota i{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-bottom:2px}
+.mosaico{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mosaico span{aspect-ratio:1;border-radius:8px}
+.cifra{display:flex;justify-content:space-between;font-family:var(--f-num);font-size:13px;border-bottom:1px dashed var(--line);padding:6px 0}
+.cifra:last-child{border:0;font-weight:700;font-size:15px}
+.reloj{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.reloj div{border-radius:10px;padding:10px;background:var(--card);border:1px solid var(--line)}
+.reloj small{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.reloj b{font-family:var(--f-num);font-size:15px}
+.reloj .hot b{color:var(--ember)}
+
+/* vitrina */
+.vitrina{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:28px;align-items:start}
+@media (max-width:860px){.vitrina{grid-template-columns:minmax(0,1fr)}}
+.vitrina h2{font-size:clamp(28px,4.5vw,40px);line-height:1.05}
+.big{display:flex;gap:22px;margin:18px 0}
+.big div b{display:block;font-family:var(--f-num);font-size:44px;line-height:1}
+.big div span{font-size:13px;color:var(--muted)}
+.big .hot b{color:var(--ember)}
+.carril{display:grid;gap:10px}
+.op{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-decoration:none;color:var(--fg)}
+.op:hover{border-color:var(--accent)}
+.op .dias{width:64px;text-align:center;border-radius:10px;padding:6px 4px;background:var(--accent-soft)}
+.op .dias b{display:block;font-family:var(--f-num);font-size:22px;line-height:1.1}
+.op .dias small{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.op.hot .dias{background:var(--ember-soft)} .op.hot .dias b{color:var(--ember)}
+.op h3{font-size:16px;line-height:1.25}
+.op p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+
+/* cierre */
+.cierre{background:var(--fg);color:var(--bg);border-radius:24px;padding:clamp(24px,5vw,48px);display:grid;grid-template-columns:minmax(0,1.3fr) auto;gap:24px;align-items:end}
+@media (max-width:760px){.cierre{grid-template-columns:minmax(0,1fr)}}
+.cierre h2{font-size:clamp(26px,4vw,36px);line-height:1.1;margin-bottom:12px}
+.cierre p{margin:0;opacity:.8;max-width:60ch}
+.cierre .cta.main{background:var(--ember);border-color:var(--ember);color:#fff;white-space:nowrap}
+footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
+@media (prefers-reduced-motion:reduce){.parada .pto{transition:none}}
 </style>
-<link rel="stylesheet" href="css/forja.css">
-<script type="module">import { nav } from "./js/forja.js"; nav("oportunidades");</script>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <nav data-forja-nav></nav>
-    <h1>Oportunidades</h1>
-    <p>Ferias, fondos y convocatorias en Chile para videojuegos, cómic y juegos de mesa.</p>
-    <div class="meta" id="meta">Cargando…</div>
-  </header>
+  <header><nav data-forja-nav></nav></header>
 
-  <section class="stats" aria-label="Resumen">
-    <div class="stat open"><b id="nOpen">–</b><span>postulaciones abiertas</span></div>
-    <div class="stat hot"><b id="nSoon">–</b><span>cierran en 14 días o menos</span></div>
-    <div class="stat"><b id="nNext">–</b><span>eventos en los próximos 90 días</span></div>
-  </section>
-
-  <div class="filters" role="group" aria-label="Filtrar por área">
-    <button class="chip" data-area="" aria-pressed="true" id="f-all">Todo</button>
-    <button class="chip" data-area="videojuego" aria-pressed="false" id="f-vj">Videojuegos</button>
-    <button class="chip" data-area="comic" aria-pressed="false" id="f-comic">Cómic y libro</button>
-    <button class="chip" data-area="juegomesa" aria-pressed="false" id="f-jm">Juegos de mesa</button>
-    <button class="chip" data-area="general" aria-pressed="false" id="f-gen">Emprendimiento</button>
-    <select id="f-tipo" aria-label="Tipo">
-      <option value="">Todos los tipos</option>
-      <option value="fondo">Fondos</option>
-      <option value="feria">Ferias y festivales</option>
-      <option value="convocatoria">Convocatorias</option>
-    </select>
-    <label class="toggle"><input type="checkbox" id="f-past" checked> Ocultar lo ya terminado</label>
+  <div class="hero">
+    <div>
+      <span class="kicker">Taller gratuito · hecho en Chile</span>
+      <h1>De la chispa <em>a la obra.</em></h1>
+      <p class="lead">Forja es un lugar para darle forma a tus historias, juegos y productos: escribir con guías, juntar referentes, saber cuánto cuesta producir y encontrar dónde mostrarlo.</p>
+      <div class="ctas"><a class="cta main" href="proyectos.html">Entrar a mi forja</a><a class="cta alt" href="oportunidades.html">Ver ferias y fondos</a></div>
+    </div>
+    <div class="demo" aria-labelledby="demo-t">
+      <div class="cap"><b id="demo-t">Brújula de formatos</b><span>Pruébala: arrastra los puntos</span></div>
+      <div class="pair"><div><svg class="radar" id="radar"></svg><p class="q" id="q">Piensa en una idea que tengas y dale peso a cada eje.</p></div><svg class="dial" id="dial"></svg></div>
+      <p class="ver" id="ver" aria-live="polite"></p>
+    </div>
   </div>
 
-  <p class="legend">Las fechas con ≈ son estimaciones basadas en ediciones anteriores; se reemplazan cuando el organizador las confirma.</p>
+  <section aria-labelledby="ruta-t">
+    <div class="ruta-head">
+      <h2 id="ruta-t">Cuatro paradas, un mismo proyecto.</h2>
+      <p>Cada idea vive en su propia página y junta todo lo que necesitas para sacarla adelante. Toca cada parada.</p>
+    </div>
+    <div class="paradas" role="tablist" aria-label="Recorrido de un proyecto">
+      <button class="parada" role="tab" id="t-0" aria-controls="escena" aria-selected="true"><span class="pto">1</span><span class="nom">Chispa</span></button>
+      <button class="parada" role="tab" id="t-1" aria-controls="escena" aria-selected="false" tabindex="-1"><span class="pto">2</span><span class="nom">Taller</span></button>
+      <button class="parada" role="tab" id="t-2" aria-controls="escena" aria-selected="false" tabindex="-1"><span class="pto">3</span><span class="nom">Costos</span></button>
+      <button class="parada" role="tab" id="t-3" aria-controls="escena" aria-selected="false" tabindex="-1"><span class="pto">4</span><span class="nom">Vitrina</span></button>
+    </div>
+    <div class="escena" id="escena" role="tabpanel" aria-labelledby="t-0"></div>
+  </section>
 
-  <div class="list" id="list"><div class="empty">Cargando oportunidades…</div></div>
+  <section class="vitrina" aria-labelledby="vit-t">
+    <div>
+      <span class="kicker">Abierto para todos</span>
+      <h2 id="vit-t" style="margin-top:8px">Ferias, fondos y convocatorias en Chile.</h2>
+      <div class="big"><div><b id="n-open">–</b><span>postulaciones abiertas</span></div><div class="hot"><b id="n-hot">–</b><span>cierran en dos semanas</span></div></div>
+      <p style="color:var(--muted);margin:0 0 14px">Se revisan cada mañana en fuentes oficiales. No necesitas cuenta para verlas; con cuenta, cada proyecto te sugiere a cuáles presentarte.</p>
+      <a class="cta alt" href="oportunidades.html">Ver todas</a>
+    </div>
+    <div class="carril" id="carril" aria-live="polite"><div class="fx-empty">Cargando oportunidades…</div></div>
+  </section>
+
+  <section class="cierre" aria-labelledby="cierre-t">
+    <div>
+      <h2 id="cierre-t">Tus ideas son solo tuyas.</h2>
+      <p>Entras con tu correo, sin contraseñas. Tus proyectos se guardan en tu cuenta y nadie más los ve; puedes abrirlos desde el celular, la tablet o el computador. Forja no guarda archivos: los referentes son enlaces, así que nada pesa ni se pierde.</p>
+    </div>
+    <a class="cta main" href="proyectos.html">Empezar un proyecto</a>
+  </section>
+
+  <footer><span>Forja · Digital Monster, Chile</span><a href="https://github.com/TeocHub/forja">Código abierto en GitHub</a></footer>
 </div>
 
-<script>
-(function(){
-  var items=[], state={area:"",tipo:"",hidePast:true}, metaDoc=null;
-  var MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
-  try{var saved=JSON.parse(localStorage.getItem("radar-f")||"null");if(saved){state.area=saved.area||"";state.tipo=saved.tipo||"";state.hidePast=saved.hidePast!==false;}}catch(e){}
+<script type="module">
+import { nav, esc } from "./js/forja.js";
+import { radar, dial, veredicto, CSS_BRUJULA } from "./js/brujula.js";
+nav("inicio");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + "</style>");
 
-  function today(){var d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
-  function pd(s){if(!s)return null;var p=String(s).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
-  function diff(d){return Math.round((d-today())/864e5);}
-  function fmt(d){return d?d.getDate()+" "+MES[d.getMonth()]+" "+d.getFullYear():"";}
-  function dias(n){return n===1?"1 día":n+" días";}
-  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+/* brújula de prueba (no se guarda nada) */
+let ejes = {};
+const pintarDial = () => { dial(document.getElementById("dial"), ejes); document.getElementById("ver").innerHTML = veredicto(ejes); };
+radar(document.getElementById("radar"), () => ejes, (e) => { ejes = e; pintarDial(); }, document.getElementById("q"));
+pintarDial();
 
-  function postul(it){
-    var a=pd(it.postul_inicio),b=pd(it.postul_fin),est=it.fechas_estimadas?"≈ ":"";
-    if(!a&&!b) return {cls:"closed",big:it.postul_texto||"Sin convocatoria publicada",dates:"",k:"none"};
-    var dates=(a?fmt(a):"?")+" → "+(b?fmt(b):"?");
-    if(a&&diff(a)>0) return {cls:"wait",big:est+"Abre en "+dias(diff(a)),dates:dates,k:"wait",next:a};
-    if(b&&diff(b)>=0){var n=diff(b);return {cls:n<=14?"soon":"open",big:(n===0?"Cierra hoy":"Abierta · quedan "+dias(n)),dates:dates,k:"open",next:b,left:n};}
-    if(b) return {cls:"closed",big:"Cerrada",dates:dates,k:"closed"};
-    return {cls:"open",big:"Abierta",dates:dates,k:"open"};
-  }
-  function evento(it){
-    var a=pd(it.evento_inicio),b=pd(it.evento_fin)||a,est=it.fechas_estimadas?"≈ ":"";
-    if(!a) return {cls:"closed",big:it.evento_texto||"Sin evento asociado",dates:"",k:"none"};
-    var dates=fmt(a)+(b&&+b!==+a?" → "+fmt(b):"");
-    if(diff(a)>0) return {cls:"wait",big:est+"En "+dias(diff(a)),dates:dates,k:"future",next:a,left:diff(a)};
-    if(diff(b)>=0) return {cls:"open",big:"En curso",dates:dates,k:"now",next:b};
-    return {cls:"closed",big:"Terminado",dates:dates,k:"past"};
-  }
-  function finished(it,p,e){return (p.k==="closed"||p.k==="none")&&(e.k==="past"||e.k==="none");}
-  function sortKey(p,e){var c=[];if(p.next)c.push(+p.next);if(e.next)c.push(+e.next);return c.length?Math.min.apply(null,c):9e15;}
+/* recorrido */
+const ESC = [
+  { h: "Planta la idea", t: "<p>Escribe el nombre de tu idea, aunque sea una frase, y elige qué es: <b>historia, videojuego, juego de mesa, contenido para redes, producto</b> u otra cosa.</p><p>Según el tipo, el proyecto nace con las secciones que suele necesitar. Las puedes renombrar, ordenar, quitar o agregar otras.</p>",
+    b: '<span class="tag" style="color:var(--t-juegomesa)">Juego de mesa</span><b style="font-family:var(--f-display);font-size:20px">La feria de los dados</b><div class="nota"><i>Concepto</i>Un mercado donde cada dado es un puesto…</div><div class="nota"><i>Componentes</i>Tablero, 40 cartas, 12 dados…</div>' },
+  { h: "Trabaja con calma", t: "<p>Cada sección trae <b>preguntas guía</b> para destrabarte, y puedes escribir todo lo que quieras, con modo pantalla completa.</p><p>Junta <b>referentes</b> pegando enlaces: imágenes, videos de YouTube o Vimeo, música, colores o citas. Y lleva una <b>bitácora</b> con cada avance.</p>",
+    b: '<div class="mosaico"><span style="background:#2a3fd1"></span><span style="background:#e0602f"></span><span style="background:#7a3fc4"></span><span style="background:#0f7a4f"></span><span style="background:var(--line)"></span><span style="background:#a86200"></span></div><div class="nota"><i>Referente · video</i>La iluminación de esta escena para el capítulo 3.</div>' },
+  { h: "Sabe cuánto cuesta", t: "<p>Cotiza cada componente con varios proveedores. Forja calcula el <b>costo real puesto en Chile</b>: dólar del día, IVA y arancel cuando corresponde.</p><p>Compara cuánto sale cada unidad si fabricas 10, 100 o 500, y elige el proveedor más conveniente para cada pieza.</p>",
+    b: '<div class="cifra"><span>Tablero</span><span>$3.420</span></div><div class="cifra"><span>Cartas ×40</span><span>$2.180</span></div><div class="cifra"><span>Caja</span><span>$1.950</span></div><div class="cifra"><span>Por juego · 100 u.</span><span>$7.550</span></div>' },
+  { h: "Muéstralo al mundo", t: "<p>Cada proyecto te sugiere <b>ferias, fondos y convocatorias</b> según lo que estás haciendo, con cuenta regresiva para postular y para el evento.</p><p>Marca las que te interesan y anota en qué vas: postulando, postulado, aceptado.</p>",
+    b: '<b style="font-family:var(--f-display);font-size:17px">Feria de juegos de mesa</b><div class="reloj"><div class="hot"><small>Postulación</small><b>quedan 9 días</b></div><div><small>Evento</small><b>en 52 días</b></div></div><span class="tag" style="color:var(--accent)">Postulando</span>' },
+];
+const tabs = [...document.querySelectorAll(".parada")], esc0 = document.getElementById("escena");
+function ir(i, foco) {
+  tabs.forEach((b, j) => { b.setAttribute("aria-selected", String(i === j)); b.tabIndex = i === j ? 0 : -1; });
+  esc0.setAttribute("aria-labelledby", "t-" + i);
+  esc0.innerHTML = '<div><h3>' + ESC[i].h + "</h3>" + ESC[i].t + '</div><div class="boceto" aria-hidden="true">' + ESC[i].b + "</div>";
+  if (foco) tabs[i].focus();
+}
+tabs.forEach((b, i) => {
+  b.onclick = () => ir(i);
+  b.onkeydown = (e) => { const m = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (m) { e.preventDefault(); ir((i + m + 4) % 4, true); } };
+});
+ir(0);
 
-  function render(){
-    document.querySelectorAll(".chip").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.area===state.area));});
-    document.getElementById("f-tipo").value=state.tipo;
-    document.getElementById("f-past").checked=state.hidePast;
-    var rows=items.map(function(it){var p=postul(it),e=evento(it);return {it:it,p:p,e:e,key:sortKey(p,e),done:finished(it,p,e)};});
-    document.getElementById("nOpen").textContent=rows.filter(function(r){return r.p.k==="open";}).length;
-    document.getElementById("nSoon").textContent=rows.filter(function(r){return r.p.k==="open"&&r.p.left!=null&&r.p.left<=14;}).length;
-    document.getElementById("nNext").textContent=rows.filter(function(r){return r.e.k==="future"&&r.e.left<=90;}).length;
-    var vis=rows.filter(function(r){
-      if(state.area&&(r.it.areas||[]).indexOf(state.area)<0)return false;
-      if(state.tipo&&r.it.tipo!==state.tipo)return false;
-      if(state.hidePast&&r.done)return false;return true;
-    }).sort(function(a,b){return a.key-b.key||String(a.it.nombre).localeCompare(b.it.nombre);});
-    var list=document.getElementById("list");
-    if(!items.length){list.innerHTML='<div class="empty">Todavía no hay oportunidades guardadas. Aparecerán aquí cuando la revisión diaria las agregue.</div>';return;}
-    if(!vis.length){list.innerHTML='<div class="empty">Nada coincide con estos filtros. Prueba con "Todo" o muestra lo ya terminado.</div>';return;}
-    var TIPO={fondo:"Fondo",feria:"Feria / festival",convocatoria:"Convocatoria"};
-    var AREA={videojuego:"Videojuegos",comic:"Cómic y libro",juegomesa:"Juegos de mesa",general:"Emprendimiento"};
-    list.innerHTML=vis.map(function(r){
-      var it=r.it,p=r.p,e=r.e,s=p.k==="open"?(p.cls==="soon"?"s-soon":"s-open"):(p.k==="wait"?"s-wait":"");
-      var tags='<span class="tag tipo">'+esc(TIPO[it.tipo]||it.tipo)+'</span>'+(it.areas||[]).map(function(a){return '<span class="tag">'+esc(AREA[a]||a)+'</span>';}).join("")+(it.fechas_estimadas?'<span class="tag est">Fechas estimadas</span>':'');
-      var det=[["Premio o apoyo",it.premio],["Costo",it.costo],["Requisitos",it.requisitos],["Qué llevar o preparar",it.que_llevar],["Lugar",it.lugar],["Notas",it.notas]].filter(function(x){return x[1];}).map(function(x){return "<dt>"+x[0]+"</dt><dd>"+esc(x[1])+"</dd>";}).join("");
-      if(it.fuente)det+='<dt>Fuente</dt><dd><a href="'+esc(it.fuente)+'" target="_blank" rel="noopener">'+esc(it.fuente.replace(/^https?:\/\/(www\.)?/,"").split("/")[0])+'</a>'+(it.revisado?' · revisado '+esc(it.revisado):'')+'</dd>';
-      return '<article class="item '+s+'"><div class="top">'+tags+'</div><div><h2>'+esc(it.nombre)+'</h2><div class="org">'+esc(it.organiza||"")+'</div></div>'+
-        '<div class="clocks"><div class="clock '+p.cls+'"><div class="lbl">Postulación</div><div class="big">'+esc(p.big)+'</div><div class="dates">'+esc(p.dates)+'</div></div>'+
-        '<div class="clock '+e.cls+'"><div class="lbl">Evento</div><div class="big">'+esc(e.big)+'</div><div class="dates">'+esc(e.dates)+'</div></div></div>'+
-        (det?'<details><summary>Ver premios, requisitos y detalles</summary><dl>'+det+'</dl></details>':'')+'</article>';
-    }).join("");
-  }
-  function save(){try{localStorage.setItem("radar-f",JSON.stringify(state));}catch(e){}}
-  document.querySelectorAll(".chip").forEach(function(b){b.addEventListener("click",function(){state.area=b.dataset.area;save();render();});});
-  document.getElementById("f-tipo").addEventListener("change",function(ev){state.tipo=ev.target.value;save();render();});
-  document.getElementById("f-past").addEventListener("change",function(ev){state.hidePast=ev.target.checked;save();render();});
-  function renderMeta(){
-    var m=document.getElementById("meta");
-    if(metaDoc&&metaDoc.ultima_revision){m.textContent="Última revisión automática: "+metaDoc.ultima_revision+(metaDoc.resumen?" · "+metaDoc.resumen:"");}
-    else m.textContent="Los contadores se recalculan cada vez que abres la página.";
-  }
-  render();
-  // Datos en Supabase (lectura pública); si falla, usa la copia local del repo.
-  var SB="https://gfkiwldxxvffnkjcesws.supabase.co/rest/v1/",KEYH={headers:{apikey:"sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j"}};
-  function getJ(u,o){return fetch(u,o).then(function(r){if(!r.ok)throw r.status;return r.json();});}
-  var opp=getJ(SB+"oportunidades?select=*",KEYH).catch(function(){return getJ("data/oportunidades.json",{cache:"no-cache"});});
-  var met=getJ(SB+"meta?clave=eq.estado&select=*",KEYH).then(function(a){return a&&a[0]||null;}).catch(function(){return getJ("data/meta.json",{cache:"no-cache"}).catch(function(){return null;});});
-  Promise.all([opp,met])
-    .then(function(res){items=(res[0]||[]).map(function(o){Object.keys(o).forEach(function(k){if(o[k]===null)delete o[k];});return o;});metaDoc=res[1];if(metaDoc&&metaDoc.ultima_revision){var d=pd(metaDoc.ultima_revision);if(d)metaDoc.ultima_revision=fmt(d);}render();renderMeta();})
-    .catch(function(){document.getElementById("list").innerHTML='<div class="empty">No se pudieron cargar los datos. Revisa tu conexión y recarga la página.</div>';document.getElementById("meta").textContent="";});
-  setInterval(render,36e5);
-})();
+/* oportunidades en vivo */
+const SB = "https://gfkiwldxxvffnkjcesws.supabase.co/rest/v1/", H = { headers: { apikey: "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j" } };
+const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+const dd = (s) => { if (!s) return null; const [y, m, d] = s.split("-"); return Math.round((new Date(+y, m - 1, +d) - hoy) / 864e5); };
+fetch(SB + "oportunidades?select=nombre,tipo,organiza,postul_inicio,postul_fin,evento_inicio,fechas_estimadas", H).then((r) => { if (!r.ok) throw 0; return r.json(); })
+  .catch(() => fetch("data/oportunidades.json").then((r) => r.json()))
+  .then((ops) => {
+    const abiertas = ops.filter((o) => { const a = dd(o.postul_inicio), b = dd(o.postul_fin); return b != null && b >= 0 && (a == null || a <= 0); }).sort((a, b) => dd(a.postul_fin) - dd(b.postul_fin));
+    document.getElementById("n-open").textContent = abiertas.length;
+    document.getElementById("n-hot").textContent = abiertas.filter((o) => dd(o.postul_fin) <= 14).length;
+    let carril = abiertas.slice(0, 4).map((o) => ({ o, n: dd(o.postul_fin), q: "para postular" }));
+    if (carril.length < 4) carril = carril.concat(ops.filter((o) => dd(o.evento_inicio) > 0 && !abiertas.includes(o)).sort((a, b) => dd(a.evento_inicio) - dd(b.evento_inicio)).slice(0, 4 - carril.length).map((o) => ({ o, n: dd(o.evento_inicio), q: "para el evento" })));
+    const TIPO = { fondo: "Fondo", feria: "Feria", convocatoria: "Convocatoria" };
+    document.getElementById("carril").innerHTML = carril.length ? carril.map(({ o, n, q }) => '<a class="op' + (n <= 14 ? " hot" : "") + '" href="oportunidades.html"><div class="dias"><b>' + (o.fechas_estimadas ? "≈" : "") + n + "</b><small>" + (n === 1 ? "día" : "días") + "</small></div><div><h3>" + esc(o.nombre) + "</h3><p>" + esc(TIPO[o.tipo] || "") + (o.organiza ? " · " + esc(o.organiza) : "") + " · " + q + "</p></div></a>").join("")
+      : '<div class="fx-empty">Ahora no hay convocatorias abiertas. Revisa el calendario completo.</div>';
+  }).catch(() => { document.getElementById("carril").innerHTML = '<div class="fx-empty">No se pudieron cargar las oportunidades.</div>'; });
 </script>
 </body>
 </html>

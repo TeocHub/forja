@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Proyecto</title>
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="css/forja.css">
+<style>
+/* Layout: página de proyecto — cabecera editable y pestañas (Taller, Referentes, Brújula, Costos, Oportunidades, Bitácora); el Taller es índice de secciones + hoja de escritura */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0}
+a{color:var(--accent)}
+button,select,input,textarea{font:inherit;color:var(--fg)}
+button{cursor:pointer}
+:where(button,select,input,textarea,a,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:13px;color:var(--muted)}
+#app{display:flex;flex-direction:column;gap:18px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn.prim{background:var(--accent);border-color:var(--accent);color:var(--card);font-weight:700}
+.btn.peligro{color:var(--bad)}
+.btn.chico{padding:3px 9px;font-size:13px}
+.vol{font-size:14px;text-decoration:none}
+
+/* cabecera */
+.cabeza{display:flex;flex-direction:column;gap:10px;border-left:5px solid var(--tc);padding-left:14px}
+.cabeza input.nombre{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,38px);line-height:1.15;border:1px solid transparent;border-radius:8px;background:transparent;padding:2px 6px;margin-left:-7px;width:100%}
+.cabeza input.nombre:hover{border-color:var(--line)}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.ctrl select{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 10px;font-size:14px}
+.estados{display:inline-flex;max-width:100%;overflow-x:auto;scrollbar-width:none;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+.estados button{white-space:nowrap;flex:none;border:0;background:transparent;padding:4px 11px;font-size:13px;color:var(--muted)}
+.estados button[aria-pressed="true"]{background:var(--fg);color:var(--bg);font-weight:700}
+.sello{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--ember);color:var(--ember);border-radius:999px;padding:1px 10px;font-weight:700;font-size:13px;background:none}
+textarea.resumen{width:100%;min-height:64px;resize:vertical;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;line-height:1.5}
+.fx-tabs{position:sticky;top:0;z-index:5;background:var(--bg)}
+
+.bloque{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 12px}
+.vacio{border:1.5px dashed var(--line);border-radius:14px;padding:22px;color:var(--muted);text-align:center}
+
+/* taller */
+.taller{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:820px){.taller{grid-template-columns:minmax(0,1fr)}}
+.indice{position:sticky;top:52px;display:flex;flex-direction:column;gap:2px}
+@media (max-width:820px){.indice{position:static;flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px;scrollbar-width:thin}}
+.indice button.sec{display:flex;justify-content:space-between;gap:8px;align-items:baseline;text-align:left;border:0;background:transparent;border-radius:8px;padding:7px 10px;font-size:14px;color:var(--muted)}
+.indice button.sec .w{font-family:var(--f-num);font-size:11px}
+.indice button.sec.lleno{color:var(--fg)}
+.indice button.sec[aria-current="true"]{background:var(--card);color:var(--fg);font-weight:700;box-shadow:inset 3px 0 0 var(--tc)}
+@media (max-width:820px){.indice button.sec{flex:none;border:1px solid var(--line);background:var(--card);white-space:nowrap}.indice button.sec[aria-current="true"]{box-shadow:none;border-color:var(--tc)}}
+.indice .mas{margin-top:8px}
+@media (max-width:820px){.indice .mas{margin-top:0;flex:none}}
+.total{font-size:12px;color:var(--muted);font-family:var(--f-num);padding:8px 10px}
+@media (max-width:820px){.total{display:none}}
+.hoja{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:clamp(16px,3vw,28px);display:flex;flex-direction:column;gap:12px;min-width:0}
+.hoja.foco{position:fixed;inset:0;z-index:40;border-radius:0;overflow:auto;padding:clamp(18px,6vw,80px) max(18px,calc((100vw - 760px)/2))}
+.hoja .tit{font-family:var(--f-display);font-weight:700;font-size:24px;border:1px solid transparent;border-radius:8px;background:transparent;padding:2px 6px;margin-left:-7px;width:100%}
+.hoja .tit:hover{border-color:var(--line)}
+.guia{border:1px solid var(--line);border-radius:12px;background:var(--field)}
+.guia summary{cursor:pointer;padding:8px 12px;font-size:14px;color:var(--accent);list-style:none}
+.guia summary::-webkit-details-marker{display:none}
+.guia summary::before{content:"✦ ";color:var(--ember)}
+.guia .pregs{padding:0 12px 10px;display:flex;flex-direction:column;gap:6px}
+.guia .preg{font-size:14px;color:var(--muted);border-left:2px solid var(--line);padding-left:10px;cursor:pointer;background:none;border-top:0;border-right:0;border-bottom:0;text-align:left}
+.guia .preg:hover{color:var(--fg);border-left-color:var(--ember)}
+textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;background:transparent;font-family:"Literata",Georgia,serif;font-size:17px;line-height:1.75;padding:4px 0;outline:none}
+.hoja.foco textarea.texto{font-size:19px;min-height:70vh}
+.barra{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px}
+.barra .acc{display:flex;flex-wrap:wrap;gap:6px}
+.est{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.menu-sec{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--accent);border-radius:14px;padding:14px}
+.menu-sec .ops{display:flex;flex-wrap:wrap;gap:6px}
+.menu-sec .ops button{border:1px solid var(--line);background:var(--field);border-radius:999px;padding:4px 11px;font-size:13px}
+.menu-sec .ops button:hover{border-color:var(--accent)}
+.menu-sec .fila{display:flex;gap:6px}
+.menu-sec input{flex:1;min-width:0;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:6px 10px}
+
+/* referentes */
+.agregar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.agregar input,.agregar textarea{width:100%;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:9px 12px}
+.agregar .extra{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;gap:8px}
+@media (max-width:640px){.agregar .extra{grid-template-columns:minmax(0,1fr)}}
+.agregar select{border:1px solid var(--line);background:var(--field);border-radius:10px;padding:8px}
+.detecta{grid-column:1/-1;font-size:13px;color:var(--muted);min-height:1.4em}
+.filtro{display:flex;flex-wrap:wrap;gap:6px}
+.filtro button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 11px;font-size:13px}
+.filtro button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.muro{columns:3 260px;column-gap:12px}
+.ref{break-inside:avoid;margin:0 0 12px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.ref .media{position:relative;background:var(--field)}
+.ref img{display:block;width:100%;height:auto}
+.ref .play{position:absolute;inset:0;display:grid;place-items:center;border:0;background:linear-gradient(transparent,rgba(0,0,0,.25));color:#fff;font-size:15px;font-weight:700}
+.ref .play span{background:rgba(0,0,0,.6);border-radius:999px;padding:8px 16px}
+.ref iframe{display:block;width:100%;border:0}
+.ref .video iframe{aspect-ratio:16/9;height:auto}
+.ref .swatch{height:120px;display:flex;align-items:flex-end;padding:10px 12px;font-family:var(--f-num);font-weight:700}
+.ref blockquote{margin:0;padding:18px 18px 8px;font-family:"Literata",Georgia,serif;font-size:17px;line-height:1.6}
+.ref blockquote::before{content:"“";font-size:40px;line-height:0;vertical-align:-14px;color:var(--ember);margin-right:2px}
+.ref .link{padding:14px;display:flex;flex-direction:column;gap:2px;text-decoration:none;color:var(--fg)}
+.ref .link small{font-family:var(--f-num);font-size:11px;color:var(--muted);letter-spacing:.03em}
+.ref .link b{font-family:var(--f-display);font-size:16px;overflow-wrap:anywhere}
+.ref .cuerpo{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px}
+.ref .cuerpo b{font-family:var(--f-display);font-size:15px}
+.ref .cuerpo p{margin:0;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ref .cuerpo .meta{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ref .cuerpo .meta button{border:0;background:none;color:var(--muted);font-size:12px;text-transform:none;letter-spacing:0;padding:0 3px}
+.ref .cuerpo .meta button:hover{color:var(--accent)}
+.ref .cuerpo textarea,.ref .cuerpo input{width:100%;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:6px 8px;font-size:14px}
+
+/* brújula */
+.brujula{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:760px){.brujula{grid-template-columns:minmax(0,1fr)}}
+.pregunta{min-height:2.8em;text-align:center;font-size:13px;color:var(--muted);max-width:44ch;margin:4px auto 0}
+.veredicto{font-size:15px;max-width:58ch;margin:0 auto;text-align:center}
+.formatos{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.formatos button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:14px;display:inline-flex;gap:6px;align-items:baseline}
+.formatos button small{font-family:var(--f-num);font-size:11px;color:var(--muted)}
+.formatos button[aria-pressed="true"]{border-color:var(--ember);background:var(--ember-soft);font-weight:700}
+
+/* costos y oportunidades */
+.comps{display:flex;flex-wrap:wrap;gap:6px}
+.comps span{font-size:13px;border-radius:8px;padding:3px 10px;background:var(--field);border:1px solid var(--line)}
+.comps span.ok{border-color:var(--good);background:var(--good-soft)}
+.ops2{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.op{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;border-left:4px solid var(--line)}
+.op.pronto{border-left-color:var(--ember)} .op.abierta{border-left-color:var(--good)}
+.op h3{font-family:var(--f-display);font-size:16px;margin:0;line-height:1.25}
+.op .org{font-size:13px;color:var(--muted)}
+.op .reloj{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.op.pronto .reloj{color:var(--ember)} .op.abierta .reloj{color:var(--good)}
+.op .pie{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto}
+.op select{border:1px solid var(--line);background:var(--field);border-radius:6px;padding:3px 6px;font-size:13px}
+.op details{font-size:13px}
+.op details summary{cursor:pointer;color:var(--accent)}
+.op dl{margin:6px 0 0;display:grid;grid-template-columns:max-content 1fr;gap:3px 10px}
+.op dt{color:var(--muted)} .op dd{margin:0;overflow-wrap:anywhere}
+
+/* bitácora */
+.nueva textarea{width:100%;min-height:80px;resize:vertical;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:10px 12px}
+.nueva .fila{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px}
+.hilo{position:relative;display:flex;flex-direction:column;gap:14px;padding-left:18px}
+.hilo::before{content:"";position:absolute;left:4px;top:6px;bottom:6px;width:2px;background:var(--line);border-radius:2px}
+.nota{position:relative}
+.nota::before{content:"";position:absolute;left:-18px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--card);border:2px solid var(--tc)}
+.nota:first-child::before{background:var(--tc)}
+.nota time{font-family:var(--f-num);font-size:11px;color:var(--muted)}
+.nota p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.nota .x{border:0;background:none;color:var(--muted);font-size:12px;padding:0 4px;margin-left:6px}
+.nota .x:hover{color:var(--bad)}
+.pie-ficha{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-top:8px}
+.skeleton{height:160px;border-radius:14px;background:linear-gradient(90deg,var(--card),var(--field),var(--card));background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skeleton{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="app"><div class="skeleton"></div></main>
+</div>
+
+<script type="module">
+import { sb, $, esc, toast, debounce, fecha, hace, nav, espacio, conSesion } from "./js/forja.js";
+import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA } from "./js/guias.js";
+import { EJES, FORMATOS, radar, dial, veredicto, lectura, tocado, vals, pct, CSS_BRUJULA } from "./js/brujula.js";
+nav("mi");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + "</style>");
+
+const ID = new URLSearchParams(location.search).get("p");
+const PESTANAS = [["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"]];
+const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
+let ESP, P, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, pest = "taller", secActual = null;
+
+if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("proyectos.html");
+else conSesion($("app"), async () => {
+  ESP = await espacio();
+  const [pr, se, re, no, co, po] = await Promise.all([
+    sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
+    sb.from("secciones").select("id,titulo,guia,texto,orden").eq("proyecto_id", ID).order("orden"),
+    sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
+    sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
+    sb.from("cotizaciones").select("id,nombre,datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
+    sb.from("proyecto_oportunidades").select("oportunidad_id,estado").eq("proyecto_id", ID),
+  ]);
+  P = pr.data;
+  if (!P) { $("app").innerHTML = '<a class="vol" href="proyectos.html">← Mi forja</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
+  SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || [];
+  const h = location.hash.slice(1); if (PESTANAS.some(([k]) => k === h)) pest = h;
+  armar();
+}, "Tus proyectos son privados: solo los ves tú.");
+
+const guardar = async (cambios, aviso) => {
+  Object.assign(P, cambios);
+  const { error } = await sb.from("proyectos").update(cambios).eq("id", P.id);
+  if (error) toast("No se pudo guardar el cambio."); else if (aviso) toast(aviso);
+};
+const tocarProyecto = debounce(() => sb.from("proyectos").update({ nombre: P.nombre }).eq("id", P.id), 4000);
+const palabras = (t) => (t.trim().match(/\S+/g) || []).length;
+
+/* ================= estructura ================= */
+function armar() {
+  document.title = "Forja · " + P.nombre;
+  $("app").innerHTML =
+    '<a class="vol" href="proyectos.html">← Mi forja</a>' +
+    '<section class="cabeza" id="cabeza" style="--tc:' + tc(P.tipo) + '">' +
+    '<label class="fx-sr" for="f-nombre">Nombre del proyecto</label><input class="nombre" id="f-nombre" maxlength="160" value="' + esc(P.nombre) + '">' +
+    '<div class="ctrl"><label class="fx-sr" for="f-tipo">Tipo</label><select id="f-tipo">' + Object.entries(TIPOS).map(([k, n]) => '<option value="' + k + '"' + (k === P.tipo ? " selected" : "") + ">" + n + "</option>").join("") + "</select>" +
+    '<div class="estados" role="group" aria-label="Estado">' + Object.entries(ESTADOS).map(([k, n]) => '<button type="button" data-e="' + k + '" aria-pressed="' + (k === P.estado) + '">' + n + "</button>").join("") + "</div>" +
+    '<span id="sello"></span></div>' +
+    '<label class="fx-sr" for="f-resumen">Resumen</label><textarea class="resumen" id="f-resumen" maxlength="4000" placeholder="¿De qué se trata, en pocas líneas? Se puede reescribir cuando la idea cambie.">' + esc(P.resumen || "") + "</textarea></section>" +
+    '<div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
+    '<div class="pie-ficha"><button class="btn" type="button" id="b-claude">Copiar todo para trabajarlo con Claude</button><span id="zona-borrar"><button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button></span></div>';
+
+  $("f-nombre").onchange = (e) => { const v = e.target.value.trim(); if (!v) { e.target.value = P.nombre; return; } guardar({ nombre: v }); document.title = "Forja · " + v; };
+  $("f-tipo").onchange = (e) => { guardar({ tipo: e.target.value }); $("cabeza").style.setProperty("--tc", tc(e.target.value)); if (pest === "oportunidades") pintarPestana(); };
+  document.querySelectorAll("[data-e]").forEach((b) => b.onclick = () => { document.querySelectorAll("[data-e]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); guardar({ estado: b.dataset.e }); });
+  $("f-resumen").onchange = (e) => guardar({ resumen: e.target.value.trim() || null });
+  $("b-claude").onclick = copiarClaude;
+  $("b-borrar").onclick = () => {
+    $("zona-borrar").innerHTML = '<span class="hint">Se borran su escritura, referentes, bitácora y cotización.</span> <button class="btn peligro" id="b-si">Sí, borrar</button> <button class="btn" id="b-no">Cancelar</button>';
+    $("b-no").onclick = () => { $("zona-borrar").innerHTML = '<button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button>'; $("b-borrar").onclick = armar; };
+    $("b-si").onclick = async () => {
+      if (COT) await sb.from("cotizaciones").delete().eq("id", COT.id);
+      const { error } = await sb.from("proyectos").delete().eq("id", P.id);
+      if (error) { toast("No se pudo borrar."); return; }
+      location.href = "proyectos.html";
+    };
+  };
+  pintarSello(); pintarTabs(); pintarPestana();
+}
+function pintarSello() {
+  const f = FORMATOS.find((x) => x.k === P.formato);
+  $("sello").innerHTML = f ? '<button class="sello" type="button" id="b-sello" title="Cambiar en la pestaña Brújula">' + f.n + "</button>" : "";
+  if (f) $("b-sello").onclick = () => irA("brujula");
+}
+function pintarTabs() {
+  const n = { taller: SECS.reduce((a, s) => a + palabras(s.texto), 0), referentes: REFS.length, bitacora: NOTAS.length, oportunidades: SEGS.length };
+  $("tabs").innerHTML = PESTANAS.map(([k, t]) => '<button role="tab" data-p="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? '<span class="n">' + (k === "taller" ? n[k] + " pal." : n[k]) + "</span>" : "") + "</button>").join("");
+  $("tabs").querySelectorAll("[data-p]").forEach((b) => b.onclick = () => irA(b.dataset.p));
+}
+function irA(k) { pest = k; history.replaceState(null, "", "#" + k); pintarTabs(); pintarPestana(); }
+function pintarPestana() { ({ taller, referentes, brujula, costos, oportunidades, bitacora })[pest](); }
+
+/* ================= TALLER ================= */
+function taller() {
+  if (!SECS.length) {
+    $("panel").innerHTML = '<div class="vacio" style="margin-top:14px">Este proyecto aún no tiene secciones. <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn prim" id="b-plant">Usar las secciones sugeridas para ' + esc(TIPOS[P.tipo].toLowerCase()) + '</button><button class="btn" id="b-blanca">Empezar con una hoja en blanco</button></div></div>';
+    $("b-plant").onclick = async () => { await crearSecciones(PLANTILLA[P.tipo].map((g) => ({ guia: g, titulo: SECCIONES[g].t }))); taller(); };
+    $("b-blanca").onclick = async () => { await crearSecciones([{ guia: "libre", titulo: "Notas" }]); taller(); };
+    return;
+  }
+  if (!secActual || !SECS.some((s) => s.id === secActual)) secActual = SECS[0].id;
+  $("panel").innerHTML = '<div class="taller" style="margin-top:14px"><nav class="indice" id="indice" aria-label="Secciones"></nav><div id="hoja-w"></div></div>';
+  pintarIndice(); pintarHoja();
+}
+async function crearSecciones(lista) {
+  const base = SECS.length ? Math.max(...SECS.map((s) => s.orden)) + 1 : 0;
+  const { data, error } = await sb.from("secciones").insert(lista.map((x, i) => ({ espacio_id: ESP, proyecto_id: P.id, titulo: x.titulo, guia: x.guia, orden: base + i }))).select("id,titulo,guia,texto,orden");
+  if (error) { toast("No se pudo agregar."); return []; }
+  SECS = SECS.concat(data); return data;
+}
+function pintarIndice() {
+  const total = SECS.reduce((a, s) => a + palabras(s.texto), 0);
+  $("indice").innerHTML = SECS.map((s) => { const w = palabras(s.texto); return '<button class="sec' + (w ? " lleno" : "") + '" data-s="' + s.id + '" aria-current="' + (s.id === secActual) + '"><span>' + esc(s.titulo) + '</span><span class="w">' + (w || "") + "</span></button>"; }).join("") +
+    '<button class="btn chico mas" id="b-mas">+ Sección</button><div class="total">' + total.toLocaleString("es-CL") + " palabras en total</div>";
+  $("indice").querySelectorAll("[data-s]").forEach((b) => b.onclick = () => { secActual = b.dataset.s; pintarIndice(); pintarHoja(); });
+  $("b-mas").onclick = menuSeccion;
+}
+function menuSeccion() {
+  const usadas = new Set(SECS.map((s) => s.guia));
+  const sugeridas = PLANTILLA[P.tipo].filter((g) => !usadas.has(g));
+  const otras = Object.keys(SECCIONES).filter((g) => !usadas.has(g) && !sugeridas.includes(g) && g !== "libre");
+  const bot = (g) => '<button type="button" data-g="' + g + '">' + esc(SECCIONES[g].t) + "</button>";
+  $("hoja-w").innerHTML = '<div class="menu-sec"><b style="font-family:var(--f-display);font-size:18px">Agregar una sección</b>' +
+    (sugeridas.length ? '<span class="hint">Sugeridas para ' + esc(TIPOS[P.tipo].toLowerCase()) + '</span><div class="ops">' + sugeridas.map(bot).join("") + "</div>" : "") +
+    '<span class="hint">Otras con preguntas guía</span><div class="ops">' + otras.map(bot).join("") + "</div>" +
+    '<span class="hint">O una con el nombre que quieras</span><form class="fila" id="f-libre"><label class="fx-sr" for="f-libre-t">Nombre de la sección</label><input id="f-libre-t" maxlength="120" placeholder="Ej.: Capítulo 1, Bestiario, Banda sonora…"><button class="btn prim">Crear</button></form>' +
+    '<button type="button" class="btn chico" id="b-cancel" style="align-self:flex-start">Cancelar</button></div>';
+  $("hoja-w").querySelectorAll("[data-g]").forEach((b) => b.onclick = async () => { const [s] = await crearSecciones([{ guia: b.dataset.g, titulo: SECCIONES[b.dataset.g].t }]); if (s) { secActual = s.id; pintarTabs(); taller(); } });
+  $("f-libre").onsubmit = async (e) => { e.preventDefault(); const t = $("f-libre-t").value.trim(); if (!t) return; const [s] = await crearSecciones([{ guia: "libre", titulo: t }]); if (s) { secActual = s.id; taller(); } };
+  $("b-cancel").onclick = pintarHoja;
+  $("f-libre-t").focus({ preventScroll: true });
+}
+function pintarHoja() {
+  const s = SECS.find((x) => x.id === secActual), i = SECS.indexOf(s), g = SECCIONES[s.guia];
+  $("hoja-w").innerHTML = '<article class="hoja" id="hoja">' +
+    '<label class="fx-sr" for="h-tit">Título de la sección</label><input class="tit" id="h-tit" maxlength="120" value="' + esc(s.titulo) + '">' +
+    (g && g.p && s.guia !== "libre" ? '<details class="guia"' + (s.texto ? "" : " open") + '><summary>Preguntas para empezar</summary><div class="pregs">' + g.p.map((q) => '<button type="button" class="preg" title="Agregar al texto">' + esc(q) + "</button>").join("") + '<span class="hint">Toca una pregunta para agregarla al texto y responderla debajo. Son una ayuda, no una obligación.</span></div></details>' : "") +
+    '<label class="fx-sr" for="h-txt">Texto</label><textarea class="texto" id="h-txt" maxlength="200000" placeholder="Escribe aquí. Se guarda solo.">' + esc(s.texto) + "</textarea>" +
+    '<div class="barra"><span class="est" id="h-est">' + palabras(s.texto) + ' palabras</span><div class="acc">' +
+    '<button class="btn chico" id="h-foco">Pantalla completa</button>' +
+    (i > 0 ? '<button class="btn chico" id="h-up" aria-label="Mover arriba">↑</button>' : "") + (i < SECS.length - 1 ? '<button class="btn chico" id="h-down" aria-label="Mover abajo">↓</button>' : "") +
+    '<span id="h-del"><button class="btn chico peligro" id="h-borrar">Borrar sección</button></span></div></div></article>';
+  const ta = $("h-txt"), crecer = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
+  crecer();
+  const subir = debounce(async () => {
+    const id = s.id, texto = ta.value;
+    const { error } = await sb.from("secciones").update({ texto }).eq("id", id);
+    if ($("h-est") && secActual === id) $("h-est").textContent = palabras(texto) + " palabras · " + (error ? "no se pudo guardar" : "guardado");
+    if (!error) { tocarProyecto(); pintarIndice(); }
+  }, 900);
+  ta.oninput = () => { s.texto = ta.value; crecer(); $("h-est").textContent = palabras(ta.value) + " palabras · guardando…"; subir(); };
+  $("h-tit").onchange = async (e) => { const t = e.target.value.trim(); if (!t) { e.target.value = s.titulo; return; } s.titulo = t; await sb.from("secciones").update({ titulo: t }).eq("id", s.id); pintarIndice(); };
+  document.querySelectorAll(".preg").forEach((b) => b.onclick = () => {
+    const sep = ta.value && !ta.value.endsWith("\n") ? "\n\n" : ta.value ? "\n" : "";
+    ta.value += sep + "— " + b.textContent + "\n"; ta.dispatchEvent(new Event("input")); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+  });
+  const hoja = $("hoja");
+  $("h-foco").onclick = () => { const on = hoja.classList.toggle("foco"); $("h-foco").textContent = on ? "Salir de pantalla completa" : "Pantalla completa"; document.body.style.overflow = on ? "hidden" : ""; crecer(); ta.focus(); };
+  const mover = async (d) => {
+    const j = i + d, a = SECS[i], b = SECS[j];[a.orden, b.orden] = [b.orden, a.orden];
+    SECS.sort((x, y) => x.orden - y.orden);
+    if (a.orden === b.orden) { SECS.forEach((x, k) => x.orden = k); }
+    await Promise.all([sb.from("secciones").update({ orden: a.orden }).eq("id", a.id), sb.from("secciones").update({ orden: b.orden }).eq("id", b.id)]);
+    pintarIndice(); pintarHoja();
+  };
+  if ($("h-up")) $("h-up").onclick = () => mover(-1);
+  if ($("h-down")) $("h-down").onclick = () => mover(1);
+  $("h-borrar").onclick = () => {
+    $("h-del").innerHTML = '<span class="hint">' + (s.texto ? "Tiene " + palabras(s.texto) + " palabras. " : "") + '¿Borrar?</span> <button class="btn chico peligro" id="h-si">Sí</button> <button class="btn chico" id="h-no">No</button>';
+    $("h-no").onclick = pintarHoja;
+    $("h-si").onclick = async () => {
+      const { error } = await sb.from("secciones").delete().eq("id", s.id);
+      if (error) { toast("No se pudo borrar."); return; }
+      SECS = SECS.filter((x) => x.id !== s.id); secActual = null; document.body.style.overflow = ""; pintarTabs(); taller();
+    };
+  };
+}
+
+/* ================= REFERENTES ================= */
+let filtroRef = "";
+const TREF = { imagen: "Imagen", video: "Video", audio: "Audio", enlace: "Enlace", color: "Color", cita: "Cita" };
+const esURL = (v) => /^https?:\/\/[^\s<>"]+$/i.test(v);
+function srcDeIframe(v) { const m = v.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i); return m ? m[1] : null; }
+function detectar(v) {
+  v = v.trim(); const ifr = srcDeIframe(v); if (ifr) v = ifr.startsWith("//") ? "https:" + ifr : ifr;
+  if (/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) return { tipo: "color", valor: "#" + v.replace("#", "").toLowerCase() };
+  if (!esURL(v)) return v ? { tipo: "cita", valor: v } : null;
+  if (yt(v) || vimeo(v)) return { tipo: "video", valor: v };
+  if (/open\.spotify\.com\/(embed\/)?(track|album|playlist|episode|show|artist)\//i.test(v) || /soundcloud\.com\//i.test(v)) return { tipo: "audio", valor: v };
+  if (/\.(jpe?g|png|gif|webp|avif|svg)(\?|#|$)/i.test(v) || /(^https?:\/\/(i\.imgur\.com|i\.pinimg\.com|pbs\.twimg\.com|images\.unsplash\.com)\/)/i.test(v)) return { tipo: "imagen", valor: v };
+  return { tipo: "enlace", valor: v };
+}
+function yt(u) { const m = u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i); return m && m[1]; }
+function vimeo(u) { const m = u.match(/vimeo\.com\/(?:video\/)?(\d+)/i); return m && m[1]; }
+function spotify(u) { const m = u.match(/open\.spotify\.com\/(?:embed\/)?(track|album|playlist|episode|show|artist)\/([\w]+)/i); return m && [m[1], m[2]]; }
+const dominio = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
+
+function referentes() {
+  $("panel").innerHTML = '<div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">' +
+    '<form class="bloque agregar" id="f-ref"><label class="fx-sr" for="r-val">Enlace, color o cita</label>' +
+    '<input id="r-val" placeholder="Pega un enlace (imagen, YouTube, Vimeo, Spotify, cualquier página), un color #e0602f o escribe una cita" autocomplete="off">' +
+    '<button class="btn prim" type="submit">Guardar</button>' +
+    '<div class="detecta" id="r-det"></div>' +
+    '<div class="extra" id="r-extra" hidden><label class="fx-sr" for="r-tit">Título</label><input id="r-tit" maxlength="200" placeholder="Título (opcional)">' +
+    '<label class="fx-sr" for="r-nota">Qué tomas de aquí</label><input id="r-nota" maxlength="4000" placeholder="¿Qué te sirve de este referente? Ej.: la paleta, el ritmo, cómo presenta al villano">' +
+    '<label class="fx-sr" for="r-tipo">Tipo</label><select id="r-tipo">' + Object.entries(TREF).map(([k, n]) => '<option value="' + k + '">' + n + "</option>").join("") + "</select></div>" +
+    '<p class="hint" style="grid-column:1/-1;margin:0">Forja no guarda archivos: solo el enlace. Si la página original borra la imagen o el video, aquí también desaparece.</p></form>' +
+    '<div class="filtro" id="r-filtro"></div><div id="muro"></div></div>';
+  let det = null;
+  $("r-val").oninput = () => {
+    det = detectar($("r-val").value);
+    $("r-extra").hidden = !det;
+    if (det) { $("r-tipo").value = det.tipo; $("r-det").textContent = "Se guardará como " + TREF[det.tipo].toLowerCase() + (det.tipo === "enlace" ? ". Si es una imagen, cambia el tipo a Imagen." : "."); }
+    else $("r-det").textContent = "";
+  };
+  $("f-ref").onsubmit = async (e) => {
+    e.preventDefault(); if (!det) { $("r-val").focus(); return; }
+    let tipo = $("r-tipo").value, valor = det.valor;
+    if (["imagen", "video", "audio", "enlace"].includes(tipo) && !esURL(valor)) { toast("Para ese tipo se necesita un enlace que empiece con https://"); return; }
+    if (tipo === "color" && !/^#[0-9a-f]{3,6}$/i.test(valor)) { toast("Un color se escribe como #e0602f"); return; }
+    const fila = { espacio_id: ESP, proyecto_id: P.id, tipo, valor, titulo: $("r-tit").value.trim() || null, nota: $("r-nota").value.trim() || null };
+    const { data, error } = await sb.from("referentes").insert(fila).select("*").single();
+    if (error) { toast("No se pudo guardar el referente."); return; }
+    REFS.unshift(data); tocarProyecto(); pintarTabs(); referentes();
+  };
+  pintarMuro();
+}
+function pintarMuro() {
+  const tipos = [...new Set(REFS.map((r) => r.tipo))];
+  $("r-filtro").innerHTML = tipos.length > 1 ? '<button data-f="" aria-pressed="' + (!filtroRef) + '">Todos</button>' + tipos.map((t) => '<button data-f="' + t + '" aria-pressed="' + (filtroRef === t) + '">' + TREF[t] + " · " + REFS.filter((r) => r.tipo === t).length + "</button>").join("") : "";
+  $("r-filtro").querySelectorAll("[data-f]").forEach((b) => b.onclick = () => { filtroRef = b.dataset.f; pintarMuro(); });
+  const vis = REFS.filter((r) => !filtroRef || r.tipo === filtroRef);
+  $("muro").innerHTML = REFS.length ? '<div class="muro">' + vis.map(tarjeta).join("") + "</div>" : '<div class="vacio">Aún no hay referentes. Pega arriba el enlace de una imagen, un video o una canción que tenga algo de lo que buscas.</div>';
+  $("muro").querySelectorAll("img[data-ref]").forEach((img) => img.onerror = () => { const r = REFS.find((x) => x.id === img.dataset.ref); img.closest(".media").outerHTML = linkCard(r.valor, "No se pudo mostrar la imagen; ábrela en su página"); });
+  $("muro").onclick = async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    const card = b.closest(".ref"), r = REFS.find((x) => x.id === card.dataset.id);
+    if (b.classList.contains("play")) { b.closest(".media").innerHTML = reproductor(r.valor); return; }
+    if (b.dataset.a === "edit") {
+      card.querySelector(".cuerpo").innerHTML = '<input data-e="t" maxlength="200" placeholder="Título" value="' + esc(r.titulo || "") + '"><textarea data-e="n" rows="3" maxlength="4000" placeholder="¿Qué tomas de aquí?">' + esc(r.nota || "") + '</textarea><div style="display:flex;gap:6px"><button class="btn chico prim" data-a="ok">Guardar</button><button class="btn chico" data-a="cancel">Cancelar</button></div>';
+      return;
+    }
+    if (b.dataset.a === "cancel") { pintarMuro(); return; }
+    if (b.dataset.a === "ok") {
+      const titulo = card.querySelector('[data-e="t"]').value.trim() || null, nota = card.querySelector('[data-e="n"]').value.trim() || null;
+      const { error } = await sb.from("referentes").update({ titulo, nota }).eq("id", r.id);
+      if (error) { toast("No se pudo guardar."); return; }
+      Object.assign(r, { titulo, nota }); pintarMuro(); return;
+    }
+    if (b.dataset.a === "del") {
+      if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "¿seguro?"; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ""; b.textContent = "quitar"; } }, 3500); return; }
+      const { error } = await sb.from("referentes").delete().eq("id", r.id);
+      if (error) { toast("No se pudo quitar."); return; }
+      REFS = REFS.filter((x) => x.id !== r.id); pintarTabs(); pintarMuro();
+    }
+  };
+}
+function linkCard(u, sub) { return '<a class="link" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer"><small>' + esc(dominio(u)) + "</small><b>" + esc(sub || u.replace(/^https?:\/\/(www\.)?/, "").slice(0, 90)) + "</b></a>"; }
+function reproductor(u) {
+  const y = yt(u), v = vimeo(u), s = spotify(u);
+  if (y) return '<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/' + y + '?autoplay=1" title="Video de YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
+  if (v) return '<div class="video"><iframe src="https://player.vimeo.com/video/' + v + '?autoplay=1" title="Video de Vimeo" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
+  if (s) return '<iframe src="https://open.spotify.com/embed/' + s[0] + "/" + s[1] + '" height="' + (s[0] === "track" || s[0] === "episode" ? 152 : 352) + '" title="Spotify" allow="encrypted-media" loading="lazy"></iframe>';
+  return linkCard(u);
+}
+function tarjeta(r) {
+  let media = "";
+  if (r.tipo === "imagen") media = '<div class="media"><img data-ref="' + r.id + '" src="' + esc(r.valor) + '" alt="' + esc(r.titulo || "Referente") + '" loading="lazy" referrerpolicy="no-referrer"></div>';
+  else if (r.tipo === "video") { const y = yt(r.valor); media = '<div class="media">' + (y ? '<img src="https://i.ytimg.com/vi/' + y + '/hqdefault.jpg" alt="" loading="lazy"><button class="play" aria-label="Reproducir"><span>▶ Reproducir</span></button>' : vimeo(r.valor) ? '<div style="aspect-ratio:16/9"></div><button class="play" aria-label="Reproducir"><span>▶ Vimeo</span></button>' : linkCard(r.valor)) + "</div>"; }
+  else if (r.tipo === "audio") media = '<div class="media">' + reproductor(r.valor) + "</div>";
+  else if (r.tipo === "color") { const c = r.valor, l = parseInt((c.length === 4 ? c.replace(/#(.)(.)(.)/, "$1$1$2$2$3$3") : c.slice(1)), 16), lum = ((l >> 16) * .299 + ((l >> 8) & 255) * .587 + (l & 255) * .114); media = '<div class="swatch" style="background:' + esc(c) + ";color:" + (lum > 150 ? "#111" : "#fff") + '">' + esc(c.toUpperCase()) + "</div>"; }
+  else if (r.tipo === "cita") media = "<blockquote>" + esc(r.valor) + "</blockquote>";
+  else media = '<div class="media">' + linkCard(r.valor, r.titulo) + "</div>";
+  const abrir = esURL(r.valor) ? '<a href="' + esc(r.valor) + '" target="_blank" rel="noopener noreferrer" style="font-size:12px;text-transform:none;letter-spacing:0">abrir</a>' : "";
+  return '<article class="ref" data-id="' + r.id + '">' + media + '<div class="cuerpo">' + (r.titulo && r.tipo !== "enlace" ? "<b>" + esc(r.titulo) + "</b>" : "") + (r.nota ? "<p>" + esc(r.nota) + "</p>" : "") +
+    '<div class="meta"><span>' + TREF[r.tipo] + " · " + fecha(r.creado_en) + "</span><span>" + abrir + '<button data-a="edit">editar</button><button data-a="del">quitar</button></span></div></div></article>';
+}
+
+/* ================= BRÚJULA ================= */
+function brujula() {
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Brújula de formatos</h2><span class="hint">Arrastra cada punto hacia afuera según cuánto pesa en esta idea.</span></div>' +
+    '<div class="brujula"><div><svg class="radar" id="radar"></svg><p class="pregunta" id="pregunta">Toca un eje para ver su pregunta.</p></div><div><svg class="dial" id="dial"></svg></div></div>' +
+    '<p class="veredicto" id="veredicto" aria-live="polite"></p>' +
+    '<div style="border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px;align-items:center"><b style="font-family:var(--f-display)">¿Qué vas a hacer?</b>' +
+    '<p class="hint" style="margin:0;text-align:center;max-width:56ch">La brújula solo compara tus respuestas con lo que suele lucir en cada formato. Elige el que tú quieras, aunque no sea el primero de la lista.</p>' +
+    '<div class="formatos" id="formatos"></div></div></section>';
+  const pintarLectura = () => {
+    dial($("dial"), P.ejes, P.formato);
+    $("veredicto").innerHTML = veredicto(P.ejes);
+    const l = tocado(P.ejes) ? Object.fromEntries(lectura(P.ejes).map((f) => [f.k, f.s])) : null;
+    $("formatos").innerHTML = FORMATOS.map((f) => '<button type="button" data-f="' + f.k + '" aria-pressed="' + (P.formato === f.k) + '">' + f.n + (l ? " <small>" + pct(l[f.k]) + "</small>" : "") + "</button>").join("") +
+      '<button type="button" data-f="" aria-pressed="' + (!P.formato) + '">Aún no decido</button>';
+    $("formatos").querySelectorAll("[data-f]").forEach((b) => b.onclick = () => { guardar({ formato: b.dataset.f || null }, b.dataset.f ? "Formato elegido" : null); pintarSello(); pintarLectura(); });
+  };
+  const subir = debounce(() => guardar({ ejes: P.ejes }), 700);
+  radar($("radar"), () => P.ejes, (e) => { P.ejes = e; pintarLectura(); subir(); }, $("pregunta"));
+  pintarLectura();
+}
+
+/* ================= COSTOS ================= */
+function costos() {
+  if (!COT) {
+    $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><h2>Costos</h2><p style="margin:0">Cada proyecto tiene una cotización propia: una lista de componentes (por ejemplo tablero, cartas, figuras o impresión) con los precios que te dan distintos proveedores. Forja calcula el costo real puesto en Chile y te dice cuál conviene según la cantidad.</p>' +
+      '<p class="hint" style="margin:0">Empieza con los componentes que suele tener ' + esc(TIPOS[P.tipo].toLowerCase()) + '; los puedes quitar o agregar otros.</p><div><button class="btn prim" id="b-cot">Crear la cotización de este proyecto</button></div></section>';
+    $("b-cot").onclick = async () => {
+      const { data, error } = await sb.from("cotizaciones").insert({ espacio_id: ESP, proyecto_id: P.id, nombre: P.nombre, datos: {} }).select("id").single();
+      if (error) { toast("No se pudo crear la cotización."); return; }
+      location.href = "cotizador.html?c=" + data.id;
+    };
+    return;
+  }
+  const d = COT.datos || {}, comps = d.componentes || [], qs = d.cotizaciones || [];
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Costos</h2><span class="hint">Actualizada ' + hace(COT.actualizado_en) + "</span></div>" +
+    (comps.length ? '<div class="comps">' + comps.map((c) => { const n = qs.filter((q) => q.compId === c.id).length; return '<span class="' + (n ? "ok" : "") + '">' + esc(c.nombre) + (n ? " · " + n : " · sin precios") + "</span>"; }).join("") + "</div>" : '<p class="hint" style="margin:0">La cotización aún no tiene componentes.</p>') +
+    '<p class="hint" style="margin:0">' + qs.length + (qs.length === 1 ? " precio registrado" : " precios registrados") + (d.cantidades && d.cantidades.length ? " · comparando " + d.cantidades.join(", ") + " unidades" : "") + '.</p><div><a class="btn prim" style="text-decoration:none;display:inline-block" href="cotizador.html?c=' + COT.id + '">Abrir la cotización</a></div></section>';
+}
+
+/* ================= OPORTUNIDADES ================= */
+function reloj(o) {
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const d = (s) => { if (!s) return null; const [y, m, dd] = s.split("-"); return Math.round((new Date(+y, m - 1, +dd) - hoy) / 864e5); };
+  const pi = d(o.postul_inicio), pf = d(o.postul_fin), ei = d(o.evento_inicio), ef = d(o.evento_fin) ?? ei, est = o.fechas_estimadas ? "≈ " : "";
+  if (pi != null && pi > 0) return { t: est + "postulación abre en " + pi + " días", k: pi };
+  if (pf != null && pf >= 0) return { t: pf === 0 ? "postulación cierra hoy" : "postulación abierta · cierra en " + pf + " días", c: pf <= 14 ? "pronto" : "abierta", k: pf };
+  if (ei != null && ei > 0) return { t: est + "evento en " + ei + " días", k: ei + 1000 };
+  if (ef != null && ef >= 0) return { t: "evento en curso", k: 0 };
+  return { t: o.postul_texto || o.evento_texto || "sin fechas próximas", fin: pf != null || ef != null, k: 9e9 };
+}
+async function oportunidades() {
+  $("panel").innerHTML = '<div class="skeleton" style="margin-top:14px"></div>';
+  if (!OPS) { const { data } = await sb.from("oportunidades").select("*").order("nombre"); OPS = data || []; }
+  if (pest !== "oportunidades") return;
+  const area = areaDe(P.tipo, P.formato), AREA = { videojuego: "videojuegos", comic: "cómic y libros", juegomesa: "juegos de mesa", general: "emprendimiento" };
+  const sigo = new Set(SEGS.map((s) => s.oportunidad_id));
+  const vivas = OPS.filter((o) => !sigo.has(o.id) && !reloj(o).fin).sort((a, b) => reloj(a).k - reloj(b).k);
+  const sug = vivas.filter((o) => (o.areas || []).includes(area));
+  const generales = vivas.filter((o) => !sug.includes(o) && (o.areas || []).includes("general"));
+  const resto = vivas.filter((o) => !sug.includes(o) && !generales.includes(o));
+  const card = (o, seg) => {
+    const r = reloj(o);
+    const det = [["Premio o apoyo", o.premio], ["Costo", o.costo], ["Requisitos", o.requisitos], ["Qué llevar", o.que_llevar], ["Lugar", o.lugar], ["Notas", o.notas]].filter((x) => x[1]).map((x) => "<dt>" + x[0] + "</dt><dd>" + esc(x[1]) + "</dd>").join("") + (o.fuente ? '<dt>Fuente</dt><dd><a href="' + esc(o.fuente) + '" target="_blank" rel="noopener">' + esc(dominio(o.fuente)) + "</a></dd>" : "");
+    return '<article class="op ' + (r.c || "") + '"><h3>' + esc(o.nombre) + '</h3><span class="org">' + esc(o.organiza || "") + '</span><span class="reloj">' + esc(r.t) + "</span>" +
+      (det ? "<details><summary>Detalles</summary><dl>" + det + "</dl></details>" : "") +
+      '<div class="pie">' + (seg ? '<label class="fx-sr" for="st-' + o.id + '">Estado</label><select id="st-' + o.id + '" data-op="' + o.id + '">' + Object.entries(ESTOP).map(([k, n]) => '<option value="' + k + '"' + (k === seg.estado ? " selected" : "") + ">" + n + "</option>").join("") + '<option value="__quitar">Dejar de seguir</option></select>' : '<span></span><button class="btn chico" data-seguir="' + o.id + '">Seguir</button>') + "</div></article>";
+  };
+  const grupo = (titulo, sub, lista, abierto = true) => lista.length ? '<section style="display:flex;flex-direction:column;gap:10px;margin-top:18px"><div class="cab"><h2>' + titulo + '</h2><span class="hint">' + sub + "</span></div>" + (abierto ? '<div class="ops2">' + lista.map((o) => card(o)).join("") + "</div>" : '<details><summary class="hint" style="cursor:pointer;color:var(--accent)">Mostrar ' + lista.length + '</summary><div class="ops2" style="margin-top:10px">' + lista.map((o) => card(o)).join("") + "</div></details>") + "</section>" : "";
+  $("panel").innerHTML =
+    (SEGS.length ? '<section style="display:flex;flex-direction:column;gap:10px;margin-top:14px"><div class="cab"><h2>Las que sigues</h2><span class="hint">Anota en qué vas con cada una.</span></div><div class="ops2">' + SEGS.map((s) => { const o = OPS.find((x) => x.id === s.oportunidad_id); return o ? card(o, s) : ""; }).join("") + "</div></section>" : "") +
+    (sug.length ? grupo("A qué te puedes presentar", "Según el tipo de proyecto" + (P.formato ? " y el formato elegido" : "") + ": " + AREA[area] + ".", sug)
+      : '<div class="vacio" style="margin-top:14px">Ahora no hay convocatorias abiertas ni eventos próximos de ' + AREA[area] + '. La lista se revisa cada mañana.</div>') +
+    grupo("Para cualquier emprendimiento", "Fondos y ferias generales que también te pueden servir.", generales, sug.length < 3) +
+    grupo("Otras áreas", "Por si tu proyecto cruza a otro lado.", resto, false);
+  $("panel").onclick = async (e) => {
+    const b = e.target.closest("[data-seguir]"); if (!b) return;
+    const { error } = await sb.from("proyecto_oportunidades").insert({ proyecto_id: P.id, oportunidad_id: b.dataset.seguir, espacio_id: ESP });
+    if (error) { toast("No se pudo agregar."); return; }
+    SEGS.push({ oportunidad_id: b.dataset.seguir, estado: "interesa" }); pintarTabs(); oportunidades();
+  };
+  $("panel").onchange = async (e) => {
+    const s = e.target.closest("[data-op]"); if (!s) return;
+    const op = s.dataset.op;
+    if (s.value === "__quitar") {
+      const { error } = await sb.from("proyecto_oportunidades").delete().eq("proyecto_id", P.id).eq("oportunidad_id", op);
+      if (!error) { SEGS = SEGS.filter((x) => x.oportunidad_id !== op); pintarTabs(); oportunidades(); }
+      return;
+    }
+    const { error } = await sb.from("proyecto_oportunidades").update({ estado: s.value }).eq("proyecto_id", P.id).eq("oportunidad_id", op);
+    if (error) toast("No se pudo guardar."); else SEGS.find((x) => x.oportunidad_id === op).estado = s.value;
+  };
+}
+
+/* ================= BITÁCORA ================= */
+function bitacora() {
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Bitácora</h2><span class="hint">Avances, decisiones e ideas sueltas, con fecha.</span></div>' +
+    '<form class="nueva" id="f-nota"><label class="fx-sr" for="f-texto">Nueva entrada</label><textarea id="f-texto" maxlength="20000" placeholder="¿Qué avanzaste o decidiste hoy?"></textarea>' +
+    '<div class="fila"><span class="hint">Ctrl + Enter para guardar</span><button class="btn prim" type="submit">Anotar</button></div></form>' +
+    '<div class="hilo" id="hilo" style="--tc:' + tc(P.tipo) + '"></div></section>';
+  const pintar = () => {
+    $("hilo").innerHTML = NOTAS.length ? NOTAS.map((n) => '<article class="nota"><time datetime="' + n.creado_en + '">' + fecha(n.creado_en) + '</time><button class="x" data-del="' + n.id + '" aria-label="Borrar entrada">borrar</button><p>' + esc(n.texto) + "</p></article>").join("")
+      : '<p class="hint" style="margin:0">Todavía no hay entradas. La primera puede ser por qué te gusta esta idea.</p>';
+  };
+  pintar();
+  $("f-texto").onkeydown = (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) $("f-nota").requestSubmit(); };
+  $("f-nota").onsubmit = async (e) => {
+    e.preventDefault();
+    const texto = $("f-texto").value.trim(); if (!texto) return;
+    const { data, error } = await sb.from("notas").insert({ espacio_id: ESP, proyecto_id: P.id, texto }).select("id,texto,creado_en").single();
+    if (error) { toast("No se pudo anotar."); return; }
+    NOTAS.unshift(data); $("f-texto").value = ""; pintar(); pintarTabs(); tocarProyecto();
+  };
+  $("hilo").onclick = async (e) => {
+    const b = e.target.closest("[data-del]"); if (!b) return;
+    if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "¿seguro?"; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ""; b.textContent = "borrar"; } }, 3500); return; }
+    const { error } = await sb.from("notas").delete().eq("id", b.dataset.del);
+    if (error) { toast("No se pudo borrar."); return; }
+    NOTAS = NOTAS.filter((n) => n.id !== b.dataset.del); pintar(); pintarTabs();
+  };
+}
+
+/* ================= contexto para Claude ================= */
+function copiarClaude() {
+  const l = tocado(P.ejes) ? lectura(P.ejes) : null, v = vals(P.ejes), f = FORMATOS.find((x) => x.k === P.formato);
+  const partes = [
+    "# " + P.nombre, TIPOS[P.tipo] + " · " + ESTADOS[P.estado].toLowerCase() + (f ? " · formato elegido: " + f.n.toLowerCase() : ""),
+    P.resumen ? "\n## Resumen\n" + P.resumen : "",
+    ...SECS.filter((s) => s.texto.trim()).map((s) => "\n## " + s.titulo + "\n" + s.texto.trim()),
+    REFS.length ? "\n## Referentes\n" + REFS.map((r) => "- " + TREF[r.tipo] + ": " + (r.titulo ? r.titulo + " — " : "") + r.valor + (r.nota ? " (" + r.nota + ")" : "")).join("\n") : "",
+    l ? "\n## Brújula (0 a 4)\n" + EJES.map((e, i) => e.n + " " + v[i]).join(", ") + ". Formatos más cercanos: " + l.slice(0, 3).map((x) => x.n + " " + pct(x.s)).join(", ") + "." : "",
+    NOTAS.length ? "\n## Bitácora (de lo más antiguo a lo más reciente)\n" + NOTAS.slice().reverse().map((n) => "- " + fecha(n.creado_en) + ": " + n.texto).join("\n") : "",
+  ].filter(Boolean).join("\n");
+  const txt = partes + "\n\nAyúdame a seguir desarrollando este proyecto.";
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast("Copiado. Pégalo en tu chat con Claude.")).catch(() => prompt("Copia el texto:", txt));
+}
+</script>
+</body>
+</html>
