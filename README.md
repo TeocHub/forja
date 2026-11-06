@@ -26,6 +26,7 @@ docs/                     sitio publicado en GitHub Pages (app instalable en el 
   js/brujula.js           brújula de formatos
   js/guias.js             tipos de proyecto y preguntas guía
   js/planes.js            catálogo de Forja Más
+  js/pizarra.js           pizarras: libre, relaciones, escaleta y mapa
   css/forja.css           estilos comunes
   data/                   copia de respaldo de los datos (la fuente principal es Supabase)
   manifest.webmanifest    datos para instalar la app

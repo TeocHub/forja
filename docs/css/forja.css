@@ -99,6 +99,9 @@
 .fx-pronto span{font-size:14px;color:var(--muted)}
 .fx-pronto .fx-pronto-tag{font-family:var(--f-num);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ember)}
 .fx-pronto.chico{padding:10px 12px}
+.fx-pronto.listo{border-style:solid;border-color:color-mix(in srgb,var(--good) 45%,var(--line));background:color-mix(in srgb,var(--good) 5%,var(--card))}
+.fx-pronto.listo .fx-pronto-tag{color:var(--good)}
+.fx-pronto.listo .libre{font-size:13px;color:var(--fg);border-top:1px dashed var(--line);padding-top:6px;margin-top:2px}
 .fx-pronto.chico b{font-size:14px}
 .fx-avisame{align-self:flex-start;font:inherit;font-size:13px;font-weight:700;border:1px solid var(--ember);color:var(--ember);background:transparent;border-radius:999px;padding:4px 12px;cursor:pointer;margin-top:2px}
 .fx-avisame[aria-pressed="true"]{background:var(--ember);color:#fff}

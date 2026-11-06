@@ -85,7 +85,7 @@ export function navApp(actual) {
 }
 
 /* --- plan y límites (los mismos que aplica la base de datos en privado.limite) --- */
-export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30 };
+export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30, pizarras: 1, tarjetas: 20 };
 export const palabras = (t) => ((t || "").trim().match(/\S+/g) || []).length;
 let planCache = null;
 export async function plan() {
@@ -103,6 +103,10 @@ const MSG = {
   FORJA_LIMITE_PALABRAS: "Llegaste al límite de 20.000 palabras por proyecto del plan gratis. Lo que escribiste antes está guardado.",
   FORJA_LIMITE_REFERENTES: "El plan gratis permite 30 referentes por proyecto. Quita uno para agregar otro.",
   FORJA_SOLO_LECTURA: "Este proyecto está en solo lectura en el plan gratis.",
+  FORJA_LIMITE_PIZARRAS: "El plan gratis incluye una pizarra por proyecto.",
+  FORJA_LIMITE_TARJETAS: "El plan gratis permite 20 tarjetas por pizarra. Quita una para agregar otra.",
+  FORJA_SOLO_MAS: "Esta pizarra es de Forja Más: puedes verla o borrarla.",
+  FORJA_PIZARRA_GRANDE: "La pizarra es demasiado grande para guardarla. Divídela en dos.",
 };
 export function limite(error) { const m = error && (error.message || ""); const k = Object.keys(MSG).find((c) => m.includes(c)); return k ? MSG[k] : null; }
 // Tarjeta "Próximamente" de una función de Forja Más, con botón "Avísame" que guarda el interés.
@@ -130,7 +134,7 @@ export async function activarAvisame(root) {
     };
   });
 }
-export const MAS_PRONTO = "Forja Más llega pronto, con proyectos y palabras sin límite.";
+export const MAS_PRONTO = "Forja Más llega pronto, con proyectos, palabras y pizarras sin límite.";
 export const MAS_LINK = ' <a href="planes.html">Ver Forja Más</a>';
 
 /* --- sesión --- */

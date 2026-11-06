@@ -1,5 +1,6 @@
-// Forja · lo que trae Forja Más. Todo está "próximamente": se muestra para que se entienda qué viene
+// Forja · lo que trae Forja Más. Lo que aún no existe se muestra como "próximamente", para que se entienda qué viene
 // y para medir con "Avísame" qué conviene construir primero (tabla public.interes_funciones).
+// Las que tienen `listo` ya funcionan; `libre` dice qué parte trae el plan gratis.
 
 export const PRECIO = { mes: 2990, anio: 29900 };
 
@@ -22,10 +23,10 @@ export const FUNCIONES = [
   { k: "vista-impresion", a: "impresion", t: "Vista de impresión", d: "Tu texto en el tamaño de página elegido (A5, 14 × 21 cm, carta, cómic) y cuántas páginas sale." },
   { k: "paginas-costos", a: "impresion", t: "De páginas a costos", d: "Lleva las páginas, el tamaño y el papel a la cotización del libro sin escribirlos dos veces." },
   { k: "guion-comic", a: "impresion", t: "Guion de cómic por páginas", d: "Página, viñeta, imagen y diálogo, con aviso si el total no calza con los pliegos de imprenta." },
-  { k: "pizarra", a: "pizarras", t: "Pizarra libre", d: "Tarjetas, referentes, colores y flechas en un tablero para ordenar ideas." },
-  { k: "relaciones", a: "pizarras", t: "Mapa de relaciones", d: "Personajes o facciones unidos por líneas que dicen qué los une." },
-  { k: "escaleta", a: "pizarras", t: "Escaleta en tarjetas", d: "Escenas como tarjetas que se reordenan arrastrando, y el orden vuelve al Taller." },
-  { k: "mapa-mundo", a: "pizarras", t: "Mapa del mundo", d: "Pines sobre la imagen de tu mapa, cada uno con su ficha." },
+  { k: "pizarra", a: "pizarras", t: "Pizarras sin límite", d: "Tarjetas, referentes, colores y flechas en tableros para ordenar ideas, todos los que quieras.", listo: true, libre: "Gratis: una pizarra por proyecto, con 20 tarjetas." },
+  { k: "relaciones", a: "pizarras", t: "Mapa de relaciones", d: "Personajes o facciones unidos por lazos con nombre: familia, amor, rivalidad, secreto…", listo: true },
+  { k: "escaleta", a: "pizarras", t: "Escaleta en tarjetas", d: "Escenas por actos que se reordenan arrastrando, con duración, y el orden vuelve al Taller.", listo: true },
+  { k: "mapa-mundo", a: "pizarras", t: "Mapa del mundo", d: "Lugares, regiones y rutas sobre la imagen de tu mapa, cada uno con su ficha.", listo: true },
   { k: "fichas", a: "organizacion", t: "Fichas y línea de tiempo", d: "Personajes, lugares y objetos con sus campos, y la cronología de la historia." },
   { k: "tareas", a: "organizacion", t: "Tareas con recordatorios", d: "Qué falta para la feria o la postulación, con aviso por correo." },
   { k: "versiones-precio", a: "venta", t: "Versiones de precio", d: "Comparar edición normal, deluxe y preventa en la misma cotización." },

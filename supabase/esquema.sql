@@ -128,3 +128,19 @@ create table public.precios_comunidad(
 
 -- "Avísame" de las funciones de Forja Más: interes_funciones(user_id, funcion, creado_en), PK (user_id, funcion).
 -- RLS: cada usuario ve, crea y borra solo sus filas.
+
+-- Pizarras (2026-11-06): tableros por proyecto; todo el contenido en datos (jsonb), ver docs/js/pizarra.js.
+create table public.pizarras(
+  id uuid primary key default gen_random_uuid(),
+  espacio_id uuid not null references public.espacios(id) on delete cascade,
+  proyecto_id uuid not null references public.proyectos(id) on delete cascade,
+  nombre text not null default 'Pizarra' check (char_length(nombre) between 1 and 120),
+  modo text not null default 'libre' check (modo in ('libre','relaciones','escaleta','mapa')),
+  datos jsonb not null default '{}'::jsonb,
+  creado_en timestamptz not null default now(),
+  actualizado_en timestamptz not null default now()
+);
+-- RLS por privado.es_miembro(espacio_id) (ver, crear, editar, borrar). Triggers: mismo_espacio, tocar_actualizado
+-- y privado.t_pizarras: plan libre = 1 pizarra por proyecto, solo modo libre, 20 tarjetas (privado.limite 'pizarras'
+-- y 'tarjetas'); lo que sobra al vencer Forja Más queda en solo lectura, salvo quitar tarjetas o borrar.
+-- Para todos: hasta 1000 tarjetas y 1,5 MB por pizarra (FORJA_PIZARRA_GRANDE).

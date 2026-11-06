@@ -95,7 +95,7 @@ section{margin-top:44px}
         <div class="precio" id="precio-mas"></div>
         <div class="anual" id="precio-anual"></div>
         <div class="medidas"><div class="medida"><b>∞</b><span>proyectos</span></div><div class="medida"><b>∞</b><span>palabras</span></div><div class="medida"><b>∞</b><span>referentes</span></div></div>
-        <p class="incluye">Todo lo del plan gratis, sin límites, más <span id="n-func"></span> herramientas nuevas de escritura, impresión, pizarras, equipo y más. Si dejas de pagar, nada se borra.</p>
+        <p class="incluye">Todo lo del plan gratis, sin límites, más <span id="n-func"></span> herramientas de escritura, impresión, pizarras, equipo y más (<span id="n-listas"></span> ya funcionan). Si dejas de pagar, nada se borra.</p>
         <button type="button" class="fx-avisame" data-avisame="plan-mas">Avísame</button>
       </article>
     </div>
@@ -108,6 +108,7 @@ section{margin-top:44px}
           <tr><td>Proyectos en curso al mismo tiempo</td><td class="n">3</td><td>Sin límite</td></tr>
           <tr><td>Palabras en el Taller</td><td class="n">20.000</td><td>Sin límite</td></tr>
           <tr><td>Referentes</td><td class="n">30</td><td>Sin límite</td></tr>
+          <tr><td>Pizarras</td><td>1 libre, con 20 tarjetas</td><td>Sin límite, más relaciones, escaleta y mapa del mundo</td></tr>
           <tr><td>Biblia del proyecto</td><td>PDF con la marca de Forja</td><td>Con diseño, sin marca, Word y EPUB</td></tr>
           <tr><td>Trabajar con otras personas</td><td>—</td><td>Sí, ellas no pagan</td></tr>
           <tr><td>Oportunidades</td><td>Calendario y sugeridas</td><td>+ alertas por correo</td></tr>
@@ -155,12 +156,15 @@ const $$ = (n) => "$" + n.toLocaleString("es-CL");
 $("precio-mas").innerHTML = $$(PRECIO.mes) + " <small>al mes</small>";
 $("precio-anual").textContent = "o " + $$(PRECIO.anio) + " al año: dos meses gratis";
 $("n-func").textContent = FUNCIONES.length;
+$("n-listas").textContent = FUNCIONES.filter((f) => f.listo).length;
+// Las herramientas que ya existen se muestran como disponibles, con lo que trae el plan gratis.
+const disponible = (f) => '<div class="fx-pronto listo" data-funcion="' + f.k + '"><span class="fx-pronto-tag">Ya disponible · Forja Más</span><b>' + esc(f.t) + "</b><span>" + esc(f.d) + "</span>" + (f.libre ? '<span class="libre">' + esc(f.libre) + "</span>" : "") + "</div>";
 
-let area = AREAS[0].k;
+let area = "pizarras"; // lo primero que ya funciona
 function pintar() {
   $("areas").innerHTML = AREAS.map((a) => '<button role="tab" data-a="' + a.k + '" aria-selected="' + (a.k === area) + '"><b>' + esc(a.n) + "</b><small>" + esc(a.d) + "</small></button>").join("");
   $("areas").querySelectorAll("[data-a]").forEach((b) => b.onclick = () => { area = b.dataset.a; pintar(); });
-  $("funciones").innerHTML = FUNCIONES.filter((f) => f.a === area).map((f) => proximamente(f.k, f.t, f.d)).join("");
+  $("funciones").innerHTML = FUNCIONES.filter((f) => f.a === area).map((f) => (f.listo ? disponible(f) : proximamente(f.k, f.t, f.d))).join("");
   activarAvisame($("funciones"));
 }
 pintar();

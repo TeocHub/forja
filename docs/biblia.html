@@ -91,29 +91,31 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 import { sb, $, esc, fecha, navApp, espacio, conSesion } from "./js/forja.js";
 import { TIPOS, ESTADOS, tc } from "./js/guias.js";
 import { EJES, FORMATOS, radar, dial, lectura, tocado, vals, pct, base, CSS_BRUJULA } from "./js/brujula.js";
+import { MODOS, estatica, cuentaTarjetas, CSS_PIZARRA } from "./js/pizarra.js";
 navApp("proyectos");
-document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + ".doc .radar text,.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .radar .forma{fill:rgba(42,63,209,.15);stroke:#2a3fd1}.doc .dial .petalo{fill:#e6e9fb}.doc .dial .petalo.top{fill:#f6cdb9}.doc .dial .borde{fill:#fafafa;stroke:#d9dbe2}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ".doc .piz{break-inside:avoid;margin:0 0 22px}.doc .piz h3{margin:0 0 2px}.doc .piz .modo{font-family:'Atkinson Hyperlegible',sans-serif;font-size:9pt;color:var(--soft);margin:0 0 8px}.doc .radar text,.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .radar .forma{fill:rgba(42,63,209,.15);stroke:#2a3fd1}.doc .dial .petalo{fill:#e6e9fb}.doc .dial .petalo.top{fill:#f6cdb9}.doc .dial .borde{fill:#fafafa;stroke:#d9dbe2}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
 
 const ID = new URLSearchParams(location.search).get("p");
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-const PARTES = [["taller", "Escritura"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"]];
+const PARTES = [["taller", "Escritura"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarras", "Pizarras"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"]];
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("proyectos.html");
 else conSesion($("app"), async () => {
   await espacio();
-  const [pr, se, re, no, co, po] = await Promise.all([
+  const [pr, se, re, no, co, po, pz] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
-    sb.from("secciones").select("titulo,texto,orden").eq("proyecto_id", ID).order("orden"),
+    sb.from("secciones").select("id,titulo,texto,orden").eq("proyecto_id", ID).order("orden"),
     sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en"),
     sb.from("notas").select("texto,creado_en").eq("proyecto_id", ID).order("creado_en"),
     sb.from("cotizaciones").select("datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
     sb.from("proyecto_oportunidades").select("oportunidad_id,estado").eq("proyecto_id", ID),
+    sb.from("pizarras").select("nombre,modo,datos,creado_en").eq("proyecto_id", ID).order("creado_en"),
   ]);
   const P = pr.data;
   if (!P) { $("app").innerHTML = '<div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
   let OPS = [];
   if ((po.data || []).length) { const { data } = await sb.from("oportunidades").select("id,nombre,organiza,postul_fin,evento_inicio,evento_fin"); OPS = data || []; }
-  pintar(P, se.data || [], re.data || [], no.data || [], co.data, po.data || [], OPS);
+  pintar(P, se.data || [], re.data || [], no.data || [], co.data, po.data || [], OPS, pz.data || []);
 }, "La biblia reúne todo tu proyecto en un documento. Entra para generarla.");
 
 function parrafos(t) {
@@ -122,11 +124,12 @@ function parrafos(t) {
 const ytId = (u) => { const m = u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i); return m && m[1]; };
 const segura = (u) => /^https?:\/\//i.test(u || "");
 
-function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS) {
+function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
   document.title = "Biblia · " + P.nombre;
   const f = FORMATOS.find((x) => x.k === P.formato), conTexto = SECS.filter((s) => s.texto.trim());
   const palabras = SECS.reduce((a, s) => a + (s.texto.trim().match(/\S+/g) || []).length, 0);
-  const tiene = { taller: conTexto.length, referentes: REFS.length, brujula: tocado(P.ejes) || f, costos: COT && (COT.datos.componentes || []).length, oportunidades: SEGS.length, bitacora: NOTAS.length };
+  const PZ = PIZ.filter((z) => cuentaTarjetas(z.datos) || ((z.datos || {}).regiones || []).length);
+  const tiene = { taller: conTexto.length, referentes: REFS.length, brujula: tocado(P.ejes) || f, pizarras: PZ.length, costos: COT && (COT.datos.componentes || []).length, oportunidades: SEGS.length, bitacora: NOTAS.length };
 
   $("app").innerHTML =
     '<section class="opciones"><h1>Biblia del proyecto</h1><p>Un documento con todo lo que has trabajado. Elige qué incluir y guárdalo como PDF desde la ventana de impresión (opción “Guardar como PDF”).</p>' +
@@ -157,6 +160,9 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS) {
     (tocado(P.ejes) ? '<table class="tabla" style="margin-top:12px"><thead><tr><th>Eje</th><th>Valor</th></tr></thead><tbody>' + EJES.map((e, i) => "<tr><td>" + e.n + '<br><span style="color:var(--soft)">' + esc(e.q) + "</span></td><td>" + vals(P.ejes)[i] + "</td></tr>").join("") + "</tbody></table>" +
       '<p style="margin-top:12px">Formatos más cercanos: ' + lectura(P.ejes).slice(0, 3).map((x) => esc(x.n) + " (" + pct(x.s) + ")").join(", ") + "." + (f ? " Formato elegido: <b>" + esc(f.n) + "</b>." : "") + "</p>" : (f ? "<p>Formato elegido: <b>" + esc(f.n) + "</b>.</p>" : "")) + "</section>" +
 
+    '<section class="parte" data-p="pizarras"><h2>Pizarras</h2><p class="bajada">Los tableros del proyecto, tal como quedaron ordenados.</p>' +
+    PZ.map((z) => '<div class="piz"><h3>' + esc(z.nombre) + '</h3><p class="modo">' + MODOS[z.modo].n + " · " + cuentaTarjetas(z.datos) + (z.modo === "escaleta" ? " escenas" : z.modo === "relaciones" ? " personajes" : z.modo === "mapa" ? " lugares" : " tarjetas") + "</p>" + estatica(z, { secciones: SECS, referentes: REFS }) + "</div>").join("") + "</section>" +
+
     '<section class="parte" data-p="costos"><h2>Costos</h2><p class="bajada">Componentes a producir y proveedores cotizados. Valores actualizados en Forja el ' + (COT ? fecha(COT.actualizado_en) : "") + ".</p>" + costosHTML(COT) + "</section>" +
 
     '<section class="parte" data-p="oportunidades"><h2>Oportunidades</h2><p class="bajada">Ferias, fondos y convocatorias que sigue el proyecto.</p><table class="tabla"><thead><tr><th>Oportunidad</th><th>Fechas</th><th>Estado</th></tr></thead><tbody>' +
@@ -174,7 +180,7 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS) {
     document.querySelectorAll("[data-parte]").forEach((c) => { on[c.dataset.parte] = c.checked; });
     document.querySelectorAll(".parte").forEach((s) => s.classList.toggle("oculto", !on[s.dataset.p]));
     const vis = PARTES.filter(([k]) => on[k]);
-    $("indice").innerHTML = vis.length ? "<h2>Contenido</h2><ol>" + vis.map(([k, n]) => "<li>" + n + (k === "taller" ? "<ol>" + conTexto.map((s) => "<li>" + esc(s.titulo) + "</li>").join("") + "</ol>" : "") + "</li>").join("") + "</ol>" : "";
+    $("indice").innerHTML = vis.length ? "<h2>Contenido</h2><ol>" + vis.map(([k, n]) => "<li>" + n + (k === "taller" ? "<ol>" + conTexto.map((s) => "<li>" + esc(s.titulo) + "</li>").join("") + "</ol>" : k === "pizarras" && PZ.length > 1 ? "<ol>" + PZ.map((z) => "<li>" + esc(z.nombre) + "</li>").join("") + "</ol>" : "") + "</li>").join("") + "</ol>" : "";
   };
   $("partes").onchange = aplicar; aplicar();
   $("b-print").onclick = () => window.print();
