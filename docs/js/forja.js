@@ -89,11 +89,12 @@ function pintarEntrada(caja, texto) {
     '<h2>Entra para ver lo tuyo</h2>' +
     '<p>' + esc(texto || "Tus proyectos y cotizaciones son privados: solo los ves tú, desde cualquier dispositivo.") + "</p>" +
     '<form id="fx-f1" class="fx-row"><label class="fx-sr" for="fx-mail">Correo</label>' +
-    '<input id="fx-mail" type="email" autocomplete="email" required placeholder="tu@correo.cl"><button class="fx-primary" type="submit">Enviarme un código</button></form>' +
+    '<input id="fx-mail" type="email" autocomplete="email" required placeholder="tu@correo.cl"><button class="fx-primary" type="submit">Enviarme el enlace</button></form>' +
+    '<button class="fx-link" type="button" id="fx-tengo" hidden>¿Te llegó un código en vez de enlace?</button>' +
     '<form id="fx-f2" class="fx-row" hidden><label class="fx-sr" for="fx-code">Código</label>' +
     '<input id="fx-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required placeholder="Código del correo"><button class="fx-primary" type="submit">Entrar</button>' +
     '<button class="fx-link" type="button" id="fx-otro">Usar otro correo</button></form>' +
-    '<p class="fx-hint" id="fx-msg">Sin contraseñas: te llega un código (o un enlace) al correo. La primera vez se crea tu cuenta.</p>' +
+    '<p class="fx-hint" id="fx-msg">Sin contraseñas: te llega un enlace al correo y al tocarlo quedas dentro. La primera vez se crea tu cuenta.</p>' +
     "</section>";
   let mail = "";
   $("fx-f1").onsubmit = async (e) => {
@@ -103,15 +104,16 @@ function pintarEntrada(caja, texto) {
     const { error } = await sb.auth.signInWithOtp({ email: mail, options: { emailRedirectTo: location.href.split("#")[0] } });
     b.disabled = false;
     if (error) { $("fx-msg").textContent = error.status === 429 ? "Se enviaron muchos correos seguidos. Espera unos minutos e intenta de nuevo." : "No se pudo enviar el correo: " + error.message; return; }
-    $("fx-f1").hidden = true; $("fx-f2").hidden = false; $("fx-code").focus();
-    $("fx-msg").textContent = "Revisa " + mail + " (también spam). Escribe el código aquí o toca el enlace del correo.";
+    $("fx-f1").hidden = true; $("fx-tengo").hidden = false;
+    $("fx-msg").textContent = "Listo. Revisa " + mail + " (también spam) y toca el enlace desde este mismo dispositivo. El correo llega en inglés, con el asunto «Your Magic Link».";
   };
   $("fx-f2").onsubmit = async (e) => {
     e.preventDefault();
     const { error } = await sb.auth.verifyOtp({ email: mail, token: $("fx-code").value.trim(), type: "email" });
     if (error) $("fx-msg").textContent = "Ese código no funcionó o ya venció. Revisa que sea el último que te llegó.";
   };
-  $("fx-otro").onclick = () => { $("fx-f2").hidden = true; $("fx-f1").hidden = false; $("fx-msg").textContent = ""; };
+  $("fx-tengo").onclick = () => { $("fx-tengo").hidden = true; $("fx-f2").hidden = false; $("fx-code").focus(); };
+  $("fx-otro").onclick = () => { $("fx-f2").hidden = true; $("fx-tengo").hidden = true; $("fx-f1").hidden = false; $("fx-msg").textContent = ""; };
 }
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});

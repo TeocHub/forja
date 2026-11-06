@@ -27,7 +27,7 @@ Reglas de datos:
 
 ## Cuentas y datos privados
 - Base común en `docs/js/forja.js` (cliente Supabase, sesión, navegación) y `docs/css/forja.css` (colores y piezas compartidas). Todo módulo nuevo usa `nav()` y `conSesion()`.
-- Entrada sin contraseña: código o enlace al correo (Supabase Auth, OTP). Al registrarse, un trigger crea el espacio personal del usuario.
+- Entrada sin contraseña: enlace al correo (Supabase Auth, magic link; plantilla por defecto en inglés porque editarla exige SMTP propio). El campo de código queda como opción secundaria. Al registrarse, un trigger crea el espacio personal del usuario.
 - Tablas privadas: `espacios`, `miembros`, `proyectos`, `notas`, `cotizaciones`, `proyecto_oportunidades`. Todas con RLS por `privado.es_miembro(espacio_id)`: cada persona ve solo su espacio. Esquema completo en `supabase/esquema.sql`; todo cambio de esquema se aplica como migración y se refleja ahí.
 - Los espacios están pensados para compartirse más adelante (equipo), pero hoy cada usuario tiene solo el suyo.
 
