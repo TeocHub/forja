@@ -144,3 +144,27 @@ create table public.pizarras(
 -- y privado.t_pizarras: plan libre = 1 pizarra por proyecto, solo modo libre, 20 tarjetas (privado.limite 'pizarras'
 -- y 'tarjetas'); lo que sobra al vencer Forja Más queda en solo lectura, salvo quitar tarjetas o borrar.
 -- Para todos: hasta 1000 tarjetas y 1,5 MB por pizarra (FORJA_PIZARRA_GRANDE).
+
+-- Vitrinas (2026-11-06): página pública de cada proyecto. Ver docs/js/vitrina.js.
+create table public.vitrinas(              -- privada: el borrador (copias elegidas por la persona)
+  id uuid primary key default gen_random_uuid(),
+  espacio_id uuid not null references public.espacios(id) on delete cascade,
+  proyecto_id uuid not null unique references public.proyectos(id) on delete cascade,
+  slug text not null unique check (slug ~ '^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$'),
+  borrador jsonb not null default '{}'::jsonb check (octet_length(borrador::text) < 2000000),
+  anterior jsonb,                          -- la versión publicada antes de la última
+  publicada boolean not null default false,
+  publicado_en timestamptz,
+  creado_en timestamptz not null default now(),
+  actualizado_en timestamptz not null default now()
+);
+-- RLS por privado.es_miembro(espacio_id). Permisos por columna: insert (espacio_id, proyecto_id, slug, borrador), update (slug, borrador).
+create table public.vitrinas_publicadas(   -- pública: lo único que se lee sin cuenta
+  slug text primary key,
+  vitrina_id uuid not null unique references public.vitrinas(id) on delete cascade,
+  datos jsonb not null,
+  publicado_en timestamptz not null default now()
+);
+-- RLS: select para anon y authenticated; solo las columnas slug, datos y publicado_en. Nadie escribe directo:
+-- public.publicar_vitrina(v uuid, datos jsonb) y public.despublicar_vitrina(v uuid) (security definer, solo authenticated).
+-- Trigger privado.t_vitrina_slug: si cambia vitrinas.slug, cambia también en vitrinas_publicadas.

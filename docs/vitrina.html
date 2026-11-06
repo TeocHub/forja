@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vitrina · Forja</title>
+<meta name="description" content="Un proyecto creativo hecho en Chile, en su vitrina de Forja.">
+<meta property="og:title" content="Vitrina · Forja">
+<meta property="og:description" content="Proyectos creativos hechos en Chile, en Forja.">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap">
+<link rel="stylesheet" href="css/forja.css">
+<style>
+/* Layout: vitrina pública — portada a todo lo ancho, índice pegajoso y secciones del proyecto (historia, galería, mundo, novedades, enlaces) */
+html,body{margin:0;background:var(--bg)}
+.vt-estado{min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;font-family:var(--f-body);color:var(--muted)}
+.vt-estado h1{font-family:var(--f-display);color:var(--fg);font-size:28px;margin:0 0 8px}
+.vt-estado a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="raiz"><div class="vt-estado"><p>Cargando…</p></div></div>
+<script type="module">
+import { sb } from "./js/forja.js";
+import { pintarVitrina, normal, CSS_VITRINA } from "./js/vitrina.js";
+import { TIPOS } from "./js/guias.js";
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
+const slug = (new URLSearchParams(location.search).get("v") || "").toLowerCase();
+const raiz = document.getElementById("raiz");
+const nada = (t, x) => { raiz.innerHTML = '<div class="vt-estado"><div><h1>' + t + "</h1><p>" + x + '</p><p><a href="index.html">Ir a Forja</a></p></div></div>'; };
+(async () => {
+  if (!/^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$/.test(slug)) { nada("No encontramos esta vitrina", "Revisa que el enlace esté completo."); return; }
+  const { data, error } = await sb.from("vitrinas_publicadas").select("slug,datos,publicado_en").eq("slug", slug).maybeSingle();
+  if (error) { nada("No pudimos cargar la vitrina", "Puede ser la conexión. Intenta de nuevo en un momento."); return; }
+  if (!data) { nada("Esta vitrina no está publicada", "Puede que su creador la haya retirado o cambiado de dirección."); return; }
+  const d = normal(data.datos);
+  document.title = (d.titulo || "Vitrina") + " · Forja";
+  const desc = d.lema || (TIPOS[d.tipo] ? TIPOS[d.tipo] + " en Forja" : "Un proyecto en Forja");
+  document.querySelector('meta[name="description"]').content = desc;
+  document.querySelector('meta[property="og:title"]').content = d.titulo || "Vitrina";
+  document.querySelector('meta[property="og:description"]').content = desc;
+  document.querySelector('meta[name="theme-color"]').content = d.acento;
+  document.documentElement.style.background = "transparent";
+  pintarVitrina(raiz, d, { fecha: (data.publicado_en || "").slice(0, 10) });
+  document.body.style.background = getComputedStyle(raiz.querySelector(".vt")).backgroundColor;
+  if (location.hash) { const s = document.querySelector("#vt-" + location.hash.slice(1)); if (s) s.scrollIntoView(); }
+})();
+</script>
+</body>
+</html>

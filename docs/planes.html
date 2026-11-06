@@ -109,6 +109,7 @@ section{margin-top:44px}
           <tr><td>Palabras en el Taller</td><td class="n">20.000</td><td>Sin límite</td></tr>
           <tr><td>Referentes</td><td class="n">30</td><td>Sin límite</td></tr>
           <tr><td>Pizarras</td><td>1 libre, con 20 tarjetas</td><td>Sin límite, más relaciones, escaleta y mapa del mundo</td></tr>
+          <tr><td>Vitrina pública</td><td>Portada, historia, galería, novedades y enlaces</td><td>Todo eso, más tus pizarras para explorar</td></tr>
           <tr><td>Biblia del proyecto</td><td>PDF con la marca de Forja</td><td>Con diseño, sin marca, Word y EPUB</td></tr>
           <tr><td>Trabajar con otras personas</td><td>—</td><td>Sí, ellas no pagan</td></tr>
           <tr><td>Oportunidades</td><td>Calendario y sugeridas</td><td>+ alertas por correo</td></tr>
@@ -158,7 +159,7 @@ $("precio-anual").textContent = "o " + $$(PRECIO.anio) + " al año: dos meses gr
 $("n-func").textContent = FUNCIONES.length;
 $("n-listas").textContent = FUNCIONES.filter((f) => f.listo).length;
 // Las herramientas que ya existen se muestran como disponibles, con lo que trae el plan gratis.
-const disponible = (f) => '<div class="fx-pronto listo" data-funcion="' + f.k + '"><span class="fx-pronto-tag">Ya disponible · Forja Más</span><b>' + esc(f.t) + "</b><span>" + esc(f.d) + "</span>" + (f.libre ? '<span class="libre">' + esc(f.libre) + "</span>" : "") + "</div>";
+const disponible = (f) => '<div class="fx-pronto listo" data-funcion="' + f.k + '"><span class="fx-pronto-tag">Ya disponible</span><b>' + esc(f.t) + "</b><span>" + esc(f.d) + "</span>" + (f.libre ? '<span class="libre">' + esc(f.libre) + "</span>" : "") + "</div>";
 
 let area = "pizarras"; // lo primero que ya funciona
 function pintar() {

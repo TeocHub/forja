@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Vitrina</title>
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap">
+<link rel="stylesheet" href="css/forja.css">
+<style>
+/* Layout: editor de vitrina — panel de edición a la izquierda (secciones plegables) y la vista previa real a la derecha; en el celular se alternan */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+a{color:var(--accent)}
+.wrap{max-width:1440px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(button,a,input,select,textarea,summary):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vol{font-size:14px;text-decoration:none}
+.cab{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:8px 0 16px}
+.cab h1{font-family:var(--f-display);font-size:clamp(24px,4vw,32px);line-height:1.1;margin:0}
+.cab h1 small{display:block;font-family:var(--f-body);font-weight:400;font-size:14px;color:var(--muted)}
+.estado{display:inline-flex;align-items:center;gap:7px;font-size:13px;border-radius:999px;padding:4px 11px;border:1px solid var(--line);background:var(--card);color:var(--muted);white-space:nowrap}
+.estado i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.estado.vivo{color:var(--good);border-color:color-mix(in srgb,var(--good) 40%,var(--line))} .estado.vivo i{background:var(--good)}
+.estado.cambios{color:var(--e-pausa);border-color:color-mix(in srgb,var(--e-pausa) 45%,var(--line))} .estado.cambios i{background:var(--e-pausa)}
+.acc{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.guardado{font-size:12px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:7px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.prim{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
+.btn.chico{font-size:13px;padding:4px 10px;border-radius:8px}
+.btn.peligro{color:var(--bad)}
+.modo{display:none}
+.grid{display:grid;grid-template-columns:minmax(330px,420px) minmax(0,1fr);gap:18px;align-items:start}
+.panel{display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 150px);overflow:auto;padding:2px 6px 40px 2px;position:sticky;top:12px;scrollbar-width:thin}
+.previa{position:sticky;top:12px;height:calc(100vh - 150px);min-height:520px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card);display:flex;flex-direction:column}
+.previa-barra{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);background:var(--field)}
+.previa-barra span{font-family:var(--f-num);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.previa-barra i{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
+#previa{flex:1;overflow:auto;container-type:inline-size}
+#previa .vt-hero{min-height:440px}
+#previa .vt-generativa span{font-size:min(50cqw,420px)}
+@media (max-width:900px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .modo{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px}
+  .modo button{font:inherit;border:0;background:var(--card);color:var(--fg);padding:7px 16px;cursor:pointer}
+  .modo button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
+  .panel{max-height:none;position:static;overflow:visible;padding:0}
+  .previa{position:static;height:auto;min-height:0}
+  #previa{overflow:visible}
+  body[data-vista=previa] .panel,body[data-vista=editar] .previa{display:none}
+}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px}
+.sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 14px;font-family:var(--f-display);font-weight:700;font-size:16px}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .15s}
+.sec[open]>summary::after{transform:rotate(-135deg)}
+.sec>summary small{font-family:var(--f-num);font-weight:500;font-size:12px;color:var(--muted)}
+.sec>summary .tag{font-family:var(--f-body);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--ember);border:1px solid color-mix(in srgb,var(--ember) 45%,var(--line));border-radius:999px;padding:1px 7px;background:var(--ember-soft)}
+.cuerpo{padding:2px 14px 14px;display:flex;flex-direction:column;gap:12px}
+.ayuda{margin:0;font-size:13px;color:var(--muted);line-height:1.45}
+.c{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.c input:not([type=range]):not([type=checkbox]):not([type=color]),.c textarea,.c select{font:inherit;font-size:14px;color:var(--fg);border:1px solid var(--line);background:var(--field);border-radius:8px;padding:7px 9px;width:100%}
+.c textarea{resize:vertical;min-height:110px;line-height:1.5}
+.fila{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tonos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tonos button{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:0;cursor:pointer;overflow:hidden;background:var(--card);color:var(--fg);text-align:left}
+.tonos button span{display:block;height:38px}
+.tonos button b{display:block;padding:5px 8px}
+.tonos button[aria-pressed=true]{border-color:var(--fg);box-shadow:0 0 0 1px var(--fg)}
+.acentos{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.acentos button{width:28px;height:28px;border-radius:50%;border:2px solid var(--card);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.acentos button[aria-pressed=true]{box-shadow:0 0 0 2px var(--fg)}
+.acentos label{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;margin-left:4px}
+.acentos input[type=color]{width:30px;height:30px;border:0;padding:0;background:none;cursor:pointer}
+.mini-imgs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.mini-imgs button{flex:none;width:76px;height:52px;border-radius:8px;border:1px solid var(--line);padding:0;overflow:hidden;cursor:pointer;background:var(--field)}
+.mini-imgs button[aria-pressed=true]{box-shadow:0 0 0 2px var(--accent)}
+.mini-imgs img{width:100%;height:100%;object-fit:cover;display:block}
+.bloque{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.bloque-cab{display:flex;align-items:center;gap:6px}
+.bloque-cab input{flex:1;min-width:0;font:inherit;font-family:var(--f-display);font-weight:700;font-size:15px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--fg);padding:4px 6px}
+.bloque-cab input:hover,.bloque-cab input:focus{border-color:var(--line);background:var(--field)}
+.ico{font:inherit;width:28px;height:28px;flex:none;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:7px;cursor:pointer;display:grid;place-items:center;font-size:13px;padding:0}
+.ico:hover:not(:disabled){color:var(--fg);border-color:var(--accent)}
+.ico:disabled{opacity:.35;cursor:default}
+.ico.x:hover{color:var(--bad);border-color:var(--bad)}
+.bloque textarea{font:inherit;font-size:14px;color:var(--fg);border:1px solid var(--line);background:var(--field);border-radius:8px;padding:8px 10px;width:100%;resize:vertical;min-height:120px;line-height:1.55}
+.origen{font-size:11.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.origen button{font:inherit;font-size:11.5px;border:0;background:none;color:var(--accent);padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.pieza{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:8px 10px;align-items:start;border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--bg)}
+.pieza .th{width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--field);display:grid;place-items:center;font-size:11px;color:var(--muted);text-align:center;line-height:1.2}
+.pieza .th img{width:100%;height:100%;object-fit:cover}
+.pieza .campos{display:flex;flex-direction:column;gap:5px;min-width:0}
+.pieza .campos input{font:inherit;font-size:13px;color:var(--fg);border:1px solid var(--line);background:var(--field);border-radius:7px;padding:5px 7px;width:100%}
+.pieza .botones{display:flex;flex-direction:column;gap:4px}
+.selector{border:1px solid var(--line);border-radius:12px;background:var(--bg);max-height:300px;overflow:auto;display:flex;flex-direction:column}
+.selector label,.selector button.op{font:inherit;display:flex;gap:9px;align-items:center;padding:8px 10px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--fg);cursor:pointer;text-align:left;font-size:14px}
+.selector label:last-child,.selector button.op:last-child{border-bottom:0}
+.selector label:hover,.selector button.op:hover{background:var(--field)}
+.selector small{color:var(--muted);font-size:12px;margin-left:auto;white-space:nowrap}
+.selector .ya{color:var(--good)}
+.selector .vacio{padding:12px;font-size:13px;color:var(--muted)}
+.selector img{width:36px;height:28px;object-fit:cover;border-radius:5px;flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chips button{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:2px 9px;cursor:pointer}
+.chips button[aria-pressed=false]{text-decoration:line-through;color:var(--muted);background:var(--field)}
+.check{display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer}
+.check input{accent-color:var(--accent);width:16px;height:16px}
+.mas-bloq{border:1.5px dashed var(--ember);background:var(--ember-soft);border-radius:12px;padding:12px;font-size:14px;display:flex;flex-direction:column;gap:8px}
+.aviso{border-radius:12px;padding:10px 12px;font-size:13.5px;background:color-mix(in srgb,var(--e-pausa) 10%,var(--card));border:1px solid color-mix(in srgb,var(--e-pausa) 40%,var(--line))}
+.privado{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);background:var(--field);border-radius:12px;padding:10px 12px;line-height:1.45}
+.privado svg{flex:none;margin-top:2px;color:var(--good)}
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--fg);padding:0;width:min(520px,94vw);box-shadow:0 24px 60px rgba(10,14,30,.28)}
+dialog::backdrop{background:rgba(10,12,20,.5)}
+.dlg{padding:20px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{font-family:var(--f-display);font-size:22px;margin:0}
+.dlg p{margin:0}
+.resumen{display:flex;flex-wrap:wrap;gap:6px}
+.resumen span{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--field)}
+.dlg-pie{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:4px}
+.enlace-pub{display:flex;gap:6px}
+.enlace-pub input{flex:1;min-width:0;font:inherit;font-family:var(--f-num);font-size:13px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:8px;padding:7px 9px}
+.qr{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.qr-img{width:148px;height:148px;background:#fff;border-radius:12px;border:1px solid var(--line);display:grid;place-items:center;padding:8px;color:#555;font-size:12px;text-align:center}
+.qr-img svg{width:100%;height:100%}
+.dir{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;background:var(--field);overflow:hidden}
+.dir span{font-family:var(--f-num);font-size:12px;color:var(--muted);padding:0 2px 0 9px;white-space:nowrap}
+.dir input{flex:1;min-width:0;font:inherit;font-family:var(--f-num);font-size:13px;border:0;background:transparent;color:var(--fg);padding:7px 9px 7px 0}
+</style>
+</head>
+<body data-vista="editar">
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="app"><div class="fx-empty">Cargando…</div></main>
+</div>
+<dialog id="dlg-pub"><div class="dlg" id="dlg-pub-c"></div></dialog>
+<dialog id="dlg-comp"><div class="dlg" id="dlg-comp-c"></div></dialog>
+<script type="module">
+import { sb, $, esc, toast, hace, navApp, espacio, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame } from "./js/forja.js";
+import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA } from "./js/vitrina.js";
+import { MODOS } from "./js/pizarra.js";
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
+navApp("proyectos");
+const ID = new URLSearchParams(location.search).get("p");
+const CANDADO = '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M5 7V5a3 3 0 0 1 6 0v2h.5A1.5 1.5 0 0 1 13 8.5v5A1.5 1.5 0 0 1 11.5 15h-7A1.5 1.5 0 0 1 3 13.5v-5A1.5 1.5 0 0 1 4.5 7H5Zm1.5 0h3V5a1.5 1.5 0 0 0-3 0v2Z"/></svg>';
+let P, PL, RO, V, B, PUB = null, SECS = [], REFS = [], PIZ = [], NOTAS = [], abiertas = new Set(["portada"]), pendiente = false;
+const hoy = () => new Date().toISOString().slice(0, 10);
+// Comparar contenido sin importar el orden de las claves (la base las reordena).
+const canon = (o) => JSON.stringify(o, (k, v) => (v && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map((x) => [x, v[x]])) : v));
+const palabrasDe = (t) => (String(t || "").trim().match(/\S+/g) || []).length;
+const urlPublica = () => new URL("vitrina.html?v=" + V.slug, location.href).href;
+const slugify = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 50).replace(/-+$/, "");
+try { abiertas = new Set(JSON.parse(localStorage.getItem("forja-vt-abiertas") || '["portada"]')); } catch (e) {}
+
+if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("proyectos.html");
+else conSesion($("app"), async () => {
+  const ESP = await espacio();
+  PL = await plan();
+  const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
+  const [pr, se, re, pz, no, vi] = await Promise.all([
+    sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
+    sb.from("secciones").select("id,titulo,texto,orden").eq("proyecto_id", ID).order("orden"),
+    sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
+    sb.from("pizarras").select("id,nombre,modo,datos,creado_en").eq("proyecto_id", ID).order("creado_en"),
+    sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
+    sb.from("vitrinas").select("*").eq("proyecto_id", ID).maybeSingle(),
+  ]);
+  P = pr.data;
+  if (!P) { $("app").innerHTML = '<a class="vol" href="proyectos.html">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
+  SECS = se.data || []; REFS = re.data || []; PIZ = pz.data || []; NOTAS = no.data || [];
+  RO = !editable(P, ac.count || 0, PL);
+  V = vi.data;
+  if (!V) V = await crear(ESP);
+  if (!V) return;
+  B = normal(Object.keys(V.borrador || {}).length ? V.borrador : nuevaVitrina(P));
+  if (V.publicada) { const r = await sb.from("vitrinas_publicadas").select("datos,publicado_en").eq("slug", V.slug).maybeSingle(); PUB = r.data ? r.data.datos : null; }
+  armar();
+}, "La vitrina se edita en privado: nada se ve hasta que publicas.");
+
+// Primera vez: se crea la vitrina con una dirección a partir del nombre (si está ocupada, se le agrega un sufijo).
+async function crear(ESP) {
+  let base = slugify(P.nombre); if (base.length < 3) base = "proyecto-" + base;
+  const borrador = nuevaVitrina(P);
+  for (let i = 0; i < 6; i++) {
+    const slug = i ? (base.slice(0, 44) + "-" + Math.random().toString(36).slice(2, 6)) : base;
+    const { data, error } = await sb.from("vitrinas").insert({ espacio_id: ESP, proyecto_id: P.id, slug, borrador }).select("*").single();
+    if (!error) return data;
+    if (!/duplicate|unique|23505/i.test(error.message + (error.code || ""))) { $("app").innerHTML = '<div class="fx-empty">No se pudo crear la vitrina. Revisa tu conexión e intenta de nuevo.</div>'; return null; }
+  }
+  return null;
+}
+
+/* ---------- guardado ---------- */
+let tGuardar;
+function cambio(repintarPanel) {
+  pendiente = true; marcarGuardado("Guardando…");
+  clearTimeout(tGuardar); tGuardar = setTimeout(guardar, 700);
+  previaPronto(); pintarEstado();
+  if (repintarPanel) pintarPanel();
+}
+async function guardar() {
+  clearTimeout(tGuardar); if (!pendiente) return; pendiente = false;
+  const { error } = await sb.from("vitrinas").update({ borrador: B }).eq("id", V.id);
+  marcarGuardado(error ? "No se guardó" : "Borrador guardado", !!error);
+  if (error) toast("No se pudo guardar el borrador. Revisa tu conexión.");
+}
+window.addEventListener("pagehide", () => { if (pendiente) guardar(); });
+const marcarGuardado = (t, mal) => { const g = $("guardado"); if (g) { g.textContent = t; g.style.color = mal ? "var(--bad)" : ""; } };
+
+/* ---------- estructura ---------- */
+function armar() {
+  $("app").innerHTML = '<a class="vol" href="proyecto.html?p=' + P.id + '#vitrina">← ' + esc(P.nombre) + "</a>" +
+    '<div class="cab"><h1>Vitrina<small>La página pública de tu proyecto</small></h1><span id="estado"></span>' +
+    '<div class="acc"><span class="guardado" id="guardado" aria-live="polite">Borrador guardado</span><button type="button" class="btn" id="b-comp">Compartir</button><button type="button" class="btn prim" id="b-pub">Publicar</button></div></div>' +
+    (RO ? '<div class="aviso" style="margin-bottom:12px">' + CANDADO + " Este proyecto está en solo lectura en el plan gratis: puedes preparar el borrador y despublicar, pero no publicar cambios.</div>" : "") +
+    '<div class="modo" role="group" aria-label="Vista"><button type="button" data-vista="editar" aria-pressed="true">Editar</button><button type="button" data-vista="previa" aria-pressed="false">Vista previa</button></div>' +
+    '<div class="grid"><div class="panel" id="panel"></div><div class="previa"><div class="previa-barra"><i></i><i></i><i></i><span id="previa-url"></span></div><div id="previa"></div></div></div>';
+  document.querySelectorAll("[data-vista]").forEach((b) => b.onclick = () => { document.body.dataset.vista = b.dataset.vista; document.querySelectorAll(".modo [data-vista]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); if (b.dataset.vista === "previa") pintarPrevia(); });
+  $("b-pub").onclick = abrirPublicar;
+  $("b-comp").onclick = abrirCompartir;
+  pintarPanel(); pintarPrevia(); pintarEstado();
+}
+function pintarEstado() {
+  const pub = paraPublicar(B, PL);
+  const cambios = PUB && canon(pub) !== canon(PUB);
+  $("estado").innerHTML = !PUB ? '<span class="estado"><i></i>Sin publicar</span>'
+    : cambios ? '<span class="estado cambios"><i></i>Publicada · hay cambios sin publicar</span>' : '<span class="estado vivo"><i></i>Publicada</span>';
+  $("b-pub").textContent = PUB ? "Publicar cambios" : "Publicar";
+  $("b-pub").disabled = RO || (PUB && !cambios);
+  $("previa-url").textContent = urlPublica().replace(/^https?:\/\//, "");
+}
+let tPrevia;
+const previaPronto = () => { clearTimeout(tPrevia); tPrevia = setTimeout(pintarPrevia, 250); };
+function pintarPrevia() {
+  const caja = $("previa"); if (!caja || (matchMedia("(max-width: 900px)").matches && document.body.dataset.vista !== "previa")) return;
+  const y = caja.scrollTop;
+  pintarVitrina(caja, paraPublicar(B, PL), { previa: true, fecha: hoy() });
+  caja.scrollTop = y;
+}
+
+/* ---------- panel ---------- */
+const sec = (k, titulo, extra, cuerpo) => '<details class="sec" data-sec="' + k + '"' + (abiertas.has(k) ? " open" : "") + "><summary>" + titulo + (extra ? " " + extra : "") + '</summary><div class="cuerpo">' + cuerpo + "</div></details>";
+function pintarPanel() {
+  const panel = $("panel"), y = panel.scrollTop;
+  const n = (a) => (a.length ? "<small>" + a.length + "</small>" : "");
+  panel.innerHTML =
+    '<div class="privado"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 1.5 2.5 3.6v4.1c0 3.2 2.3 6 5.5 6.8 3.2-.8 5.5-3.6 5.5-6.8V3.6L8 1.5Zm-.8 9.3L4.9 8.5l1-1 1.3 1.3 3-3 1 1-4 4Z"/></svg><span>Todo lo que traigas aquí es una <b>copia</b>. Tu Taller, tu bitácora y tus pizarras siguen privados, y lo que cambies después en ellos no aparece en la vitrina hasta que lo traigas y publiques.</span></div>' +
+    sec("portada", "Portada", "", portadaHTML()) +
+    sec("historia", "La historia", n(B.historia), historiaHTML()) +
+    sec("galeria", "Galería", n(B.galeria), galeriaHTML()) +
+    sec("mundo", "El mundo", PL.mas ? n(B.pizarras) : '<span class="tag">Forja Más</span>', mundoHTML()) +
+    sec("novedades", "Novedades", n(B.novedades), novedadesHTML()) +
+    sec("enlaces", "Dónde seguirlo", n(B.enlaces), enlacesHTML()) +
+    sec("publicacion", "Dirección y publicación", "", publicacionHTML());
+  panel.scrollTop = y;
+  enlazar();
+}
+function portadaHTML() {
+  const imgs = REFS.filter((r) => r.tipo === "imagen" && okUrl(r.valor));
+  const colRef = [...new Set(REFS.filter((r) => r.tipo === "color" && okColor(r.valor)).map((r) => r.valor.toLowerCase()))].slice(0, 8);
+  const acentos = [...new Set([ACENTO_TIPO[P.tipo] || ACENTO_TIPO.otro, ...colRef, "#2a3fd1", "#e0602f", "#0f7a4f", "#c2366b", "#7a3fc4", "#1b1d24"])];
+  return '<label class="c"><span>Título</span><input data-f="titulo" maxlength="160" value="' + esc(B.titulo) + '"></label>' +
+    '<label class="c"><span>Una frase que lo presente</span><textarea data-f="lema" maxlength="240" rows="2" style="min-height:58px" placeholder="Ej.: Un faro apagado, una ciudad bajo el agua y la capitana que bajará a buscarla.">' + esc(B.lema) + "</textarea></label>" +
+    '<label class="c"><span>Firma (cómo quieres aparecer)</span><input data-f="firma" maxlength="80" value="' + esc(B.firma) + '" placeholder="Tu nombre, tu estudio o tu colectivo"></label>' +
+    '<div class="c"><span>Imagen de portada (enlace)</span><input data-portada="url" type="url" inputmode="url" placeholder="https://… (enlace directo a la imagen)" value="' + esc(B.portada ? B.portada.url : "") + '"></div>' +
+    (imgs.length ? '<div class="c"><span>O elige una de tus referentes</span><div class="mini-imgs">' + imgs.map((r) => '<button type="button" data-portada-ref="' + esc(r.valor) + '" aria-pressed="' + (B.portada && B.portada.url === r.valor) + '" title="' + esc(r.titulo || "") + '"><img src="' + esc(r.valor) + '" alt="' + esc(r.titulo || "Referente") + '" loading="lazy" referrerpolicy="no-referrer"></button>').join("") + "</div></div>" : "") +
+    (B.portada ? '<label class="c"><span>Encuadre vertical de la portada</span><input data-portada="foco" type="range" min="0" max="100" value="' + B.portada.foco + '"></label><div><button type="button" class="btn chico" data-portada="quitar">Quitar la imagen</button></div>' : '<p class="ayuda">Sin imagen, la portada se dibuja con tus colores.</p>') +
+    '<div class="c"><span>Tono</span><div class="tonos">' + Object.entries(TONOS).map(([k, t]) => '<button type="button" data-tono="' + k + '" aria-pressed="' + (B.tono === k) + '" title="' + esc(t.d) + '"><span style="background:' + (k === "claro" ? "linear-gradient(90deg,#f5f4ef 60%,#16171c 60% 64%,#f5f4ef 64%)" : k === "noche" ? "linear-gradient(90deg,#111218 60%,#ecebe6 60% 64%,#111218 64%)" : "linear-gradient(90deg,#efe7d8 60%,#2a2219 60% 64%,#efe7d8 64%)") + '"></span><b>' + t.n + "</b></button>").join("") + "</div></div>" +
+    '<div class="c"><span>Color de acento' + (colRef.length ? " (incluye los de tus referentes)" : "") + '</span><div class="acentos">' + acentos.map((c) => '<button type="button" data-acento="' + c + '" aria-pressed="' + (B.acento === c) + '" style="background:' + c + '" aria-label="Color ' + c + '"></button>').join("") + '<label>Otro <input type="color" data-acento-libre value="' + B.acento + '"></label></div></div>';
+}
+function origen(h) { if (!h.de) return ""; const s = SECS.find((x) => x.id === h.de); return '<div class="origen">' + (s ? 'Copiado de «' + esc(s.titulo) + '» del Taller <button type="button" data-recopiar="' + h.id + '">Volver a copiar</button>' : "Copiado de una sección que ya no existe") + "</div>"; }
+function historiaHTML() {
+  const conTexto = SECS.filter((s) => (s.texto || "").trim());
+  return '<p class="ayuda">Cuenta tu proyecto en capítulos cortos. Puedes traer lo que ya escribiste en el Taller y pulirlo aquí, sin tocar el original.</p>' +
+    B.historia.map((h, i) => '<div class="bloque" data-bloque="' + h.id + '"><div class="bloque-cab"><input data-h="titulo" value="' + esc(h.titulo) + '" placeholder="Título del capítulo" aria-label="Título del capítulo ' + (i + 1) + '"><button type="button" class="ico" data-mover="historia:' + h.id + ':-1" aria-label="Subir"' + (i ? "" : " disabled") + '>↑</button><button type="button" class="ico" data-mover="historia:' + h.id + ':1" aria-label="Bajar"' + (i < B.historia.length - 1 ? "" : " disabled") + '>↓</button><button type="button" class="ico x" data-quitar="historia:' + h.id + '" aria-label="Quitar capítulo">×</button></div>' +
+      '<textarea data-h="texto" aria-label="Texto del capítulo ' + (i + 1) + '" placeholder="Separa los párrafos con una línea en blanco.">' + esc(h.texto) + "</textarea>" + origen(h) + "</div>").join("") +
+    '<div class="fila"><button type="button" class="btn chico" data-abrir="sel-taller" aria-expanded="false">Traer desde el Taller</button><button type="button" class="btn chico" data-nuevo="historia">+ Capítulo en blanco</button></div>' +
+    '<div class="selector" id="sel-taller" hidden>' + (conTexto.length ? conTexto.map((s) => { const ya = B.historia.some((h) => h.de === s.id); return '<button type="button" class="op" data-traer-sec="' + s.id + '"><span>' + esc(s.titulo) + "</span><small" + (ya ? ' class="ya"' : "") + ">" + (ya ? "✓ ya está · " : "") + palabrasDe(s.texto).toLocaleString("es-CL") + " palabras</small></button>"; }).join("") : '<p class="vacio">Aún no hay secciones con texto en el Taller.</p>') + "</div>";
+}
+function thumb(g) {
+  if (g.tipo === "imagen") return '<img src="' + esc(g.valor) + '" alt="" loading="lazy" referrerpolicy="no-referrer">';
+  if (g.tipo === "video" && yt(g.valor)) return '<img src="https://i.ytimg.com/vi/' + yt(g.valor) + '/default.jpg" alt="" loading="lazy">';
+  if (g.tipo === "color") return '<span style="display:block;width:100%;height:100%;background:' + g.valor + '"></span>';
+  return ({ video: "▶ Video", audio: "♪ Audio", cita: "“ Cita", enlace: "↗ Enlace" })[g.tipo] || g.tipo;
+}
+function galeriaHTML() {
+  return '<p class="ayuda">Imágenes, videos, música, citas y colores. Los colores se muestran juntos como la paleta del proyecto.</p>' +
+    B.galeria.map((g, i) => '<div class="pieza"><div class="th">' + thumb(g) + '</div><div class="campos">' +
+      (g.tipo === "cita" ? '<input data-g="valor" data-id="' + g.id + '" value="' + esc(g.valor) + '" aria-label="Texto de la cita">' : "") +
+      (g.tipo !== "color" ? '<input data-g="titulo" data-id="' + g.id + '" value="' + esc(g.titulo) + '" placeholder="Título (opcional)" aria-label="Título">' + '<input data-g="nota" data-id="' + g.id + '" value="' + esc(g.nota) + '" placeholder="Nota al pie (opcional)" aria-label="Nota">' : '<span style="font-family:var(--f-num);font-size:13px">' + g.valor.toUpperCase() + "</span>") +
+      '</div><div class="botones"><button type="button" class="ico" data-mover="galeria:' + g.id + ':-1" aria-label="Subir"' + (i ? "" : " disabled") + '>↑</button><button type="button" class="ico x" data-quitar="galeria:' + g.id + '" aria-label="Quitar">×</button></div></div>').join("") +
+    '<div class="fila"><button type="button" class="btn chico" data-abrir="sel-refs" aria-expanded="false">Traer de tus referentes</button></div>' +
+    '<div class="selector" id="sel-refs" hidden>' + (REFS.length ? REFS.map((r) => { const ya = B.galeria.some((g) => g.de === r.id); return '<label><input type="checkbox" data-ref="' + r.id + '"' + (ya ? " checked disabled" : "") + ">" + (r.tipo === "imagen" && okUrl(r.valor) ? '<img src="' + esc(r.valor) + '" alt="" referrerpolicy="no-referrer">' : "") + "<span>" + esc(r.titulo || (r.tipo === "cita" ? String(r.valor).slice(0, 40) : String(r.valor).replace(/^https?:\/\/(www\.)?/, "").slice(0, 40))) + "</span><small" + (ya ? ' class="ya"' : "") + ">" + (ya ? "✓ ya está" : r.tipo) + "</small></label>"; }).join("") + '<div style="padding:8px"><button type="button" class="btn chico prim" id="b-traer-refs">Agregar las marcadas</button></div>' : '<p class="vacio">Este proyecto aún no tiene referentes.</p>') + "</div>" +
+    '<label class="c"><span>O pega un enlace (imagen, YouTube, Vimeo, Spotify, SoundCloud) o un color #hex</span><span class="fila"><input id="g-nuevo" placeholder="https://…" style="flex:1;min-width:0;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:8px;padding:7px 9px"><button type="button" class="btn chico" id="b-g-nuevo">Agregar</button></span></label>';
+}
+function mundoHTML() {
+  if (!PL.mas) return '<div class="mas-bloq"><b>Muestra tu mundo para explorarlo</b><span>Con Forja Más, tus pizarras (relaciones, mapa del mundo, escaleta) se publican interactivas en la vitrina: quien la visita puede moverse por ellas y leer cada tarjeta. ' + esc(MAS_PRONTO) + '</span><span class="fila"><button type="button" class="fx-avisame" data-avisame="plan-mas">Avísame</button><a href="planes.html">Ver Forja Más</a></span></div>' +
+    (B.pizarras.length ? '<p class="aviso">Tienes ' + B.pizarras.length + " pizarra(s) en el borrador: no se incluyen al publicar en el plan gratis.</p>" : "");
+  return '<p class="ayuda">Elige qué pizarras mostrar. Se publica una copia tal como está ahora; puedes ocultar tarjetas o mostrar solo sus títulos.</p>' +
+    B.pizarras.map((z) => {
+      const ts = (z.datos.tarjetas || []), ocultas = new Set(z.ocultas), orig = PIZ.find((x) => x.id === z.id);
+      return '<div class="bloque"><div class="bloque-cab"><input data-z="nombre" data-id="' + z.id + '" value="' + esc(z.nombre) + '" aria-label="Nombre de la pizarra en la vitrina"><button type="button" class="ico x" data-quitar="pizarras:' + z.id + '" aria-label="Quitar pizarra">×</button></div>' +
+        '<span class="origen">' + MODOS[z.modo].n + " · " + ts.length + " tarjetas" + (z.tomada ? " · copia del " + esc(z.tomada.split("-").reverse().join("-")) : "") + (orig ? ' <button type="button" data-retomar="' + z.id + '">Volver a copiar la pizarra</button>' : " · la pizarra original ya no existe") + "</span>" +
+        '<label class="check"><input type="checkbox" data-solo="' + z.id + '"' + (z.soloTitulos ? " checked" : "") + "> Mostrar solo los títulos (sin las notas de cada tarjeta)</label>" +
+        (ts.length ? '<div class="c"><span>Toca una tarjeta para ocultarla o mostrarla</span><div class="chips">' + ts.map((t) => '<button type="button" data-ocultar="' + z.id + ":" + t.id + '" aria-pressed="' + !ocultas.has(t.id) + '">' + esc(t.titulo || "sin título") + "</button>").join("") + "</div></div>" : "") + "</div>";
+    }).join("") +
+    (PIZ.filter((x) => !B.pizarras.some((z) => z.id === x.id)).length ? '<label class="c"><span>Agregar una pizarra</span><select id="z-nueva"><option value="">Elegir…</option>' + PIZ.filter((x) => !B.pizarras.some((z) => z.id === x.id)).map((x) => '<option value="' + x.id + '">' + esc(x.nombre) + " · " + MODOS[x.modo].corto + "</option>").join("") + "</select></label>" : PIZ.length ? "" : '<p class="ayuda">Este proyecto aún no tiene pizarras.</p>');
+}
+function novedadesHTML() {
+  return '<p class="ayuda">Un diario de avance que se escribe a propósito para el público. La bitácora sigue siendo privada; si quieres, puedes partir desde una nota y editarla antes de publicar.</p>' +
+    B.novedades.map((nv) => '<div class="bloque"><div class="bloque-cab"><input type="date" data-n="fecha" data-id="' + nv.id + '" value="' + esc(nv.fecha) + '" style="flex:none;width:auto;font-family:var(--f-num);font-weight:500;font-size:13px" aria-label="Fecha"><input data-n="titulo" data-id="' + nv.id + '" value="' + esc(nv.titulo) + '" placeholder="Título de la novedad" aria-label="Título"><button type="button" class="ico x" data-quitar="novedades:' + nv.id + '" aria-label="Quitar novedad">×</button></div><textarea data-n="texto" data-id="' + nv.id + '" placeholder="Qué avanzó, qué viene…" aria-label="Texto">' + esc(nv.texto) + "</textarea></div>").join("") +
+    '<div class="fila"><button type="button" class="btn chico" data-nuevo="novedades">+ Escribir una novedad</button><button type="button" class="btn chico" data-abrir="sel-notas" aria-expanded="false">Partir desde la bitácora</button></div>' +
+    '<div class="selector" id="sel-notas" hidden>' + (NOTAS.length ? NOTAS.map((nt) => '<button type="button" class="op" data-nota="' + nt.id + '"><span>' + esc(String(nt.texto).split("\n")[0].slice(0, 70)) + "</span><small>" + esc(String(nt.creado_en).slice(0, 10).split("-").reverse().join("-")) + "</small></button>").join("") : '<p class="vacio">La bitácora está vacía.</p>') + "</div>";
+}
+function enlacesHTML() {
+  return '<p class="ayuda">Redes, demo, tienda, itch.io… Lo que quieras que la gente visite.</p>' +
+    B.enlaces.map((e) => '<div class="bloque"><div class="bloque-cab"><input data-e="nombre" data-id="' + e.id + '" value="' + esc(e.nombre) + '" placeholder="Nombre (ej.: Instagram)" aria-label="Nombre del enlace"><button type="button" class="ico x" data-quitar="enlaces:' + e.id + '" aria-label="Quitar enlace">×</button></div><input data-e="url" data-id="' + e.id + '" type="url" inputmode="url" value="' + esc(e.url) + '" placeholder="https://…" aria-label="Dirección" style="font:inherit;font-size:13px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:8px;padding:6px 8px">' + (e.url && !okUrl(e.url) ? '<span class="origen" style="color:var(--bad)">Debe empezar con https://</span>' : "") + "</div>").join("") +
+    '<div class="fila"><button type="button" class="btn chico" data-nuevo="enlaces">+ Enlace</button></div>';
+}
+function publicacionHTML() {
+  return '<label class="c"><span>Dirección de la vitrina</span><span class="dir"><span>vitrina.html?v=</span><input id="slug" value="' + esc(V.slug) + '" maxlength="60" spellcheck="false" autocapitalize="off"></span></label>' +
+    '<div class="fila"><button type="button" class="btn chico" id="b-slug">Cambiar dirección</button><span class="ayuda" id="slug-msg">Solo minúsculas, números y guiones.</span></div>' +
+    (V.anterior ? '<div class="fila"><button type="button" class="btn chico" id="b-anterior">Cargar la versión publicada anterior en el borrador</button></div>' : "") +
+    (PUB ? '<div class="fila"><button type="button" class="btn chico peligro" id="b-despub">Despublicar</button><span class="ayuda">La vitrina deja de verse; el borrador se conserva.</span></div>' : "");
+}
+
+/* ---------- acciones del panel ---------- */
+const lista = (k) => B[k];
+function enlazar() {
+  const panel = $("panel");
+  panel.querySelectorAll("details.sec").forEach((d) => d.addEventListener("toggle", () => { d.open ? abiertas.add(d.dataset.sec) : abiertas.delete(d.dataset.sec); try { localStorage.setItem("forja-vt-abiertas", JSON.stringify([...abiertas])); } catch (e) {} }));
+  panel.querySelectorAll("[data-f]").forEach((i) => i.oninput = () => { B[i.dataset.f] = i.value; cambio(); });
+  const pu = panel.querySelector('[data-portada="url"]');
+  if (pu) pu.onchange = () => { const u = pu.value.trim(); if (u && !okUrl(u)) { toast("La imagen debe ser un enlace que empiece con https://"); return; } B.portada = u ? { url: u, foco: B.portada ? B.portada.foco : 50 } : null; cambio(true); };
+  panel.querySelectorAll("[data-portada-ref]").forEach((b) => b.onclick = () => { B.portada = { url: b.dataset.portadaRef, foco: B.portada ? B.portada.foco : 50 }; cambio(true); });
+  const foco = panel.querySelector('[data-portada="foco"]'); if (foco) foco.oninput = () => { B.portada.foco = +foco.value; cambio(); };
+  const qp = panel.querySelector('[data-portada="quitar"]'); if (qp) qp.onclick = () => { B.portada = null; cambio(true); };
+  panel.querySelectorAll("[data-tono]").forEach((b) => b.onclick = () => { B.tono = b.dataset.tono; cambio(true); });
+  panel.querySelectorAll("[data-acento]").forEach((b) => b.onclick = () => { B.acento = b.dataset.acento; cambio(true); });
+  const al = panel.querySelector("[data-acento-libre]"); if (al) al.onchange = () => { B.acento = al.value.toLowerCase(); cambio(true); };
+  panel.querySelectorAll("[data-abrir]").forEach((b) => b.onclick = () => { const s = $(b.dataset.abrir); s.hidden = !s.hidden; b.setAttribute("aria-expanded", String(!s.hidden)); });
+  // historia
+  panel.querySelectorAll("[data-bloque]").forEach((el) => { const h = B.historia.find((x) => x.id === el.dataset.bloque); el.querySelectorAll("[data-h]").forEach((i) => i.oninput = () => { h[i.dataset.h] = i.value; cambio(); }); });
+  panel.querySelectorAll("[data-traer-sec]").forEach((b) => b.onclick = () => { const s = SECS.find((x) => x.id === b.dataset.traerSec); B.historia.push({ id: uid(), titulo: s.titulo, texto: s.texto || "", de: s.id }); abiertas.add("historia"); cambio(true); toast("«" + s.titulo + "» copiado. Puedes editarlo aquí."); });
+  panel.querySelectorAll("[data-recopiar]").forEach((b) => b.onclick = () => {
+    const h = B.historia.find((x) => x.id === b.dataset.recopiar), s = SECS.find((x) => x.id === h.de);
+    if (b.dataset.seguro !== "1") { b.dataset.seguro = "1"; b.textContent = "¿Reemplazar lo que editaste aquí? Toca de nuevo"; return; }
+    h.texto = s.texto || ""; h.titulo = h.titulo || s.titulo; cambio(true);
+  });
+  // galería
+  panel.querySelectorAll("[data-g]").forEach((i) => i.oninput = () => { const g = B.galeria.find((x) => x.id === i.dataset.id); g[i.dataset.g] = i.value; cambio(); });
+  const tr = $("b-traer-refs"); if (tr) tr.onclick = () => {
+    const marcadas = [...panel.querySelectorAll("[data-ref]:checked:not(:disabled)")].map((c) => REFS.find((r) => r.id === c.dataset.ref));
+    if (!marcadas.length) { toast("Marca al menos un referente."); return; }
+    marcadas.forEach((r) => B.galeria.push({ id: uid(), tipo: r.tipo, valor: r.tipo === "color" ? String(r.valor).toLowerCase() : r.valor, titulo: r.tipo === "enlace" ? r.titulo || "" : r.titulo || "", nota: r.nota || "", de: r.id }));
+    cambio(true); toast(marcadas.length === 1 ? "Agregado a la galería" : marcadas.length + " referentes agregados a la galería");
+  };
+  const gn = $("b-g-nuevo"); if (gn) gn.onclick = () => {
+    const v = $("g-nuevo").value.trim(), d = detectar(v);
+    if (!d) { toast(v ? "Pega un enlace que empiece con https:// o un color como #2a9d8f" : "Pega un enlace o un color."); return; }
+    B.galeria.push({ id: uid(), ...d, titulo: "", nota: "" }); cambio(true);
+  };
+  // mundo
+  panel.querySelectorAll("[data-z]").forEach((i) => i.oninput = () => { B.pizarras.find((x) => x.id === i.dataset.id).nombre = i.value; cambio(); });
+  panel.querySelectorAll("[data-solo]").forEach((c) => c.onchange = () => { B.pizarras.find((x) => x.id === c.dataset.solo).soloTitulos = c.checked; cambio(); });
+  panel.querySelectorAll("[data-ocultar]").forEach((b) => b.onclick = () => {
+    const [zid, tid] = b.dataset.ocultar.split(":"), z = B.pizarras.find((x) => x.id === zid), s = new Set(z.ocultas);
+    s.has(tid) ? s.delete(tid) : s.add(tid); z.ocultas = [...s]; b.setAttribute("aria-pressed", String(!s.has(tid))); cambio();
+  });
+  panel.querySelectorAll("[data-retomar]").forEach((b) => b.onclick = () => { const z = B.pizarras.find((x) => x.id === b.dataset.retomar), o = PIZ.find((x) => x.id === z.id); z.datos = JSON.parse(JSON.stringify(o.datos || {})); z.modo = o.modo; z.tomada = hoy(); cambio(true); toast("Copia actualizada con la pizarra de hoy"); });
+  const zn = $("z-nueva"); if (zn) zn.onchange = () => { const o = PIZ.find((x) => x.id === zn.value); if (!o) return; B.pizarras.push({ id: o.id, nombre: o.nombre, modo: o.modo, soloTitulos: false, ocultas: [], datos: JSON.parse(JSON.stringify(o.datos || {})), tomada: hoy() }); cambio(true); };
+  // novedades y enlaces
+  panel.querySelectorAll("[data-n]").forEach((i) => i.oninput = () => { B.novedades.find((x) => x.id === i.dataset.id)[i.dataset.n] = i.value; cambio(); });
+  panel.querySelectorAll("[data-nota]").forEach((b) => b.onclick = () => { const nt = NOTAS.find((x) => x.id === b.dataset.nota), l = String(nt.texto).split("\n"); B.novedades.unshift({ id: uid(), fecha: String(nt.creado_en).slice(0, 10), titulo: l[0].slice(0, 120), texto: l.slice(1).join("\n").trim() }); cambio(true); toast("Copiada como borrador de novedad: revísala antes de publicar."); });
+  panel.querySelectorAll("[data-e]").forEach((i) => { i.oninput = () => { B.enlaces.find((x) => x.id === i.dataset.id)[i.dataset.e] = i.value; cambio(); }; if (i.dataset.e === "url") i.onchange = () => pintarPanel(); });
+  panel.querySelectorAll("[data-nuevo]").forEach((b) => b.onclick = () => {
+    const k = b.dataset.nuevo;
+    if (k === "historia") B.historia.push({ id: uid(), titulo: "", texto: "" });
+    if (k === "novedades") B.novedades.unshift({ id: uid(), fecha: hoy(), titulo: "", texto: "" });
+    if (k === "enlaces") B.enlaces.push({ id: uid(), nombre: "", url: "" });
+    cambio(true);
+    requestAnimationFrame(() => { const s = $("panel").querySelector('[data-sec="' + k + '"]'), i = k === "novedades" ? s.querySelector("[data-n=titulo]") : k === "enlaces" ? [...s.querySelectorAll("[data-e=nombre]")].pop() : [...s.querySelectorAll("[data-h=titulo]")].pop(); if (i) i.focus(); });
+  });
+  panel.querySelectorAll("[data-mover]").forEach((b) => b.onclick = () => { const [k, id, d] = b.dataset.mover.split(":"), l = lista(k), i = l.findIndex((x) => x.id === id), j = i + +d; if (j < 0 || j >= l.length) return; [l[i], l[j]] = [l[j], l[i]]; cambio(true); });
+  panel.querySelectorAll("[data-quitar]").forEach((b) => b.onclick = () => { const [k, id] = b.dataset.quitar.split(":"); B[k] = B[k].filter((x) => x.id !== id); cambio(true); });
+  // dirección y publicación
+  $("b-slug").onclick = cambiarSlug;
+  $("slug").onkeydown = (e) => { if (e.key === "Enter") cambiarSlug(); };
+  const an = $("b-anterior"); if (an) an.onclick = () => {
+    if (an.dataset.seguro !== "1") { an.dataset.seguro = "1"; an.textContent = "¿Reemplazar el borrador actual? Toca de nuevo"; return; }
+    const pizarras = B.pizarras; B = normal(V.anterior); if (!B.pizarras.length) B.pizarras = pizarras; cambio(true); toast("Versión anterior cargada en el borrador. Revísala y publica si quieres volver a ella.");
+  };
+  const dp = $("b-despub"); if (dp) dp.onclick = async () => {
+    if (dp.dataset.seguro !== "1") { dp.dataset.seguro = "1"; dp.textContent = "Sí, despublicar"; return; }
+    const { error } = await sb.rpc("despublicar_vitrina", { v: V.id });
+    if (error) { toast(limite(error) || "No se pudo despublicar."); return; }
+    V.anterior = PUB; PUB = null; V.publicada = false; pintarEstado(); pintarPanel(); toast("Vitrina despublicada. El borrador sigue aquí.");
+  };
+  activarAvisame(panel);
+}
+async function cambiarSlug() {
+  const v = $("slug").value.trim().toLowerCase(), msg = $("slug-msg");
+  if (v === V.slug) { msg.textContent = "Esa ya es su dirección."; return; }
+  if (!/^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$/.test(v)) { msg.textContent = "Usa de 3 a 60 caracteres: minúsculas, números y guiones (sin empezar ni terminar con guion)."; msg.style.color = "var(--bad)"; return; }
+  const { error } = await sb.from("vitrinas").update({ slug: v }).eq("id", V.id);
+  if (error) { msg.textContent = /duplicate|unique|23505/i.test(error.message + (error.code || "")) ? "Esa dirección ya la usa otra vitrina." : "No se pudo cambiar la dirección."; msg.style.color = "var(--bad)"; return; }
+  V.slug = v; msg.style.color = ""; msg.textContent = PUB ? "Listo. El enlace anterior ya no funciona: compártelo de nuevo." : "Dirección cambiada."; pintarEstado();
+}
+
+/* ---------- publicar y compartir ---------- */
+function abrirPublicar() {
+  const d = paraPublicar(B, PL), n = (x, s, p) => x ? "<span>" + x + " " + (x === 1 ? s : p) + "</span>" : "";
+  const fotos = d.galeria.length, quitadas = !PL.mas && B.pizarras.length;
+  $("dlg-pub-c").innerHTML = "<h2>" + (PUB ? "Publicar los cambios" : "Publicar la vitrina") + "</h2>" +
+    "<p>Lo que publiques lo puede ver <b>cualquier persona con el enlace</b>. Tu Taller, tu bitácora y tus pizarras siguen privados: solo se muestra lo que está en esta vitrina.</p>" +
+    '<div class="resumen"><span>Portada' + (d.portada ? " con imagen" : "") + "</span>" + n(d.historia.length, "capítulo", "capítulos") + n(fotos, "pieza en la galería", "piezas en la galería") + n(d.pizarras.length, "pizarra", "pizarras") + n(d.novedades.length, "novedad", "novedades") + n(d.enlaces.length, "enlace", "enlaces") + "</div>" +
+    (quitadas ? '<p class="aviso">Las pizarras no se incluyen en el plan gratis.</p>' : "") +
+    (!d.historia.length && !fotos && !d.novedades.length ? '<p class="aviso">La vitrina está casi vacía: considera agregar la historia o algunas imágenes antes de compartirla.</p>' : "") +
+    '<p class="ayuda" style="margin:0;font-size:13px;color:var(--muted)">Dirección: ' + esc(urlPublica()) + "</p>" +
+    '<div class="dlg-pie"><button type="button" class="btn" id="pub-no">Cancelar</button><button type="button" class="btn prim" id="pub-si">Publicar ahora</button></div>';
+  $("dlg-pub").showModal();
+  $("pub-no").onclick = () => $("dlg-pub").close();
+  $("pub-si").onclick = async () => {
+    $("pub-si").disabled = true;
+    if (pendiente) await guardar();
+    const { error } = await sb.rpc("publicar_vitrina", { v: V.id, datos: d });
+    $("dlg-pub").close();
+    if (error) { toast(limite(error) || "No se pudo publicar. Revisa tu conexión."); return; }
+    const primera = !PUB; V.anterior = PUB || V.anterior; PUB = d; V.publicada = true;
+    pintarEstado(); pintarPanel(); toast(primera ? "¡Tu vitrina está publicada!" : "Cambios publicados");
+    if (primera) abrirCompartir();
+  };
+}
+function abrirCompartir() {
+  const u = urlPublica();
+  $("dlg-comp-c").innerHTML = "<h2>Compartir la vitrina</h2>" +
+    (PUB ? "" : '<p class="aviso">Todavía no está publicada: el enlace mostrará "no está publicada" hasta que publiques.</p>') +
+    '<div class="enlace-pub"><input id="comp-url" readonly value="' + esc(u) + '" aria-label="Enlace de la vitrina"><button type="button" class="btn" id="comp-copiar">Copiar</button></div>' +
+    '<div class="qr"><div class="qr-img" id="qr">Generando QR…</div><div style="display:flex;flex-direction:column;gap:8px"><b style="font-family:var(--f-display)">Código QR</b><span class="ayuda" style="font-size:13px;color:var(--muted);max-width:26ch">Para imprimir en tu stand, tus cartas o tu tarjeta en ferias.</span><span class="fila"><button type="button" class="btn chico" id="qr-png" disabled>Descargar PNG</button><button type="button" class="btn chico" id="qr-svg" disabled>SVG</button></span></div></div>' +
+    '<div class="dlg-pie">' + (PUB ? '<a class="btn" href="' + esc(u) + '" target="_blank" rel="noopener">Abrir la vitrina ↗</a>' : "") + '<button type="button" class="btn prim" id="comp-ok">Listo</button></div>';
+  $("dlg-comp").showModal();
+  $("comp-ok").onclick = () => $("dlg-comp").close();
+  $("comp-copiar").onclick = async () => { try { await navigator.clipboard.writeText(u); toast("Enlace copiado"); } catch (e) { $("comp-url").select(); toast("Selecciónalo y cópialo"); } };
+  hacerQR(u);
+}
+function cargarQR() {
+  if (window.qrcode) return Promise.resolve(window.qrcode);
+  return new Promise((ok, mal) => { const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"; s.onload = () => (window.qrcode ? ok(window.qrcode) : mal()); s.onerror = mal; document.head.appendChild(s); });
+}
+async function hacerQR(u) {
+  try {
+    const qrcode = await cargarQR(), q = qrcode(0, "M"); q.addData(u); q.make();
+    const svg = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+    $("qr").innerHTML = svg;
+    const nombre = "vitrina-" + V.slug;
+    $("qr-svg").disabled = false; $("qr-png").disabled = false;
+    $("qr-svg").onclick = () => bajar(new Blob([svg], { type: "image/svg+xml" }), nombre + ".svg");
+    $("qr-png").onclick = () => {
+      const n = q.getModuleCount() + 4, k = Math.ceil(1024 / n), c = document.createElement("canvas"); c.width = c.height = n * k;
+      const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.fillStyle = "#000";
+      for (let r = 0; r < q.getModuleCount(); r++) for (let cc = 0; cc < q.getModuleCount(); cc++) if (q.isDark(r, cc)) x.fillRect((cc + 2) * k, (r + 2) * k, k, k);
+      c.toBlob((b) => bajar(b, nombre + ".png"));
+    };
+  } catch (e) { $("qr").textContent = "No se pudo generar el QR ahora. Revisa tu conexión."; }
+}
+function bajar(blob, nombre) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+</script>
+</body>
+</html>

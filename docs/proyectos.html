@@ -90,6 +90,7 @@ button{cursor:pointer}
 .skeleton{height:140px;border-radius:14px;background:linear-gradient(90deg,var(--card),var(--field),var(--card));background-size:200% 100%;animation:sk 1.2s linear infinite}
 @keyframes sk{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.skeleton{animation:none}.tile{transition:none}}
+.en-vitrina{align-self:flex-start;font-size:11.5px;font-weight:700;color:var(--good);letter-spacing:.02em}
 </style>
 </head>
 <body>
@@ -118,10 +119,12 @@ conSesion($("app"), async () => {
   ESP = await espacio();
   if (!ESP) throw new Error("sin espacio");
   PL = await plan();
-  const [p, se] = await Promise.all([
+  const [p, se, vi] = await Promise.all([
     sb.from("proyectos").select("id,nombre,tipo,estado,resumen,ejes,formato,actualizado_en").eq("espacio_id", ESP).order("actualizado_en", { ascending: false }),
     sb.from("secciones").select("proyecto_id,avance,peso").eq("espacio_id", ESP),
+    sb.from("vitrinas").select("proyecto_id,publicada").eq("espacio_id", ESP),
   ]);
+  (vi.data || []).forEach((v) => { if (v.publicada) VIT.add(v.proyecto_id); });
   const por = {}; (se.data || []).forEach((x) => (por[x.proyecto_id] = por[x.proyecto_id] || []).push(x));
   Object.keys(por).forEach((k) => { AV[k] = avance(por[k]); });
   if (p.error) throw p.error;
@@ -200,11 +203,12 @@ function proyectos() {
   dibujar();
 }
 
+const VIT = new Set(); // proyectos con vitrina publicada
 function tile(p) {
   const elegido = FORMATOS.find((f) => f.k === p.formato), av = AV[p.id] || 0, ro = !editable(p, activos(), PL);
   return '<a class="tile e-' + p.estado + '" href="proyecto.html?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')">' +
     '<span class="arriba"><span class="k">' + esc(TIPOS[p.tipo]) + (elegido && elegido.n !== TIPOS[p.tipo] ? " · " + esc(elegido.n) : "") + '</span><span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span>" +
-    "<h3>" + (ro ? '<svg class="candado" viewBox="0 0 16 16" width="15" height="15" aria-label="Solo lectura" role="img"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' : "") + esc(p.nombre) + "</h3>" + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") +
+    "<h3>" + (ro ? '<svg class="candado" viewBox="0 0 16 16" width="15" height="15" aria-label="Solo lectura" role="img"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' : "") + esc(p.nombre) + "</h3>" + (VIT.has(p.id) ? '<span class="en-vitrina">● En vitrina</span>' : "") + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") +
     '<span class="pie"><span class="av"><span class="fx-avance" role="img" aria-label="Avance ' + av + '%"><i style="width:' + av + '%"></i></span><b>' + av + '%</b></span><span>' + hace(p.actualizado_en) + "</span></span></a>";
 }
 

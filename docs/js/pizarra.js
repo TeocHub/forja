@@ -146,7 +146,7 @@ export function montar(raiz, o) {
         '<span class="pz-traer-w">' + b("traer", "Traer del proyecto", ' aria-expanded="false"') + "</span>" +
         '<span class="pz-sep"></span>' + b("deshacer", '<span aria-hidden="true">↶</span>', ' aria-label="Deshacer" title="Deshacer (Ctrl+Z)"' + (hist.length ? "" : " disabled")) + b("rehacer", '<span aria-hidden="true">↷</span>', ' aria-label="Rehacer" title="Rehacer"' + (rehacer.length ? "" : " disabled")) +
         (ES && o.ordenarTaller && D.tarjetas.some((t) => t.enlace && t.enlace.t === "s") ? b("taller", "Ordenar el Taller así", ' title="Las secciones enlazadas quedan en el orden de la escaleta"') : "")
-      : '<span class="pz-ro">Solo lectura</span>') +
+      : o.publico ? "" : '<span class="pz-ro">Solo lectura</span>') +
       '<span class="pz-der">' + conteo + (ed ? '<span class="pz-estado" aria-live="polite">' + (pendiente ? "Guardando…" : "Guardado") + "</span>" : "") +
       '<button type="button" class="pz-b pz-libre" data-b="full" aria-pressed="' + root.classList.contains("pz-full") + '">' + (root.classList.contains("pz-full") ? "Salir" : "Pantalla completa") + "</button></span>";
     barra.querySelectorAll("[data-b]").forEach((x) => x.onclick = () => accion(x.dataset.b, x));
@@ -309,7 +309,7 @@ export function montar(raiz, o) {
     const p = root.querySelector(".pz-zpct"); if (p) p.textContent = Math.round(V.z * 100) + "%";
     guardarVista();
   }
-  const guardarVista = debounceL(() => { try { localStorage.setItem(claveVista, JSON.stringify(V)); } catch (e) {} }, 400);
+  const guardarVista = debounceL(() => { if (o.publico) return; try { localStorage.setItem(claveVista, JSON.stringify(V)); } catch (e) {} }, 400);
   function aWorld(cx, cy) { const r = lienzo.getBoundingClientRect(); return [(cx - r.left - V.x) / V.z, (cy - r.top - V.y) / V.z]; }
   function centro() { if (!lienzo) return [0, 0]; const r = lienzo.getBoundingClientRect(); return aWorld(r.left + r.width / 2, r.top + r.height / 2); }
   function zoomEn(cx, cy, f) {
@@ -454,6 +454,7 @@ export function montar(raiz, o) {
   function pintarInsp() {
     const ro = ed ? "" : " disabled";
     const s = sel;
+    if (o.publico) { aside.innerHTML = fichaPublica(s); aside.querySelectorAll("[data-sf]").forEach((b) => b.onclick = () => seleccionar({ k: "f", id: b.dataset.sf })); aside.querySelectorAll("[data-st]").forEach((b) => b.onclick = () => seleccionar({ k: "t", id: b.dataset.st })); const x = aside.querySelector("[data-i=cerrar]"); if (x) x.onclick = () => seleccionar(null); return; }
     if (!s) { aside.innerHTML = inspGeneral(); enlazarInsp(); return; }
     if (s.k === "t") {
       const t = T(s.id); if (!t) { sel = null; pintarInsp(); return; }
@@ -493,6 +494,23 @@ export function montar(raiz, o) {
           '<div class="pz-i-pie"><span class="pz-tip">' + (D.actos.length > 1 ? "Al borrarlo, sus escenas pasan al acto vecino." : "") + '</span><button type="button" class="pz-b peligro" data-i="borrar"' + (D.actos.length > 1 ? "" : " disabled") + ">Borrar acto</button></div>" : "");
     }
     enlazarInsp();
+  }
+  // Para quien visita una vitrina: lo elegido se lee como ficha, sin formularios.
+  function fichaPublica(s) {
+    const cab = (t) => '<div class="pz-i-cab"><span>' + t + "</span>" + (s ? '<button type="button" class="pz-x" data-i="cerrar" aria-label="Cerrar">×</button>' : "") + "</div>";
+    if (s && s.k === "t") {
+      const t = T(s.id); if (!t) return "";
+      const rel = D.flechas.filter((f) => f.de === t.id || f.a === t.id);
+      return cab(NOMBRE_T[modo] + (ES ? " " + (D.tarjetas.indexOf(t) + 1) : "")) + '<div class="pz-ficha"' + (okColor(t.color) ? ' style="--c:' + t.color + '"' : "") + "><h3>" + esc(t.titulo || "Sin título") + "</h3>" + (t.sub ? '<p class="pz-sub">' + esc(t.sub) + "</p>" : "") +
+        (t.texto ? String(t.texto).split(/\n\s*\n/).map((p) => "<p>" + esc(p).replace(/\n/g, "<br>") + "</p>").join("") : "") + (ES && num(t.min, 0) ? '<p class="pz-sub">' + minTxt(num(t.min, 0)) + "</p>" : "") + "</div>" +
+        (rel.length ? '<div class="pz-rel"><span>' + (modo === "relaciones" ? "Lazos" : modo === "mapa" ? "Rutas" : "Conexiones") + "</span>" + rel.map((f) => { const otro = T(f.de === t.id ? f.a : f.de), st = estiloFlecha(f, modo); return '<button type="button" data-st="' + otro.id + '"' + (st.color ? ' style="--lc:' + st.color + '"' : "") + "><i></i>" + (st.texto ? esc(st.texto) + " · " : "") + esc(otro.titulo || "sin título") + "</button>"; }).join("") + "</div>" : "");
+    }
+    if (s && s.k === "f") { const f = D.flechas.find((x) => x.id === s.id), a = T(f.de), b = T(f.a), st = estiloFlecha(f, modo), dir = f.dir || dirDef(modo);
+      return cab(modo === "relaciones" ? "Lazo" : modo === "mapa" ? "Ruta" : "Conexión") + '<p class="pz-de"><button type="button" data-st="' + a.id + '">' + esc(a.titulo || "sin título") + "</button> <b>" + (dir === "ambas" ? "↔" : dir === "nada" ? "—" : "→") + '</b> <button type="button" data-st="' + b.id + '">' + esc(b.titulo || "sin título") + "</button></p>" + (st.texto ? '<p class="pz-lazo-txt" style="--lc:' + (st.color || "var(--muted)") + '">' + esc(st.texto) + "</p>" : ""); }
+    if (s && s.k === "r") { const r = D.regiones.find((x) => x.id === s.id); return cab("Región") + '<div class="pz-ficha"><h3>' + esc(r.nombre || "Región") + "</h3></div>"; }
+    if (s && s.k === "a") { const a = D.actos.find((x) => x.id === s.id); return cab("Acto") + '<div class="pz-ficha"><h3>' + esc(a.n || "Acto") + "</h3></div>"; }
+    const n = D.tarjetas.length;
+    return cab(MODOS[modo].n) + '<p class="pz-resumen"><b>' + n + "</b> " + (n === 1 ? NOMBRE_T[modo].toLowerCase() : PLURAL[modo]) + (ES ? minTotal() : "") + '</p><div class="pz-ayuda"><p>' + (ES ? "Toca una escena para leerla." : "Toca " + (modo === "relaciones" ? "un personaje" : modo === "mapa" ? "un lugar" : "una tarjeta") + " para leerla.") + "</p>" + (ES ? "" : "<p>" + (matchMedia("(pointer: coarse)").matches ? "Arrastra para moverte; pellizca para acercar." : "Arrastra para moverte; la rueda acerca.") + "</p>") + "</div>";
   }
   function campo(k, label, v, ro, ph) { return '<label class="pz-c"><span>' + label + '</span><input data-campo="' + k + '" maxlength="' + (k === "titulo" || k === "nombre" || k === "n" ? 120 : 200) + '" value="' + esc(v || "") + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : "") + ro + "></label>"; }
   function colores(actual, ro, sinVacio) {
@@ -662,7 +680,7 @@ export function montar(raiz, o) {
   /* ----- arranque ----- */
   pintarBarra(); todo();
   if (lienzo) {
-    let guardada = null; try { guardada = JSON.parse(localStorage.getItem(claveVista) || "null"); } catch (e) {}
+    let guardada = null; if (!o.publico) try { guardada = JSON.parse(localStorage.getItem(claveVista) || "null"); } catch (e) {} // en una vitrina siempre se parte viendo todo
     requestAnimationFrame(() => { medir(); pintarLineas(); if (guardada && Number.isFinite(guardada.z)) { V = guardada; aplicarVista(); } else verTodo(); });
     if (D.fondo) mundo.querySelector(".pz-fondo").addEventListener("load", () => { if (!guardada) verTodo(); }, { once: true });
   }
@@ -860,6 +878,11 @@ html.pz-sin-scroll,html.pz-sin-scroll body{overflow:hidden}
 .pz-i-pie{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:2px;padding-top:10px;border-top:1px solid var(--line)}
 .pz-mover{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .pz-tip{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
+.pz-ficha{display:flex;flex-direction:column;gap:6px;border-left:4px solid var(--c,var(--line));padding-left:12px}
+.pz-ficha h3{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0}
+.pz-ficha p{margin:0;font-size:14.5px;line-height:1.55;overflow-wrap:anywhere}
+.pz-de button{font:inherit;border:0;background:none;color:var(--fg);padding:0;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.pz-lazo-txt{margin:0;font-size:15px;color:var(--lc);font-weight:700}
 .pz-tip.pz-mal{color:var(--bad);font-weight:700}
 .pz-ayuda{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);line-height:1.45;border-top:1px dashed var(--line);padding-top:10px}
 .pz-ayuda p{margin:0}

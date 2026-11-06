@@ -107,6 +107,8 @@ const MSG = {
   FORJA_LIMITE_TARJETAS: "El plan gratis permite 20 tarjetas por pizarra. Quita una para agregar otra.",
   FORJA_SOLO_MAS: "Esta pizarra es de Forja Más: puedes verla o borrarla.",
   FORJA_PIZARRA_GRANDE: "La pizarra es demasiado grande para guardarla. Divídela en dos.",
+  FORJA_VITRINA_GRANDE: "La vitrina es demasiado grande para publicarla. Quita algunas piezas o pizarras.",
+  FORJA_NO_PERMITIDO: "No tienes permiso para hacer eso.",
 };
 export function limite(error) { const m = error && (error.message || ""); const k = Object.keys(MSG).find((c) => m.includes(c)); return k ? MSG[k] : null; }
 // Tarjeta "Próximamente" de una función de Forja Más, con botón "Avísame" que guarda el interés.

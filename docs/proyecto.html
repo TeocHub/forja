@@ -52,6 +52,18 @@ button{cursor:pointer}
 .pronto-cab b{font-family:var(--f-display);font-size:15px}
 .pronto-cab a{font-size:13px}
 .pronto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+/* vitrina */
+.vit-vivo{font-size:13px;font-weight:700;color:var(--good)}
+.vit-hero{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:20px;align-items:center}
+.vit-acc{display:flex;gap:8px;flex-wrap:wrap}
+.vit-acc .btn{text-decoration:none;display:inline-flex;align-items:center}
+.vit-ilus{width:100%;height:auto}
+.vit-ilus rect{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+.vit-ilus .h{fill:color-mix(in srgb,var(--tc,var(--accent)) 22%,var(--card));stroke:none}
+.vit-ilus .t{fill:var(--tc,var(--accent));stroke:none}
+.vit-ilus .l{fill:var(--line);stroke:none}
+.vit-ilus .g{fill:color-mix(in srgb,var(--tc,var(--accent)) 12%,var(--field));stroke:none}
+@media (max-width:640px){.vit-hero{grid-template-columns:1fr}.vit-ilus{display:none}}
 /* pizarra: pestañas de pizarras, elección de modo y cabecera */
 .piz-cab{display:flex;flex-direction:column;gap:8px}
 .piz-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:thin;padding-bottom:2px}
@@ -263,9 +275,9 @@ navApp("proyectos");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + "</style>");
 
 const ID = new URLSearchParams(location.search).get("p");
-const PESTANAS = [["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"]];
+const PESTANAS = [["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-let ESP, P, PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], pizSel = null, EDITOR = null, pest = "taller", secActual = null;
+let ESP, P, PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("proyectos.html");
 else conSesion($("app"), async () => {
@@ -273,7 +285,7 @@ else conSesion($("app"), async () => {
   PL = await plan();
   const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
   ACT = ac.count || 0;
-  const [pr, se, re, no, co, po, pz] = await Promise.all([
+  const [pr, se, re, no, co, po, pz, vi] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
     sb.from("secciones").select("id,titulo,guia,texto,orden,avance,peso").eq("proyecto_id", ID).order("orden"),
     sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
@@ -281,8 +293,9 @@ else conSesion($("app"), async () => {
     sb.from("cotizaciones").select("id,nombre,datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
     sb.from("proyecto_oportunidades").select("oportunidad_id,estado").eq("proyecto_id", ID),
     sb.from("pizarras").select("id,nombre,modo,datos,creado_en").eq("proyecto_id", ID).order("creado_en"),
+    sb.from("vitrinas").select("id,slug,publicada,publicado_en,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
   ]);
-  P = pr.data;
+  P = pr.data; VIT = vi.data || null;
   if (!P) { $("app").innerHTML = '<a class="vol" href="proyectos.html">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
   SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || []; PIZ = pz.data || [];
   const h = location.hash.slice(1); if (PESTANAS.some(([k]) => k === h)) pest = h;
@@ -400,7 +413,7 @@ function sobrantes() {
 const fuera = (s) => !vacia(s) && DE_PLANTILLA.has(s.guia) && !sugeridas(P.tipo, P.formato).includes(s.guia);
 function avisarSecciones(silencio) { const n = faltantes().length + sobrantes().length; if (n && !silencio && pest !== "taller") toast("El Taller tiene secciones para ajustar a la nueva categoría."); }
 function pintarTabs() {
-  const n = { taller: SECS.length ? avance(SECS) + "%" : "", referentes: REFS.length, pizarra: PIZ.length, bitacora: NOTAS.length, oportunidades: SEGS.length };
+  const n = { taller: SECS.length ? avance(SECS) + "%" : "", referentes: REFS.length, pizarra: PIZ.length, bitacora: NOTAS.length, oportunidades: SEGS.length, vitrina: VIT && VIT.publicada ? "●" : "" };
   const nuevas = faltantes().length + sobrantes().length;
   $("tabs").innerHTML = PESTANAS.map(([k, t]) => '<button role="tab" data-p="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? '<span class="n">' + n[k] + "</span>" : "") + (k === "taller" && nuevas ? '<span class="punto" title="Secciones sugeridas nuevas"></span>' : "") + "</button>").join("");
   $("tabs").querySelectorAll("[data-p]").forEach((b) => b.onclick = () => irA(b.dataset.p));
@@ -408,7 +421,7 @@ function pintarTabs() {
 function irA(k) { pest = k; history.replaceState(null, "", "#" + k); pintarTabs(); pintarPestana(); }
 function pintarPestana() {
   if (EDITOR) { EDITOR.destruir(); EDITOR = null; }
-  ({ taller, referentes, brujula, pizarra, costos, oportunidades, bitacora })[pest](); activarAvisame($("panel"));
+  ({ taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest](); activarAvisame($("panel"));
 }
 // Tarjetas "Próximamente" de Forja Más, por clave de planes.js.
 const pronto = (claves, titulo) => '<section class="pronto-fila" aria-label="' + (titulo || "Próximamente en Forja Más") + '"><div class="pronto-cab"><b>' + (titulo || "Próximamente en Forja Más") + '</b><a href="planes.html">Ver todo lo que trae</a></div><div class="pronto-grid">' +
@@ -843,6 +856,19 @@ async function oportunidades() {
 }
 
 /* ================= BITÁCORA ================= */
+/* ================= VITRINA ================= */
+// La vitrina se edita en su propia página (vitrina-editor.html); aquí se ve su estado y se comparte.
+function vitrina() {
+  $("panel").style.setProperty("--tc", tc(P.tipo));
+  const url = VIT ? new URL("vitrina.html?v=" + VIT.slug, location.href).href : "";
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Vitrina</h2>' + (VIT && VIT.publicada ? '<span class="vit-vivo">● Publicada ' + hace(VIT.publicado_en) + "</span>" : VIT ? '<span class="hint">Borrador sin publicar</span>' : "") + "</div>" +
+    '<div class="vit-hero"><div><p style="margin:0 0 8px;max-width:58ch">La página pública de tu proyecto, para compartir en redes, ferias, fondos o con una editorial. Tú eliges qué mostrar: la historia, imágenes, novedades y, con Forja Más, tus pizarras para explorarlas.</p>' +
+    '<p class="hint" style="margin:0 0 14px">Nada de tu Taller, tu bitácora ni tus pizarras se publica solo: la vitrina usa copias que tú revisas antes de publicar.</p>' +
+    '<div class="vit-acc"><a class="btn prim" href="vitrina-editor.html?p=' + P.id + '">' + (VIT ? "Editar la vitrina" : "Crear la vitrina") + "</a>" + (VIT && VIT.publicada ? '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">Ver la página ↗</a><button type="button" class="btn pz-libre" id="vit-copiar">Copiar enlace</button>' : "") + "</div></div>" +
+    '<svg class="vit-ilus" viewBox="0 0 160 110" aria-hidden="true"><rect x="6" y="6" width="148" height="98" rx="10"/><rect class="h" x="6" y="6" width="148" height="44" rx="10"/><rect class="t" x="18" y="30" width="70" height="8" rx="3"/><rect class="l" x="18" y="60" width="56" height="5" rx="2"/><rect class="l" x="18" y="70" width="44" height="5" rx="2"/><rect class="g" x="90" y="58" width="24" height="18" rx="3"/><rect class="g" x="118" y="58" width="24" height="30" rx="3"/><rect class="g" x="90" y="80" width="24" height="12" rx="3"/></svg></div></section>';
+  const c = $("vit-copiar"); if (c) c.onclick = async () => { try { await navigator.clipboard.writeText(url); toast("Enlace copiado"); } catch (e) { toast(url); } };
+}
+
 function bitacora() {
   $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Bitácora</h2><span class="hint">Avances, decisiones e ideas sueltas, con fecha.</span></div>' +
     '<form class="nueva" id="f-nota"><label class="fx-sr" for="f-texto">Nueva entrada</label><textarea id="f-texto" maxlength="20000" placeholder="¿Qué avanzaste o decidiste hoy?"></textarea>' +
