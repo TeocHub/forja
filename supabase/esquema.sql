@@ -2,7 +2,7 @@
 -- Solo estructura y reglas de acceso; ningún dato. Aplicado como migraciones:
 -- espacios_privados_proyectos, es_miembro_fuera_de_api y
 -- secciones_referentes_cotizacion_unica, precios_comunidad y
--- precios_comunidad_ocultar_autor, secciones_avance_peso y limites_plan_libre (2026-11-05).
+-- precios_comunidad_ocultar_autor, secciones_avance_peso limites_plan_libre e interes_funciones (2026-11-06).
 
 -- Espacios: cada usuario tiene uno propio (pensados para compartirse más adelante).
 create table public.espacios(
@@ -125,3 +125,6 @@ create table public.precios_comunidad(
 -- Triggers before insert/update: proyectos (privado.t_proyectos), secciones (t_secciones), referentes (t_referentes),
 -- notas y cotizaciones (t_lectura). Errores: FORJA_LIMITE_PROYECTOS, FORJA_LIMITE_PALABRAS, FORJA_LIMITE_REFERENTES, FORJA_SOLO_LECTURA.
 -- Un proyecto es editable si el espacio es Más, o si no está archivado y el espacio no supera los proyectos en curso.
+
+-- "Avísame" de las funciones de Forja Más: interes_funciones(user_id, funcion, creado_en), PK (user_id, funcion).
+-- RLS: cada usuario ve, crea y borra solo sus filas.

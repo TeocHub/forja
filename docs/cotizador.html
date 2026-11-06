@@ -169,7 +169,7 @@ a{color:var(--accent)}
   <div id="contenido" hidden>
   <section class="panel hoja" aria-label="Proyecto de esta cotización">
     <div id="h-de" style="flex:1 1 260px;min-width:0"></div>
-    <a class="hint" href="proyectos.html#cotizaciones">Todas las cotizaciones</a>
+    <a class="hint" href="cotizaciones.html">Todas las cotizaciones</a>
     <span class="guardado" id="h-estado" aria-live="polite"></span>
   </section>
 
@@ -248,8 +248,8 @@ a{color:var(--accent)}
 </div>
 
 <script type="module">
-import { sb, espacio, conSesion, nav, debounce, plan, editable, limite, LIMITES } from "./js/forja.js";
-nav("mi");
+import { sb, espacio, conSesion, navApp, debounce, plan, editable, limite, LIMITES } from "./js/forja.js";
+navApp("cotizaciones");
 (function(){
   var KEY="forja-cotizador-v1";
   var BG=["BoardGamesMaker","https://boardgamesmaker.com/"],TGC=["The Game Crafter","https://www.thegamecrafter.com/"],PANDA=["Panda Game Manufacturing","https://pandagm.com/"],
@@ -528,7 +528,7 @@ nav("mi");
     sb.from("cotizaciones").delete().eq("id",id).then(function(r){
       if(r.error){toast("No se pudo borrar.");return;}
       LISTA=LISTA.filter(function(x){return x.id!==id;});toast("Cotización borrada");
-      location.href=HOJA.proyecto_id?"proyecto.html?p="+HOJA.proyecto_id+"#costos":"proyectos.html#cotizaciones";
+      location.href=HOJA.proyecto_id?"proyecto.html?p="+HOJA.proyecto_id+"#costos":"cotizaciones.html";
     });
   });
 
@@ -785,7 +785,7 @@ nav("mi");
       if(valida(viejo)&&!subida)return nueva(viejo).then(function(){try{localStorage.setItem(KEY+"-subida","1");}catch(err){}toast("Traje a tu cuenta la cotización que tenías en este navegador.");});
       var want=new URLSearchParams(location.search).get("c");
       if(want)return abrir(want);
-      location.replace("proyectos.html#cotizaciones");
+      location.replace("cotizaciones.html");
     });
   },"Tus cotizaciones son privadas: se guardan en tu cuenta y las ves desde cualquier dispositivo.");
 })();

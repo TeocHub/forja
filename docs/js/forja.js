@@ -7,10 +7,24 @@ export const SB_URL = "https://gfkiwldxxvffnkjcesws.supabase.co";
 export const SB_KEY = "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j";
 export const sb = createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 
-const MODULOS = [
+const PUBLICO = [
   { href: "oportunidades.html", nombre: "Oportunidades", id: "oportunidades" },
-  { href: "proyectos.html", nombre: "Mi forja", id: "mi" },
+  { href: "planes.html", nombre: "Planes", id: "planes" },
 ];
+// Menú de la cuenta. Íconos dibujados a mano, de trazo, para que se lean en la barra del celular.
+const ICONO = {
+  proyectos: '<path d="M4 6.5h6l2 2h8v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-10.5a1 1 0 0 1 1-1z"/>',
+  eventos: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  cotizaciones: '<path d="M6 3h9l4 4v14H6z"/><path d="M14.5 3v4.5H19M9 12h7M9 16h5"/>',
+  plan: '<path d="M12 3.5l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/>',
+};
+const APP = [
+  { href: "proyectos.html", nombre: "Proyectos", id: "proyectos" },
+  { href: "eventos.html", nombre: "Eventos", id: "eventos" },
+  { href: "cotizaciones.html", nombre: "Cotizaciones", id: "cotizaciones" },
+  { href: "planes.html", nombre: "Mejorar plan", id: "plan" },
+];
+const svg = (k) => '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' + ICONO[k] + "</svg>";
 
 export const $ = (id) => document.getElementById(id);
 export function esc(s) {
@@ -35,25 +49,39 @@ export function hace(iso) {
 }
 
 /* --- navegación --- */
+// Sitio público: lo que ve cualquiera, con o sin cuenta.
 export function nav(actual) {
   const el = document.querySelector("[data-forja-nav]");
   if (!el) return;
   el.className = "fx-nav";
   el.innerHTML =
     '<a class="fx-logo" href="./">Forja</a><span class="fx-mods">' +
-    MODULOS.map((m) => '<a href="' + m.href + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + m.nombre + "</a>").join("") +
-    '</span><span class="fx-user" id="fx-user"></span>';
-  const pinta = (ses) => {
-    const u = $("fx-user"); if (!u) return;
-    if (ses) {
-      u.innerHTML = '<span class="fx-mail" title="' + esc(ses.user.email) + '">' + esc(ses.user.email.split("@")[0]) + '</span><button type="button" class="fx-link" id="fx-salir">Salir</button>';
-      $("fx-salir").onclick = async () => { await sb.auth.signOut(); location.reload(); };
-    } else if (actual !== "mi") {
-      u.innerHTML = '<a class="fx-entrar" href="proyectos.html">Entrar</a>';
-    } else u.innerHTML = "";
-  };
-  sb.auth.getSession().then(({ data }) => pinta(data.session));
-  sb.auth.onAuthStateChange((_e, ses) => pinta(ses));
+    PUBLICO.map((m) => '<a href="' + m.href + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + m.nombre + "</a>").join("") +
+    '</span><span class="fx-user" id="fx-user"><a class="fx-entrar" href="entrar.html">Entrar</a></span>';
+  sb.auth.getSession().then(({ data }) => { if (data.session && $("fx-user")) $("fx-user").innerHTML = '<a class="fx-entrar lleno" href="proyectos.html">Ir a mi forja</a>'; });
+}
+// Dentro de la cuenta: menú propio (arriba en pantallas grandes, abajo en el celular).
+export function navApp(actual) {
+  const el = document.querySelector("[data-forja-nav]");
+  if (!el) return;
+  el.className = "fx-app";
+  el.innerHTML =
+    '<a class="fx-logo" href="proyectos.html">Forja</a>' +
+    '<nav class="fx-menu" aria-label="Mi forja">' + APP.map((m) => '<a href="' + m.href + '" class="m-' + m.id + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + svg(m.id) + "<span>" + m.nombre + "</span></a>").join("") + "</nav>" +
+    '<details class="fx-cuenta" id="fx-cuenta"><summary aria-label="Mi cuenta"><span class="fx-ini" id="fx-ini">·</span></summary><div class="fx-pop">' +
+    '<span class="fx-mail" id="fx-mail2"></span><span class="fx-planb" id="fx-planb">Plan gratis</span>' +
+    '<a href="./">Ver el sitio público</a><a href="oportunidades.html">Calendario de oportunidades</a><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
+  document.body.classList.add("fx-con-app");
+  sb.auth.getSession().then(async ({ data }) => {
+    const ses = data.session; if (!ses) return;
+    $("fx-ini").textContent = ses.user.email.slice(0, 1).toUpperCase();
+    $("fx-mail2").textContent = ses.user.email;
+    const pl = await plan();
+    $("fx-planb").textContent = pl.mas ? "Forja Más" : "Plan gratis";
+    $("fx-planb").classList.toggle("mas", pl.mas);
+  });
+  $("fx-salir").onclick = async () => { await sb.auth.signOut(); location.href = "./"; };
+  document.addEventListener("click", (e) => { const c = $("fx-cuenta"); if (c && c.open && !c.contains(e.target)) c.open = false; });
 }
 
 /* --- plan y límites (los mismos que aplica la base de datos en privado.limite) --- */
@@ -77,7 +105,33 @@ const MSG = {
   FORJA_SOLO_LECTURA: "Este proyecto está en solo lectura en el plan gratis.",
 };
 export function limite(error) { const m = error && (error.message || ""); const k = Object.keys(MSG).find((c) => m.includes(c)); return k ? MSG[k] : null; }
+// Tarjeta "Próximamente" de una función de Forja Más, con botón "Avísame" que guarda el interés.
+export function proximamente(k, titulo, texto, chico) {
+  return '<div class="fx-pronto' + (chico ? " chico" : "") + '" data-funcion="' + k + '"><span class="fx-pronto-tag">Próximamente · Forja Más</span><b>' + esc(titulo) + "</b>" + (texto ? "<span>" + esc(texto) + "</span>" : "") +
+    '<button type="button" class="fx-avisame" data-avisame="' + k + '">Avísame</button></div>';
+}
+let intereses = null;
+export async function activarAvisame(root) {
+  const { data: { session } } = await sb.auth.getSession();
+  const botones = [...(root || document).querySelectorAll("[data-avisame]")];
+  if (!botones.length) return;
+  if (!session) { botones.forEach((b) => { b.textContent = "Entra para que te avisemos"; b.onclick = () => { location.href = "entrar.html?siguiente=" + encodeURIComponent("planes.html"); }; }); return; }
+  if (!intereses) { const { data } = await sb.from("interes_funciones").select("funcion"); intereses = new Set((data || []).map((x) => x.funcion)); }
+  const marcar = (b) => { const on = intereses.has(b.dataset.avisame); b.textContent = on ? "Te avisaremos ✓" : "Avísame"; b.setAttribute("aria-pressed", String(on)); };
+  botones.forEach((b) => {
+    marcar(b);
+    b.onclick = async () => {
+      const k = b.dataset.avisame, on = intereses.has(k);
+      const r = on ? await sb.from("interes_funciones").delete().eq("funcion", k) : await sb.from("interes_funciones").insert({ funcion: k });
+      if (r.error && !String(r.error.message).includes("duplicate")) { toast("No se pudo guardar."); return; }
+      on ? intereses.delete(k) : intereses.add(k);
+      document.querySelectorAll('[data-avisame="' + k + '"]').forEach(marcar);
+      if (!on) toast("Listo: te avisaremos cuando esté disponible.");
+    };
+  });
+}
 export const MAS_PRONTO = "Forja Más llega pronto, con proyectos y palabras sin límite.";
+export const MAS_LINK = ' <a href="planes.html">Ver Forja Más</a>';
 
 /* --- sesión --- */
 let espacioCache = null;
@@ -91,24 +145,18 @@ export async function espacio() {
   return espacioCache;
 }
 
-// Muestra la entrada por correo dentro de `caja` si no hay sesión; si la hay (o cuando se inicia), llama a `listo(session)`.
-export async function conSesion(caja, listo, texto) {
-  let lanzado = false;
-  const lanzar = async (ses) => {
-    if (lanzado || !ses) return; lanzado = true;
-    caja.innerHTML = "";
-    try { await listo(ses); } catch (e) { console.error(e); caja.innerHTML = '<div class="fx-empty">No se pudieron cargar tus datos. Revisa tu conexión y recarga la página.</div>'; }
-  };
+// Páginas de la cuenta: si no hay sesión, se va a entrar.html y se vuelve aquí al entrar.
+export async function conSesion(caja, listo) {
   const { data } = await sb.auth.getSession();
-  if (data.session) return lanzar(data.session);
-  sb.auth.onAuthStateChange((ev, ses) => { if (ses && (ev === "SIGNED_IN" || ev === "INITIAL_SESSION")) lanzar(ses); });
-  pintarEntrada(caja, texto);
+  if (!data.session) { location.replace("entrar.html?siguiente=" + encodeURIComponent(location.pathname.split("/").pop() + location.search + location.hash)); return; }
+  caja.innerHTML = "";
+  try { await listo(data.session); } catch (e) { console.error(e); caja.innerHTML = '<div class="fx-empty">No se pudieron cargar tus datos. Revisa tu conexión y recarga la página.</div>'; }
 }
 
-function pintarEntrada(caja, texto) {
+export function pintarEntrada(caja, texto) {
   caja.innerHTML =
     '<section class="fx-entrada">' +
-    '<h2>Entra para ver lo tuyo</h2>' +
+    '<h2>Entrar a Forja</h2>' +
     '<p>' + esc(texto || "Tus proyectos y cotizaciones son privados: solo los ves tú, desde cualquier dispositivo.") + "</p>" +
     '<form id="fx-f1" class="fx-row"><label class="fx-sr" for="fx-mail">Correo</label>' +
     '<input id="fx-mail" type="email" autocomplete="email" required placeholder="tu@correo.cl"><button class="fx-primary" type="submit">Enviarme el enlace</button></form>' +

@@ -13,14 +13,19 @@ Una portada pública que explica la herramienta, el calendario público de **Opo
 ```
 docs/                     sitio publicado en GitHub Pages (app instalable en el celular)
   index.html              portada pública
+  planes.html             planes (gratis y Forja Más, próximamente)
+  entrar.html             entrada por correo
+  eventos.html            fechas de lo que siguen tus proyectos (requiere cuenta)
+  cotizaciones.html       todas las cotizaciones (requiere cuenta)
   oportunidades.html      ferias, fondos y convocatorias (público)
-  proyectos.html          Mi forja: proyectos y cotizaciones (requiere cuenta)
+  proyectos.html          proyectos (requiere cuenta)
   proyecto.html           página de cada proyecto (requiere cuenta)
   cotizador.html          cotización de un proyecto: producción y precio de venta (requiere cuenta)
   biblia.html             documento imprimible del proyecto (requiere cuenta)
   js/forja.js             sesión, navegación y utilidades
   js/brujula.js           brújula de formatos
   js/guias.js             tipos de proyecto y preguntas guía
+  js/planes.js            catálogo de Forja Más
   css/forja.css           estilos comunes
   data/                   copia de respaldo de los datos (la fuente principal es Supabase)
   manifest.webmanifest    datos para instalar la app

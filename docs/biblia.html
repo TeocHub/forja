@@ -88,10 +88,10 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 </div>
 
 <script type="module">
-import { sb, $, esc, fecha, nav, espacio, conSesion } from "./js/forja.js";
+import { sb, $, esc, fecha, navApp, espacio, conSesion } from "./js/forja.js";
 import { TIPOS, ESTADOS, tc } from "./js/guias.js";
 import { EJES, FORMATOS, radar, dial, lectura, tocado, vals, pct, base, CSS_BRUJULA } from "./js/brujula.js";
-nav("mi");
+navApp("proyectos");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + ".doc .radar text,.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .radar .forma{fill:rgba(42,63,209,.15);stroke:#2a3fd1}.doc .dial .petalo{fill:#e6e9fb}.doc .dial .petalo.top{fill:#f6cdb9}.doc .dial .borde{fill:#fafafa;stroke:#d9dbe2}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
 
 const ID = new URLSearchParams(location.search).get("p");

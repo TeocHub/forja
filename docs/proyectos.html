@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Forja · Mi forja</title>
+<title>Forja · Proyectos</title>
 <meta name="description" content="Tus proyectos y cotizaciones en Forja.">
 <meta name="theme-color" content="#2a3fd1">
 <link rel="manifest" href="manifest.webmanifest">
@@ -99,10 +99,11 @@ button{cursor:pointer}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, hace, nav, espacio, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO } from "./js/forja.js";
+import { sb, $, esc, toast, hace, navApp, espacio, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK } from "./js/forja.js";
 import { TIPOS, ESTADOS, tc, PLANTILLA, SECCIONES, pesoDe, avance } from "./js/guias.js";
 import { FORMATOS } from "./js/brujula.js";
-nav("mi");
+navApp("proyectos");
+if (location.hash === "#cotizaciones") location.replace("cotizaciones.html");
 
 // Enlaces antiguos (proyectos.html#p=…) llevan a la nueva página de proyecto.
 const viejo = location.hash.match(/^#p=([0-9a-f-]{36})/);
@@ -117,27 +118,22 @@ conSesion($("app"), async () => {
   ESP = await espacio();
   if (!ESP) throw new Error("sin espacio");
   PL = await plan();
-  const [p, c, se] = await Promise.all([
+  const [p, se] = await Promise.all([
     sb.from("proyectos").select("id,nombre,tipo,estado,resumen,ejes,formato,actualizado_en").eq("espacio_id", ESP).order("actualizado_en", { ascending: false }),
-    sb.from("cotizaciones").select("id,nombre,proyecto_id,datos,actualizado_en").eq("espacio_id", ESP).order("actualizado_en", { ascending: false }),
     sb.from("secciones").select("proyecto_id,avance,peso").eq("espacio_id", ESP),
   ]);
   const por = {}; (se.data || []).forEach((x) => (por[x.proyecto_id] = por[x.proyecto_id] || []).push(x));
   Object.keys(por).forEach((k) => { AV[k] = avance(por[k]); });
-  if (p.error || c.error) throw p.error || c.error;
-  PROYS = p.data || []; COTS = c.data || [];
+  if (p.error) throw p.error;
+  PROYS = p.data || [];
   pintar();
-}, "Tus proyectos son privados: solo los ves tú, desde el celular, la tablet o el computador.");
+});
 
 function pintar() {
   $("app").innerHTML =
-    '<header><h1>Mi forja</h1><p class="lead">Todo lo que estás creando. Cada proyecto se abre en su propia página.</p></header>' +
-    '<div class="fx-tabs" role="tablist"><button role="tab" id="tb-proy" aria-selected="' + (vista === "proy") + '">Proyectos<span class="n">' + PROYS.length + '</span></button>' +
-    '<button role="tab" id="tb-cot" aria-selected="' + (vista === "cot") + '">Cotizaciones<span class="n">' + COTS.length + "</span></button></div>" +
-    '<div id="panel" role="tabpanel"></div>';
-  $("tb-proy").onclick = () => { vista = "proy"; history.replaceState(null, "", "#"); pintar(); };
-  $("tb-cot").onclick = () => { vista = "cot"; history.replaceState(null, "", "#cotizaciones"); pintar(); };
-  vista === "proy" ? proyectos() : cotizaciones();
+    '<header><h1>Proyectos</h1><p class="lead">Todo lo que estás creando. Cada proyecto se abre en su propia página.</p></header>' +
+    '<div id="panel"></div>';
+  proyectos();
 }
 
 const activos = () => PROYS.filter((p) => p.estado !== "archivado").length;
@@ -147,8 +143,8 @@ function cupo() {
   return '<div class="cupo' + (lleno ? " lleno" : "") + (pasado ? " pasado" : "") + '"><div class="cupo-top"><b>Plan gratis</b><span>' + n + " de " + max + " proyectos en curso</span></div>" +
     '<div class="fx-avance"><i style="width:' + Math.min(100, (n / max) * 100) + '%"></i></div>' +
     (pasado ? '<p>Tienes ' + n + " proyectos en curso y el plan gratis permite " + max + ": quedaron en <b>solo lectura</b>. Archiva " + (n - max) + (n - max === 1 ? " proyecto" : " proyectos") + " para seguir editando. Nada se borra.</p>"
-      : lleno ? "<p>Llegaste al máximo. Para plantar otra idea, archiva un proyecto (queda guardado y se puede ver). " + MAS_PRONTO + "</p>"
-      : '<p class="hint">Archivar un proyecto libera su cupo; lo archivado se puede ver y exportar siempre.</p>') + "</div>";
+      : lleno ? "<p>Llegaste al máximo. Para plantar otra idea, archiva un proyecto (queda guardado y se puede ver). " + MAS_PRONTO + MAS_LINK + "</p>"
+      : '<p class="hint">Archivar un proyecto libera su cupo; lo archivado se puede ver y exportar siempre. <a href="planes.html">Ver planes</a></p>') + "</div>";
 }
 function proyectos() {
   const sinCupo = !PL.mas && activos() >= LIMITES.proyectos;
@@ -212,19 +208,6 @@ function tile(p) {
     '<span class="pie"><span class="av"><span class="fx-avance" role="img" aria-label="Avance ' + av + '%"><i style="width:' + av + '%"></i></span><b>' + av + '%</b></span><span>' + hace(p.actualizado_en) + "</span></span></a>";
 }
 
-function cotizaciones() {
-  if (!COTS.length) {
-    $("panel").innerHTML = '<div class="vacio" style="margin-top:16px"><b>Aún no hay cotizaciones</b>Cada proyecto tiene su propia cotización en la pestaña Costos. Abre un proyecto para empezar la suya.</div>';
-    return;
-  }
-  $("panel").innerHTML = '<p class="lead" style="margin:14px 0 12px">Una cotización por proyecto, con cada componente que hay que producir.</p><div class="cots">' + COTS.map((c) => {
-    const p = PROYS.find((x) => x.id === c.proyecto_id), d = c.datos || {}, comps = d.componentes || [], nq = (d.cotizaciones || []).length;
-    return '<a class="cot" href="cotizador.html?c=' + c.id + '" style="--tc:' + (p ? tc(p.tipo) : "var(--line)") + '">' +
-      '<span class="k">' + (p ? esc(TIPOS[p.tipo]) : "Sin proyecto") + "</span><h3>" + esc(p ? p.nombre : c.nombre) + "</h3>" +
-      (comps.length ? '<div class="chips">' + comps.slice(0, 6).map((x) => "<span>" + esc(x.nombre) + "</span>").join("") + (comps.length > 6 ? "<span>+" + (comps.length - 6) + "</span>" : "") + "</div>" : '<span class="res" style="font-size:13px;color:var(--muted)">Sin componentes todavía</span>') +
-      "<small>" + nq + (nq === 1 ? " cotización de proveedor" : " cotizaciones de proveedores") + " · " + hace(c.actualizado_en) + "</small></a>";
-  }).join("") + "</div>";
-}
 </script>
 </body>
 </html>
