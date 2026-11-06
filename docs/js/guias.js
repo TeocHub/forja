@@ -59,11 +59,48 @@ export const SECCIONES = {
   presentacion: { t: "Presentación y empaque", p: ["¿Cómo se ve al recibirlo?", "¿Qué dice la etiqueta o el empaque?"] },
   venta: { t: "Dónde se vende", p: ["¿Tienda propia, ferias, redes, tiendas de otros?", "Revisa la pestaña Oportunidades para ferias cercanas."] },
 
+  capitulos: { t: "Capítulos", p: ["Haz una línea por capítulo: qué pasa y qué cambia.", "¿Dónde termina cada capítulo para que den ganas de seguir?"] },
+  escaleta: { t: "Escaleta", p: ["Escena por escena: lugar, momento del día, quién está y qué pasa.", "¿Cuánto dura cada escena, más o menos?", "¿Qué escena se podría cortar sin perder la historia?"] },
+  temporada: { t: "Temporada y episodios", p: ["¿Cuántos episodios y cuánto dura cada uno?", "¿Qué pregunta abre la temporada y cuál la cierra?", "Una línea por episodio: qué pasa y en qué termina."] },
+  vinetas: { t: "Guion por páginas", p: ["Página por página: cuántas viñetas, qué se ve en cada una y qué se dice.", "¿Qué página termina con un giro para dar vuelta la hoja?", "¿Qué momento merece una página completa?"] },
+  episodio: { t: "Formato del episodio", p: ["¿Cuánto dura un episodio y cómo se divide (intro, bloques, cierre)?", "¿Quiénes hablan y con qué tono?", "¿Hay música, efectos o invitados?"] },
   libre: { t: "Notas", p: ["Escribe lo que quieras: esta sección no tiene preguntas."] },
   pasos: { t: "Próximos pasos", p: ["¿Qué es lo siguiente concreto que hay que hacer?", "¿Qué te tiene trabado?"] },
   financiamiento: { t: "Financiamiento", p: ["¿Cuánto se necesita para terminarlo?", "¿Fondo concursable, preventa, Kickstarter, Patreon, ahorro propio?"] },
   difusion: { t: "Difusión", p: ["¿Cómo se va a enterar la gente?", "¿Qué se puede mostrar antes de que esté terminado?"] },
 };
+
+// Peso de cada sección en el avance del proyecto (se puede cambiar en cada sección). Lo no listado pesa 10.
+export const PESO = { premisa: 15, personajes: 15, mundo: 15, conflicto: 10, estructura: 20, escenas: 10, tono: 5,
+  pitch: 10, bucle: 20, mecanicas: 20, narrativa: 10, estetica: 15, publico: 5, alcance: 15,
+  objetivo: 10, turno: 15, componentes: 15, reglas: 25, jugadores: 5, pruebas: 20, uso: 10,
+  idea: 15, plataforma: 10, gancho: 15, guion: 40, calendario: 10,
+  queEs: 15, paraQuien: 15, proceso: 25, precio: 20, presentacion: 15, venta: 10,
+  capitulos: 25, escaleta: 30, temporada: 30, vinetas: 30, episodio: 15, libre: 5, pasos: 5, financiamiento: 10, difusion: 10 };
+export const pesoDe = (g) => (g in PESO ? PESO[g] : 10);
+
+// Etapas de avance de una sección; el porcentaje se puede ajustar a mano.
+export const ETAPAS = [[0, "Sin empezar"], [25, "Ideas sueltas"], [50, "Borrador"], [75, "En revisión"], [100, "Listo"]];
+export const etapaDe = (n) => ETAPAS.reduce((a, e) => (n >= e[0] ? e : a), ETAPAS[0])[1];
+export function avance(secs) {
+  const w = secs.reduce((a, s) => a + (s.peso || 0), 0);
+  return w ? Math.round(secs.reduce((a, s) => a + (s.peso || 0) * (s.avance || 0), 0) / w) : 0;
+}
+
+// Formatos que caben en cada categoría, y la categoría natural de cada formato.
+export const FORMATOS_DE = {
+  historia: ["novela", "cuento", "comic", "corto", "largo", "serie", "animacion", "podcast"],
+  videojuego: ["videojuego"],
+  juegomesa: ["mesa"],
+  contenido: ["video", "podcast", "corto", "serie", "animacion"],
+  producto: [],
+  otro: null, // cualquiera
+};
+export const formatoCabe = (tipo, f) => !f || FORMATOS_DE[tipo] === null || (FORMATOS_DE[tipo] || []).includes(f);
+export const tipoDe = (f) => ({ videojuego: "videojuego", mesa: "juegomesa", video: "contenido" })[f] || "historia";
+// Secciones extra que sugiere cada formato.
+export const PLANTILLA_FORMATO = { novela: ["capitulos"], cuento: [], comic: ["vinetas"], corto: ["escaleta"], largo: ["escaleta"], serie: ["temporada"], animacion: ["escaleta", "estetica"], podcast: ["episodio", "guion"], video: ["gancho", "guion"], videojuego: [], mesa: [] };
+export const sugeridas = (tipo, f) => [...new Set([...(PLANTILLA[tipo] || []), ...((f && PLANTILLA_FORMATO[f]) || [])])];
 
 // Secciones con las que nace un proyecto de cada tipo.
 export const PLANTILLA = {

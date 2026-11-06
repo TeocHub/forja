@@ -40,6 +40,32 @@ button{cursor:pointer}
 .estados{display:inline-flex;max-width:100%;overflow-x:auto;scrollbar-width:none;border:1px solid var(--line);border-radius:999px;background:var(--card)}
 .estados button{white-space:nowrap;flex:none;border:0;background:transparent;padding:4px 11px;font-size:13px;color:var(--muted)}
 .estados button[aria-pressed="true"]{background:var(--fg);color:var(--bg);font-weight:700}
+.sel{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.sel select{font-size:15px}
+.estado-w{display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--ec) 8%,var(--card));border:1.5px solid color-mix(in srgb,var(--ec) 40%,var(--line));border-radius:14px;padding:10px 12px}
+.estados button[aria-checked="true"]{background:var(--ec);color:#fff;font-weight:700}
+.estados button[aria-checked="true"]::before{content:"● ";font-size:10px}
+.avance-w{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.avance-w .fx-avance{flex:1;height:8px}
+.avance-w b{color:var(--fg);font-family:var(--f-num)}
+.fx-tabs .punto{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ember);margin-left:5px;vertical-align:2px}
+.sugerencia{margin-top:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border:1.5px dashed var(--ember);background:var(--ember-soft);border-radius:14px;padding:12px 14px}
+.sugerencia .ops{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.sugerencia .ops span{font-size:13px;border-radius:999px;padding:2px 10px;background:var(--card);border:1px solid var(--line)}
+.sugerencia .acc{display:flex;gap:6px}
+.etapa{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.etapa-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.etapa-top b{font-family:var(--f-num);font-size:13px}
+.etapas{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.etapas button{flex:1 0 auto;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:5px 9px;font-size:13px;white-space:nowrap}
+.etapas button[aria-pressed="true"]{background:var(--tc);border-color:var(--tc);color:#fff;font-weight:700}
+.etapa-fina{display:flex;align-items:center;gap:12px}
+.etapa-fina input[type=range]{flex:1;accent-color:var(--tc)}
+.peso{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.peso input{width:64px;border:1px solid var(--line);background:var(--field);border-radius:6px;padding:3px 6px;font-family:var(--f-num)}
+.indice button.sec{position:relative;overflow:hidden}
+.indice button.sec::after{content:"";position:absolute;left:10px;right:10px;bottom:3px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--tc) var(--av),transparent var(--av))}
+.indice button.sec.lista span:first-child::before{content:"✓ ";color:var(--good)}
 .sello{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--ember);color:var(--ember);border-radius:999px;padding:1px 10px;font-weight:700;font-size:13px;background:none}
 textarea.resumen{width:100%;min-height:64px;resize:vertical;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;line-height:1.5}
 .fx-tabs{position:sticky;top:0;z-index:5;background:var(--bg)}
@@ -171,7 +197,7 @@ textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;
 
 <script type="module">
 import { sb, $, esc, toast, debounce, fecha, hace, nav, espacio, conSesion } from "./js/forja.js";
-import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA } from "./js/guias.js";
+import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "./js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, CSS_BRUJULA } from "./js/brujula.js";
 nav("mi");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + "</style>");
@@ -186,7 +212,7 @@ else conSesion($("app"), async () => {
   ESP = await espacio();
   const [pr, se, re, no, co, po] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
-    sb.from("secciones").select("id,titulo,guia,texto,orden").eq("proyecto_id", ID).order("orden"),
+    sb.from("secciones").select("id,titulo,guia,texto,orden,avance,peso").eq("proyecto_id", ID).order("orden"),
     sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
     sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
     sb.from("cotizaciones").select("id,nombre,datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
@@ -212,18 +238,24 @@ function armar() {
   document.title = "Forja · " + P.nombre;
   $("app").innerHTML =
     '<a class="vol" href="proyectos.html">← Mi forja</a>' +
-    '<section class="cabeza" id="cabeza" style="--tc:' + tc(P.tipo) + '">' +
+    '<section class="cabeza" id="cabeza" style="--tc:' + tc(P.tipo) + ";--ec:var(--e-" + P.estado + ')">' +
     '<label class="fx-sr" for="f-nombre">Nombre del proyecto</label><input class="nombre" id="f-nombre" maxlength="160" value="' + esc(P.nombre) + '">' +
-    '<div class="ctrl"><label class="fx-sr" for="f-tipo">Tipo</label><select id="f-tipo">' + Object.entries(TIPOS).map(([k, n]) => '<option value="' + k + '"' + (k === P.tipo ? " selected" : "") + ">" + n + "</option>").join("") + "</select>" +
-    '<div class="estados" role="group" aria-label="Estado">' + Object.entries(ESTADOS).map(([k, n]) => '<button type="button" data-e="' + k + '" aria-pressed="' + (k === P.estado) + '">' + n + "</button>").join("") + "</div>" +
-    '<span id="sello"></span></div>' +
+    '<div class="ctrl"><label class="sel"><span>Categoría</span><select id="f-tipo">' + Object.entries(TIPOS).map(([k, n]) => '<option value="' + k + '"' + (k === P.tipo ? " selected" : "") + ">" + n + "</option>").join("") + "</select></label>" +
+    '<label class="sel" id="w-formato"><span>Formato</span><select id="f-formato"></select></label></div>' +
+    '<div class="estado-w"><div class="estados" role="radiogroup" aria-label="Estado del proyecto">' + Object.entries(ESTADOS).map(([k, n]) => '<button type="button" role="radio" data-est="' + k + '" style="--ec:var(--e-' + k + ')" aria-checked="' + (k === P.estado) + '">' + n + "</button>").join("") + "</div>" +
+    '<div class="avance-w" id="avance-w"></div></div>' +
     '<label class="fx-sr" for="f-resumen">Resumen</label><textarea class="resumen" id="f-resumen" maxlength="4000" placeholder="¿De qué se trata, en pocas líneas? Se puede reescribir cuando la idea cambie.">' + esc(P.resumen || "") + "</textarea></section>" +
     '<div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
     '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="biblia.html?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar"><button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button></span></div>';
 
   $("f-nombre").onchange = (e) => { const v = e.target.value.trim(); if (!v) { e.target.value = P.nombre; return; } guardar({ nombre: v }); document.title = "Forja · " + v; };
-  $("f-tipo").onchange = (e) => { guardar({ tipo: e.target.value }); $("cabeza").style.setProperty("--tc", tc(e.target.value)); if (pest === "oportunidades") pintarPestana(); };
-  document.querySelectorAll("[data-e]").forEach((b) => b.onclick = () => { document.querySelectorAll("[data-e]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); guardar({ estado: b.dataset.e }); });
+  $("f-tipo").onchange = (e) => cambiarTipo(e.target.value);
+  $("f-formato").onchange = (e) => elegirFormato(e.target.value || null);
+  document.querySelectorAll("[data-est]").forEach((b) => b.onclick = () => {
+    document.querySelectorAll("[data-est]").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+    $("cabeza").style.setProperty("--ec", "var(--e-" + b.dataset.est + ")");
+    guardar({ estado: b.dataset.est }, "Proyecto: " + ESTADOS[b.dataset.est].toLowerCase());
+  });
   $("f-resumen").onchange = (e) => guardar({ resumen: e.target.value.trim() || null });
   $("b-borrar").onclick = () => {
     $("zona-borrar").innerHTML = '<span class="hint">Se borran su escritura, referentes, bitácora y cotización.</span> <button class="btn peligro" id="b-si">Sí, borrar</button> <button class="btn" id="b-no">Cancelar</button>';
@@ -235,16 +267,45 @@ function armar() {
       location.href = "proyectos.html";
     };
   };
-  pintarSello(); pintarTabs(); pintarPestana();
+  pintarFormatos(); pintarAvance(); pintarTabs(); pintarPestana();
 }
-function pintarSello() {
-  const f = FORMATOS.find((x) => x.k === P.formato);
-  $("sello").innerHTML = f ? '<button class="sello" type="button" id="b-sello" title="Cambiar en la pestaña Brújula">' + f.n + "</button>" : "";
-  if (f) $("b-sello").onclick = () => irA("brujula");
+// El selector de formato muestra solo los que caben en la categoría.
+function pintarFormatos() {
+  const lista = FORMATOS_DE[P.tipo] === null ? FORMATOS.map((f) => f.k) : FORMATOS_DE[P.tipo];
+  $("w-formato").hidden = lista.length < 2; // con un solo formato posible, la categoría ya lo dice
+  $("f-formato").innerHTML = (lista.length > 1 || !P.formato ? '<option value="">Aún no decido</option>' : "") + lista.map((k) => '<option value="' + k + '"' + (k === P.formato ? " selected" : "") + ">" + FORMATOS.find((f) => f.k === k).n + "</option>").join("");
 }
+function pintarAvance() {
+  const a = avance(SECS), listas = SECS.filter((x) => x.avance >= 100).length;
+  $("avance-w").innerHTML = SECS.length ? '<div class="fx-avance" role="img" aria-label="Avance ' + a + '%"><i style="width:' + a + '%"></i></div><span><b>' + a + "%</b> de avance · " + listas + " de " + SECS.length + " secciones listas</span>" : "";
+}
+// Cambiar de categoría: si el formato ya no calza se suelta, y el Taller sugiere las secciones nuevas.
+async function cambiarTipo(t, silencio) {
+  const cambios = { tipo: t };
+  if (!formatoCabe(t, P.formato)) cambios.formato = null;
+  const unico = FORMATOS_DE[t] && FORMATOS_DE[t].length === 1 ? FORMATOS_DE[t][0] : null;
+  if (unico && !cambios.formato && P.formato !== unico) cambios.formato = unico;
+  await guardar(cambios);
+  $("f-tipo").value = t; $("cabeza").style.setProperty("--tc", tc(t));
+  pintarFormatos(); avisarSecciones(silencio); pintarTabs(); if (["oportunidades", "taller"].includes(pest)) pintarPestana();
+}
+// Elegir formato (desde la cabecera o la brújula): si es de otra categoría, la categoría lo sigue.
+async function elegirFormato(f) {
+  if (f && !formatoCabe(P.tipo, f)) {
+    const t = tipoDe(f);
+    await guardar({ formato: f, tipo: t });
+    $("f-tipo").value = t; $("cabeza").style.setProperty("--tc", tc(t));
+    toast("Formato: " + FORMATOS.find((x) => x.k === f).n + ". La categoría pasó a " + TIPOS[t].toLowerCase() + ".");
+  } else { await guardar({ formato: f }); if (f) toast("Formato: " + FORMATOS.find((x) => x.k === f).n); }
+  pintarFormatos(); avisarSecciones(true); pintarTabs(); if (["oportunidades", "taller", "brujula"].includes(pest)) pintarPestana();
+}
+const DESC = () => { try { return JSON.parse(localStorage.getItem("forja-desc-" + P.id) || "[]"); } catch (e) { return []; } };
+const faltantes = () => { const d = DESC(); return sugeridas(P.tipo, P.formato).filter((g) => !SECS.some((s) => s.guia === g) && !d.includes(g)); };
+function avisarSecciones(silencio) { const n = faltantes().length; if (n && !silencio && pest !== "taller") toast("Hay " + n + " secciones sugeridas nuevas en el Taller."); }
 function pintarTabs() {
-  const n = { taller: SECS.reduce((a, s) => a + palabras(s.texto), 0), referentes: REFS.length, bitacora: NOTAS.length, oportunidades: SEGS.length };
-  $("tabs").innerHTML = PESTANAS.map(([k, t]) => '<button role="tab" data-p="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? '<span class="n">' + (k === "taller" ? n[k] + " pal." : n[k]) + "</span>" : "") + "</button>").join("");
+  const n = { taller: SECS.length ? avance(SECS) + "%" : "", referentes: REFS.length, bitacora: NOTAS.length, oportunidades: SEGS.length };
+  const nuevas = faltantes().length;
+  $("tabs").innerHTML = PESTANAS.map(([k, t]) => '<button role="tab" data-p="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? '<span class="n">' + n[k] + "</span>" : "") + (k === "taller" && nuevas ? '<span class="punto" title="Secciones sugeridas nuevas"></span>' : "") + "</button>").join("");
   $("tabs").querySelectorAll("[data-p]").forEach((b) => b.onclick = () => irA(b.dataset.p));
 }
 function irA(k) { pest = k; history.replaceState(null, "", "#" + k); pintarTabs(); pintarPestana(); }
@@ -254,34 +315,43 @@ function pintarPestana() { ({ taller, referentes, brujula, costos, oportunidades
 function taller() {
   if (!SECS.length) {
     $("panel").innerHTML = '<div class="vacio" style="margin-top:14px">Este proyecto aún no tiene secciones. <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn prim" id="b-plant">Usar las secciones sugeridas para ' + esc(TIPOS[P.tipo].toLowerCase()) + '</button><button class="btn" id="b-blanca">Empezar con una hoja en blanco</button></div></div>';
-    $("b-plant").onclick = async () => { await crearSecciones(PLANTILLA[P.tipo].map((g) => ({ guia: g, titulo: SECCIONES[g].t }))); taller(); };
+    $("b-plant").onclick = async () => { await crearSecciones(sugeridas(P.tipo, P.formato).map((g) => ({ guia: g, titulo: SECCIONES[g].t }))); pintarTabs(); pintarAvance(); taller(); };
     $("b-blanca").onclick = async () => { await crearSecciones([{ guia: "libre", titulo: "Notas" }]); taller(); };
     return;
   }
   if (!secActual || !SECS.some((s) => s.id === secActual)) secActual = SECS[0].id;
-  $("panel").innerHTML = '<div class="taller" style="margin-top:14px"><nav class="indice" id="indice" aria-label="Secciones"></nav><div id="hoja-w"></div></div>';
-  pintarIndice(); pintarHoja();
+  $("panel").innerHTML = '<div id="sugerencia"></div><div class="taller" style="margin-top:14px"><nav class="indice" id="indice" aria-label="Secciones"></nav><div id="hoja-w"></div></div>';
+  pintarSugerencia(); pintarIndice(); pintarHoja();
+}
+function pintarSugerencia() {
+  const f = faltantes(), w = $("sugerencia"); if (!w) return;
+  if (!f.length) { w.innerHTML = ""; return; }
+  const fm = FORMATOS.find((x) => x.k === P.formato);
+  w.innerHTML = '<div class="sugerencia"><div><b>Para ' + esc(TIPOS[P.tipo].toLowerCase()) + (fm ? " · " + esc(fm.n.toLowerCase()) : "") + ' suelen servir estas secciones</b><div class="ops">' + f.map((g) => '<span>' + esc(SECCIONES[g].t) + "</span>").join("") + "</div>" +
+    '<span class="hint">Se agregan al final; no se borra nada de lo que ya escribiste.</span></div><div class="acc"><button class="btn prim" id="sg-si">Agregarlas</button><button class="btn" id="sg-no">Ahora no</button></div></div>';
+  $("sg-si").onclick = async () => { await crearSecciones(f.map((g) => ({ guia: g, titulo: SECCIONES[g].t }))); toast(f.length === 1 ? "Sección agregada" : f.length + " secciones agregadas"); pintarTabs(); pintarAvance(); taller(); };
+  $("sg-no").onclick = () => { try { localStorage.setItem("forja-desc-" + P.id, JSON.stringify(DESC().concat(f))); } catch (e) {} pintarSugerencia(); pintarTabs(); };
 }
 async function crearSecciones(lista) {
   const base = SECS.length ? Math.max(...SECS.map((s) => s.orden)) + 1 : 0;
-  const { data, error } = await sb.from("secciones").insert(lista.map((x, i) => ({ espacio_id: ESP, proyecto_id: P.id, titulo: x.titulo, guia: x.guia, orden: base + i }))).select("id,titulo,guia,texto,orden");
+  const { data, error } = await sb.from("secciones").insert(lista.map((x, i) => ({ espacio_id: ESP, proyecto_id: P.id, titulo: x.titulo, guia: x.guia, orden: base + i, peso: pesoDe(x.guia) }))).select("id,titulo,guia,texto,orden,avance,peso");
   if (error) { toast("No se pudo agregar."); return []; }
   SECS = SECS.concat(data); return data;
 }
 function pintarIndice() {
   const total = SECS.reduce((a, s) => a + palabras(s.texto), 0);
-  $("indice").innerHTML = SECS.map((s) => { const w = palabras(s.texto); return '<button class="sec' + (w ? " lleno" : "") + '" data-s="' + s.id + '" aria-current="' + (s.id === secActual) + '"><span>' + esc(s.titulo) + '</span><span class="w">' + (w || "") + "</span></button>"; }).join("") +
+  $("indice").innerHTML = SECS.map((s) => { const w = palabras(s.texto); return '<button class="sec' + (w ? " lleno" : "") + (s.avance >= 100 ? " lista" : "") + '" data-s="' + s.id + '" aria-current="' + (s.id === secActual) + '" style="--av:' + s.avance + '%"><span>' + esc(s.titulo) + '</span><span class="w">' + (s.avance ? s.avance + "%" : "") + "</span></button>"; }).join("") +
     '<button class="btn chico mas" id="b-mas">+ Sección</button><div class="total">' + total.toLocaleString("es-CL") + " palabras en total</div>";
   $("indice").querySelectorAll("[data-s]").forEach((b) => b.onclick = () => { secActual = b.dataset.s; pintarIndice(); pintarHoja(); });
   $("b-mas").onclick = menuSeccion;
 }
 function menuSeccion() {
   const usadas = new Set(SECS.map((s) => s.guia));
-  const sugeridas = PLANTILLA[P.tipo].filter((g) => !usadas.has(g));
-  const otras = Object.keys(SECCIONES).filter((g) => !usadas.has(g) && !sugeridas.includes(g) && g !== "libre");
+  const sug = sugeridas(P.tipo, P.formato).filter((g) => !usadas.has(g));
+  const otras = Object.keys(SECCIONES).filter((g) => !usadas.has(g) && !sug.includes(g) && g !== "libre");
   const bot = (g) => '<button type="button" data-g="' + g + '">' + esc(SECCIONES[g].t) + "</button>";
   $("hoja-w").innerHTML = '<div class="menu-sec"><b style="font-family:var(--f-display);font-size:18px">Agregar una sección</b>' +
-    (sugeridas.length ? '<span class="hint">Sugeridas para ' + esc(TIPOS[P.tipo].toLowerCase()) + '</span><div class="ops">' + sugeridas.map(bot).join("") + "</div>" : "") +
+    (sug.length ? '<span class="hint">Sugeridas para ' + esc(TIPOS[P.tipo].toLowerCase()) + '</span><div class="ops">' + sug.map(bot).join("") + "</div>" : "") +
     '<span class="hint">Otras con preguntas guía</span><div class="ops">' + otras.map(bot).join("") + "</div>" +
     '<span class="hint">O una con el nombre que quieras</span><form class="fila" id="f-libre"><label class="fx-sr" for="f-libre-t">Nombre de la sección</label><input id="f-libre-t" maxlength="120" placeholder="Ej.: Capítulo 1, Bestiario, Banda sonora…"><button class="btn prim">Crear</button></form>' +
     '<button type="button" class="btn chico" id="b-cancel" style="align-self:flex-start">Cancelar</button></div>';
@@ -295,6 +365,10 @@ function pintarHoja() {
   $("hoja-w").innerHTML = '<article class="hoja" id="hoja">' +
     '<label class="fx-sr" for="h-tit">Título de la sección</label><input class="tit" id="h-tit" maxlength="120" value="' + esc(s.titulo) + '">' +
     (g && g.p && s.guia !== "libre" ? '<details class="guia"' + (s.texto ? "" : " open") + '><summary>Preguntas para empezar</summary><div class="pregs">' + g.p.map((q) => '<button type="button" class="preg" title="Agregar al texto">' + esc(q) + "</button>").join("") + '<span class="hint">Toca una pregunta para agregarla al texto y responderla debajo. Son una ayuda, no una obligación.</span></div></details>' : "") +
+    '<div class="etapa"><div class="etapa-top"><span class="hint">Avance de esta sección</span><b id="h-av">' + s.avance + "% · " + etapaDe(s.avance) + '</b></div>' +
+    '<div class="etapas" role="group" aria-label="Etapa">' + ETAPAS.map(([v, n]) => '<button type="button" data-av="' + v + '" aria-pressed="' + (s.avance === v) + '">' + n + "</button>").join("") + "</div>" +
+    '<div class="etapa-fina"><label class="fx-sr" for="h-rango">Avance exacto</label><input type="range" id="h-rango" min="0" max="100" step="5" value="' + s.avance + '">' +
+    '<label class="peso" title="Cuánto pesa esta sección en el avance total del proyecto">Peso <input type="number" id="h-peso" min="0" max="100" step="5" value="' + s.peso + '"></label></div></div>' +
     '<label class="fx-sr" for="h-txt">Texto</label><textarea class="texto" id="h-txt" maxlength="200000" placeholder="Escribe aquí. Se guarda solo.">' + esc(s.texto) + "</textarea>" +
     '<div class="barra"><span class="est" id="h-est">' + palabras(s.texto) + ' palabras</span><div class="acc">' +
     '<button class="btn chico" id="h-foco">Pantalla completa</button>' +
@@ -314,6 +388,21 @@ function pintarHoja() {
     const sep = ta.value && !ta.value.endsWith("\n") ? "\n\n" : ta.value ? "\n" : "";
     ta.value += sep + "— " + b.textContent + "\n"; ta.dispatchEvent(new Event("input")); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
   });
+  const fijarAvance = debounce(async (v) => {
+    const { error } = await sb.from("secciones").update({ avance: v }).eq("id", s.id);
+    if (error) toast("No se pudo guardar el avance."); else tocarProyecto();
+  }, 400);
+  const mostrar = (v) => {
+    s.avance = v; $("h-av").textContent = v + "% · " + etapaDe(v); $("h-rango").value = v;
+    document.querySelectorAll("[data-av]").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.av === v)));
+    pintarIndice(); pintarAvance(); pintarTabs(); fijarAvance(v);
+  };
+  document.querySelectorAll("[data-av]").forEach((b) => b.onclick = () => mostrar(+b.dataset.av));
+  $("h-rango").oninput = (e) => mostrar(+e.target.value);
+  $("h-peso").onchange = async (e) => {
+    const v = Math.max(0, Math.min(100, Math.round(+e.target.value || 0))); e.target.value = v; s.peso = v;
+    await sb.from("secciones").update({ peso: v }).eq("id", s.id); pintarAvance(); pintarTabs();
+  };
   const hoja = $("hoja");
   $("h-foco").onclick = () => { const on = hoja.classList.toggle("foco"); $("h-foco").textContent = on ? "Salir de pantalla completa" : "Pantalla completa"; document.body.style.overflow = on ? "hidden" : ""; crecer(); ta.focus(); };
   const mover = async (d) => {
@@ -331,7 +420,7 @@ function pintarHoja() {
     $("h-si").onclick = async () => {
       const { error } = await sb.from("secciones").delete().eq("id", s.id);
       if (error) { toast("No se pudo borrar."); return; }
-      SECS = SECS.filter((x) => x.id !== s.id); secActual = null; document.body.style.overflow = ""; pintarTabs(); taller();
+      SECS = SECS.filter((x) => x.id !== s.id); secActual = null; document.body.style.overflow = ""; pintarTabs(); pintarAvance(); taller();
     };
   };
 }
@@ -442,7 +531,7 @@ function brujula() {
     '<div class="brujula"><div><svg class="radar" id="radar"></svg><p class="pregunta" id="pregunta">Toca un eje para ver su pregunta.</p></div><div><svg class="dial" id="dial"></svg></div></div>' +
     '<p class="veredicto" id="veredicto" aria-live="polite"></p>' +
     '<div style="border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px;align-items:center"><b style="font-family:var(--f-display)">¿Qué vas a hacer?</b>' +
-    '<p class="hint" style="margin:0;text-align:center;max-width:56ch">La brújula solo compara tus respuestas con lo que suele lucir en cada formato. Elige el que tú quieras, aunque no sea el primero de la lista.</p>' +
+    '<p class="hint" style="margin:0;text-align:center;max-width:58ch">La brújula solo compara tus respuestas con lo que suele lucir en cada formato. Elige el que tú quieras, aunque no sea el primero. Si eliges uno de otra categoría (por ejemplo, juego de mesa en una historia), el proyecto cambia de categoría y el Taller te sugiere las secciones que le faltan.</p>' + (P.tipo === "producto" ? '<p class="hint" style="margin:0;text-align:center">Para un producto la brújula sirve poco; úsala si tu producto también cuenta una historia.</p>' : "") + '' +
     '<div class="formatos" id="formatos"></div></div></section>';
   const pintarLectura = () => {
     dial($("dial"), P.ejes, P.formato);
@@ -450,7 +539,7 @@ function brujula() {
     const l = tocado(P.ejes) ? Object.fromEntries(lectura(P.ejes).map((f) => [f.k, f.s])) : null;
     $("formatos").innerHTML = FORMATOS.map((f) => '<button type="button" data-f="' + f.k + '" aria-pressed="' + (P.formato === f.k) + '">' + f.n + (l ? " <small>" + pct(l[f.k]) + "</small>" : "") + "</button>").join("") +
       '<button type="button" data-f="" aria-pressed="' + (!P.formato) + '">Aún no decido</button>';
-    $("formatos").querySelectorAll("[data-f]").forEach((b) => b.onclick = () => { guardar({ formato: b.dataset.f || null }, b.dataset.f ? "Formato elegido" : null); pintarSello(); pintarLectura(); });
+    $("formatos").querySelectorAll("[data-f]").forEach((b) => b.onclick = async () => { await elegirFormato(b.dataset.f || null); pintarLectura(); });
   };
   const subir = debounce(() => guardar({ ejes: P.ejes }), 700);
   radar($("radar"), () => P.ejes, (e) => { P.ejes = e; pintarLectura(); subir(); }, $("pregunta"));

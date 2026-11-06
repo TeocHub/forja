@@ -2,7 +2,7 @@
 -- Solo estructura y reglas de acceso; ningún dato. Aplicado como migraciones:
 -- espacios_privados_proyectos, es_miembro_fuera_de_api y
 -- secciones_referentes_cotizacion_unica, precios_comunidad y
--- precios_comunidad_ocultar_autor (2026-11-05).
+-- precios_comunidad_ocultar_autor y secciones_avance_peso (2026-11-05).
 
 -- Espacios: cada usuario tiene uno propio (pensados para compartirse más adelante).
 create table public.espacios(
@@ -74,6 +74,8 @@ create table public.secciones(     -- escritura guiada del proyecto
   guia text,                       -- clave de la guía de preguntas (docs/js/guias.js)
   texto text not null default '' check (char_length(texto) <= 200000),
   orden int not null default 0,
+  avance int not null default 0 check (avance between 0 and 100),  -- etapa de la sección
+  peso int not null default 10 check (peso between 0 and 100),     -- cuánto pesa en el avance del proyecto
   creado_en timestamptz not null default now(),
   actualizado_en timestamptz not null default now()
 );
