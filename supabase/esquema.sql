@@ -166,5 +166,94 @@ create table public.vitrinas_publicadas(   -- pública: lo único que se lee sin
   publicado_en timestamptz not null default now()
 );
 -- RLS: select para anon y authenticated; solo las columnas slug, datos y publicado_en. Nadie escribe directo:
--- public.publicar_vitrina(v uuid, datos jsonb) y public.despublicar_vitrina(v uuid) (security definer, solo authenticated).
+-- public.publicar_vitrina(v uuid, datos jsonb, listar boolean) y public.despublicar_vitrina(v uuid) (security definer, solo authenticated).
 -- Trigger privado.t_vitrina_slug: si cambia vitrinas.slug, cambia también en vitrinas_publicadas.
+
+
+-- Moderación, documentos y Explorar (2026-11-06). Migraciones moderacion_y_cuenta, moderacion_panel,
+-- moderacion_ver, moderacion_permisos y mod_responder_avisar.
+create extension if not exists unaccent with schema extensions;
+-- privado.sin_tildes(t) envuelve unaccent (immutable) para el índice de búsqueda.
+alter table public.vitrinas
+  add column suspendida boolean not null default false,
+  add column suspension jsonb,                       -- {motivo, mensaje, en}: lo que se le explica al dueño
+  add column fuera_de_explorar boolean not null default false,
+  add column listar boolean not null default false;  -- el dueño pidió aparecer en Explorar
+-- Los usuarios pueden leer estas columnas, no escribirlas.
+alter table public.vitrinas_publicadas
+  add column visible boolean not null default true,  -- false = suspendida: nadie la lee
+  add column en_explorar boolean not null default false,
+  add column titulo text, add column lema text, add column firma text, add column tipo text, add column formato text,
+  add column estado text, add column portada text, add column acento text,
+  add column busqueda tsvector generated always as (to_tsvector('spanish', privado.sin_tildes(
+    coalesce(titulo, '') || ' ' || coalesce(lema, '') || ' ' || coalesce(firma, '')))) stored;
+create index on public.vitrinas_publicadas using gin (busqueda);
+-- Política de select: using (visible). Columnas legibles (anon y authenticated): slug, datos, publicado_en,
+-- en_explorar, titulo, lema, firma, tipo, formato, estado, portada, acento, busqueda.
+-- publicar_vitrina: FORJA_VITRINA_SUSPENDIDA si está suspendida. Con listar, aparece en Explorar solo si no está
+-- fuera_de_explorar, la cuenta tiene 3 días, aceptó las normas, hay título y la historia suma 40 palabras; si no,
+-- devuelve falta = moderacion | cuenta_nueva | normas | contenido. Devuelve {publicado_en, en_explorar, falta}.
+
+create table public.aceptaciones(          -- versión de cada documento que aceptó cada persona
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  documento text not null check (documento in ('terminos','privacidad','normas')),
+  version text not null check (char_length(version) <= 20),
+  aceptado_en timestamptz not null default now(),
+  primary key (user_id, documento, version)
+);
+-- RLS: ver y crear solo las propias. Permisos: select (documento, version, aceptado_en), insert (documento, version).
+
+create table public.avisos(                -- lo que Forja le explica a cada persona (moderación, respuestas)
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  tipo text not null default 'info',       -- suspendida, restaurada, explorar, reporte, respuesta
+  titulo text not null, texto text not null, enlace text,
+  leido boolean not null default false,
+  creado_en timestamptz not null default now()
+);
+-- RLS: ver y actualizar las propias. Permisos: select (sin user_id), update (leido). Solo las crean funciones del servidor.
+
+create table public.reportes(
+  id uuid primary key default gen_random_uuid(),
+  vitrina_id uuid not null references public.vitrinas(id) on delete cascade,
+  autor uuid not null references auth.users(id) on delete cascade,
+  motivo text not null check (motivo in ('estafa','ofensivo','derechos','datos','menores','spam','otro')),
+  detalle text check (char_length(detalle) <= 1000),
+  estado text not null default 'pendiente' check (estado in ('pendiente','aceptado','desestimado','mala_fe')),
+  creado_en timestamptz not null default now(),
+  revisado_en timestamptz,
+  unique (vitrina_id, autor)
+);
+-- RLS: el autor ve los suyos (sin la columna autor). Nadie inserta directo: public.reportar_vitrina(slug, motivo, detalle)
+-- exige cuenta (FORJA_REPORTE_SIN_CUENTA), vitrina visible (FORJA_NO_ENCONTRADA), que no sea propia (FORJA_REPORTE_PROPIO),
+-- cuenta de 1 día (FORJA_REPORTE_CUENTA_NUEVA), menos de 2 reportes de mala fe (FORJA_REPORTE_BLOQUEADO),
+-- 5 por día (FORJA_REPORTE_LIMITE) y uno por vitrina (FORJA_REPORTE_REPETIDO). Un reporte nunca oculta nada solo.
+
+create table public.mensajes(              -- Escríbenos, solicitudes de datos personales y apelaciones
+  id uuid primary key default gen_random_uuid(),
+  autor uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  tipo text not null check (tipo in ('apelacion','privacidad','contacto')),
+  vitrina_id uuid references public.vitrinas(id) on delete set null,
+  texto text not null check (char_length(texto) between 5 and 3000),
+  estado text not null default 'abierto' check (estado in ('abierto','respondido','cerrado')),
+  respuesta text,
+  creado_en timestamptz not null default now(),
+  respondido_en timestamptz
+);
+-- RLS: ver y crear los propios. Permisos: insert (tipo, vitrina_id, texto); select sin autor.
+-- Trigger privado.t_mensajes: máximo 5 por día (FORJA_MENSAJES_LIMITE); una apelación debe ser de una vitrina propia.
+
+-- Moderación: solo quien esté en privado.admin_correos (se agrega con el conector, el correo nunca va al repo).
+create table privado.admin_correos(email text primary key);
+create table privado.registro(             -- cada decisión de moderación, para responder apelaciones
+  id bigint generated always as identity primary key,
+  admin uuid, accion text not null, vitrina_id uuid, detalle jsonb,
+  en timestamptz not null default now()
+);
+-- privado.es_admin() y public.soy_admin() (para mostrar el enlace "Moderación").
+-- Funciones solo para admin (security definer, FORJA_NO_PERMITIDO si no): mod_panel() (reportes pendientes por vitrina con
+-- el historial y la antigüedad de quien reporta, mensajes abiertos, suspendidas, en Explorar y registro), mod_vitrina(v)
+-- (verla aunque esté oculta), mod_resolver(v, 'desestimado'|'mala_fe'), mod_suspender(v, motivo, mensaje) (mensaje
+-- obligatorio: FORJA_FALTA_MENSAJE; oculta la publicada, acepta los reportes y avisa a dueños y a quienes reportaron),
+-- mod_restaurar(v, mensaje), mod_explorar(v, mostrar, mensaje), mod_responder(m, respuesta, avisar default true).
+-- public.borrar_mi_cuenta(confirmacion): con 'BORRAR' borra los espacios del usuario (cascada) y su cuenta (FORJA_CONFIRMAR).

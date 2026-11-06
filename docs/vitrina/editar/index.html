@@ -132,6 +132,16 @@ dialog::backdrop{background:rgba(10,12,20,.5)}
 .dir{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;background:var(--field);overflow:hidden}
 .dir span{font-family:var(--f-num);font-size:12px;color:var(--muted);padding:0 2px 0 9px;white-space:nowrap}
 .dir input{flex:1;min-width:0;font:inherit;font-family:var(--f-num);font-size:13px;border:0;background:transparent;color:var(--fg);padding:7px 9px 7px 0}
+.susp{border:1.5px solid var(--bad);background:color-mix(in srgb,var(--bad) 7%,var(--card));border-radius:14px;padding:14px 16px;margin:0 0 14px;display:flex;flex-direction:column;gap:8px;font-size:14.5px}
+.susp b{font-family:var(--f-display);font-size:18px;color:var(--bad)}
+.susp p{margin:0}
+.susp blockquote{margin:0;padding:8px 12px;border-left:3px solid var(--bad);background:var(--card);border-radius:0 8px 8px 0;white-space:pre-wrap}
+.susp .apelado{background:var(--card);border-radius:10px;padding:9px 12px}
+.susp .apelado b{font-family:inherit;font-size:inherit;color:var(--fg)}
+.apelar summary{cursor:pointer;font-weight:700;color:var(--accent)}
+.apelar textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:8px;margin:8px 0}
+.check.exp{align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;line-height:1.45}
+.check.exp input{margin-top:3px}
 </style>
 </head>
 <body data-vista="editar">
@@ -150,6 +160,7 @@ document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style
 navApp("proyectos");
 const ID = new URLSearchParams(location.search).get("p");
 const CANDADO = '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M5 7V5a3 3 0 0 1 6 0v2h.5A1.5 1.5 0 0 1 13 8.5v5A1.5 1.5 0 0 1 11.5 15h-7A1.5 1.5 0 0 1 3 13.5v-5A1.5 1.5 0 0 1 4.5 7H5Zm1.5 0h3V5a1.5 1.5 0 0 0-3 0v2Z"/></svg>';
+let EXP = false; // ¿aparece en Explorar?
 let P, PL, RO, V, B, PUB = null, SECS = [], REFS = [], PIZ = [], NOTAS = [], abiertas = new Set(["portada"]), pendiente = false;
 const hoy = () => new Date().toISOString().slice(0, 10);
 // Comparar contenido sin importar el orden de las claves (la base las reordena).
@@ -180,7 +191,8 @@ else conSesion($("app"), async () => {
   if (!V) V = await crear(ESP);
   if (!V) return;
   B = normal(Object.keys(V.borrador || {}).length ? V.borrador : nuevaVitrina(P));
-  if (V.publicada) { const r = await sb.from("vitrinas_publicadas").select("datos,publicado_en").eq("slug", V.slug).maybeSingle(); PUB = r.data ? r.data.datos : null; }
+  if (V.suspendida) { const r = await sb.from("mensajes").select("id").eq("tipo", "apelacion").eq("vitrina_id", V.id).eq("estado", "abierto").limit(1); APELADA = !!(r.data && r.data.length); }
+  if (V.publicada && !V.suspendida) { const r = await sb.from("vitrinas_publicadas").select("datos,publicado_en,en_explorar").eq("slug", V.slug).maybeSingle(); PUB = r.data ? r.data.datos : null; EXP = !!(r.data && r.data.en_explorar); }
   armar();
 }, "La vitrina se edita en privado: nada se ve hasta que publicas.");
 
@@ -219,12 +231,14 @@ function armar() {
   $("app").innerHTML = '<a class="vol" href="../../proyecto/?p=' + P.id + '#vitrina">← ' + esc(P.nombre) + "</a>" +
     '<div class="cab"><h1>Vitrina<small>La página pública de tu proyecto</small></h1><span id="estado"></span>' +
     '<div class="acc"><span class="guardado" id="guardado" aria-live="polite">Borrador guardado</span><button type="button" class="btn" id="b-comp">Compartir</button><button type="button" class="btn prim" id="b-pub">Publicar</button></div></div>' +
+    (V.suspendida ? suspensionHTML() : "") +
     (RO ? '<div class="aviso" style="margin-bottom:12px">' + CANDADO + " Este proyecto está en solo lectura en el plan gratis: puedes preparar el borrador y despublicar, pero no publicar cambios.</div>" : "") +
     '<div class="modo" role="group" aria-label="Vista"><button type="button" data-vista="editar" aria-pressed="true">Editar</button><button type="button" data-vista="previa" aria-pressed="false">Vista previa</button></div>' +
     '<div class="grid"><div class="panel" id="panel"></div><div class="previa"><div class="previa-barra"><i></i><i></i><i></i><span id="previa-url"></span></div><div id="previa"></div></div></div>';
   document.querySelectorAll("[data-vista]").forEach((b) => b.onclick = () => { document.body.dataset.vista = b.dataset.vista; document.querySelectorAll(".modo [data-vista]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); if (b.dataset.vista === "previa") pintarPrevia(); });
   pista($("app").querySelector(".cab").nextElementSibling ? (() => { const d = document.createElement("div"); $("app").querySelector(".cab").after(d); return d; })() : $("app"), "vitrina");
   $("b-pub").onclick = abrirPublicar;
+  if ($("ap-b")) $("ap-b").onclick = apelar;
   $("b-comp").onclick = abrirCompartir;
   pintarPanel(); pintarPrevia(); pintarEstado();
 }
@@ -233,8 +247,9 @@ function pintarEstado() {
   const cambios = PUB && canon(pub) !== canon(PUB);
   $("estado").innerHTML = !PUB ? '<span class="estado"><i></i>Sin publicar</span>'
     : cambios ? '<span class="estado cambios"><i></i>Publicada · hay cambios sin publicar</span>' : '<span class="estado vivo"><i></i>Publicada</span>';
-  $("b-pub").textContent = PUB ? "Publicar cambios" : "Publicar";
-  $("b-pub").disabled = RO || (PUB && !cambios);
+  if (V.suspendida) $("estado").innerHTML = '<span class="estado" style="color:var(--bad);border-color:var(--bad)"><i style="background:var(--bad)"></i>Suspendida por moderación</span>';
+  $("b-pub").textContent = PUB ? (cambios ? "Publicar cambios" : "Publicar de nuevo") : "Publicar";
+  $("b-pub").disabled = RO || V.suspendida;
   $("previa-url").textContent = urlPublica().replace(/^https?:\/\//, "");
 }
 let tPrevia;
@@ -326,7 +341,7 @@ function enlacesHTML() {
     '<div class="fila"><button type="button" class="btn chico" data-nuevo="enlaces">+ Enlace</button></div>';
 }
 function publicacionHTML() {
-  return '<label class="c"><span>Dirección de la vitrina</span><span class="dir"><span>../../vitrina/?v=</span><input id="slug" value="' + esc(V.slug) + '" maxlength="60" spellcheck="false" autocapitalize="off"></span></label>' +
+  return '<p class="ayuda">' + (!PUB ? "Aún no está publicada." : EXP ? "<b>Aparece en Explorar</b> y en su enlace." : V.fuera_de_explorar ? "Visible solo por su enlace (la moderación la sacó de Explorar)." : "Visible solo para quien tenga su enlace. Para aparecer en Explorar, márcalo al publicar.") + "</p>" + '<label class="c"><span>Dirección de la vitrina</span><span class="dir"><span>../../vitrina/?v=</span><input id="slug" value="' + esc(V.slug) + '" maxlength="60" spellcheck="false" autocapitalize="off"></span></label>' +
     '<div class="fila"><button type="button" class="btn chico" id="b-slug">Cambiar dirección</button><span class="ayuda" id="slug-msg">Solo minúsculas, números y guiones.</span></div>' +
     (V.anterior ? '<div class="fila"><button type="button" class="btn chico" id="b-anterior">Cargar la versión publicada anterior en el borrador</button></div>' : "") +
     (PUB ? '<div class="fila"><button type="button" class="btn chico peligro" id="b-despub">Despublicar</button><span class="ayuda">La vitrina deja de verse; el borrador se conserva.</span></div>' : "");
@@ -416,6 +431,24 @@ async function cambiarSlug() {
 }
 
 /* ---------- publicar y compartir ---------- */
+// Suspendida por moderación: se explica el motivo y se puede apelar (una persona lo revisa).
+const MOTIVO_TXT = { estafa: "posible estafa o engaño", ofensivo: "contenido ofensivo, de odio o violento", derechos: "uso de obras o marcas ajenas sin permiso", datos: "datos personales de otras personas", menores: "contenido que pone en riesgo a menores de edad", spam: "spam o publicidad engañosa", otro: "incumplimiento de las normas de la comunidad" };
+let APELADA = false;
+const APELADA_HTML = '<p class="apelado"><b>Apelación enviada.</b> Una persona la está revisando; te responderemos en Forja (Mi cuenta → Avisos).</p>';
+function suspensionHTML() {
+  const s = V.suspension || {};
+  return '<div class="susp" role="alert"><b>Esta vitrina está suspendida</b><p>Motivo: ' + esc(MOTIVO_TXT[s.motivo] || MOTIVO_TXT.otro) + (s.en ? " · desde el " + esc(String(s.en).slice(0, 10).split("-").reverse().join("-")) : "") + "</p>" +
+    (s.mensaje ? '<blockquote>' + esc(s.mensaje) + "</blockquote>" : "") +
+    '<p>Tu proyecto y este borrador siguen intactos; solo dejó de verse en público. Puedes corregir lo necesario y apelar: una persona revisará tu caso. Lee las <a href="../../normas/#apelar" target="_blank" rel="noopener">normas sobre apelaciones</a>.</p>' +
+    (APELADA ? APELADA_HTML : '<details class="apelar"><summary>Apelar esta decisión</summary><textarea id="ap-t" maxlength="3000" rows="4" placeholder="Cuéntanos por qué crees que es un error o qué cambiaste."></textarea><button type="button" class="btn prim chico" id="ap-b">Enviar apelación</button></details>') + "</div>";
+}
+async function apelar() {
+  const t = $("ap-t").value.trim(); if (t.length < 5) { toast("Escribe un poco más para que podamos entender tu caso."); return; }
+  $("ap-b").disabled = true;
+  const { error } = await sb.from("mensajes").insert({ tipo: "apelacion", vitrina_id: V.id, texto: t });
+  if (error) { $("ap-b").disabled = false; toast(limite(error) || "No se pudo enviar la apelación."); return; }
+  APELADA = true; $("ap-t").closest("details").outerHTML = APELADA_HTML;
+}
 function abrirPublicar() {
   const d = paraPublicar(B, PL), n = (x, s, p) => x ? "<span>" + x + " " + (x === 1 ? s : p) + "</span>" : "";
   const fotos = d.galeria.length, quitadas = !PL.mas && B.pizarras.length;
@@ -425,17 +458,21 @@ function abrirPublicar() {
     (quitadas ? '<p class="aviso">Las pizarras no se incluyen en el plan gratis.</p>' : "") +
     (!d.historia.length && !fotos && !d.novedades.length ? '<p class="aviso">La vitrina está casi vacía: considera agregar la historia o algunas imágenes antes de compartirla.</p>' : "") +
     '<p class="ayuda" style="margin:0;font-size:13px;color:var(--muted)">Dirección: ' + esc(urlPublica()) + "</p>" +
+    (V.fuera_de_explorar ? '<p class="aviso">La moderación sacó esta vitrina de Explorar: sigue visible para quien tenga el enlace.</p>'
+      : '<label class="check exp"><input type="checkbox" id="pub-exp"' + (V.listar ? " checked" : "") + '> <span><b>Mostrar en Explorar</b>, el directorio público de proyectos de Forja. Requiere una cuenta con al menos 3 días, título y una historia con algo de texto (unas 40 palabras), y respetar las <a href="../../normas/" target="_blank" rel="noopener">normas</a>.</span></label>') +
     '<div class="dlg-pie"><button type="button" class="btn" id="pub-no">Cancelar</button><button type="button" class="btn prim" id="pub-si">Publicar ahora</button></div>';
   $("dlg-pub").showModal();
   $("pub-no").onclick = () => $("dlg-pub").close();
   $("pub-si").onclick = async () => {
     $("pub-si").disabled = true;
     if (pendiente) await guardar();
-    const { error } = await sb.rpc("publicar_vitrina", { v: V.id, datos: d });
+    const listar = !!($("pub-exp") && $("pub-exp").checked);
+    const { data: res, error } = await sb.rpc("publicar_vitrina", { v: V.id, datos: d, listar });
     $("dlg-pub").close();
     if (error) { toast(limite(error) || "No se pudo publicar. Revisa tu conexión."); return; }
-    const primera = !PUB; V.anterior = PUB || V.anterior; PUB = d; V.publicada = true;
-    pintarEstado(); pintarPanel(); toast(primera ? "¡Tu vitrina está publicada!" : "Cambios publicados");
+    const primera = !PUB; V.anterior = PUB || V.anterior; PUB = d; V.publicada = true; V.listar = listar; EXP = !!(res && res.en_explorar);
+    const FALTA = { cuenta_nueva: "Tu cuenta tiene menos de 3 días: podrás aparecer en Explorar pronto, publicando de nuevo.", normas: "Para aparecer en Explorar, acepta las normas de la comunidad.", contenido: "Para aparecer en Explorar, agrega un título y una historia con algo más de texto.", moderacion: "La moderación sacó esta vitrina de Explorar." };
+    pintarEstado(); pintarPanel(); toast((primera ? "¡Tu vitrina está publicada!" : "Cambios publicados") + (listar && res && res.falta ? " " + (FALTA[res.falta] || "") : listar && EXP ? " Ya aparece en Explorar." : ""));
     if (primera) abrirCompartir();
   };
 }

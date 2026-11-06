@@ -20,12 +20,34 @@ html,body{margin:0;background:var(--bg)}
 .vt-estado{min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;font-family:var(--f-body);color:var(--muted)}
 .vt-estado h1{font-family:var(--f-display);color:var(--fg);font-size:28px;margin:0 0 8px}
 .vt-estado a{color:var(--accent)}
+.rep{border:0;border-radius:18px;padding:0;width:min(520px,94vw);background:var(--card);color:var(--fg);box-shadow:0 24px 60px rgba(10,14,30,.3);font-family:var(--f-body)}
+.rep::backdrop{background:rgba(10,12,20,.55)}
+.rep-c{padding:22px;display:flex;flex-direction:column;gap:12px;font-size:15px;line-height:1.5}
+.rep-c h2{font-family:var(--f-display);font-size:23px;margin:0}
+.rep-c p{margin:0;color:var(--muted)}
+.rep fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.rep legend{font-weight:700;margin-bottom:6px}
+.rep-op{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer}
+.rep-op:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.rep-op input{margin-top:4px;accent-color:var(--accent)}
+.rep-op span{display:flex;flex-direction:column}
+.rep-op small{color:var(--muted);font-size:13px}
+.rep-det{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.rep-det textarea{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:8px;padding:8px}
+.rep-nota{font-size:13px}
+.rep-msg{color:var(--bad)!important;font-weight:700;font-size:14px}
+.rep-msg:empty{display:none}
+.rep-pie{display:flex;justify-content:flex-end;gap:8px}
+.rep-no,.rep-si{font:inherit;font-size:14px;border-radius:10px;padding:8px 14px;cursor:pointer;text-decoration:none}
+.rep-no{border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.rep-si{border:1px solid var(--fg);background:var(--fg);color:var(--bg);font-weight:700}
+.rep-si:disabled{opacity:.5}
 </style>
 </head>
 <body>
 <div id="raiz"><div class="vt-estado"><p>Cargando…</p></div></div>
 <script type="module">
-import { sb } from "../js/forja.js";
+import { sb, u, limite, esc } from "../js/forja.js";
 import { pintarVitrina, normal, CSS_VITRINA } from "../js/vitrina.js";
 import { TIPOS } from "../js/guias.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
@@ -48,7 +70,37 @@ const nada = (t, x) => { raiz.innerHTML = '<div class="vt-estado"><div><h1>' + t
   pintarVitrina(raiz, d, { fecha: (data.publicado_en || "").slice(0, 10) });
   document.body.style.background = getComputedStyle(raiz.querySelector(".vt")).backgroundColor;
   if (location.hash) { const s = document.querySelector("#vt-" + location.hash.slice(1)); if (s) s.scrollIntoView(); }
+  const rb = raiz.querySelector(".vt-reportar"); if (rb) rb.onclick = reportar;
 })();
+
+// Reportar: solo con cuenta (así se frenan los reportes automáticos). Lo revisa siempre una persona.
+const MOTIVOS = [["estafa", "Estafa o engaño", "Promete algo que no existe, pide pagos falsos o suplanta a alguien."], ["ofensivo", "Odio, acoso o violencia", "Ataca a personas o grupos, amenaza o glorifica violencia real."],
+  ["menores", "Pone en riesgo a menores", "Contenido sexual o dañino que involucra a menores de edad."], ["derechos", "Usa obras ajenas como propias", "Imágenes, música, personajes o marcas de otros sin permiso."],
+  ["datos", "Datos personales de otra persona", "Teléfonos, direcciones, fotos privadas u otros datos sin consentimiento."], ["spam", "Spam o enlaces dañinos", "Publicidad engañosa, vitrina vacía o enlaces maliciosos."], ["otro", "Otra cosa", "Algo que incumple las normas y no está en la lista."]];
+async function reportar() {
+  const { data } = await sb.auth.getSession();
+  let dl = document.getElementById("rep"); if (dl) dl.remove();
+  dl = document.createElement("dialog"); dl.id = "rep"; dl.className = "rep";
+  dl.innerHTML = !data.session
+    ? '<div class="rep-c"><h2>Reportar esta vitrina</h2><p>Para reportar necesitas una cuenta de Forja con al menos un día de antigüedad. Así evitamos que programas automáticos envíen reportes falsos.</p><p>Crear una cuenta es gratis y solo pide tu correo.</p><div class="rep-pie"><button type="button" class="rep-no">Cancelar</button><a class="rep-si" href="' + u("entrar/?siguiente=" + encodeURIComponent("vitrina/?v=" + slug)) + '">Entrar o crear cuenta</a></div></div>'
+    : '<form class="rep-c" id="rep-f"><h2>Reportar esta vitrina</h2><p>Una persona del equipo revisará tu reporte. Nada se oculta automáticamente, y quien publicó la vitrina no sabrá quién la reportó.</p><fieldset><legend>¿Qué pasa?</legend>' +
+      MOTIVOS.map(([k, n, d]) => '<label class="rep-op"><input type="radio" name="m" value="' + k + '" required><span><b>' + n + "</b><small>" + d + "</small></span></label>").join("") +
+      '</fieldset><label class="rep-det"><span>Cuéntanos qué viste (opcional, ayuda mucho)</span><textarea id="rep-d" maxlength="1000" rows="3"></textarea></label>' +
+      '<p class="rep-nota">Reportar de mala fe (para atacar a alguien o a la competencia) tiene consecuencias. Lee las <a href="' + u("normas/#reportar") + '" target="_blank" rel="noopener">normas</a>.</p><p class="rep-msg" id="rep-msg" role="alert"></p>' +
+      '<div class="rep-pie"><button type="button" class="rep-no">Cancelar</button><button type="submit" class="rep-si">Enviar reporte</button></div></form>';
+  document.body.appendChild(dl); dl.showModal();
+  dl.querySelectorAll(".rep-no").forEach((b) => b.onclick = () => dl.close());
+  const f = document.getElementById("rep-f"); if (!f) return;
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const m = f.querySelector("input[name=m]:checked"); if (!m) return;
+    f.querySelector(".rep-si").disabled = true;
+    const { error } = await sb.rpc("reportar_vitrina", { slug, motivo: m.value, detalle: document.getElementById("rep-d").value });
+    if (error) { document.getElementById("rep-msg").textContent = limite(error) || "No se pudo enviar el reporte. Intenta de nuevo."; f.querySelector(".rep-si").disabled = false; return; }
+    dl.innerHTML = '<div class="rep-c"><h2>Gracias por avisar</h2><p>Recibimos tu reporte. Una persona lo va a revisar y te contaremos el resultado en <a href="' + u("cuenta/") + '">Mi cuenta</a>.</p><div class="rep-pie"><button type="button" class="rep-si" id="rep-ok">Listo</button></div></div>';
+    document.getElementById("rep-ok").onclick = () => dl.close();
+  };
+}
 </script>
 </body>
 </html>

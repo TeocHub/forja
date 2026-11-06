@@ -13,7 +13,11 @@ Una portada pública que explica la herramienta, el calendario público de **Opo
 ```
 docs/                     sitio publicado en GitHub Pages (app instalable en el celular)
   index.html              portada pública
-  vitrina/            vitrina pública de un proyecto (?v=direccion)
+  vitrina/            vitrina pública de un proyecto (?v=direccion), con "Reportar esta vitrina"
+  explorar/           directorio público de vitrinas (las que sus dueños eligen mostrar)
+  terminos/ privacidad/ normas/   términos de uso, política de privacidad y normas de la comunidad
+  cuenta/             mi cuenta: avisos, escríbenos, reportes, descargar datos y borrar cuenta
+  admin/              moderación (solo el equipo de Forja)
   guia/               guía de Forja con demos para probar
   vitrina/editar/     editor de la vitrina (requiere cuenta)
   planes/             planes (gratis y Forja Más, próximamente)

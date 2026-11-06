@@ -193,7 +193,7 @@ function abrir(id, empujar) {
   const conDemo = !!DEMOS[id];
   $("g-lamina").className = "g-lamina" + (conDemo ? "" : " sola");
   $("g-lamina").setAttribute("aria-labelledby", i >= 0 ? "est-" + id : "");
-  $("g-lamina").innerHTML = '<div>' + temaHTML(t, CTX, { conIr: !!SES || !t.ir }) + (!SES && t.ir ? '<p class="d-nota" style="margin-top:14px"><a href="../entrar/">Crea tu cuenta gratis</a> para usarlo en tus proyectos.</p>' : "") + "</div>" +
+  $("g-lamina").innerHTML = '<div>' + temaHTML(t, CTX, { conIr: !!SES || !t.ir || t.publico }) + (!SES && t.ir && !t.publico ? '<p class="d-nota" style="margin-top:14px"><a href="../entrar/">Crea tu cuenta gratis</a> para usarlo en tus proyectos.</p>' : "") + "</div>" +
     (conDemo ? '<div class="g-demo"><div class="g-demo-cab"><b>Pruébalo aquí</b><span>Es una demostración: no se guarda.</span></div><div id="g-demo-c"></div></div>' : "") +
     (i >= 0 ? '<div class="g-nav"><button type="button" id="g-ant"' + (i ? "" : " disabled") + ">← " + (i ? CORTO[LINEA[i - 1].id] : "") + '</button><button type="button" id="g-sig"' + (i < LINEA.length - 1 ? "" : " disabled") + ">" + (i < LINEA.length - 1 ? CORTO[LINEA[i + 1].id] : "") + " →</button></div>" : "");
   if (i >= 0) {
@@ -332,6 +332,8 @@ const DUDAS = [
   ["¿Qué pasa si llego a un límite?", "Nada se borra. No puedes agregar más de eso hasta que archives o recortes, y siempre puedes ver, exportar, archivar o borrar."],
   ["¿Funciona en el celular?", "Sí, y se puede instalar como app desde el navegador. La Pizarra y el Taller tienen pantalla completa para trabajar cómodo."],
   ["¿Las fechas de oportunidades son seguras?", "Se revisan seguido, pero confírmalas siempre en la fuente. Si una dice «estimada», se calculó con ediciones anteriores."],
+  ["¿Puedo descargar mis datos o borrar mi cuenta?", "Sí, cuando quieras, desde Mi cuenta (menú de tu inicial). La descarga te entrega todo en un archivo; borrar la cuenta elimina todo y no se puede deshacer. Los detalles están en la Política de privacidad."],
+  ["¿Qué pasa si reportan mi vitrina?", "Una persona la revisa; nunca se oculta sola por recibir reportes. Si infringe las Normas de la comunidad, te avisamos el motivo en Mi cuenta y puedes apelar."],
   ["¿Cómo vuelvo a ver los primeros pasos?", "En el menú de tu cuenta (tu inicial, arriba a la derecha), toca «Volver a ver las pistas». También tienes el botón «?» en cada página."],
 ];
 $("g-dudas").innerHTML = DUDAS.map(([p, r]) => "<details><summary>" + esc(p) + "</summary><p>" + esc(r) + "</p></details>").join("");

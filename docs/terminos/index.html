@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Términos de uso · Forja</title>
+<meta name="description" content="Tu contenido es tuyo y lo puedes llevar o borrar cuando quieras.">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: documento legal — título y resumen en simple arriba, índice pegajoso a la izquierda y el texto a la derecha */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.65}
+a{color:var(--accent)}
+.wrap{max-width:1080px;margin:0 auto;padding-block:24px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(a,button):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.l-k{font-family:var(--f-num);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-family:var(--f-display);font-size:clamp(32px,5.5vw,52px);line-height:1.05;margin:8px 0 6px}
+.l-ver{color:var(--muted);font-size:14px;margin:0}
+.l-docs{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 0}
+.l-docs a{text-decoration:none;font-size:14px;border:1px solid var(--line);border-radius:999px;padding:5px 13px;color:var(--fg);background:var(--card)}
+.l-docs a[aria-current=page]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.l-simple{margin:24px 0 8px;border-radius:18px;padding:18px 20px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
+.l-simple b{font-family:var(--f-num);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.l-simple p{margin:6px 0 0;font-size:17px;max-width:70ch}
+.l-grid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;margin-top:28px;align-items:start}
+.l-toc{position:sticky;top:16px;display:flex;flex-direction:column;gap:2px;font-size:14px;border-left:2px solid var(--line);padding-left:2px}
+.l-toc a{text-decoration:none;color:var(--muted);padding:5px 10px;border-radius:0 8px 8px 0;margin-left:-4px;border-left:2px solid transparent}
+.l-toc a:hover{color:var(--fg)}
+.l-toc a.activo{color:var(--fg);border-left-color:var(--accent);background:var(--card);font-weight:700}
+.l-texto section{padding:4px 0 22px;scroll-margin-top:16px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.l-texto section:last-child{border-bottom:0}
+.l-texto h2{font-family:var(--f-display);font-size:24px;line-height:1.2;margin:0 0 10px}
+.l-texto h3{font-size:16px;margin:16px 0 4px}
+.l-texto p{margin:0 0 12px;max-width:72ch}
+.l-pie{margin-top:36px;border-radius:18px;background:var(--card);border:1px solid var(--line);padding:18px 20px;font-size:15px;color:var(--muted)}
+.l-aviso{margin-top:12px;font-size:13px;color:var(--muted)}
+@media (max-width:820px){.l-grid{grid-template-columns:1fr;gap:12px}.l-toc{position:static;flex-direction:row;flex-wrap:wrap;border:0;gap:6px;padding:0}.l-toc a{border:1px solid var(--line);border-radius:999px;margin:0;padding:3px 10px;font-size:13px}.l-toc a.activo{border-color:var(--accent)}}
+@media print{nav,.l-docs,.l-toc,.l-pie{display:none}.l-grid{display:block}body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main>
+    <span class="l-k">Documentos de Forja</span>
+    <h1>Términos de uso</h1>
+    <p class="l-ver" id="l-ver"></p>
+    <nav class="l-docs" aria-label="Documentos"><a href="../terminos/" aria-current="page">Términos de uso</a><a href="../privacidad/">Política de privacidad</a><a href="../normas/">Normas de la comunidad</a></nav>
+    <div class="l-simple"><b>En simple</b><p>Tu contenido es tuyo y lo puedes llevar o borrar cuando quieras. Forja es para personas de 14 años o más. Lo que publicas en una vitrina es tu responsabilidad y debe respetar las Normas de la comunidad. Forja no maneja pagos entre creadores y su público. Si algo cambia en estos términos, te avisamos antes.</p></div>
+    <div class="l-grid">
+      <nav class="l-toc" aria-label="Índice" id="l-toc"></nav>
+      <article class="l-texto" id="l-texto">
+<section id="quienes"><h2>Quiénes somos</h2>
+<p>Forja es una plataforma para crear y ordenar proyectos creativos: historias, videojuegos, juegos de mesa, contenido y productos. La desarrolla y opera <b>Digital Monster</b>, un emprendimiento chileno (en estos documentos, "Forja", "nosotros").</p>
+<p>Estos términos son el acuerdo entre tú y nosotros para usar Forja. Junto con la <a href="../privacidad/">Política de privacidad</a> y las <a href="../normas/">Normas de la comunidad</a>, que forman parte de ellos, explican qué puedes esperar de la plataforma y qué esperamos de ti.</p></section>
+
+<section id="aceptar"><h2>Cómo se aceptan y cuándo cambian</h2>
+<p>Al crear tu cuenta te pedimos aceptarlos marcando una casilla, que nunca viene marcada de antemano. Guardamos qué versión aceptaste y cuándo.</p>
+<p>Si los cambiamos de forma importante, te avisaremos dentro de Forja al menos 15 días antes de que rija la nueva versión, y te pediremos aceptarla al entrar. Si no estás de acuerdo, puedes descargar tus datos y borrar tu cuenta en cualquier momento. Los cambios menores (redacción, correcciones) se publican con su fecha.</p></section>
+
+<section id="quien"><h2>Quién puede usar Forja</h2>
+<p>Forja es para personas de <b>14 años o más</b>. Si tienes entre 14 y 17 años, úsala con conocimiento de tu madre, padre o tutor. Los pagos de planes, cuando existan, debe hacerlos una persona mayor de edad.</p>
+<p>Cada cuenta es de una persona, con un correo que controle. No se permiten cuentas creadas por programas automáticos ni cuentas para suplantar a otra persona o marca.</p></section>
+
+<section id="cuenta"><h2>Tu cuenta</h2>
+<p>Entras con un enlace o código que llega a tu correo, sin contraseña. Cuida el acceso a tu correo: quien lo controle puede entrar a tu Forja. Si crees que alguien entró sin permiso, escríbenos desde <a href="../cuenta/">Mi cuenta</a>.</p>
+<p>Desde Mi cuenta puedes descargar todos tus datos y borrar tu cuenta cuando quieras. Borrarla elimina tus proyectos, vitrinas y todo lo que creaste, y no se puede deshacer.</p></section>
+
+<section id="contenido"><h2>Tu contenido es tuyo</h2>
+<p>Todo lo que escribes, ordenas y publicas en Forja sigue siendo tuyo. No adquirimos ningún derecho de propiedad sobre tus ideas, textos, diseños ni proyectos.</p>
+<p>Para que Forja funcione, nos das un permiso limitado, gratuito y no exclusivo para guardar tu contenido, mostrártelo en tus dispositivos, hacer copias de respaldo y, solo cuando tú lo publicas en una vitrina o en Explorar, mostrarlo públicamente. Ese permiso termina cuando borras el contenido o despublicas la vitrina (las copias de respaldo se eliminan en su ciclo normal).</p>
+<p><b>No vendemos tu contenido, no lo usamos para publicidad y no lo usamos para entrenar inteligencia artificial.</b></p></section>
+
+<section id="publicar"><h2>Lo que publicas</h2>
+<p>Tus proyectos son privados. Solo se vuelve público lo que tú publicas en una <b>vitrina</b> (visible para quien tenga su enlace) y, si lo eliges, en <b>Explorar</b> (el directorio público de Forja).</p>
+<p>Al publicar, declaras que tienes derecho a mostrar ese contenido: que es tuyo, que tienes permiso de sus autores, o que lo usas como cita o referencia con su crédito. Eres responsable de lo que publicas y de lo que prometes en tu vitrina.</p>
+<p>Forja guarda enlaces, no archivos: las imágenes, videos y música que muestres vienen de otros sitios y siguen sus propias condiciones.</p></section>
+
+<section id="normas"><h2>Normas de la comunidad y moderación</h2>
+<p>Lo que publiques debe respetar las <a href="../normas/">Normas de la comunidad</a>. Cualquier persona con cuenta puede reportar una vitrina; los reportes los revisa siempre una persona del equipo, nunca un sistema automático.</p>
+<p>Si una vitrina incumple las normas podemos pedirte un cambio, sacarla de Explorar, suspenderla o, en casos graves, cerrar la cuenta. Siempre te diremos el motivo dentro de Forja y podrás apelar. El detalle está en las normas.</p></section>
+
+<section id="planes"><h2>Planes</h2>
+<p>El plan gratis no vence y tiene límites de uso (proyectos en curso, palabras, referentes y pizarras) que se muestran en la plataforma. <b>Forja Más</b>, el plan pagado, aún no está disponible: sus precios, forma de pago, renovación y cancelación se publicarán antes de que se pueda contratar, y tendrás que aceptarlos en ese momento.</p>
+<p>Si un día dejas de tener Forja Más, no se borra nada: lo que supere los límites del plan gratis queda en solo lectura, y siempre puedes verlo, exportarlo, archivarlo o borrarlo.</p></section>
+
+<section id="pagos"><h2>Forja no maneja pagos entre personas</h2>
+<p>Forja no recibe, guarda ni transfiere dinero entre creadores y su público. Si una vitrina muestra enlaces de pago, preventas o formas de apoyo, el acuerdo es directamente entre el creador y quien paga, a través del medio de pago que el creador eligió. Forja no garantiza entregas ni puede devolver dinero de esos acuerdos. Si detectas un engaño, repórtalo.</p></section>
+
+<section id="info"><h2>Oportunidades y precios de referencia</h2>
+<p>El calendario de oportunidades (fondos, ferias, convocatorias) es información de referencia que revisamos con cuidado, pero las bases oficiales son las de cada organizador: confírmalas en su fuente. Una fecha marcada como "estimada" se calculó con ediciones anteriores.</p>
+<p>Los precios de proveedores que la comunidad comparte en el cotizador son anónimos y referenciales: no son ofertas de esos proveedores.</p></section>
+
+<section id="uso"><h2>Uso correcto de la plataforma</h2>
+<p>No intentes acceder a datos de otras personas, saturar el servicio, automatizar cuentas o reportes, ni usar Forja para actividades ilegales. Podemos limitar o cerrar cuentas que lo hagan.</p></section>
+
+<section id="servicio"><h2>Disponibilidad y responsabilidad</h2>
+<p>Hacemos un esfuerzo razonable para que Forja funcione bien y tus datos estén seguros y respaldados, pero es un servicio en desarrollo y puede tener fallas o interrupciones. Te recomendamos exportar la biblia de tus proyectos importantes de vez en cuando.</p>
+<p>En lo que la ley permita, no respondemos por pérdidas indirectas ni por acuerdos entre usuarios. Nada en estos términos limita los derechos que te da la ley chilena, incluida la Ley 19.496 sobre protección de los derechos de los consumidores.</p></section>
+
+<section id="fin"><h2>Cuando termina la relación</h2>
+<p>Puedes dejar de usar Forja y borrar tu cuenta cuando quieras. Nosotros podemos cerrar una cuenta por incumplimientos graves o reiterados de estos términos o de las normas, avisándote el motivo salvo que la ley lo impida o avisar ponga en riesgo a otras personas. Si algún día Forja deja de funcionar, avisaremos con anticipación para que descargues tus datos.</p></section>
+
+<section id="ley"><h2>Ley aplicable y contacto</h2>
+<p>Estos términos se rigen por las leyes de Chile. Ante cualquier duda o problema, escríbenos primero desde <a href="../cuenta/">Mi cuenta → Escríbenos</a>: preferimos resolver las cosas conversando.</p></section>
+      </article>
+    </div>
+    <div class="l-pie">¿Dudas sobre este documento? Escríbenos desde <a href="../cuenta/">Mi cuenta → Escríbenos</a>. Estos documentos están escritos para entenderse; si algo no se entiende, es nuestro error y queremos corregirlo.<p class="l-aviso">Versión vigente desde la fecha indicada. Las versiones anteriores se conservan en el historial público del repositorio de Forja.</p></div>
+  </main>
+</div>
+<script type="module">
+import { sb, nav, navApp, DOCS } from "../js/forja.js";
+const { data } = await sb.auth.getSession();
+if (data.session) navApp(null); else nav("terminos");
+document.getElementById("l-ver").textContent = "Versión del " + DOCS.fecha;
+const secs = [...document.querySelectorAll("#l-texto section")];
+document.getElementById("l-toc").innerHTML = secs.map((s) => '<a href="#' + s.id + '">' + s.querySelector("h2").textContent + "</a>").join("");
+const links = [...document.querySelectorAll("#l-toc a")];
+const obs = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links.forEach((a) => a.classList.toggle("activo", a.hash === "#" + e.target.id)); }), { rootMargin: "-20% 0px -70% 0px" });
+secs.forEach((s) => obs.observe(s));
+</script>
+</body>
+</html>

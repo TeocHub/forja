@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Moderación</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: moderación — pestañas (reportes, mensajes, suspendidas, Explorar, registro); cada caso es una tarjeta con sus pruebas y sus decisiones */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+a{color:var(--accent)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(button,a,select,textarea):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--f-display);font-size:clamp(26px,5vw,34px);margin:0}
+.lead{margin:4px 0 0;color:var(--muted);max-width:66ch}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 14px}
+.tabs button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:6px 14px;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.tabs b{font-family:var(--f-num);font-size:12px;margin-left:5px;padding:0 6px;border-radius:999px;background:var(--ember);color:#fff}
+.caso{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.caso-cab{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.caso h2{font-family:var(--f-display);font-size:19px;margin:0}
+.caso h2 small{font-family:var(--f-num);font-weight:500;font-size:12px;color:var(--muted);margin-left:6px}
+.tag{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 9px;border:1px solid var(--line);color:var(--muted)}
+.tag.mal{color:var(--bad);border-color:var(--bad)}
+.rep{border-left:3px solid var(--line);padding:4px 0 4px 12px;display:flex;flex-direction:column;gap:3px}
+.rep b{font-size:14px}
+.rep p{margin:0;white-space:pre-wrap}
+.rep small{color:var(--muted);font-size:12.5px}
+.rep .sosp{color:var(--e-pausa);font-weight:700}
+.acc{display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:10px}
+.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:9px;padding:6px 12px;cursor:pointer;text-decoration:none}
+.btn:hover{border-color:var(--accent)}
+.btn.peligro{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
+.btn.prim{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
+.btn:disabled{opacity:.5}
+.forma{display:flex;flex-direction:column;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}
+.forma label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.forma select,.forma textarea{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:7px 9px}
+.forma textarea{min-height:110px;resize:vertical}
+.vacio{border:1.5px dashed var(--line);border-radius:16px;padding:28px;text-align:center;color:var(--muted)}
+.texto{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:10px 12px;margin:0}
+.reg{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 12px;font-size:14px}
+.reg span{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+dialog.ver{border:0;padding:0;width:min(1000px,96vw);height:90vh;border-radius:16px;overflow:hidden}
+dialog.ver::backdrop{background:rgba(10,12,20,.6)}
+.ver-cab{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--fg);color:var(--bg);font-size:13px}
+.ver-cab button{font:inherit;border:0;background:none;color:inherit;font-size:22px;cursor:pointer}
+#ver-c{height:calc(90vh - 42px);overflow:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="app"><div class="fx-empty">Cargando…</div></main>
+</div>
+<dialog class="ver" id="ver"><div class="ver-cab"><span id="ver-t">Vista de moderación</span><button type="button" id="ver-x" aria-label="Cerrar">×</button></div><div id="ver-c"></div></dialog>
+<script type="module">
+import { sb, $, esc, toast, navApp, conSesion, limite, hace } from "../js/forja.js";
+import { pintarVitrina, CSS_VITRINA } from "../js/vitrina.js";
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
+navApp(null);
+const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
+// Plantillas para explicarle al dueño el porqué (siempre se pueden editar antes de enviar).
+const PLANTILLA = {
+  estafa: "Tu vitrina promete o pide algo que no pudimos verificar como real. Para volver a publicarla, muestra el estado real del proyecto y elimina cualquier pedido de pago que no puedas cumplir.",
+  ofensivo: "Tu vitrina incluye contenido que ataca o acosa a personas o grupos. Quita ese contenido para poder publicarla de nuevo.",
+  menores: "Tu vitrina incluye contenido que pone en riesgo a menores de edad, lo que está prohibido en Forja.",
+  derechos: "Tu vitrina usa obras (imágenes, música, personajes o marcas) de otras personas como si fueran tuyas o para vender. Quítalas o indica claramente su autoría y que no se venden como propias.",
+  datos: "Tu vitrina muestra datos personales de otra persona sin su consentimiento. Quítalos para poder publicarla de nuevo.",
+  spam: "Tu vitrina parece estar vacía, repetida o pensada para promocionar otra cosa. Agrega el contenido real de tu proyecto para publicarla de nuevo.",
+  otro: "",
+};
+let D = null, pest = "reportes";
+
+conSesion($("app"), async () => {
+  const { data: adm } = await sb.rpc("soy_admin");
+  if (adm !== true) { $("app").innerHTML = '<div class="vacio">Esta página es solo para el equipo de moderación de Forja.</div>'; return; }
+  await cargar();
+});
+async function cargar() {
+  const { data, error } = await sb.rpc("mod_panel");
+  if (error) { $("app").innerHTML = '<div class="vacio">No se pudo cargar el panel: ' + esc(error.message) + "</div>"; return; }
+  D = data; pintar();
+}
+const TABS = [["reportes", "Reportes"], ["mensajes", "Mensajes y apelaciones"], ["suspendidas", "Suspendidas"], ["explorar", "En Explorar"], ["registro", "Registro"]];
+function pintar() {
+  const n = { reportes: D.reportes.length, mensajes: D.mensajes.length };
+  $("app").innerHTML = "<h1>Moderación</h1><p class=\"lead\">Cada decisión la toma una persona y queda en el registro. Al suspender, explica siempre el porqué: el dueño lo recibe como aviso y puede apelar.</p>" +
+    '<div class="tabs" role="tablist">' + TABS.map(([k, t]) => '<button type="button" role="tab" data-t="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? "<b>" + n[k] + "</b>" : "") + "</button>").join("") + '</div><div id="lista"></div>';
+  $("app").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { pest = b.dataset.t; pintar(); });
+  ({ reportes, mensajes, suspendidas, explorar, registro })[pest]();
+}
+const verBtn = (id, t) => '<button type="button" class="btn" data-ver="' + id + '" data-tt="' + esc(t || "") + '">Ver vitrina</button>';
+function enlazarVer() {
+  $("lista").querySelectorAll("[data-ver]").forEach((b) => b.onclick = async () => {
+    const { data, error } = await sb.rpc("mod_vitrina", { v: b.dataset.ver });
+    if (error || !data) { toast("No se pudo abrir la vitrina."); return; }
+    $("ver-t").textContent = "Vista de moderación · " + (b.dataset.tt || data.slug) + (data.suspendida ? " · SUSPENDIDA" : "");
+    $("ver").showModal(); pintarVitrina($("ver-c"), data.datos, { previa: true });
+  });
+}
+$("ver-x").onclick = () => $("ver").close();
+
+function reportes() {
+  if (!D.reportes.length) { $("lista").innerHTML = '<div class="vacio">No hay reportes pendientes.</div>'; return; }
+  $("lista").innerHTML = D.reportes.map((c) => {
+    return '<article class="caso" data-v="' + c.vitrina_id + '"><div class="caso-cab"><h2>' + esc(c.titulo || "Sin título") + "<small>" + esc(c.slug) + "</small></h2>" +
+      (c.suspendida ? '<span class="tag mal">Suspendida</span>' : c.en_explorar ? '<span class="tag">En Explorar</span>' : '<span class="tag">Solo enlace</span>') + "</div>" +
+      c.reportes.map((r) => { const h = r.historial || {}, sosp = (h.mala_fe || 0) > 0 || (h.desestimados || 0) >= 3 || (r.cuenta_dias || 0) < 3;
+        return '<div class="rep"><b>' + esc(MOTIVOS[r.motivo] || r.motivo) + "</b>" + (r.detalle ? "<p>" + esc(r.detalle) + "</p>" : "") +
+          "<small>Quien reporta: cuenta " + esc(r.autor) + "… de " + (r.cuenta_dias ?? "?") + " días · antes: " + (h.aceptados || 0) + " aceptados, " + (h.desestimados || 0) + " desestimados, " + (h.mala_fe || 0) + " de mala fe · " + hace(r.creado_en) + "</small>" +
+          (sosp ? '<small class="sosp">Ojo: revisa con cuidado (cuenta nueva o historial de reportes desestimados).</small>' : "") + "</div>"; }).join("") +
+      '<div class="acc">' + verBtn(c.vitrina_id, c.titulo) + '<button type="button" class="btn" data-res="desestimado">No infringe</button><button type="button" class="btn" data-res="mala_fe">Reportes de mala fe</button>' +
+      (c.en_explorar ? '<button type="button" class="btn" data-fuera>Sacar de Explorar…</button>' : "") + '<button type="button" class="btn peligro" data-susp>Suspender…</button></div><div class="f"></div></article>';
+  }).join("");
+  enlazarVer();
+  $("lista").querySelectorAll("[data-res]").forEach((b) => b.onclick = async () => {
+    const v = b.closest("[data-v]").dataset.v;
+    if (b.dataset.res === "mala_fe" && b.dataset.seguro !== "1") { b.dataset.seguro = "1"; b.textContent = "¿Todos de mala fe? Toca de nuevo"; return; }
+    const { error } = await sb.rpc("mod_resolver", { v, decision: b.dataset.res });
+    if (error) { toast(limite(error) || error.message); return; }
+    toast(b.dataset.res === "mala_fe" ? "Marcados como de mala fe." : "Resuelto: no infringe. Se avisó a quien reportó."); await cargar();
+  });
+  $("lista").querySelectorAll("[data-susp]").forEach((b) => b.onclick = () => formSuspender(b.closest("[data-v]")));
+  $("lista").querySelectorAll("[data-fuera]").forEach((b) => b.onclick = () => formExplorar(b.closest("[data-v]")));
+}
+function formSuspender(caso) {
+  const f = caso.querySelector(".f"), motivoInicial = (D.reportes.find((c) => c.vitrina_id === caso.dataset.v)?.reportes[0] || {}).motivo || "otro";
+  f.innerHTML = '<div class="forma"><label>Motivo<select id="s-m">' + Object.entries(MOTIVOS).map(([k, n]) => '<option value="' + k + '"' + (k === motivoInicial ? " selected" : "") + ">" + n + "</option>").join("") + "</select></label>" +
+    '<label>Mensaje para el dueño (lo recibe tal cual, explica qué cambiar)<textarea id="s-t">' + esc(PLANTILLA[motivoInicial]) + "</textarea></label>" +
+    '<div class="acc" style="border:0;padding:0"><button type="button" class="btn" id="s-no">Cancelar</button><button type="button" class="btn peligro" id="s-si">Suspender y avisar</button></div></div>';
+  f.querySelector("#s-m").onchange = (e) => { f.querySelector("#s-t").value = PLANTILLA[e.target.value]; };
+  f.querySelector("#s-no").onclick = () => { f.innerHTML = ""; };
+  f.querySelector("#s-si").onclick = async () => {
+    const mensaje = f.querySelector("#s-t").value.trim(); if (!mensaje) { toast("Explica el motivo al dueño."); return; }
+    const { error } = await sb.rpc("mod_suspender", { v: caso.dataset.v, motivo: f.querySelector("#s-m").value, mensaje });
+    if (error) { toast(limite(error) || error.message); return; }
+    toast("Vitrina suspendida. El dueño recibió el aviso."); await cargar();
+  };
+}
+function formExplorar(caso, mostrar = false) {
+  const f = caso.querySelector(".f");
+  f.innerHTML = '<div class="forma"><label>Mensaje para el dueño (opcional)<textarea id="e-t">' + (mostrar ? "" : "Tu vitrina no cumple por ahora con lo necesario para aparecer en Explorar. Sigue visible para quien tenga su enlace.") + "</textarea></label>" +
+    '<div class="acc" style="border:0;padding:0"><button type="button" class="btn" id="e-no">Cancelar</button><button type="button" class="btn prim" id="e-si">' + (mostrar ? "Permitir de nuevo" : "Sacar de Explorar") + "</button></div></div>";
+  f.querySelector("#e-no").onclick = () => { f.innerHTML = ""; };
+  f.querySelector("#e-si").onclick = async () => {
+    const { error } = await sb.rpc("mod_explorar", { v: caso.dataset.v, mostrar, mensaje: f.querySelector("#e-t").value.trim() });
+    if (error) { toast(limite(error) || error.message); return; }
+    toast(mostrar ? "Puede volver a Explorar." : "Fuera de Explorar. Se avisó al dueño."); await cargar();
+  };
+}
+function mensajes() {
+  if (!D.mensajes.length) { $("lista").innerHTML = '<div class="vacio">No hay mensajes abiertos.</div>'; return; }
+  const T = { apelacion: "Apelación", privacidad: "Datos personales", contacto: "Contacto" };
+  $("lista").innerHTML = D.mensajes.map((m) => '<article class="caso" data-m="' + m.id + '"' + (m.vitrina ? ' data-v="' + m.vitrina.id + '"' : "") + '><div class="caso-cab"><h2>' + T[m.tipo] + "<small>cuenta " + esc(m.autor) + "… · " + hace(m.creado_en) + "</small></h2>" +
+    (m.tipo === "privacidad" ? '<span class="tag mal">Plazo legal: 30 días</span>' : "") + "</div>" +
+    (m.vitrina && m.vitrina.suspension ? '<p class="texto"><b>Se suspendió por:</b> ' + esc(MOTIVOS[m.vitrina.suspension.motivo] || "") + "\n" + esc(m.vitrina.suspension.mensaje || "") + "</p>" : "") +
+    '<p class="texto">' + esc(m.texto) + "</p>" +
+    '<div class="forma"><label>Respuesta (le llega como aviso)<textarea class="r-t"></textarea></label><div class="acc" style="border:0;padding:0">' + (m.vitrina ? verBtn(m.vitrina.id, m.vitrina.slug) : "") +
+    '<button type="button" class="btn prim" data-resp>Responder</button>' + (m.vitrina && m.vitrina.suspendida ? '<button type="button" class="btn" data-rest>Aceptar apelación: restaurar y responder</button>' : "") + "</div></div></article>").join("");
+  enlazarVer();
+  $("lista").querySelectorAll("[data-resp], [data-rest]").forEach((b) => b.onclick = async () => {
+    const c = b.closest("[data-m]"), t = c.querySelector(".r-t").value.trim();
+    if (!t) { toast("Escribe la respuesta."); return; }
+    const rest = b.hasAttribute("data-rest");
+    if (rest) { const r = await sb.rpc("mod_restaurar", { v: c.dataset.v, mensaje: t }); if (r.error) { toast(limite(r.error) || r.error.message); return; } }
+    const { error } = await sb.rpc("mod_responder", { m: c.dataset.m, respuesta: t, avisar: !rest });
+    if (error) { toast(limite(error) || error.message); return; }
+    toast("Respuesta enviada."); await cargar();
+  });
+}
+function suspendidas() {
+  if (!D.suspendidas.length) { $("lista").innerHTML = '<div class="vacio">No hay vitrinas suspendidas.</div>'; return; }
+  $("lista").innerHTML = D.suspendidas.map((s) => '<article class="caso" data-v="' + s.vitrina_id + '"><div class="caso-cab"><h2>' + esc(s.titulo || s.slug) + "<small>" + esc(s.slug) + '</small></h2><span class="tag mal">' + esc(MOTIVOS[(s.suspension || {}).motivo] || "") + "</span></div>" +
+    '<p class="texto">' + esc((s.suspension || {}).mensaje || "") + "</p>" +
+    '<div class="forma"><label>Mensaje al restaurar (opcional)<textarea class="r-t"></textarea></label><div class="acc" style="border:0;padding:0">' + verBtn(s.vitrina_id, s.titulo) + '<button type="button" class="btn prim" data-rest>Restaurar</button></div></div></article>').join("");
+  enlazarVer();
+  $("lista").querySelectorAll("[data-rest]").forEach((b) => b.onclick = async () => {
+    const c = b.closest("[data-v]"); const { error } = await sb.rpc("mod_restaurar", { v: c.dataset.v, mensaje: c.querySelector(".r-t").value.trim() });
+    if (error) { toast(limite(error) || error.message); return; } toast("Restaurada. Se avisó al dueño."); await cargar();
+  });
+}
+function explorar() {
+  if (!D.explorar.length) { $("lista").innerHTML = '<div class="vacio">Ninguna vitrina aparece todavía en Explorar.</div>'; return; }
+  $("lista").innerHTML = D.explorar.map((x) => '<article class="caso" data-v="' + x.vitrina_id + '"><div class="caso-cab"><h2>' + esc(x.titulo || x.slug) + "<small>" + esc(x.slug) + " · " + hace(x.publicado_en) + '</small></h2></div><div class="acc">' + verBtn(x.vitrina_id, x.titulo) + '<a class="btn" href="../vitrina/?v=' + esc(x.slug) + '" target="_blank" rel="noopener">Abrir pública ↗</a><button type="button" class="btn" data-fuera>Sacar de Explorar…</button></div><div class="f"></div></article>').join("");
+  enlazarVer();
+  $("lista").querySelectorAll("[data-fuera]").forEach((b) => b.onclick = () => formExplorar(b.closest("[data-v]")));
+}
+function registro() {
+  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje" };
+  $("lista").innerHTML = D.registro.length ? '<div class="caso"><div class="reg">' + D.registro.map((r) => "<span>" + esc(String(r.en).slice(0, 16).replace("T", " ")) + "</span><div><b>" + esc(A[r.accion] || r.accion) + "</b>" + (r.detalle && (r.detalle.mensaje || r.detalle.motivo) ? " · " + esc(MOTIVOS[r.detalle.motivo] || "") + " " + esc((r.detalle.mensaje || "").slice(0, 120)) : "") + "</div>").join("") + "</div></div>" : '<div class="vacio">Aún no hay decisiones registradas.</div>';
+}
+</script>
+</body>
+</html>

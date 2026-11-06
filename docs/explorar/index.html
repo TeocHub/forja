@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Explorar proyectos · Forja</title>
+<meta name="description" content="Historias, videojuegos, juegos de mesa y más proyectos creativos hechos en Chile, mostrados por sus creadores.">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: directorio — titular y buscador grandes, chips de categoría, mosaico de portadas con título en serif */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+a{color:var(--accent)}
+.wrap{max-width:1120px;margin:0 auto;padding-block:24px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(button,a,select,input):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cab{margin:28px 0 18px;display:grid;gap:14px}
+h1{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:clamp(34px,6.5vw,62px);line-height:1;margin:0;letter-spacing:-.01em;max-width:16ch}
+.lead{margin:0;color:var(--muted);max-width:58ch;font-size:16px}
+.busca{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.busca input{flex:1 1 260px;min-width:0;font:inherit;font-size:17px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;padding:11px 14px}
+.busca select{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;padding:10px 12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{font:inherit;font-size:14px;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:5px 13px;cursor:pointer;display:inline-flex;gap:7px;align-items:center}
+.chips button::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--tc,var(--muted))}
+.chips button[data-k=""]::before{display:none}
+.chips button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:20px}
+.ficha{display:flex;flex-direction:column;text-decoration:none;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:transform .15s ease,border-color .15s}
+.ficha:hover{transform:translateY(-2px);border-color:var(--ac)}
+.ficha .img{aspect-ratio:16/10;background:linear-gradient(135deg,var(--ac),color-mix(in srgb,var(--ac) 45%,#0b0d14));position:relative;display:flex;align-items:flex-end;padding:12px}
+.ficha .img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ficha .img span{position:relative;font-family:"Fraunces",Georgia,serif;font-size:30px;font-weight:600;color:#fff;opacity:.85;line-height:1}
+.ficha .img.con span{display:none}
+.ficha .txt{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
+.ficha h2{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:21px;line-height:1.15;margin:0}
+.ficha p{margin:0;color:var(--muted);font-size:14.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ficha .meta{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.ficha .meta b{color:var(--ac);font-weight:700}
+.vacio{border:1.5px dashed var(--line);border-radius:18px;padding:36px 20px;text-align:center;color:var(--muted);margin-top:20px}
+.vacio b{display:block;color:var(--fg);font-family:var(--f-display);font-size:19px;margin-bottom:4px}
+.mas{display:flex;justify-content:center;margin-top:22px}
+.mas[hidden]{display:none}
+.mas button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:9px 18px;cursor:pointer}
+.pie{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main>
+    <div class="cab">
+      <h1>Proyectos que se están forjando</h1>
+      <p class="lead">Historias, juegos y productos hechos en Chile, mostrados por quienes los crean. Cada vitrina la publica su creador y la puede reportar cualquier persona con cuenta.</p>
+      <form class="busca" id="f" role="search"><label class="fx-sr" for="q">Buscar</label><input id="q" type="search" placeholder="Busca por título, tema o creador" autocomplete="off">
+        <label class="fx-sr" for="est">Estado</label><select id="est"><option value="">Cualquier estado</option><option value="semilla">Semilla</option><option value="desarrollo">En desarrollo</option><option value="listo">Listo</option></select></form>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div id="res"></div>
+    <div class="mas" id="mas" hidden><button type="button">Ver más proyectos</button></div>
+    <div class="pie"><span>¿Tienes un proyecto? Crea su vitrina desde Forja y elige mostrarla aquí.</span><span><a href="../normas/">Normas de la comunidad</a> · <a href="../entrar/">Crear mi vitrina</a></span></div>
+  </main>
+</div>
+<script type="module">
+import { sb, $, esc, nav, hace, debounce } from "../js/forja.js";
+import { TIPOS, ESTADOS } from "../js/guias.js";
+import { ACENTO_TIPO } from "../js/vitrina.js";
+nav("explorar");
+const POR = 24;
+const F = { q: "", tipo: "", estado: "" };
+let pag = 0, total = 0;
+const sinTildes = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+const okUrl = (x) => (/^https:\/\/[^\s"'<>]+$/i.test(x || "") ? x : "");
+
+$("chips").innerHTML = [["", "Todo"], ...Object.entries(TIPOS).filter(([k]) => k !== "otro")].map(([k, n]) => '<button type="button" data-k="' + k + '" aria-pressed="' + (k === "") + '" style="--tc:var(--t-' + (k || "otro") + ')">' + n + "</button>").join("");
+$("chips").querySelectorAll("button").forEach((b) => b.onclick = () => { F.tipo = b.dataset.k; $("chips").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); buscar(); });
+$("q").oninput = debounce(() => { F.q = $("q").value.trim(); buscar(); }, 300);
+$("f").onsubmit = (e) => { e.preventDefault(); F.q = $("q").value.trim(); buscar(); };
+$("est").onchange = () => { F.estado = $("est").value; buscar(); };
+$("mas").querySelector("button").onclick = () => { pag++; buscar(true); };
+
+function ficha(x) {
+  const ac = /^#[0-9a-f]{6}$/i.test(x.acento || "") ? x.acento : ACENTO_TIPO[x.tipo] || ACENTO_TIPO.otro, img = okUrl(x.portada);
+  return '<a class="ficha" href="../vitrina/?v=' + encodeURIComponent(x.slug) + '" style="--ac:' + ac + '"><div class="img' + (img ? " con" : "") + '">' + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.remove(\'con\');this.remove()">' : "") + "<span>" + esc((x.titulo || "·").slice(0, 1).toUpperCase()) + "</span></div>" +
+    '<div class="txt"><h2>' + esc(x.titulo || "Sin título") + "</h2>" + (x.lema ? "<p>" + esc(x.lema) + "</p>" : "") +
+    '<div class="meta"><span><b>' + esc(TIPOS[x.tipo] || "Proyecto") + "</b>" + (x.estado && ESTADOS[x.estado] ? " · " + ESTADOS[x.estado] : "") + "</span><span>" + (x.firma ? esc(x.firma) : hace(x.publicado_en)) + "</span></div></div></a>";
+}
+async function buscar(mas) {
+  if (!mas) pag = 0;
+  let q = sb.from("vitrinas_publicadas").select("slug,titulo,lema,firma,tipo,formato,estado,portada,acento,publicado_en", { count: "exact" }).eq("en_explorar", true);
+  if (F.tipo) q = q.eq("tipo", F.tipo);
+  if (F.estado) q = q.eq("estado", F.estado);
+  if (F.q) q = q.textSearch("busqueda", sinTildes(F.q), { config: "spanish", type: "websearch" });
+  const { data, count, error } = await q.order("publicado_en", { ascending: false }).range(pag * POR, pag * POR + POR - 1);
+  if (error) { $("res").innerHTML = '<div class="vacio"><b>No pudimos cargar los proyectos</b>Revisa tu conexión e intenta de nuevo.</div>'; return; }
+  total = count || 0;
+  const l = data || [];
+  if (!mas) {
+    $("res").innerHTML = l.length ? '<div class="grid" id="grid"></div>' : (F.q || F.tipo || F.estado
+      ? '<div class="vacio"><b>No encontramos proyectos con esa búsqueda</b>Prueba con otras palabras o quita algún filtro.</div>'
+      : '<div class="vacio"><b>Explorar recién está abriendo</b>Pronto vas a ver aquí los primeros proyectos de la comunidad.</div>');
+  }
+  if (l.length) $("grid").insertAdjacentHTML("beforeend", l.map(ficha).join(""));
+  $("mas").hidden = (pag + 1) * POR >= total;
+}
+buscar();
+</script>
+</body>
+</html>

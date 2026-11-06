@@ -109,3 +109,35 @@
 .fx-avisame{align-self:flex-start;font:inherit;font-size:13px;font-weight:700;border:1px solid var(--ember);color:var(--ember);background:transparent;border-radius:999px;padding:4px 12px;cursor:pointer;margin-top:2px}
 .fx-avisame[aria-pressed="true"]{background:var(--ember);color:#fff}
 .fx-avisame:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+
+/* --- cuenta: avisos, documentos y aceptación --- */
+.fx-punto{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:var(--ember);border:2px solid var(--bg)}
+.fx-cuenta summary{position:relative}
+.fx-nav-n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--ember);color:#fff;font-size:11px;font-weight:700;margin-left:4px}
+.fx-nav-n[hidden]{display:none}
+.fx-legal{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.fx-legal a{color:var(--muted)!important}
+.fx-legal-e{font-size:13px}
+.fx-acepta{border:0;border-radius:20px;padding:0;width:min(560px,94vw);background:var(--card);color:var(--fg);box-shadow:0 30px 80px rgba(10,14,30,.35)}
+.fx-acepta::backdrop{background:rgba(10,12,20,.6);backdrop-filter:blur(3px)}
+.fx-acepta-c{padding:24px;display:flex;flex-direction:column;gap:14px;font-family:var(--f-body);font-size:15px;line-height:1.5}
+.fx-acepta-c h2{font-family:var(--f-display);font-size:26px;margin:0}
+.fx-acepta-c p{margin:0;color:var(--muted)}
+.fx-acepta-docs{display:flex;flex-direction:column;gap:8px}
+.fx-acepta-docs a{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--bg)}
+.fx-acepta-docs a:hover{border-color:var(--accent)}
+.fx-acepta-docs b::after{content:" ↗";color:var(--accent);font-weight:400}
+.fx-acepta-docs span{font-size:13.5px;color:var(--muted)}
+.fx-acepta-ok{display:flex;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer}
+.fx-acepta-ok input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:none}
+.fx-acepta-pie{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.fx-acepta-pie .fx-primary:disabled{opacity:.45;cursor:default}
+
+/* avisos de Forja (moderación y respuestas) */
+.fx-aviso{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.fx-aviso-suspendida,.fx-aviso-explorar{border-left-color:var(--bad)}
+.fx-aviso>div:first-child{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fx-aviso span{white-space:pre-wrap}
+.fx-aviso small{color:var(--muted);font-size:12.5px}
+.fx-aviso-acc{display:flex;gap:10px;align-items:center;flex-shrink:0}
+@media (max-width:560px){.fx-aviso{flex-direction:column}}

@@ -16,6 +16,8 @@ const PUBLICO = [
   { href: u("planes/"), nombre: "Planes", id: "planes" },
   { href: u("guia/"), nombre: "Guía", id: "guia" },
 ];
+// Explorar aparece en el menú solo cuando hay suficientes proyectos para que no se vea vacío.
+export const MIN_EXPLORAR = 6;
 // Menú de la cuenta. Íconos dibujados a mano, de trazo, para que se lean en la barra del celular.
 const ICONO = {
   proyectos: '<path d="M4 6.5h6l2 2h8v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-10.5a1 1 0 0 1 1-1z"/>',
@@ -63,6 +65,9 @@ export function nav(actual) {
     '<a class="fx-logo" href="' + u() + '">Forja</a><span class="fx-mods">' +
     PUBLICO.map((m) => '<a href="' + m.href + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + m.nombre + "</a>").join("") +
     '</span><span class="fx-user" id="fx-user"><a class="fx-entrar" href="' + u("entrar/") + '">Entrar</a></span>';
+  sb.from("vitrinas_publicadas").select("slug", { count: "exact", head: true }).eq("en_explorar", true).then(({ count }) => {
+    if ((count || 0) >= MIN_EXPLORAR || actual === "explorar") el.querySelector(".fx-mods").insertAdjacentHTML("afterbegin", '<a href="' + u("explorar/") + '"' + (actual === "explorar" ? ' aria-current="page"' : "") + ">Explorar</a>");
+  });
   sb.auth.getSession().then(({ data }) => { if (data.session && $("fx-user")) $("fx-user").innerHTML = '<a class="fx-entrar lleno" href="' + u("proyectos/") + '">Ir a mi forja</a>'; });
 }
 // Dentro de la cuenta: menú propio (arriba en pantallas grandes, abajo en el celular).
@@ -76,7 +81,8 @@ export function navApp(actual) {
     '<button type="button" class="fx-ayuda" id="fx-ayuda" aria-label="Ayuda: cómo funciona esta página" title="Ayuda">?</button>' +
     '<details class="fx-cuenta" id="fx-cuenta"><summary aria-label="Mi cuenta"><span class="fx-ini" id="fx-ini">·</span></summary><div class="fx-pop">' +
     '<span class="fx-mail" id="fx-mail2"></span><span class="fx-planb" id="fx-planb">Plan gratis</span>' +
-    '<a href="' + u("guia/") + '">Guía de Forja</a><button type="button" class="fx-link" id="fx-pistas">Volver a ver las pistas</button><a href="' + u() + '">Ver el sitio público</a><a href="' + u("oportunidades/") + '">Calendario de oportunidades</a><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
+    '<a href="' + u("cuenta/") + '">Mi cuenta <span class="fx-nav-n" id="fx-avisos-n" hidden></span></a><a href="' + u("admin/") + '" id="fx-admin" hidden>Moderación</a>' +
+    '<a href="' + u("guia/") + '">Guía de Forja</a><button type="button" class="fx-link" id="fx-pistas">Volver a ver las pistas</button><a href="' + u() + '">Ver el sitio público</a><a href="' + u("oportunidades/") + '">Calendario de oportunidades</a><span class="fx-legal"><a href="' + u("terminos/") + '">Términos</a> · <a href="' + u("privacidad/") + '">Privacidad</a> · <a href="' + u("normas/") + '">Normas</a></span><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
   document.body.classList.add("fx-con-app");
   sb.auth.getSession().then(async ({ data }) => {
     const ses = data.session; if (!ses) return;
@@ -85,6 +91,10 @@ export function navApp(actual) {
     const pl = await plan();
     $("fx-planb").textContent = pl.mas ? "Forja Más" : "Plan gratis";
     $("fx-planb").classList.toggle("mas", pl.mas);
+    // avisos sin leer (la moderación explica sus decisiones aquí) y acceso a moderación
+    const [{ count }, adm] = await Promise.all([sb.from("avisos").select("id", { count: "exact", head: true }).eq("leido", false), sb.rpc("soy_admin")]);
+    if (count) { $("fx-avisos-n").textContent = count; $("fx-avisos-n").hidden = false; $("fx-ini").insertAdjacentHTML("afterend", '<span class="fx-punto" title="Tienes avisos nuevos"></span>'); }
+    if (adm && adm.data === true) $("fx-admin").hidden = false;
   });
   $("fx-salir").onclick = async () => { await sb.auth.signOut(); location.href = u(); };
   // La ayuda se carga solo cuando se pide.
@@ -118,6 +128,17 @@ const MSG = {
   FORJA_PIZARRA_GRANDE: "La pizarra es demasiado grande para guardarla. Divídela en dos.",
   FORJA_VITRINA_GRANDE: "La vitrina es demasiado grande para publicarla. Quita algunas piezas o pizarras.",
   FORJA_NO_PERMITIDO: "No tienes permiso para hacer eso.",
+  FORJA_VITRINA_SUSPENDIDA: "Esta vitrina está suspendida por moderación. Puedes apelar desde el editor.",
+  FORJA_REPORTE_SIN_CUENTA: "Para reportar necesitas entrar con tu cuenta.",
+  FORJA_REPORTE_PROPIO: "No puedes reportar tu propia vitrina.",
+  FORJA_REPORTE_CUENTA_NUEVA: "Tu cuenta es muy nueva para reportar: podrás hacerlo desde mañana. Así evitamos reportes automáticos.",
+  FORJA_REPORTE_BLOQUEADO: "Tu cuenta ya no puede enviar reportes porque varios fueron revisados como de mala fe.",
+  FORJA_REPORTE_LIMITE: "Llegaste al máximo de 5 reportes por día. Si es urgente, escríbenos desde Mi cuenta.",
+  FORJA_REPORTE_REPETIDO: "Ya reportaste esta vitrina. Una persona la va a revisar.",
+  FORJA_NO_ENCONTRADA: "No encontramos eso. Puede que ya no esté disponible.",
+  FORJA_MENSAJES_LIMITE: "Enviaste varios mensajes hoy. Espera nuestra respuesta o escribe mañana.",
+  FORJA_FALTA_MENSAJE: "Escribe el mensaje para la persona.",
+  FORJA_CONFIRMAR: "Escribe BORRAR para confirmar.",
 };
 export function limite(error) { const m = error && (error.message || ""); const k = Object.keys(MSG).find((c) => m.includes(c)); return k ? MSG[k] : null; }
 // Tarjeta "Próximamente" de una función de Forja Más, con botón "Avísame" que guarda el interés.
@@ -161,11 +182,62 @@ export async function espacio() {
 }
 
 // Páginas de la cuenta: si no hay sesión, se va a entrar/ y se vuelve aquí al entrar.
+// Antes de usar Forja hay que aceptar la versión vigente de los documentos.
 export async function conSesion(caja, listo) {
   const { data } = await sb.auth.getSession();
   if (!data.session) { location.replace(u("entrar/?siguiente=" + encodeURIComponent(location.href.slice(RAIZ.length)))); return; }
+  if (!(await aceptado())) { await pedirAceptacion(); }
   caja.innerHTML = "";
   try { await listo(data.session); } catch (e) { console.error(e); caja.innerHTML = '<div class="fx-empty">No se pudieron cargar tus datos. Revisa tu conexión y recarga la página.</div>'; }
+}
+
+/* --- documentos: términos, privacidad y normas --- */
+// Al cambiar un documento de forma importante, subir la versión: todos lo vuelven a aceptar al entrar.
+export const DOCS = { version: "2026-11-06", fecha: "6 de noviembre de 2026" };
+async function aceptado() {
+  const { data, error } = await sb.from("aceptaciones").select("documento").eq("version", DOCS.version);
+  if (error) return true; // si falla la consulta no se bloquea el uso; se vuelve a pedir en la próxima visita
+  const d = new Set((data || []).map((x) => x.documento));
+  return ["terminos", "privacidad", "normas"].every((k) => d.has(k));
+}
+function pedirAceptacion() {
+  return new Promise((listo) => {
+    const dl = document.createElement("dialog"); dl.className = "fx-acepta"; dl.setAttribute("aria-labelledby", "fx-acepta-t");
+    dl.innerHTML = '<form method="dialog" class="fx-acepta-c"><h2 id="fx-acepta-t">Antes de seguir</h2>' +
+      "<p>Forja es un lugar para crear. Para usarla necesitamos que leas y aceptes cómo funciona: qué es tuyo, qué hacemos con tus datos y qué se permite publicar.</p>" +
+      '<div class="fx-acepta-docs"><a href="' + u("terminos/") + '" target="_blank" rel="noopener"><b>Términos de uso</b><span>Tu contenido es tuyo. Qué puedes esperar de Forja y qué esperamos de ti.</span></a>' +
+      '<a href="' + u("privacidad/") + '" target="_blank" rel="noopener"><b>Política de privacidad</b><span>Qué datos guardamos, para qué, quién más los procesa y tus derechos.</span></a>' +
+      '<a href="' + u("normas/") + '" target="_blank" rel="noopener"><b>Normas de la comunidad</b><span>Qué se puede publicar, cómo funcionan los reportes y las sanciones.</span></a></div>' +
+      '<label class="fx-acepta-ok"><input type="checkbox" id="fx-acepta-chk"> <span>Tengo 14 años o más, leí y acepto los Términos de uso, la Política de privacidad y las Normas de la comunidad (versión del ' + DOCS.fecha + ").</span></label>" +
+      '<div class="fx-acepta-pie"><button type="button" class="fx-link" id="fx-acepta-no">No acepto, salir</button><button type="button" class="fx-primary" id="fx-acepta-si" disabled>Aceptar y seguir</button></div></form>';
+    document.body.appendChild(dl);
+    dl.addEventListener("cancel", (e) => e.preventDefault()); // no se puede cerrar con Escape
+    dl.showModal();
+    $("fx-acepta-chk").onchange = (e) => { $("fx-acepta-si").disabled = !e.target.checked; };
+    $("fx-acepta-no").onclick = async () => { await sb.auth.signOut(); location.href = u(); };
+    $("fx-acepta-si").onclick = async () => {
+      $("fx-acepta-si").disabled = true;
+      const { error } = await sb.from("aceptaciones").insert(["terminos", "privacidad", "normas"].map((documento) => ({ documento, version: DOCS.version })));
+      if (error && !/duplicate|23505/i.test(error.message + (error.code || ""))) { toast("No se pudo guardar. Revisa tu conexión e intenta de nuevo."); $("fx-acepta-si").disabled = false; return; }
+      dl.close(); dl.remove(); listo();
+    };
+  });
+}
+
+/* --- avisos: lo que Forja te explica (moderación, respuestas a tus mensajes) --- */
+// Muestra los avisos sin leer como tarjetas con "Entendido". Devuelve cuántos había.
+export async function avisos(caja) {
+  if (!caja) return 0;
+  const { data } = await sb.from("avisos").select("id,tipo,titulo,texto,enlace,creado_en").eq("leido", false).order("creado_en", { ascending: false }).limit(5);
+  const l = data || [];
+  caja.innerHTML = l.map((a) => '<div class="fx-aviso fx-aviso-' + esc(a.tipo) + '" data-aviso="' + a.id + '"><div><b>' + esc(a.titulo) + "</b><span>" + esc(a.texto) + "</span><small>" + hace(a.creado_en) + "</small></div>" +
+    '<div class="fx-aviso-acc">' + (a.enlace && u(a.enlace) !== location.href.split(/[?#]/)[0] ? '<a href="' + esc(u(a.enlace)) + '">Ver</a>' : "") + '<button type="button" class="fx-link">Entendido</button></div></div>').join("");
+  caja.querySelectorAll("[data-aviso]").forEach((el) => {
+    const leer = () => sb.from("avisos").update({ leido: true }).eq("id", el.dataset.aviso);
+    el.querySelector("button").onclick = async () => { await leer(); el.remove(); };
+    const a = el.querySelector("a"); if (a) a.onclick = (e) => { e.preventDefault(); leer().then(() => { location.href = a.href; }); };
+  });
+  return l.length;
 }
 
 export function pintarEntrada(caja, texto) {
@@ -180,6 +252,7 @@ export function pintarEntrada(caja, texto) {
     '<input id="fx-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required placeholder="Código del correo"><button class="fx-primary" type="submit">Entrar</button>' +
     '<button class="fx-link" type="button" id="fx-otro">Usar otro correo</button></form>' +
     '<p class="fx-hint" id="fx-msg">Sin contraseñas: te llega un enlace al correo y al tocarlo quedas dentro. La primera vez se crea tu cuenta.</p>' +
+    '<p class="fx-hint fx-legal-e">Al crear tu cuenta te pediremos aceptar los <a href="' + u("terminos/") + '">Términos</a>, la <a href="' + u("privacidad/") + '">Política de privacidad</a> y las <a href="' + u("normas/") + '">Normas de la comunidad</a>.</p>' +
     "</section>";
   let mail = "";
   $("fx-f1").onsubmit = async (e) => {

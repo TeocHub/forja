@@ -155,11 +155,12 @@ footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:
     <a class="cta main" href="entrar/">Empezar un proyecto</a>
   </section>
 
-  <footer><span>Forja · Digital Monster, Chile</span><a href="https://github.com/TeocHub/forja">Código abierto en GitHub</a></footer>
+  <footer><span>Forja · Digital Monster, Chile</span><span><a href="terminos/">Términos</a> · <a href="privacidad/">Privacidad</a> · <a href="normas/">Normas de la comunidad</a> · <a href="https://github.com/TeocHub/forja">Código abierto en GitHub</a></span></footer>
 </div>
 
 <script type="module">
-import { nav, esc } from "./js/forja.js";
+import { nav, esc, toast } from "./js/forja.js";
+if (new URLSearchParams(location.search).get("cuenta") === "borrada") { toast("Tu cuenta y todos tus datos se borraron. Gracias por haber usado Forja."); history.replaceState(null, "", location.pathname); }
 import { radar, dial, veredicto, CSS_BRUJULA } from "./js/brujula.js";
 nav("inicio");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + "</style>");

@@ -100,7 +100,7 @@ button{cursor:pointer}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, hace, navApp, espacio, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
+import { sb, $, esc, toast, hace, navApp, espacio, conSesion, avisos, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
 import { TIPOS, ESTADOS, tc, PLANTILLA, SECCIONES, pesoDe, avance } from "../js/guias.js";
 import { sendero } from "../js/ayuda.js";
 import { FORMATOS } from "../js/brujula.js";
@@ -142,7 +142,8 @@ conSesion($("app"), async () => {
 function pintar() {
   $("app").innerHTML =
     '<header><h1>Proyectos</h1><p class="lead">Todo lo que estás creando. Cada proyecto se abre en su propia página.</p></header>' +
-    '<div id="sendero"></div><div id="panel"></div>';
+    '<div id="avisos"></div><div id="sendero"></div><div id="panel"></div>';
+  avisos($("avisos"));
   proyectos();
   sendero($("sendero"), HECHO, PROYS[0] ? PROYS[0].id : null);
 }

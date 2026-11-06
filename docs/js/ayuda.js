@@ -17,6 +17,7 @@ const ICO = {
   bitacora: '<path d="M7 3v4M17 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 12h8M8 16h5"/>',
   eventos: '<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/><circle cx="12" cy="15" r="1.6"/>',
   cuenta: '<path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.4 6.8 19.2l1-5.9L3.5 9.2l5.9-.8L12 3Z"/>',
+  comunidad: '<path d="M4 20V5"/><path d="M4 5h11l-2 4 2 4H4"/>',
   privacidad: '<path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>',
   app: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
 };
@@ -114,7 +115,13 @@ export const TEMAS = [
     para: "Entras con un enlace a tu correo, sin contraseña. Todo lo que creas queda en tu espacio privado: nadie más lo ve, ni otras cuentas. Lo único que se puede ver sin cuenta es la versión publicada de una vitrina, y los precios que decides compartir en el cotizador van sin tu nombre.",
     pasos: ["Para entrar, pide el enlace en «Entrar» y ábrelo en el mismo dispositivo.", "Tu correo nunca se muestra a otras personas.", "Puedes despublicar una vitrina o dejar de compartir un precio cuando quieras."],
     consejo: "Si entras desde otro dispositivo, pide un enlace nuevo ahí: tus proyectos te esperan iguales.",
-    plan: ["Igual en todos los planes", "Igual en todos los planes"], ir: null, claves: "seguridad datos correo privado público contraseña enlace magic link entrar" },
+    plan: ["Igual en todos los planes", "Igual en todos los planes"], ir: () => u("privacidad/"), publico: true, claves: "descargar borrar cuenta eliminar seguridad datos correo privado público contraseña enlace magic link entrar" },
+  { id: "comunidad", n: "Normas, reportes y Explorar", donde: "Cada vitrina y Mi cuenta",
+    corto: "Qué se puede publicar, cómo reportar algo dañino y cómo aparecer en Explorar.",
+    para: "Lo que publicas en una vitrina debe respetar las Normas de la comunidad. Cualquier persona con cuenta puede reportar una vitrina, y cada reporte lo revisa una persona: nada se oculta solo por recibir reportes. Si tomamos una medida, te decimos el porqué en Mi cuenta y puedes apelar. Explorar es el directorio público: tu vitrina aparece ahí solo si lo eliges al publicar.",
+    pasos: ["Para mostrar tu proyecto en Explorar, marca «Mostrar en Explorar» al publicar la vitrina (necesita título y una historia de al menos 40 palabras).", "Si ves algo que rompe las normas, toca «Reportar esta vitrina» al final de la página y elige el motivo.", "Revisa tus avisos y escríbenos desde Mi cuenta; para apelar una suspensión usa «Apelar» en el editor de la vitrina."],
+    consejo: "Si tu historia trata temas fuertes, avísalo en la portada: la ficción puede tratar cualquier tema, lo que se modera es el daño a personas reales.",
+    plan: ["Incluido", "Incluido"], ir: () => u("normas/"), publico: true, claves: "normas reglas reportar denunciar sanción suspendida apelar moderación explorar directorio publicar términos privacidad" },
   { id: "app", n: "Forja en tu teléfono", donde: "Tu navegador",
     corto: "Instálala como una app desde el navegador, sin tienda de aplicaciones.",
     para: "Forja se puede instalar en el teléfono o el computador y abre como una app, con su ícono.",
@@ -128,7 +135,7 @@ export const tema = (id) => TEMAS.find((t) => t.id === id);
 export function temaDe(href = location.href, hash = location.hash) {
   const rel = href.split(/[?#]/)[0].slice(RAIZ.length).replace(/index\.html$/, ""), h = (hash || "").slice(1);
   if (rel === "proyecto/") return tema(h) ? h : "taller";
-  return ({ "proyectos/": "plantar", "cotizador/": "costos", "cotizaciones/": "costos", "eventos/": "eventos", "planes/": "cuenta", "vitrina/editar/": "vitrina", "biblia/": "biblia", "oportunidades/": "oportunidades", "entrar/": "privacidad" })[rel] || "plantar";
+  return ({ "proyectos/": "plantar", "cotizador/": "costos", "cotizaciones/": "costos", "eventos/": "eventos", "planes/": "cuenta", "vitrina/editar/": "vitrina", "biblia/": "biblia", "oportunidades/": "oportunidades", "entrar/": "privacidad", "cuenta/": "comunidad", "normas/": "comunidad", "terminos/": "privacidad", "privacidad/": "privacidad", "explorar/": "comunidad" })[rel] || "plantar";
 }
 export const contexto = () => { let p = null; try { p = localStorage.getItem("forja-ultimo-proyecto"); } catch (e) {} return { p }; };
 

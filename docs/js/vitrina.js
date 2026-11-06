@@ -119,7 +119,7 @@ export function pintarVitrina(raiz, datos, opts = {}) {
       '<a href="' + esc(e.url) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + "><b>" + esc(e.nombre || dominio(e.url)) + "</b><small>" + esc(dominio(e.url)) + "</small></a>").join("") + "</div></section>" : "") +
     (!partes.length ? '<p class="vt-vacia">' + (previa ? "Agrega la historia, imágenes o novedades desde el panel y aparecerán aquí." : "Esta vitrina se está preparando.") + "</p>" : "") +
     "</main>" +
-    '<footer class="vt-pie"><span>' + (opts.fecha ? "Actualizada el " + esc(fechaTxt(opts.fecha)) + " · " : "") + 'Vitrina hecha con <a href="' + RAIZ + '"' + (previa ? ' tabindex="-1"' : "") + ">Forja</a></span></footer>" +
+    '<footer class="vt-pie"><span>' + (opts.fecha ? "Actualizada el " + esc(fechaTxt(opts.fecha)) + " · " : "") + 'Vitrina hecha con <a href="' + RAIZ + '"' + (previa ? ' tabindex="-1"' : "") + ">Forja</a>" + (previa ? "" : ' · <a href="' + RAIZ + 'normas/">Normas</a> · <button type="button" class="vt-reportar">Reportar esta vitrina</button>') + "</span></footer>" +
     '<dialog class="vt-caja"><button type="button" class="vt-cerrar" aria-label="Cerrar">×</button><figure></figure></dialog></div>';
 
   const vt = raiz.querySelector(".vt");
@@ -268,6 +268,7 @@ export const CSS_VITRINA = CSS_PIZARRA + `
 .vt-vacia{padding:64px 0;text-align:center;color:var(--vt-muted)}
 .vt-pie{max-width:1100px;margin:0 auto;padding:72px max(20px,env(safe-area-inset-left)) 40px;font-size:13px;color:var(--vt-muted);display:flex;justify-content:center}
 .vt-pie a{color:inherit;font-weight:700}
+.vt-reportar{font:inherit;font-size:13px;border:0;background:none;color:inherit;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .vt-caja{border:0;padding:0;background:transparent;max-width:min(1100px,94vw);max-height:92vh}
 .vt-caja::backdrop{background:rgba(8,9,12,.86)}
 .vt-caja figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:10px}

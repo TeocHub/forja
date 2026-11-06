@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Mi cuenta</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: mi cuenta — columna de bloques: avisos, escríbenos y mensajes, reportes, documentos, tus datos (descargar y borrar) */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55}
+a{color:var(--accent)}
+.wrap{max-width:820px;margin:0 auto;padding-block:24px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(button,a,select,textarea,input):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--f-display);font-size:clamp(26px,5vw,36px);margin:0}
+.lead{margin:4px 0 0;color:var(--muted)}
+#app{display:flex;flex-direction:column;gap:18px}
+.blq{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.blq h2{font-family:var(--f-display);font-size:20px;margin:0}
+.blq>p{margin:0;color:var(--muted)}
+.fila{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.plan{font-family:var(--f-num);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.msj{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:4px}
+.msj small{color:var(--muted);font-size:12.5px}
+.msj p{margin:0;white-space:pre-wrap}
+.msj .resp{background:var(--accent-soft);border-radius:10px;padding:8px 12px}
+.est{font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px;border:1px solid var(--line);color:var(--muted)}
+.est.ok{color:var(--good,#2f7d4f);border-color:currentColor}
+.forma{display:flex;flex-direction:column;gap:8px}
+.forma label{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--muted)}
+.forma select,.forma textarea,.forma input{font:inherit;font-size:15px;color:var(--fg);border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:8px 10px}
+.forma textarea{min-height:110px;resize:vertical}
+.acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font:inherit;font-size:14.5px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:9px;padding:8px 14px;cursor:pointer}
+.btn.peligro{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
+.btn.peligro.lleno{background:var(--bad);color:#fff;border-color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+.docs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.docs a{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-decoration:none;color:var(--fg)}
+.docs small{color:var(--muted)}
+.zona{border-color:color-mix(in srgb,var(--bad) 35%,var(--line))}
+details.borrar summary{cursor:pointer;color:var(--bad);font-weight:700}
+details.borrar[open] summary{margin-bottom:8px}
+.vacio{color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="app"><div class="fx-empty">Cargando…</div></main>
+</div>
+<script type="module">
+import { sb, $, esc, toast, hace, fecha, navApp, conSesion, plan, espacio, limite, avisos, u, DOCS } from "../js/forja.js";
+navApp(null);
+const TIPO = { contacto: "Contacto o consulta", privacidad: "Mis datos personales", apelacion: "Apelación" };
+const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
+const EST_REP = { pendiente: ["En revisión", ""], aceptado: ["Se tomaron medidas", "ok"], desestimado: ["No infringía las normas", ""], mala_fe: ["Revisado como de mala fe", ""] };
+const NOMBRE_DOC = { terminos: "Términos de uso", privacidad: "Política de privacidad", normas: "Normas de la comunidad" };
+let SES;
+
+conSesion($("app"), async (ses) => {
+  SES = ses;
+  const [pl, ms, rp, ac] = await Promise.all([
+    plan(),
+    sb.from("mensajes").select("id,tipo,texto,estado,respuesta,creado_en,respondido_en").order("creado_en", { ascending: false }).limit(30),
+    sb.from("reportes").select("id,motivo,estado,creado_en,revisado_en").order("creado_en", { ascending: false }).limit(30),
+    sb.from("aceptaciones").select("documento,version,aceptado_en").order("aceptado_en", { ascending: false }),
+  ]);
+  const creada = ses.user.created_at ? fecha(ses.user.created_at) : "";
+  $("app").innerHTML =
+    '<header><h1>Mi cuenta</h1><p class="lead">Tus avisos, tus mensajes con el equipo de Forja y el control de tus datos.</p></header>' +
+    '<section class="blq"><div class="fila"><h2>' + esc(ses.user.email) + '</h2><span class="plan">' + (pl.mas ? "Forja Más" + (pl.hasta ? " hasta el " + fecha(pl.hasta) : "") : "Plan gratis") + "</span></div>" +
+    "<p>" + (creada ? "Cuenta creada el " + creada + ". " : "") + 'Entras con un enlace a tu correo, sin contraseña. <a href="../planes/">Ver los planes</a></p></section>' +
+    '<section class="blq" id="b-avisos"><h2>Avisos</h2><div id="avisos"></div><p class="vacio" id="sin-avisos" hidden>No tienes avisos nuevos. Aquí te contamos si revisamos algo tuyo o respondemos un mensaje.</p></section>' +
+    '<section class="blq" id="escribenos"><h2>Escríbenos</h2><p>Para dudas, problemas, solicitudes sobre tus datos personales o para apelar una decisión. Te respondemos aquí mismo, como aviso.</p>' +
+    '<form class="forma" id="f-msj"><label>Sobre qué<select id="m-tipo"><option value="contacto">Contacto o consulta</option><option value="privacidad">Mis datos personales (acceso, corrección, oposición, bloqueo…)</option></select></label>' +
+    '<label>Mensaje<textarea id="m-texto" maxlength="3000" required placeholder="Cuéntanos qué necesitas."></textarea></label>' +
+    '<div class="acc"><button class="fx-primary" type="submit">Enviar</button><small class="vacio">Para apelar la suspensión de una vitrina, usa el botón "Apelar" en su editor.</small></div></form>' +
+    '<div id="mensajes">' + ((ms.data || []).map((m) => '<div class="msj"><div class="fila"><b>' + TIPO[m.tipo] + '</b><span class="est' + (m.respuesta ? " ok" : "") + '">' + (m.respuesta ? "Respondido" : "Esperando respuesta") + "</span></div><small>" + hace(m.creado_en) + "</small><p>" + esc(m.texto) + "</p>" +
+      (m.respuesta ? '<p class="resp"><b>Forja:</b> ' + esc(m.respuesta) + "</p>" : "") + "</div>").join("")) + "</div></section>" +
+    '<section class="blq"><h2>Mis reportes</h2>' + ((rp.data || []).length ? (rp.data.map((r) => { const e = EST_REP[r.estado] || [r.estado, ""]; return '<div class="msj"><div class="fila"><b>' + esc(MOTIVOS[r.motivo] || r.motivo) + '</b><span class="est ' + e[1] + '">' + e[0] + "</span></div><small>Enviado " + hace(r.creado_en) + "</small></div>"; }).join("")) : '<p class="vacio">No has reportado ninguna vitrina. Si ves algo que rompe las <a href="../normas/">normas</a>, usa "Reportar esta vitrina" al final de esa página.</p>') + "</section>" +
+    '<section class="blq"><h2>Documentos que aceptaste</h2><div class="docs">' + ["terminos", "privacidad", "normas"].map((d) => { const a = (ac.data || []).find((x) => x.documento === d); return '<a href="../' + d + '/"><b>' + NOMBRE_DOC[d] + "</b><small>" + (a ? "Versión del " + (a.version === DOCS.version ? DOCS.fecha : a.version) + (a.aceptado_en ? ", aceptada el " + fecha(a.aceptado_en) : "") : "Sin aceptar") + "</small></a>"; }).join("") + "</div></section>" +
+    '<section class="blq"><h2>Tus datos</h2><p>Todo lo que guardaste en Forja en un archivo JSON: proyectos, escritura, referentes, pizarras, bitácora, cotizaciones, vitrinas, mensajes y reportes. Para tus proyectos, la <b>biblia</b> de cada uno es una copia más legible.</p><div class="acc"><button class="btn" type="button" id="descargar">Descargar mis datos</button></div></section>' +
+    '<section class="blq zona"><h2>Borrar mi cuenta</h2><p>Se borran de inmediato tu correo, tus proyectos, vitrinas publicadas, cotizaciones, precios compartidos, mensajes, reportes y avisos. No se puede deshacer. Si tienes proyectos importantes, descarga tus datos antes.</p>' +
+    '<details class="borrar"><summary>Quiero borrar mi cuenta</summary><form class="forma" id="f-borrar"><label>Escribe BORRAR para confirmar<input id="b-conf" autocomplete="off" spellcheck="false"></label><div class="acc"><button class="btn peligro lleno" type="submit" id="b-si" disabled>Borrar mi cuenta para siempre</button></div></form></details></section>';
+  const n = await avisos($("avisos"));
+  $("sin-avisos").hidden = n > 0;
+  if (location.hash === "#escribenos") $("escribenos").scrollIntoView();
+
+  $("f-msj").onsubmit = async (e) => {
+    e.preventDefault();
+    const texto = $("m-texto").value.trim(); if (texto.length < 5) { toast("Escribe un poco más."); return; }
+    const b = e.submitter; b.disabled = true;
+    const { error } = await sb.from("mensajes").insert({ tipo: $("m-tipo").value, texto });
+    b.disabled = false;
+    if (error) { toast(limite(error) || "No se pudo enviar. Intenta de nuevo."); return; }
+    toast("Mensaje enviado. Te responderemos aquí."); setTimeout(() => location.reload(), 900);
+  };
+  $("descargar").onclick = descargar;
+  $("b-conf").oninput = (e) => { $("b-si").disabled = e.target.value.trim() !== "BORRAR"; };
+  $("f-borrar").onsubmit = async (e) => {
+    e.preventDefault(); $("b-si").disabled = true;
+    const { error } = await sb.rpc("borrar_mi_cuenta", { confirmacion: $("b-conf").value.trim() });
+    if (error) { toast(limite(error) || "No se pudo borrar la cuenta: " + error.message); $("b-si").disabled = false; return; }
+    try { ["forja-filtros", "forja-pistas", "forja-sendero-oculto", "forja-ultimo-proyecto", "forja-cotizador-v1"].forEach((k) => localStorage.removeItem(k)); } catch (er) {}
+    await sb.auth.signOut();
+    location.href = u("?cuenta=borrada");
+  };
+});
+
+async function descargar() {
+  $("descargar").disabled = true; $("descargar").textContent = "Preparando…";
+  const esp = await espacio();
+  const TABLAS = ["proyectos", "secciones", "referentes", "pizarras", "notas", "cotizaciones", "proyecto_oportunidades", "vitrinas"];
+  const out = { exportado_en: new Date().toISOString(), cuenta: { correo: SES.user.email, creada_en: SES.user.created_at } };
+  const { data: e } = await sb.from("espacios").select("*").eq("id", esp).maybeSingle(); out.espacio = e;
+  for (const t of TABLAS) { const { data, error } = await sb.from(t).select("*").eq("espacio_id", esp); out[t] = error ? { error: error.message } : data; }
+  for (const [t, c] of [["mensajes", "id,tipo,texto,estado,respuesta,creado_en,respondido_en"], ["reportes", "motivo,detalle,estado,creado_en,revisado_en"], ["avisos", "tipo,titulo,texto,leido,creado_en"], ["aceptaciones", "documento,version,aceptado_en"], ["interes_funciones", "funcion"]]) {
+    const { data } = await sb.from(t).select(c); out[t] = data || [];
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: "application/json" }));
+  a.download = "forja-mis-datos-" + new Date().toISOString().slice(0, 10) + ".json"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  $("descargar").disabled = false; $("descargar").textContent = "Descargar mis datos";
+}
+</script>
+</body>
+</html>
