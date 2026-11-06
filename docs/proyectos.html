@@ -102,6 +102,7 @@ button{cursor:pointer}
 <script type="module">
 import { sb, $, esc, toast, hace, navApp, espacio, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK } from "./js/forja.js";
 import { TIPOS, ESTADOS, tc, PLANTILLA, SECCIONES, pesoDe, avance } from "./js/guias.js";
+import { sendero } from "./js/ayuda.js";
 import { FORMATOS } from "./js/brujula.js";
 navApp("proyectos");
 if (location.hash === "#cotizaciones") location.replace("cotizaciones.html");
@@ -119,24 +120,31 @@ conSesion($("app"), async () => {
   ESP = await espacio();
   if (!ESP) throw new Error("sin espacio");
   PL = await plan();
-  const [p, se, vi] = await Promise.all([
+  const [p, se, vi, tx, rf, pz] = await Promise.all([
     sb.from("proyectos").select("id,nombre,tipo,estado,resumen,ejes,formato,actualizado_en").eq("espacio_id", ESP).order("actualizado_en", { ascending: false }),
     sb.from("secciones").select("proyecto_id,avance,peso").eq("espacio_id", ESP),
     sb.from("vitrinas").select("proyecto_id,publicada").eq("espacio_id", ESP),
+    sb.from("secciones").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("texto", ""),
+    sb.from("referentes").select("id", { count: "exact", head: true }).eq("espacio_id", ESP),
+    sb.from("pizarras").select("id", { count: "exact", head: true }).eq("espacio_id", ESP),
   ]);
+  // primeros pasos: se marcan solos con lo que ya existe
+  HECHO.taller = (tx.count || 0) > 0; HECHO.referentes = (rf.count || 0) > 0; HECHO.pizarra = (pz.count || 0) > 0;
   (vi.data || []).forEach((v) => { if (v.publicada) VIT.add(v.proyecto_id); });
   const por = {}; (se.data || []).forEach((x) => (por[x.proyecto_id] = por[x.proyecto_id] || []).push(x));
   Object.keys(por).forEach((k) => { AV[k] = avance(por[k]); });
   if (p.error) throw p.error;
   PROYS = p.data || [];
+  HECHO.plantar = PROYS.length > 0; HECHO.vitrina = VIT.size > 0;
   pintar();
 });
 
 function pintar() {
   $("app").innerHTML =
     '<header><h1>Proyectos</h1><p class="lead">Todo lo que estás creando. Cada proyecto se abre en su propia página.</p></header>' +
-    '<div id="panel"></div>';
+    '<div id="sendero"></div><div id="panel"></div>';
   proyectos();
+  sendero($("sendero"), HECHO, PROYS[0] ? PROYS[0].id : null);
 }
 
 const activos = () => PROYS.filter((p) => p.estado !== "archivado").length;
@@ -204,6 +212,7 @@ function proyectos() {
 }
 
 const VIT = new Set(); // proyectos con vitrina publicada
+const HECHO = { plantar: false, taller: false, referentes: false, pizarra: false, vitrina: false };
 function tile(p) {
   const elegido = FORMATOS.find((f) => f.k === p.formato), av = AV[p.id] || 0, ro = !editable(p, activos(), PL);
   return '<a class="tile e-' + p.estado + '" href="proyecto.html?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')">' +

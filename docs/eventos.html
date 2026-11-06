@@ -62,6 +62,7 @@ section{margin-top:30px;display:flex;flex-direction:column;gap:12px}
 import { sb, $, esc, toast, navApp, espacio, conSesion, proximamente, activarAvisame } from "./js/forja.js";
 import { TIPOS, tc, areaDe } from "./js/guias.js";
 import { funcion } from "./js/planes.js";
+import { pista } from "./js/ayuda.js";
 navApp("eventos");
 const MES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const ESTOP = { interesa: "me interesa", postulando: "postulando", postulado: "postulé", aceptado: "aceptado", descartado: "descartado" };
@@ -126,6 +127,7 @@ function pintar() {
         return '<div class="sug"><b>' + esc(o.nombre) + "</b><span>" + (o.fechas_estimadas ? "≈ " : "") + t + '</span><button type="button" data-seguir="' + o.id + '" data-p="' + pr.id + '">Seguir</button></div>'; }).join("") + "</div></div>").join("") + "</section>" : "") +
     '<section aria-labelledby="t-pronto"><h2 id="t-pronto">Próximamente</h2><div class="sugs">' + proximamente(fa.k, fa.t, fa.d, true) + proximamente(ft.k, ft.t, ft.d, true) + "</div></section>";
   activarAvisame($("app"));
+  pista($("app").querySelector("header"), "eventos");
   $("app").querySelectorAll("[data-seguir]").forEach((b) => b.onclick = async () => {
     const { error } = await sb.from("proyecto_oportunidades").insert({ proyecto_id: b.dataset.p, oportunidad_id: b.dataset.seguir, espacio_id: ESP });
     if (error) { toast("No se pudo agregar."); return; }

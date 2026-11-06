@@ -10,6 +10,7 @@ export const sb = createClient(SB_URL, SB_KEY, { auth: { persistSession: true, a
 const PUBLICO = [
   { href: "oportunidades.html", nombre: "Oportunidades", id: "oportunidades" },
   { href: "planes.html", nombre: "Planes", id: "planes" },
+  { href: "guia.html", nombre: "Guía", id: "guia" },
 ];
 // Menú de la cuenta. Íconos dibujados a mano, de trazo, para que se lean en la barra del celular.
 const ICONO = {
@@ -68,9 +69,10 @@ export function navApp(actual) {
   el.innerHTML =
     '<a class="fx-logo" href="proyectos.html">Forja</a>' +
     '<nav class="fx-menu" aria-label="Mi forja">' + APP.map((m) => '<a href="' + m.href + '" class="m-' + m.id + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + svg(m.id) + "<span>" + m.nombre + "</span></a>").join("") + "</nav>" +
+    '<button type="button" class="fx-ayuda" id="fx-ayuda" aria-label="Ayuda: cómo funciona esta página" title="Ayuda">?</button>' +
     '<details class="fx-cuenta" id="fx-cuenta"><summary aria-label="Mi cuenta"><span class="fx-ini" id="fx-ini">·</span></summary><div class="fx-pop">' +
     '<span class="fx-mail" id="fx-mail2"></span><span class="fx-planb" id="fx-planb">Plan gratis</span>' +
-    '<a href="./">Ver el sitio público</a><a href="oportunidades.html">Calendario de oportunidades</a><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
+    '<a href="guia.html">Guía de Forja</a><button type="button" class="fx-link" id="fx-pistas">Volver a ver las pistas</button><a href="./">Ver el sitio público</a><a href="oportunidades.html">Calendario de oportunidades</a><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
   document.body.classList.add("fx-con-app");
   sb.auth.getSession().then(async ({ data }) => {
     const ses = data.session; if (!ses) return;
@@ -81,6 +83,9 @@ export function navApp(actual) {
     $("fx-planb").classList.toggle("mas", pl.mas);
   });
   $("fx-salir").onclick = async () => { await sb.auth.signOut(); location.href = "./"; };
+  // La ayuda se carga solo cuando se pide.
+  $("fx-ayuda").onclick = async () => { const a = await import("./ayuda.js"); a.abrirAyuda(); };
+  $("fx-pistas").onclick = async () => { const a = await import("./ayuda.js"); a.reiniciarPistas(); toast("Las pistas y los primeros pasos volverán a aparecer."); $("fx-cuenta").open = false; setTimeout(() => location.reload(), 900); };
   document.addEventListener("click", (e) => { const c = $("fx-cuenta"); if (c && c.open && !c.contains(e.target)) c.open = false; });
 }
 

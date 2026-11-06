@@ -14,6 +14,7 @@ Una portada pública que explica la herramienta, el calendario público de **Opo
 docs/                     sitio publicado en GitHub Pages (app instalable en el celular)
   index.html              portada pública
   vitrina.html            vitrina pública de un proyecto (?v=direccion)
+  guia.html               guía de Forja con demos para probar
   vitrina-editor.html     editor de la vitrina (requiere cuenta)
   planes.html             planes (gratis y Forja Más, próximamente)
   entrar.html             entrada por correo
@@ -30,6 +31,7 @@ docs/                     sitio publicado en GitHub Pages (app instalable en el 
   js/planes.js            catálogo de Forja Más
   js/pizarra.js           pizarras: libre, relaciones, escaleta y mapa
   js/vitrina.js           vitrina pública: datos, filtro al publicar y diseño
+  js/ayuda.js             ayuda: temas, cajón «?», pistas y primeros pasos
   css/forja.css           estilos comunes
   data/                   copia de respaldo de los datos (la fuente principal es Supabase)
   manifest.webmanifest    datos para instalar la app

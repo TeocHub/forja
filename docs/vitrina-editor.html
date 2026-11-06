@@ -145,6 +145,7 @@ dialog::backdrop{background:rgba(10,12,20,.5)}
 import { sb, $, esc, toast, hace, navApp, espacio, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame } from "./js/forja.js";
 import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA } from "./js/vitrina.js";
 import { MODOS } from "./js/pizarra.js";
+import { pista } from "./js/ayuda.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
 navApp("proyectos");
 const ID = new URLSearchParams(location.search).get("p");
@@ -222,6 +223,7 @@ function armar() {
     '<div class="modo" role="group" aria-label="Vista"><button type="button" data-vista="editar" aria-pressed="true">Editar</button><button type="button" data-vista="previa" aria-pressed="false">Vista previa</button></div>' +
     '<div class="grid"><div class="panel" id="panel"></div><div class="previa"><div class="previa-barra"><i></i><i></i><i></i><span id="previa-url"></span></div><div id="previa"></div></div></div>';
   document.querySelectorAll("[data-vista]").forEach((b) => b.onclick = () => { document.body.dataset.vista = b.dataset.vista; document.querySelectorAll(".modo [data-vista]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); if (b.dataset.vista === "previa") pintarPrevia(); });
+  pista($("app").querySelector(".cab").nextElementSibling ? (() => { const d = document.createElement("div"); $("app").querySelector(".cab").after(d); return d; })() : $("app"), "vitrina");
   $("b-pub").onclick = abrirPublicar;
   $("b-comp").onclick = abrirCompartir;
   pintarPanel(); pintarPrevia(); pintarEstado();

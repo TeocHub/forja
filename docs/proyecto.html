@@ -271,6 +271,7 @@ import { funcion } from "./js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "./js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "./js/brujula.js";
 import { montar, MODOS, cuentaTarjetas, normal as normalPiz, CSS_PIZARRA } from "./js/pizarra.js";
+import { pista } from "./js/ayuda.js";
 navApp("proyectos");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + "</style>");
 
@@ -296,6 +297,7 @@ else conSesion($("app"), async () => {
     sb.from("vitrinas").select("id,slug,publicada,publicado_en,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
   ]);
   P = pr.data; VIT = vi.data || null;
+  if (P) try { localStorage.setItem("forja-ultimo-proyecto", P.id); } catch (e) {}
   if (!P) { $("app").innerHTML = '<a class="vol" href="proyectos.html">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
   SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || []; PIZ = pz.data || [];
   const h = location.hash.slice(1); if (PESTANAS.some(([k]) => k === h)) pest = h;
@@ -422,6 +424,7 @@ function irA(k) { pest = k; history.replaceState(null, "", "#" + k); pintarTabs(
 function pintarPestana() {
   if (EDITOR) { EDITOR.destruir(); EDITOR = null; }
   ({ taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest](); activarAvisame($("panel"));
+  pista($("panel"), pest); // la primera vez en cada herramienta, una nota corta
 }
 // Tarjetas "Próximamente" de Forja Más, por clave de planes.js.
 const pronto = (claves, titulo) => '<section class="pronto-fila" aria-label="' + (titulo || "Próximamente en Forja Más") + '"><div class="pronto-cab"><b>' + (titulo || "Próximamente en Forja Más") + '</b><a href="planes.html">Ver todo lo que trae</a></div><div class="pronto-grid">' +
