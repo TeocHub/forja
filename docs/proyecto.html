@@ -51,6 +51,10 @@ button{cursor:pointer}
 .fx-tabs .punto{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ember);margin-left:5px;vertical-align:2px}
 .sugerencia{margin-top:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border:1.5px dashed var(--ember);background:var(--ember-soft);border-radius:14px;padding:12px 14px}
 .sugerencia .ops{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.sugerencia .ops .hint{background:none;border:0;padding:2px 0}
+.sugerencia .ops .menos{text-decoration:line-through;color:var(--muted)}
+.indice .aparte{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 10px 2px;border-top:1px dashed var(--line);margin-top:6px}
+@media (max-width:820px){.indice .aparte{flex:none;border:0;padding:8px 2px 0 8px;margin:0;align-self:center;border-left:1px dashed var(--line)}}
 .sugerencia .ops span{font-size:13px;border-radius:999px;padding:2px 10px;background:var(--card);border:1px solid var(--line)}
 .sugerencia .acc{display:flex;gap:6px}
 .etapa{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
@@ -197,7 +201,7 @@ textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;
 
 <script type="module">
 import { sb, $, esc, toast, debounce, fecha, hace, nav, espacio, conSesion } from "./js/forja.js";
-import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "./js/guias.js";
+import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "./js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, CSS_BRUJULA } from "./js/brujula.js";
 nav("mi");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + "</style>");
@@ -301,10 +305,23 @@ async function elegirFormato(f) {
 }
 const DESC = () => { try { return JSON.parse(localStorage.getItem("forja-desc-" + P.id) || "[]"); } catch (e) { return []; } };
 const faltantes = () => { const d = DESC(); return sugeridas(P.tipo, P.formato).filter((g) => !SECS.some((s) => s.guia === g) && !d.includes(g)); };
-function avisarSecciones(silencio) { const n = faltantes().length; if (n && !silencio && pest !== "taller") toast("Hay " + n + " secciones sugeridas nuevas en el Taller."); }
+const vacia = (s) => !s.texto.trim() && !s.avance;
+// Secciones que vinieron de la plantilla de otra categoría o formato y siguen vacías (o repetidas y vacías): se pueden quitar sin perder nada.
+const DE_PLANTILLA = new Set([...Object.values(PLANTILLA).flat(), ...Object.values(PLANTILLA_FORMATO).flat()]);
+function sobrantes() {
+  const ok = new Set(sugeridas(P.tipo, P.formato)), d = DESC(), vistas = new Set();
+  return SECS.filter((s) => {
+    const repetida = s.guia && s.guia !== "libre" && vistas.has(s.guia); if (s.guia) vistas.add(s.guia);
+    if (!vacia(s) || d.includes("-" + s.id)) return false;
+    return repetida || (DE_PLANTILLA.has(s.guia) && !ok.has(s.guia));
+  });
+}
+// Con contenido pero fuera de la categoría actual: se muestran aparte en el índice.
+const fuera = (s) => !vacia(s) && DE_PLANTILLA.has(s.guia) && !sugeridas(P.tipo, P.formato).includes(s.guia);
+function avisarSecciones(silencio) { const n = faltantes().length + sobrantes().length; if (n && !silencio && pest !== "taller") toast("El Taller tiene secciones para ajustar a la nueva categoría."); }
 function pintarTabs() {
   const n = { taller: SECS.length ? avance(SECS) + "%" : "", referentes: REFS.length, bitacora: NOTAS.length, oportunidades: SEGS.length };
-  const nuevas = faltantes().length;
+  const nuevas = faltantes().length + sobrantes().length;
   $("tabs").innerHTML = PESTANAS.map(([k, t]) => '<button role="tab" data-p="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? '<span class="n">' + n[k] + "</span>" : "") + (k === "taller" && nuevas ? '<span class="punto" title="Secciones sugeridas nuevas"></span>' : "") + "</button>").join("");
   $("tabs").querySelectorAll("[data-p]").forEach((b) => b.onclick = () => irA(b.dataset.p));
 }
@@ -324,13 +341,26 @@ function taller() {
   pintarSugerencia(); pintarIndice(); pintarHoja();
 }
 function pintarSugerencia() {
-  const f = faltantes(), w = $("sugerencia"); if (!w) return;
-  if (!f.length) { w.innerHTML = ""; return; }
-  const fm = FORMATOS.find((x) => x.k === P.formato);
-  w.innerHTML = '<div class="sugerencia"><div><b>Para ' + esc(TIPOS[P.tipo].toLowerCase()) + (fm ? " · " + esc(fm.n.toLowerCase()) : "") + ' suelen servir estas secciones</b><div class="ops">' + f.map((g) => '<span>' + esc(SECCIONES[g].t) + "</span>").join("") + "</div>" +
-    '<span class="hint">Se agregan al final; no se borra nada de lo que ya escribiste.</span></div><div class="acc"><button class="btn prim" id="sg-si">Agregarlas</button><button class="btn" id="sg-no">Ahora no</button></div></div>';
-  $("sg-si").onclick = async () => { await crearSecciones(f.map((g) => ({ guia: g, titulo: SECCIONES[g].t }))); toast(f.length === 1 ? "Sección agregada" : f.length + " secciones agregadas"); pintarTabs(); pintarAvance(); taller(); };
-  $("sg-no").onclick = () => { try { localStorage.setItem("forja-desc-" + P.id, JSON.stringify(DESC().concat(f))); } catch (e) {} pintarSugerencia(); pintarTabs(); };
+  const f = faltantes(), q = sobrantes(), w = $("sugerencia"); if (!w) return;
+  if (!f.length && !q.length) { w.innerHTML = ""; return; }
+  const fm = FORMATOS.find((x) => x.k === P.formato), para = esc(TIPOS[P.tipo].toLowerCase()) + (fm && fm.n !== TIPOS[P.tipo] ? " · " + esc(fm.n.toLowerCase()) : "");
+  w.innerHTML = '<div class="sugerencia"><div><b>Ajustar el Taller a ' + para + "</b>" +
+    (f.length ? '<div class="ops"><span class="hint">Agregar:</span>' + f.map((g) => '<span class="mas">+ ' + esc(SECCIONES[g].t) + "</span>").join("") + "</div>" : "") +
+    (q.length ? '<div class="ops"><span class="hint">Quitar, porque están vacías y son de otra categoría:</span>' + q.map((x) => '<span class="menos">− ' + esc(x.titulo) + "</span>").join("") + "</div>" : "") +
+    '<span class="hint">Nunca se borra una sección que tenga texto o avance; esas quedan aparte en "Otras secciones".</span></div>' +
+    '<div class="acc"><button class="btn prim" id="sg-si">' + (f.length && q.length ? "Ajustar" : f.length ? "Agregarlas" : "Quitarlas") + '</button><button class="btn" id="sg-no">Ahora no</button></div></div>';
+  $("sg-si").onclick = async () => {
+    $("sg-si").disabled = true;
+    if (q.length) {
+      const { error } = await sb.from("secciones").delete().in("id", q.map((x) => x.id));
+      if (error) { toast("No se pudieron quitar."); $("sg-si").disabled = false; return; }
+      SECS = SECS.filter((x) => !q.includes(x));
+    }
+    if (f.length) await crearSecciones(f.map((g) => ({ guia: g, titulo: SECCIONES[g].t })));
+    toast([f.length ? f.length + (f.length === 1 ? " agregada" : " agregadas") : "", q.length ? q.length + (q.length === 1 ? " quitada" : " quitadas") : ""].filter(Boolean).join(" · "));
+    secActual = null; pintarTabs(); pintarAvance(); taller();
+  };
+  $("sg-no").onclick = () => { try { localStorage.setItem("forja-desc-" + P.id, JSON.stringify(DESC().concat(f, q.map((x) => "-" + x.id)))); } catch (e) {} pintarSugerencia(); pintarTabs(); };
 }
 async function crearSecciones(lista) {
   const base = SECS.length ? Math.max(...SECS.map((s) => s.orden)) + 1 : 0;
@@ -340,7 +370,10 @@ async function crearSecciones(lista) {
 }
 function pintarIndice() {
   const total = SECS.reduce((a, s) => a + palabras(s.texto), 0);
-  $("indice").innerHTML = SECS.map((s) => { const w = palabras(s.texto); return '<button class="sec' + (w ? " lleno" : "") + (s.avance >= 100 ? " lista" : "") + '" data-s="' + s.id + '" aria-current="' + (s.id === secActual) + '" style="--av:' + s.avance + '%"><span>' + esc(s.titulo) + '</span><span class="w">' + (s.avance ? s.avance + "%" : "") + "</span></button>"; }).join("") +
+  const boton = (s) => { const w = palabras(s.texto); return '<button class="sec' + (w ? " lleno" : "") + (s.avance >= 100 ? " lista" : "") + '" data-s="' + s.id + '" aria-current="' + (s.id === secActual) + '" style="--av:' + s.avance + '%"><span>' + esc(s.titulo) + '</span><span class="w">' + (s.avance ? s.avance + "%" : "") + "</span></button>"; };
+  const aparte = SECS.filter(fuera);
+  $("indice").innerHTML = SECS.filter((s) => !fuera(s)).map(boton).join("") +
+    (aparte.length ? '<span class="aparte" title="Tienen texto, pero son de otra categoría o formato. Se conservan por si las necesitas.">Otras secciones</span>' + aparte.map(boton).join("") : "") +
     '<button class="btn chico mas" id="b-mas">+ Sección</button><div class="total">' + total.toLocaleString("es-CL") + " palabras en total</div>";
   $("indice").querySelectorAll("[data-s]").forEach((b) => b.onclick = () => { secActual = b.dataset.s; pintarIndice(); pintarHoja(); });
   $("b-mas").onclick = menuSeccion;
