@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Forja · taller para crear historias, juegos y productos</title>
-<meta name="description" content="Forja es un taller gratuito para quienes crean en Chile: escribe tu idea con guías, junta referentes, calcula lo que cuesta producirla y encuentra ferias y fondos donde mostrarla.">
+<meta name="description" content="Forja es un taller gratuito para quienes crean en Chile: una ruta de siete etapas para llevar una historia, un juego o un producto desde la primera idea hasta mostrarlo, con lectores beta, costos, ferias y fondos.">
 <meta name="theme-color" content="#2a3fd1">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -13,67 +13,119 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="css/forja.css">
 <style>
-/* Layout: portada — titular con la brújula jugable al lado, recorrido de cuatro paradas, vitrina de oportunidades en vivo y cierre */
+/* Layout: portada — titular con la Ruta jugable al lado; las siete etapas como camino vertical con la escena de cada herramienta; oportunidades en vivo; brújula; tres planes; cierre */
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
-.wrap{max-width:1080px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1100px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 :where(button,a,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-section{margin-top:72px}
+section{margin-top:84px}
 h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 .kicker{font-family:var(--f-num);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ember)}
-
-/* titular */
-.hero{margin-top:28px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:32px;align-items:center}
-@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr);gap:20px}}
-.hero h1{font-size:clamp(38px,7vw,66px);line-height:1;letter-spacing:-.02em;margin:10px 0 18px}
-.hero h1 em{font-style:normal;color:var(--ember)}
-.hero p.lead{font-size:clamp(17px,2.2vw,19px);color:var(--muted);max-width:46ch;margin:0}
-.ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
-.cta{font-weight:700;border-radius:12px;padding:12px 18px;text-decoration:none;border:1.5px solid var(--accent)}
+.cta{display:inline-block;font-weight:700;border-radius:12px;padding:12px 18px;text-decoration:none;border:1.5px solid var(--accent)}
 .cta.main{background:var(--accent);color:var(--card)}
 .cta.alt{color:var(--accent);background:transparent}
-.demo{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px 14px 16px;position:relative;overflow:hidden}
-.demo::after{content:"";position:absolute;inset:auto -60px -80px auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,var(--ember-soft),transparent 70%);pointer-events:none}
-.demo .cap{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:0 6px}
-.demo .cap b{font-family:var(--f-display);font-size:17px}
-.demo .cap span{font-size:13px;color:var(--muted)}
-.demo .pair{display:grid;grid-template-columns:1fr 1fr;gap:4px;align-items:center}
-@media (max-width:520px){.demo .pair{grid-template-columns:1fr}}
-.demo .ver{font-size:14px;color:var(--muted);text-align:center;margin:6px 8px 0;min-height:3em;position:relative;z-index:1}
-.demo .ver b{color:var(--fg)}
-.q{font-size:13px;color:var(--muted);text-align:center;min-height:2.6em;margin:2px 8px 0}
+.sec-cab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 28px;align-items:end;margin-bottom:26px}
+.sec-cab h2{font-size:clamp(28px,4.5vw,42px);line-height:1.04;max-width:18ch}
+.sec-cab p{color:var(--muted);max-width:44ch;margin:0}
 
-/* recorrido */
-.ruta-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:end}
-.ruta-head h2{font-size:clamp(28px,4.5vw,40px);line-height:1.05;max-width:20ch}
-.ruta-head p{color:var(--muted);max-width:40ch;margin:0}
-.paradas{position:relative;display:grid;grid-template-columns:repeat(4,1fr);margin-top:30px}
-.paradas::before{content:"";position:absolute;left:12.5%;right:12.5%;top:21px;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 14px)}
-.parada{position:relative;background:none;border:0;padding:0 6px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;color:var(--muted);font:inherit}
-.parada .pto{width:44px;height:44px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:grid;place-items:center;font-family:var(--f-num);font-weight:700;font-size:14px;transition:all .2s ease}
-.parada .nom{font-family:var(--f-display);font-weight:700;font-size:16px}
-.parada[aria-selected="true"]{color:var(--fg)}
-.parada[aria-selected="true"] .pto{background:var(--ember);border-color:var(--ember);color:#fff;transform:scale(1.08)}
-.escena{margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center;min-height:300px}
-@media (max-width:760px){.escena{grid-template-columns:minmax(0,1fr)}.parada .nom{font-size:14px}}
-.escena h3{font-size:26px;line-height:1.1;margin-bottom:10px}
+/* titular */
+.hero{margin-top:28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);gap:36px;align-items:center}
+@media (max-width:900px){.hero{grid-template-columns:minmax(0,1fr);gap:24px}}
+.hero h1{font-size:clamp(40px,7vw,70px);line-height:.98;letter-spacing:-.02em;margin:10px 0 18px}
+.hero h1 em{font-style:normal;color:var(--ember)}
+.hero p.lead{font-size:clamp(17px,2.2vw,19px);color:var(--muted);max-width:44ch;margin:0}
+.ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.mini{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.mini-cab{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mini-cab b{font-family:var(--f-display);font-size:18px}
+.mini-cab span{font-size:13px;color:var(--muted)}
+.mini-cab em{font-style:normal;color:var(--tc)}
+.camino{position:relative;height:170px;margin:0 6px}
+.camino svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.camino .senda{fill:none;stroke:var(--line);stroke-width:3;stroke-dasharray:2 8;stroke-linecap:round}
+.camino .hecha{fill:none;stroke:var(--tc,var(--accent));stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+.camino button{position:absolute;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--muted);font:700 14px var(--f-num);cursor:pointer;transition:transform .15s,background .15s}
+.camino button.ya{border-color:var(--tc,var(--accent));color:var(--tc,var(--accent))}
+.camino button[aria-pressed=true]{background:var(--tc,var(--accent));border-color:var(--tc,var(--accent));color:#fff;transform:translate(-50%,-50%) scale(1.15);box-shadow:0 0 0 7px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.camino .et{position:absolute;transform:translateX(-50%);font-size:11.5px;color:var(--muted);white-space:nowrap;pointer-events:none}
+.camino .et.sel{color:var(--fg);font-weight:700}
+@media (max-width:520px){.camino .et{display:none}.camino .et.sel{display:block}}
+.sigue{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;background:color-mix(in srgb,var(--tc,var(--accent)) 7%,var(--bg));border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 30%,var(--line));border-radius:14px;padding:12px 14px}
+.sigue small{grid-column:1/-1;font:700 11px var(--f-num);letter-spacing:.1em;text-transform:uppercase;color:var(--tc,var(--accent))}
+.sigue p{margin:0;font-size:14.5px}
+.sigue p b{font-family:var(--f-display)}
+.sigue span.ir{grid-row:2;grid-column:2;justify-self:end;align-self:center;font-size:13px;font-weight:700;border-radius:10px;padding:6px 10px;background:var(--fg);color:var(--bg);white-space:nowrap}
+.sigue .tx{grid-column:1;grid-row:2}
+@media (max-width:520px){.sigue{grid-template-columns:minmax(0,1fr)}.sigue span.ir{grid-row:3;grid-column:1;justify-self:start}}
+.tipos-mini{display:flex;gap:6px;flex-wrap:wrap}
+.tipos-mini button{font:inherit;font-size:13px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer}
+.tipos-mini button[aria-pressed=true]{color:var(--fg);border-color:var(--tc);background:color-mix(in srgb,var(--tc) 10%,var(--card))}
+
+/* las siete etapas: camino vertical a la izquierda, escena a la derecha */
+.ruta{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:860px){.ruta{grid-template-columns:minmax(0,1fr);gap:16px}}
+.paradas{position:relative;display:flex;flex-direction:column;gap:2px;padding-left:4px}
+.paradas::before{content:"";position:absolute;left:25px;top:22px;bottom:22px;width:2px;background:repeating-linear-gradient(180deg,var(--line) 0 6px,transparent 6px 12px)}
+.parada{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:center;border:0;background:none;text-align:left;font:inherit;color:var(--muted);padding:6px 4px;border-radius:12px;cursor:pointer}
+.parada .pto{width:44px;height:44px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:grid;place-items:center;font:700 14px var(--f-num);transition:all .2s ease}
+.parada b{display:block;font-family:var(--f-display);font-size:16.5px;color:var(--fg);line-height:1.15}
+.parada small{display:block;font-size:12.5px;line-height:1.3}
+.parada:hover{background:var(--card)}
+.parada[aria-selected=true] .pto{background:var(--ember);border-color:var(--ember);color:#fff;transform:scale(1.06)}
+.parada[aria-selected=true] b{color:var(--ember)}
+@media (max-width:860px){
+  .paradas{flex-direction:row;overflow-x:auto;scrollbar-width:none;gap:4px;padding:4px 2px 8px;scroll-snap-type:x proximity}
+  .paradas::-webkit-scrollbar{display:none}
+  .paradas::before{left:24px;right:24px;top:28px;bottom:auto;width:auto;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 12px)}
+  .parada{grid-template-columns:minmax(0,1fr);justify-items:center;align-items:start;text-align:center;min-width:92px;scroll-snap-align:center}
+  .parada small{display:none}
+  .parada b{font-size:13px}
+}
+.escena{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:clamp(18px,3.5vw,28px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:26px;align-items:center;min-height:380px}
+@media (max-width:980px){.escena{grid-template-columns:minmax(0,1fr)}}
+.escena .k{font:700 12px var(--f-num);letter-spacing:.12em;text-transform:uppercase;color:var(--ember)}
+.escena h3{font-size:clamp(24px,3.4vw,30px);line-height:1.08;margin:6px 0 12px}
 .escena p{margin:0 0 10px;color:var(--muted)}
 .escena p b{color:var(--fg)}
-.boceto{border-radius:14px;background:var(--field);border:1px solid var(--line);padding:16px;font-size:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
-.boceto .linea{height:9px;border-radius:5px;background:var(--line)}
-.boceto .tag{align-self:flex-start;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;border-radius:999px;padding:2px 9px;border:1px solid currentColor}
-.boceto .nota{background:var(--card);border-radius:10px;padding:10px 12px;border:1px solid var(--line)}
-.boceto .nota i{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-bottom:2px}
-.mosaico{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.mosaico span{aspect-ratio:1;border-radius:8px}
-.cifra{display:flex;justify-content:space-between;font-family:var(--f-num);font-size:13px;border-bottom:1px dashed var(--line);padding:6px 0}
-.cifra:last-child{border:0;font-weight:700;font-size:15px}
-.reloj{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.reloj div{border-radius:10px;padding:10px;background:var(--card);border:1px solid var(--line)}
-.reloj small{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.escena .herrs{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.escena .herrs span{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--fg)}
+.escena .herrs span.mas{border-style:dashed;color:var(--muted)}
+.boceto{border-radius:16px;background:var(--field);border:1px solid var(--line);padding:16px;font-size:14px;display:flex;flex-direction:column;gap:10px;min-width:0;--tc:var(--accent)}
+.hoja{background:var(--card);border-radius:12px;padding:12px 14px;border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.hoja i{font-style:normal;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hoja .linea{height:8px;border-radius:4px;background:var(--line)}
+.ref-apa{padding-left:22px;text-indent:-22px;font-size:13.5px}
+.aprendi{border-left:3px solid var(--good);padding:2px 0 2px 10px;font-size:13.5px}
+.panal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.alv{aspect-ratio:1/1.05;clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 14px;text-align:center;font-size:11.5px;line-height:1.25}
+.alv svg{width:28px;height:28px;color:var(--good)}
+.alv.flor svg{color:var(--ember)}
+.mapa-b{position:relative;aspect-ratio:1.4;background:var(--card);border-radius:12px;border:1px solid var(--line)}
+.mapa-b svg{position:absolute;inset:0;width:100%;height:100%}
+.mapa-b span{position:absolute;transform:translate(-50%,-50%);font-size:11.5px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px 8px;white-space:nowrap}
+.mapa-b span.c{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;font-family:var(--f-display);font-size:13px;border-radius:12px;padding:6px 10px}
+.mapa-b span.l{border-color:color-mix(in srgb,var(--good) 55%,var(--line))}
+.taller-q{font-family:var(--f-display);font-size:17px;line-height:1.3;margin:0}
+.barra{height:8px;border-radius:5px;background:var(--line);overflow:hidden}.barra i{display:block;height:100%;background:var(--tc,var(--accent))}
+.cifras{display:flex;justify-content:space-between;font:500 12.5px var(--f-num);color:var(--muted)}
+.sala{background:var(--card);border-radius:12px;border:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.sala p{margin:0;line-height:1.55}
+.sala p.marcado{background:color-mix(in srgb,var(--ember) 10%,transparent);border-radius:6px;padding:4px 6px;margin:0 -6px}
+.voz{border-left:3px solid var(--line);padding-left:8px;font-size:12.5px;color:var(--muted)}
+.voz.m{border-left-color:var(--ember)}
+.fuerte{font:700 10.5px var(--f-num);letter-spacing:.06em;text-transform:uppercase;color:var(--ember)}
+.vit{border-radius:12px;overflow:hidden;background:#141826;color:#fff;padding:16px;display:flex;flex-direction:column;gap:6px}
+.vit small{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+.vit b{font-family:var(--f-display);font-size:22px;line-height:1.05}
+.vit span{font-size:12.5px;opacity:.8}
+.meta{display:flex;flex-direction:column;gap:4px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.reloj{border-radius:10px;padding:10px;background:var(--card);border:1px solid var(--line)}
+.reloj small{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .reloj b{font-family:var(--f-num);font-size:15px}
-.reloj .hot b{color:var(--ember)}
+.reloj.hot b{color:var(--ember)}
+.es-w{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 6px 2px}
 
-/* vitrina */
+/* oportunidades */
 .vitrina{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:28px;align-items:start}
 @media (max-width:860px){.vitrina{grid-template-columns:minmax(0,1fr)}}
 .vitrina h2{font-size:clamp(28px,4.5vw,40px);line-height:1.05}
@@ -91,6 +143,35 @@ h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 .op h3{font-size:16px;line-height:1.25}
 .op p{margin:2px 0 0;font-size:13px;color:var(--muted)}
 
+/* brújula */
+.bru{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:28px;align-items:center}
+@media (max-width:860px){.bru{grid-template-columns:minmax(0,1fr)}}
+.bru h2{font-size:clamp(26px,4vw,36px);line-height:1.06;margin:8px 0 12px}
+.bru p{color:var(--muted);margin:0}
+.demo{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px 12px 14px}
+.demo .pair{display:grid;grid-template-columns:1fr 1fr;gap:4px;align-items:center}
+@media (max-width:520px){.demo .pair{grid-template-columns:1fr}}
+.demo .ver{font-size:14px;color:var(--muted);text-align:center;margin:6px 8px 0;min-height:3em}
+.demo .ver b{color:var(--fg)}
+.q{font-size:13px;color:var(--muted);text-align:center;min-height:2.6em;margin:2px 8px 0}
+
+/* planes */
+.planes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+@media (max-width:820px){.planes{grid-template-columns:minmax(0,1fr)}}
+.plan{padding:22px;display:flex;flex-direction:column;gap:8px}
+.plan+.plan{border-left:1px solid var(--line)}
+@media (max-width:820px){.plan+.plan{border-left:0;border-top:1px solid var(--line)}}
+.plan small{font:700 11px var(--f-num);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.plan h3{font-size:22px}
+.plan .pr{font-family:var(--f-num);font-size:30px;font-weight:700;line-height:1}
+.plan .pr span{font-family:var(--f-body);font-size:13px;font-weight:400;color:var(--muted)}
+.plan p{margin:0;font-size:14.5px;color:var(--muted)}
+.plan.mas{background:radial-gradient(circle at 100% 0,var(--ember-soft),var(--card) 60%)}
+.plan.mas h3,.plan.mas .pr{color:var(--ember)}
+.lanz{margin:12px 0 0;font-size:13.5px;color:var(--muted);padding-left:18px;position:relative}
+.lanz::before{content:"";position:absolute;left:2px;top:7px;width:7px;height:7px;border-radius:2px;background:var(--ember);transform:rotate(45deg)}
+.lanz a{color:inherit}
+
 /* cierre */
 .cierre{background:var(--fg);color:var(--bg);border-radius:24px;padding:clamp(24px,5vw,48px);display:grid;grid-template-columns:minmax(0,1.3fr) auto;gap:24px;align-items:end}
 @media (max-width:760px){.cierre{grid-template-columns:minmax(0,1fr)}}
@@ -98,7 +179,7 @@ h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 .cierre p{margin:0;opacity:.8;max-width:60ch}
 .cierre .cta.main{background:var(--ember);border-color:var(--ember);color:#fff;white-space:nowrap}
 footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
-@media (prefers-reduced-motion:reduce){.parada .pto{transition:none}}
+@media (prefers-reduced-motion:reduce){.parada .pto,.camino button,.camino .hecha{transition:none}}
 </style>
 </head>
 <body>
@@ -109,28 +190,23 @@ footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:
     <div>
       <span class="kicker">Taller gratuito · hecho en Chile</span>
       <h1>De la chispa <em>a la obra.</em></h1>
-      <p class="lead">Forja es un lugar para darle forma a tus historias, juegos y productos: escribir con guías, juntar referentes, saber cuánto cuesta producir y encontrar dónde mostrarlo.</p>
-      <div class="ctas"><a class="cta main" href="entrar/">Entrar a mi forja</a><a class="cta alt" href="oportunidades/">Ver ferias y fondos</a></div>
+      <p class="lead">Cada proyecto en Forja tiene su Ruta: siete etapas que llevan una historia, un juego o un producto desde la primera idea hasta mostrarlo al mundo, con la herramienta justa en cada momento.</p>
+      <div class="ctas"><a class="cta main" href="entrar/">Empezar gratis</a><a class="cta alt" href="guia/">Ver cómo funciona</a></div>
     </div>
-    <div class="demo" aria-labelledby="demo-t">
-      <div class="cap"><b id="demo-t">Brújula de formatos</b><span>Pruébala: arrastra los puntos</span></div>
-      <div class="pair"><div><svg class="radar" id="radar"></svg><p class="q" id="q">Piensa en una idea que tengas y dale peso a cada eje.</p></div><svg class="dial" id="dial"></svg></div>
-      <p class="ver" id="ver" aria-live="polite"></p>
+    <div class="mini" id="mini" aria-labelledby="mini-t">
+      <div class="mini-cab"><b id="mini-t">La Ruta de <em id="mini-nom">tu novela</em></b><span>Tócala</span></div>
+      <div class="tipos-mini" id="mini-tipos" role="group" aria-label="Qué estás creando"></div>
+      <div class="camino" id="camino"></div>
+      <div class="sigue" id="sigue" aria-live="polite"></div>
     </div>
   </div>
 
   <section aria-labelledby="ruta-t">
-    <div class="ruta-head">
-      <h2 id="ruta-t">Cuatro paradas, un mismo proyecto.</h2>
-      <p>Cada idea vive en su propia página y junta todo lo que necesitas para sacarla adelante. Toca cada parada.</p>
+    <div class="sec-cab"><h2 id="ruta-t">Siete etapas, una herramienta para cada momento.</h2><p>La ruta orienta y nunca obliga: marcas en qué vas, saltas o vuelves cuando quieras. Toca cada etapa.</p></div>
+    <div class="ruta">
+      <div class="paradas" id="paradas" role="tablist" aria-label="Etapas de la ruta" aria-orientation="vertical"></div>
+      <div class="escena" id="escena" role="tabpanel"></div>
     </div>
-    <div class="paradas" role="tablist" aria-label="Recorrido de un proyecto">
-      <button class="parada" role="tab" id="t-0" aria-controls="escena" aria-selected="true"><span class="pto">1</span><span class="nom">Chispa</span></button>
-      <button class="parada" role="tab" id="t-1" aria-controls="escena" aria-selected="false" tabindex="-1"><span class="pto">2</span><span class="nom">Taller</span></button>
-      <button class="parada" role="tab" id="t-2" aria-controls="escena" aria-selected="false" tabindex="-1"><span class="pto">3</span><span class="nom">Costos</span></button>
-      <button class="parada" role="tab" id="t-3" aria-controls="escena" aria-selected="false" tabindex="-1"><span class="pto">4</span><span class="nom">Vitrina</span></button>
-    </div>
-    <div class="escena" id="escena" role="tabpanel" aria-labelledby="t-0"></div>
   </section>
 
   <section class="vitrina" aria-labelledby="vit-t">
@@ -138,59 +214,127 @@ footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:
       <span class="kicker">Abierto para todos</span>
       <h2 id="vit-t" style="margin-top:8px">Ferias, fondos y convocatorias en Chile.</h2>
       <div class="big"><div><b id="n-open">–</b><span>postulaciones abiertas</span></div><div class="hot"><b id="n-hot">–</b><span>cierran en dos semanas</span></div></div>
-      <p style="color:var(--muted);margin:0 0 14px">Se revisan cada mañana en fuentes oficiales. No necesitas cuenta para verlas; con cuenta, cada proyecto te sugiere a cuáles presentarte.</p>
+      <p style="color:var(--muted);margin:0 0 14px">Se revisan cada mañana en fuentes oficiales. No necesitas cuenta para verlas; con cuenta, cada proyecto te sugiere a cuáles presentarte y Eventos te muestra las fechas.</p>
       <a class="cta alt" href="oportunidades/">Ver todas</a>
     </div>
     <div class="carril" id="carril" aria-live="polite"><div class="fx-empty">Cargando oportunidades…</div></div>
   </section>
 
+  <section class="bru" aria-labelledby="bru-t">
+    <div><span class="kicker">Brújula de formatos</span><h2 id="bru-t">¿Tu idea es novela, cómic o juego de mesa?</h2><p>Una idea puede ser muchas cosas. Mueve los seis ejes según cómo es la tuya y mira con qué formatos calza. Es una referencia para pensar: el formato lo eliges tú.</p></div>
+    <div class="demo"><div class="pair"><div><svg class="radar" id="radar"></svg><p class="q" id="q">Piensa en una idea que tengas y dale peso a cada eje.</p></div><svg class="dial" id="dial"></svg></div><p class="ver" id="ver" aria-live="polite"></p></div>
+  </section>
+
+  <section aria-labelledby="planes-t">
+    <div class="sec-cab"><h2 id="planes-t">Gratis para empezar.</h2><p>El plan gratis no vence. Los planes pagados llegan pronto y suben los límites.</p></div>
+    <div class="planes" id="planes"></div>
+    <p class="lanz">Los precios son de lanzamiento y pueden cambiar, igual que lo que trae cada plan. <a href="planes/">Ver los planes lado a lado</a></p>
+  </section>
+
   <section class="cierre" aria-labelledby="cierre-t">
     <div>
       <h2 id="cierre-t">Tus ideas son solo tuyas.</h2>
-      <p>Entras con tu correo, sin contraseñas. Tus proyectos se guardan en tu cuenta y nadie más los ve; puedes abrirlos desde el celular, la tablet o el computador. Forja no guarda archivos: los referentes son enlaces, así que nada pesa ni se pierde. El plan gratis incluye 3 proyectos en curso, 20.000 palabras y 30 referentes por proyecto; Forja Más llega pronto. <a href="planes/" style="color:inherit">Ver planes</a></p>
+      <p>Entras con tu correo, sin contraseñas. Tus proyectos se guardan en tu cuenta y nadie más los ve; lo único público es lo que tú publicas en una vitrina, y quienes leen una ronda ven solo una copia con su nombre. Forja no guarda archivos: los referentes son enlaces, así que nada pesa ni se pierde, y la abres desde el celular, la tablet o el computador.</p>
     </div>
-    <a class="cta main" href="entrar/">Empezar un proyecto</a>
+    <a class="cta main" href="entrar/">Plantar mi primera idea</a>
   </section>
 
-  <footer><span>Forja · Digital Monster, Chile</span><span><a href="terminos/">Términos</a> · <a href="privacidad/">Privacidad</a> · <a href="normas/">Normas de la comunidad</a> · <a href="boletin/">Boletín</a></span></footer>
+  <footer><span>Forja · Digital Monster, Chile</span><span><a href="guia/">Guía</a> · <a href="terminos/">Términos</a> · <a href="privacidad/">Privacidad</a> · <a href="normas/">Normas de la comunidad</a> · <a href="boletin/">Boletín</a></span></footer>
 </div>
 
 <script type="module">
 import { nav, esc, toast } from "./js/forja.js";
-if (new URLSearchParams(location.search).get("cuenta") === "borrada") { toast("Tu cuenta y todos tus datos se borraron. Gracias por haber usado Forja."); history.replaceState(null, "", location.pathname); }
 import { radar, dial, veredicto, CSS_BRUJULA } from "./js/brujula.js";
+import { ETAPAS, etapaNombre } from "./js/ruta.js";
+import { dibujo, CSS_ESTRUCTURA } from "./js/estructura.js";
+import { quienes } from "./js/lectores.js";
+import { PRECIOS } from "./js/planes.js";
+if (new URLSearchParams(location.search).get("cuenta") === "borrada") { toast("Tu cuenta y todos tus datos se borraron. Gracias por haber usado Forja."); history.replaceState(null, "", location.pathname); }
 nav("inicio");
-document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + "</style>");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_ESTRUCTURA + "</style>");
 
-/* brújula de prueba (no se guarda nada) */
-let ejes = {};
-const pintarDial = () => { dial(document.getElementById("dial"), ejes); document.getElementById("ver").innerHTML = veredicto(ejes); };
-radar(document.getElementById("radar"), () => ejes, (e) => { ejes = e; pintarDial(); }, document.getElementById("q"));
-pintarDial();
+/* ---------- la ruta en miniatura: la misma franja «Lo que sigue» que ve cada proyecto ---------- */
+const TIPOS_M = { historia: ["Novela", "tu novela"], videojuego: ["Videojuego", "tu videojuego"], juegomesa: ["Juego de mesa", "tu juego de mesa"], producto: ["Producto", "tu producto"] };
+// Lo que sugiere la franja en cada etapa (la técnica esencial y el botón que abre su herramienta).
+const SIGUE = {
+  inspirar: ["Analizar una obra", "Elige una obra parecida a lo que quieres hacer y descubre cómo está hecha por dentro.", "Agregar una obra"],
+  sembrar: ["Anotar en el Semillero", "Una frase por idea, sin juzgarla. Plantas la que te siga dando vueltas.", "Abrir el Semillero"],
+  mapa: ["El Mapa de la idea", "La idea completa en una vista: el centro, el foco y seis ramas propias de tu proyecto.", "Abrir el Mapa"],
+  estructura: ["Probar estructuras", "Tus seis momentos puestos en modelos dibujados como curva o ciclo.", "Probar estructuras"],
+  hacer: ["Escribir en el Taller", "Una versión completa de principio a fin, sección por sección, con preguntas guía.", "Abrir el Taller"],
+  revisar: ["Pedir opiniones", "Una copia para pocas personas, un enlace para cada una y preguntas concretas.", "Abrir una ronda"],
+  pulir: ["Armar la vitrina", "La página pública de tu proyecto, para ferias, fondos y redes.", "Ir a la Vitrina"],
+};
+let mt = "historia", me = 2;
+function mini() {
+  $("mini").style.setProperty("--tc", "var(--t-" + mt + ")");
+  $("mini-nom").textContent = TIPOS_M[mt][1];
+  $("mini-tipos").innerHTML = Object.entries(TIPOS_M).map(([k, [n]]) => '<button type="button" data-t="' + k + '" aria-pressed="' + (k === mt) + '">' + n + "</button>").join("");
+  const pts = ETAPAS.map((_, i) => [6 + i * 88 / 6, i % 2 ? 62 : 36]);
+  const d = pts.map((p, i) => (i ? "S" + ((pts[i - 1][0] + p[0]) / 2).toFixed(1) + " " + p[1] + " " : "M") + p[0].toFixed(1) + " " + p[1]).join(" ");
+  $("camino").innerHTML = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path class="senda" d="' + d + '" vector-effect="non-scaling-stroke"/><path class="hecha" d="' + pts.slice(0, me + 1).map((p, i, a) => (i ? "S" + ((a[i - 1][0] + p[0]) / 2).toFixed(1) + " " + p[1] + " " : "M") + p[0].toFixed(1) + " " + p[1]).join(" ") + '" vector-effect="non-scaling-stroke"/></svg>' +
+    ETAPAS.map((e, i) => '<button type="button" data-e="' + i + '" class="' + (i < me ? "ya" : "") + '" style="left:' + pts[i][0] + "%;top:" + pts[i][1] + '%" aria-pressed="' + (i === me) + '" aria-label="' + (i + 1) + ". " + esc(etapaNombre(e.k, mt)) + '">' + (i + 1) + "</button>" +
+      '<span class="et' + (i === me ? " sel" : "") + '" style="left:' + Math.min(90, Math.max(10, pts[i][0])) + "%;top:calc(" + pts[i][1] + (i % 2 ? '% + 22px)' : '% - 40px)') + '">' + esc(etapaNombre(e.k, mt)) + "</span>").join("");
+  const e = ETAPAS[me], s = SIGUE[e.k], Q = quienes(mt);
+  $("sigue").innerHTML = "<small>Lo que sigue · " + (me + 1) + " de 7 · " + esc(etapaNombre(e.k, mt)) + '</small><p class="tx"><b>' + (e.k === "revisar" ? "Pedir opiniones a tus " + Q.plural : s[0]) + ".</b> " + s[1] + '</p><span class="ir">' + s[2] + "</span>";
+  $("mini-tipos").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { mt = b.dataset.t; mini(); });
+  $("camino").querySelectorAll("[data-e]").forEach((b) => b.onclick = () => { me = +b.dataset.e; mini(); });
+}
+const $ = (id) => document.getElementById(id);
+mini();
 
-/* recorrido */
+/* ---------- las siete etapas con su escena ---------- */
+const hex = (n) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20v-' + [3, 6, 9, 9][n] + '"/>' + (n >= 1 ? '<path d="M12 ' + (20 - 3) + 'c0-3 2-5 5-5 0 3-2 5-5 5Z"/>' : "") + (n >= 2 ? '<path d="M12 ' + (20 - 5) + 'c0-2.5-2-4.5-4.5-4.5 0 2.5 2 4.5 4.5 4.5Z"/>' : "") + (n >= 3 ? '<circle cx="12" cy="8" r="2.6" fill="currentColor"/>' : "") + '<path d="M6 20h12"/></svg>';
 const ESC = [
-  { h: "Planta la idea", t: "<p>Escribe el nombre de tu idea, aunque sea una frase, y elige qué es: <b>historia, videojuego, juego de mesa, contenido para redes, producto</b> u otra cosa.</p><p>Según el tipo, el proyecto nace con las secciones que suele necesitar. Las puedes renombrar, ordenar, quitar o agregar otras.</p>",
-    b: '<span class="tag" style="color:var(--t-juegomesa)">Juego de mesa</span><b style="font-family:var(--f-display);font-size:20px">La feria de los dados</b><div class="nota"><i>Concepto</i>Un mercado donde cada dado es un puesto…</div><div class="nota"><i>Componentes</i>Tablero, 40 cartas, 12 dados…</div>' },
-  { h: "Trabaja con calma", t: "<p>Cada sección trae <b>preguntas guía</b> para destrabarte, y puedes escribir todo lo que quieras, con modo pantalla completa.</p><p>Junta <b>referentes</b> pegando enlaces: imágenes, videos de YouTube o Vimeo, música, colores o citas. Y lleva una <b>bitácora</b> con cada avance.</p>",
-    b: '<div class="mosaico"><span style="background:#2a3fd1"></span><span style="background:#e0602f"></span><span style="background:#7a3fc4"></span><span style="background:#0f7a4f"></span><span style="background:var(--line)"></span><span style="background:#a86200"></span></div><div class="nota"><i>Referente · video</i>La iluminación de esta escena para el capítulo 3.</div>' },
-  { h: "Sabe cuánto cuesta", t: "<p>Cotiza cada componente con varios proveedores. Forja calcula el <b>costo real puesto en Chile</b>: dólar del día, IVA y arancel cuando corresponde.</p><p>Compara cuánto sale cada unidad si fabricas 10, 100 o 500, y elige el proveedor más conveniente para cada pieza.</p>",
-    b: '<div class="cifra"><span>Tablero</span><span>$3.420</span></div><div class="cifra"><span>Cartas ×40</span><span>$2.180</span></div><div class="cifra"><span>Caja</span><span>$1.950</span></div><div class="cifra"><span>Por juego · 100 u.</span><span>$7.550</span></div>' },
-  { h: "Muéstralo al mundo", t: "<p>Cada proyecto te sugiere <b>ferias, fondos y convocatorias</b> según lo que estás haciendo, con cuenta regresiva para postular y para el evento.</p><p>Marca las que te interesan y anota en qué vas: postulando, postulado, aceptado.</p>",
-    b: '<b style="font-family:var(--f-display);font-size:17px">Feria de juegos de mesa</b><div class="reloj"><div class="hot"><small>Postulación</small><b>quedan 9 días</b></div><div><small>Evento</small><b>en 52 días</b></div></div><span class="tag" style="color:var(--accent)">Postulando</span>' },
+  { herrs: ["Analizar una obra", "Referentes", "Brújula"], h: "Aprende de lo que ya existe",
+    t: "<p>Guarda un libro, un juego o una película con su <b>ficha</b> y Forja arma la cita en APA sola, aunque no tenga enlace. Después la miras por dentro: <b>cómo se ve, cómo está armada y de qué trata</b>, y anotas lo que aprendiste.</p><p>Junta también <b>referentes</b>: imágenes, música, colores o citas, pegando enlaces.</p>",
+    b: '<div class="hoja"><i>Libro o cómic · APA 7</i><div class="ref-apa">Allende, I. (1982). <em>La casa de los espíritus</em>. Plaza &amp; Janés.</div></div><div class="hoja"><i>Lo que aprendí</i><div class="aprendi">Contar a la familia por objetos: cada generación hereda una cosa y un secreto.</div><div class="aprendi">Que el narrador sepa el final desde la primera página.</div></div>' },
+  { herrs: ["Semillero", "Plantar"], h: "Guarda las ideas sin juzgarlas",
+    t: "<p>El <b>Semillero</b> guarda ideas de una frase que todavía no son proyectos y no gastan cupo. Cada vez que una te sigue entusiasmando, su semilla crece, hasta tener flor.</p><p>Cuando una tenga fuerza, la <b>plantas</b>: nace como proyecto, con su Taller y su Ruta listos.</p>",
+    b: '<div class="panal">' + [["Un faro que se apaga con las mentiras", 3], ["Cartas que se juegan al revés", 1], ["Tazas que cuentan un cuento", 0], ["La feria de los dados", 2], ["Una isla de relojeros", 1], ["El mapa de los que se fueron", 0]].map(([x, n]) => '<div class="alv' + (n === 3 ? " flor" : "") + '">' + hex(n) + "<span>" + x + "</span></div>").join("") + "</div>" },
+  { herrs: ["Mapa de la idea"], h: "La idea entera en una sola vista",
+    t: "<p>En el centro va tu idea en una frase; cerca, el <b>foco</b>: de qué habla en el fondo, por qué tú y para quién. Alrededor, <b>seis ramas</b> con preguntas propias de lo que estás creando: en un juego de mesa, «tu turno» o «cómo se gana».</p><p>Lo que dejas en blanco también dice algo: ahí está lo que falta pensar.</p>",
+    b: '<div class="mapa-b"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><g stroke="var(--line)" stroke-width=".6">' + [[50, 22], [64, 76], [36, 76], [20, 12], [80, 12], [84, 50], [80, 88], [20, 88], [16, 50]].map(([x, y]) => '<line x1="50" y1="50" x2="' + x + '" y2="' + y + '"/>').join("") + '</g></svg><span class="c" style="left:50%;top:50%">La feria de los dados</span>' +
+      [["Tema", 50, 22, 1], ["Para quién", 64, 76, 1], ["Por qué tú", 36, 76, 0], ["Quiénes juegan", 20, 12, 1], ["Tu turno", 80, 12, 1], ["Cómo se gana", 84, 50, 0], ["La tensión", 80, 88, 0], ["Qué hay en la caja", 20, 88, 1], ["Cuánto dura", 16, 50, 0]].map(([n, x, y, l]) => '<span class="' + (l ? "l" : "") + '" style="left:' + x + "%;top:" + y + '%">' + n + "</span>").join("") + "</div>" },
+  { herrs: ["Estructura", "Pizarra"], h: "Dale forma antes de construir",
+    t: "<p>Resume tu proyecto en <b>seis momentos</b> y pruébalo en modelos dibujados: tres actos, el viaje, la curva de dificultad, el arco de partida… Tus momentos se ponen solos en cada paso y se nota qué falta.</p><p>En la <b>Pizarra</b> ordenas con tarjetas y flechas; con Forja Más, relaciones entre personajes, escaleta de escenas y el mapa de tu mundo.</p>",
+    b: '<div class="es-w" style="--tc:var(--t-historia)">' + dibujo("tres", { llenos: new Set([0, 1, 2, 3]), sel: 3 }) + '</div><div class="hoja"><i>Momento 4 · El punto más alto</i>La capitana baja sola a la ciudad hundida.</div>' },
+  { herrs: ["Taller", "Bitácora"], h: "Haz una versión completa",
+    t: "<p>El <b>Taller</b> ordena tu proyecto en secciones según lo que estás creando: premisa y personajes, mecánicas y turno, guion, proceso. Cada una trae <b>preguntas guía</b> para no partir de la hoja en blanco, y su avance se suma solo.</p><p>En la <b>Bitácora</b> anotas lo que hiciste y lo que decidiste, con fecha.</p>",
+    b: '<div class="hoja"><i>Personajes · pregunta guía</i><p class="taller-q">¿Qué quiere tu protagonista y qué está dispuesta a perder para conseguirlo?</p><div class="linea" style="width:94%"></div><div class="linea" style="width:88%"></div><div class="linea" style="width:62%"></div></div><div class="cifras"><span>Borrador · 50%</span><span>4.210 palabras</span></div><div class="barra"><i style="width:58%"></i></div>' },
+  { herrs: ["Lectores beta"], h: "Deja que otras personas lo prueben",
+    t: "<p>Abre una <b>ronda</b> con lo que quieres mostrar y Forja guarda una copia. Cada persona recibe <b>su propio enlace</b>, que queda amarrado a su cuenta, y entra a una sala sin menú del proyecto donde responde tus preguntas y comenta párrafos.</p><p>Tú ves todo junto por pregunta, y Forja destaca lo que <b>dos o más personas</b> señalan. En juegos se llaman testers; en productos, probadores.</p>",
+    b: '<div class="sala"><p>La campana sonó tres veces antes de que la capitana entendiera que venía de abajo del agua.</p><p class="marcado">Nadie en el puerto quiso hablar de la ciudad hundida. Solo la abuela le dijo dónde buscar.</p><span class="fuerte">Señal fuerte · 2 personas</span><div class="voz m">Camila: aquí me perdí, ¿es la abuela del prólogo?</div><div class="voz m">Diego: no entendí de dónde sale la abuela.</div></div><div class="cifras"><span>Ronda 1 · 3 de 3 lectores</span><span>cierra el viernes</span></div>' },
+  { herrs: ["Vitrina", "Costos y campaña", "Oportunidades", "Biblia"], h: "Muéstralo al mundo",
+    t: "<p>La <b>Vitrina</b> es la página pública de tu proyecto, con enlace propio y QR para tu stand. <b>Costos</b> calcula lo que vale producir una unidad, con IVA y dólar, y arma tu <b>campaña</b> con recompensas y meta.</p><p>Cada proyecto te sugiere <b>ferias y fondos</b> en Chile con su cuenta regresiva, y la <b>biblia</b> junta todo en un PDF.</p>",
+    b: '<div class="vit"><small>Vitrina · historia</small><b>Ciudad Sumergida</b><span>Un faro apagado, una ciudad bajo el agua y la capitana que bajará a buscarla.</span></div><div class="meta"><div class="cifras"><span>Campaña · $1.240.000 de $1.800.000</span><span>69%</span></div><div class="barra"><i style="width:69%;background:var(--ember)"></i></div></div><div class="dos"><div class="reloj hot"><small>Postulación</small><b>quedan 9 días</b></div><div class="reloj"><small>Feria</small><b>en 52 días</b></div></div>' },
 ];
-const tabs = [...document.querySelectorAll(".parada")], esc0 = document.getElementById("escena");
+$("paradas").innerHTML = ETAPAS.map((e, i) => '<button class="parada" role="tab" id="p-' + i + '" aria-controls="escena" aria-selected="' + (i === 0) + '"' + (i ? ' tabindex="-1"' : "") + '><span class="pto">' + (i + 1) + "</span><span><b>" + esc(e.n) + "</b><small>" + esc(ESC[i].herrs.join(" · ")) + "</small></span></button>").join("");
+const tabs = [...document.querySelectorAll(".parada")];
 function ir(i, foco) {
   tabs.forEach((b, j) => { b.setAttribute("aria-selected", String(i === j)); b.tabIndex = i === j ? 0 : -1; });
-  esc0.setAttribute("aria-labelledby", "t-" + i);
-  esc0.innerHTML = '<div><h3>' + ESC[i].h + "</h3>" + ESC[i].t + '</div><div class="boceto" aria-hidden="true">' + ESC[i].b + "</div>";
-  if (foco) tabs[i].focus();
+  $("escena").setAttribute("aria-labelledby", "p-" + i);
+  $("escena").innerHTML = '<div><span class="k">Etapa ' + (i + 1) + " · " + esc(ETAPAS[i].n) + "</span><h3>" + ESC[i].h + "</h3>" + ESC[i].t + '<div class="herrs">' + ESC[i].herrs.map((h) => "<span>" + h + "</span>").join("") + '</div></div><div class="boceto" aria-hidden="true">' + ESC[i].b + "</div>";
+  if (foco) { tabs[i].focus(); tabs[i].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" }); }
 }
 tabs.forEach((b, i) => {
   b.onclick = () => ir(i);
-  b.onkeydown = (e) => { const m = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (m) { e.preventDefault(); ir((i + m + 4) % 4, true); } };
+  b.onkeydown = (e) => { const m = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key]; if (m) { e.preventDefault(); ir((i + m + 7) % 7, true); } };
 });
 ir(0);
+
+/* ---------- brújula de prueba (no se guarda nada) ---------- */
+let ejes = {};
+const pintarDial = () => { dial($("dial"), ejes); $("ver").innerHTML = veredicto(ejes); };
+radar($("radar"), () => ejes, (e) => { ejes = e; pintarDial(); }, $("q"));
+pintarDial();
+
+/* ---------- planes ---------- */
+const $$ = (n) => "$" + n.toLocaleString("es-CL");
+$("planes").innerHTML =
+  '<div class="plan"><small>Para siempre</small><h3>Gratis</h3><span class="pr">$0</span><p>Tres proyectos en curso con su Ruta completa, las herramientas esenciales, tu vitrina y una ronda de lectores beta con tres personas.</p></div>' +
+  '<div class="plan mas"><small>Próximamente</small><h3>Forja Más</h3><span class="pr">' + $$(PRECIOS.mas.mes) + ' <span>al mes</span></span><p>Todas las herramientas, quince proyectos en curso, cinco personas por proyecto y rondas de quince lectores. O ' + $$(PRECIOS.mas.anio) + " al año.</p></div>" +
+  '<div class="plan"><small>Próximamente</small><h3>Forja Estudio</h3><span class="pr">' + $$(PRECIOS.estudio.mes) + ' <span>al mes</span></span><p>Para estudios, colectivos y cursos: todo lo de Forja Más, sin tope de proyectos ni de ideas, quince personas por proyecto y rondas de cuarenta lectores. O ' + $$(PRECIOS.estudio.anio) + " al año.</p></div>";
 
 /* oportunidades en vivo */
 const SB = "https://gfkiwldxxvffnkjcesws.supabase.co/rest/v1/", H = { headers: { apikey: "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j" } };
@@ -200,14 +344,14 @@ fetch(SB + "oportunidades?select=nombre,tipo,organiza,postul_inicio,postul_fin,e
   .catch(() => fetch("data/oportunidades.json").then((r) => r.json()))
   .then((ops) => {
     const abiertas = ops.filter((o) => { const a = dd(o.postul_inicio), b = dd(o.postul_fin); return b != null && b >= 0 && (a == null || a <= 0); }).sort((a, b) => dd(a.postul_fin) - dd(b.postul_fin));
-    document.getElementById("n-open").textContent = abiertas.length;
-    document.getElementById("n-hot").textContent = abiertas.filter((o) => dd(o.postul_fin) <= 14).length;
+    $("n-open").textContent = abiertas.length;
+    $("n-hot").textContent = abiertas.filter((o) => dd(o.postul_fin) <= 14).length;
     let carril = abiertas.slice(0, 4).map((o) => ({ o, n: dd(o.postul_fin), q: "para postular" }));
     if (carril.length < 4) carril = carril.concat(ops.filter((o) => dd(o.evento_inicio) > 0 && !abiertas.includes(o)).sort((a, b) => dd(a.evento_inicio) - dd(b.evento_inicio)).slice(0, 4 - carril.length).map((o) => ({ o, n: dd(o.evento_inicio), q: "para el evento" })));
     const TIPO = { fondo: "Fondo", feria: "Feria", convocatoria: "Convocatoria" };
-    document.getElementById("carril").innerHTML = carril.length ? carril.map(({ o, n, q }) => '<a class="op' + (n <= 14 ? " hot" : "") + '" href="oportunidades/"><div class="dias"><b>' + (o.fechas_estimadas ? "≈" : "") + n + "</b><small>" + (n === 1 ? "día" : "días") + "</small></div><div><h3>" + esc(o.nombre) + "</h3><p>" + esc(TIPO[o.tipo] || "") + (o.organiza ? " · " + esc(o.organiza) : "") + " · " + q + "</p></div></a>").join("")
+    $("carril").innerHTML = carril.length ? carril.map(({ o, n, q }) => '<a class="op' + (n <= 14 ? " hot" : "") + '" href="oportunidades/"><div class="dias"><b>' + (o.fechas_estimadas ? "≈" : "") + n + "</b><small>" + (n === 1 ? "día" : "días") + "</small></div><div><h3>" + esc(o.nombre) + "</h3><p>" + esc(TIPO[o.tipo] || "") + (o.organiza ? " · " + esc(o.organiza) : "") + " · " + q + "</p></div></a>").join("")
       : '<div class="fx-empty">Ahora no hay convocatorias abiertas. Revisa el calendario completo.</div>';
-  }).catch(() => { document.getElementById("carril").innerHTML = '<div class="fx-empty">No se pudieron cargar las oportunidades.</div>'; });
+  }).catch(() => { $("carril").innerHTML = '<div class="fx-empty">No se pudieron cargar las oportunidades.</div>'; });
 </script>
 </body>
 </html>

@@ -15,7 +15,7 @@ export const AREAS = [
   { k: "organizacion", n: "Organización", d: "Fichas, cronologías y fechas sin límite." },
   { k: "venta", n: "Producción y venta", d: "Más números para decidir cómo y cuánto producir." },
   { k: "presentacion", n: "Presentación", d: "Mostrar el proyecto con buena cara." },
-  { k: "equipo", n: "Equipo y avisos", d: "Trabajar con otros y no perder fechas." },
+  { k: "equipo", n: "Equipo y opiniones", d: "Trabajar con otros, pedir opiniones y no perder fechas." },
 ];
 
 export const FUNCIONES = [
@@ -43,7 +43,17 @@ export const FUNCIONES = [
   { k: "pagina-publica", a: "presentacion", t: "Vitrina del proyecto", d: "Una página pública para ferias, fondos o editoriales, con lo que elijas mostrar, enlace propio y QR. Con Forja Más, tus pizarras se publican para explorarlas.", listo: true, libre: "Gratis: vitrina con portada, historia, galería, novedades y enlaces." },
   { k: "apoyo-pagos", a: "presentacion", t: "Apoyo y preventas en la vitrina", d: "Recibe apoyo, reservas o preventas desde tu vitrina con métodos de pago chilenos, con metas y recompensas visibles." },
   { k: "kit-prensa", a: "presentacion", t: "Kit de prensa", d: "Un paquete descargable con logo, capturas, ficha y contacto para medios y festivales." },
+  { k: "lectores", a: "equipo", t: "Lectores beta", d: "Rondas de prueba sobre una copia de tu proyecto: un enlace por persona, preguntas según tu categoría, comentarios por párrafo y las respuestas juntas, con lo que varias personas señalan destacado. Con Forja Más, rondas sin límite y preguntas propias.", listo: true, libre: "Gratis: una ronda abierta a la vez, con 3 personas." },
   { k: "colaboradores", a: "equipo", t: "Colaboradores", d: "Invita hasta 5 personas a un proyecto y decide qué puede hacer cada una en cada parte; ellas no necesitan pagar.", listo: true, libre: "Gratis: 1 persona por proyecto." },
   { k: "alertas", a: "equipo", t: "Alertas de oportunidades", d: "Un correo cuando abre o está por cerrar una convocatoria que calza con tus proyectos." },
 ];
 export const funcion = (k) => FUNCIONES.find((f) => f.k === k);
+
+// Tarjeta de una herramienta del catálogo: «Ya disponible» (con enlace si se da) o «Próximamente» con «Avísame».
+import { esc, proximamente } from "./forja.js";
+export function tarjetaFuncion(k, href, chico = true) {
+  const f = funcion(k); if (!f) return "";
+  if (!f.listo) return proximamente(f.k, f.t, f.d, chico);
+  return '<' + (href ? 'a href="' + esc(href) + '"' : "div") + ' class="fx-pronto listo' + (chico ? " chico" : "") + '" data-funcion="' + f.k + '"><span class="fx-pronto-tag">Ya disponible</span><b>' + esc(f.t) + "</b><span>" + esc(f.d) + "</span>" + (f.libre ? '<span class="libre">' + esc(f.libre) + "</span>" : "") + "</" + (href ? "a" : "div") + ">";
+}
+export const pendientes = (claves) => claves.filter((k) => { const f = funcion(k); return f && !f.listo; });

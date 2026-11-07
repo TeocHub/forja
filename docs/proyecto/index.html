@@ -566,7 +566,7 @@ dialog.an-d::backdrop{background:rgba(10,12,20,.5)}
 
 <script type="module">
 import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, tope, NOMBRE_PLAN, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen } from "../js/forja.js";
-import { funcion } from "../js/planes.js";
+import { funcion, tarjetaFuncion, pendientes } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
 import { montar, MODOS, cuentaTarjetas, normal as normalPiz, CSS_PIZARRA } from "../js/pizarra.js";
@@ -575,13 +575,14 @@ import * as R from "../js/ruta.js";
 import * as O from "../js/obras.js";
 import * as MP from "../js/mapa.js";
 import * as ES from "../js/estructura.js";
+import * as LB from "../js/lectores.js";
 navApp("proyectos");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + "</style>");
 
 const ID = new URLSearchParams(location.search).get("p");
 const PESTANAS = [["ruta", "Ruta"], ["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
 // Cada pestaña pertenece a un área; las personas invitadas pueden editar, ver o no ver cada área.
-const AREA_DE = { ruta: "taller", mapa: "taller", estructura: "taller", taller: "taller", referentes: "referentes", brujula: "taller", pizarra: "pizarra", costos: "costos", oportunidades: "oportunidades", bitacora: "bitacora", vitrina: "vitrina" };
+const AREA_DE = { ruta: "taller", mapa: "taller", estructura: "taller", lectores: "taller", taller: "taller", referentes: "referentes", brujula: "taller", pizarra: "pizarra", costos: "costos", oportunidades: "oportunidades", bitacora: "bitacora", vitrina: "vitrina" };
 const AREAS = [["taller", "Taller y ficha"], ["referentes", "Referentes"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
 const nivelDe = (k) => (ACC && ACC.areas ? ACC.areas[AREA_DE[k]] : "editar");
 const visibles = () => PESTANAS.filter(([k]) => nivelDe(k));
@@ -693,7 +694,7 @@ async function guardarRuta(c, aviso) {
   P.ruta = { ...(P.ruta || {}), ...c };
   await guardar({ ruta: P.ruta }, aviso);
 }
-const DESTINO = { mapa: "Abrir el Mapa", estructura: "Probar estructuras", analizar: "Agregar una obra", semillero: "Abrir el Semillero", referentes: "Abrir Referentes", brujula: "Abrir la Brújula", pizarra: "Abrir la Pizarra", bitacora: "Abrir la Bitácora", taller: "Abrir el Taller", vitrina: "Ir a la Vitrina", biblia: "Abrir la biblia", oportunidades: "Ver oportunidades", costos: "Abrir Costos", resumen: "Escribir el resumen" };
+const DESTINO = { mapa: "Abrir el Mapa", estructura: "Probar estructuras", lectores: "Abrir una ronda", analizar: "Agregar una obra", semillero: "Abrir el Semillero", referentes: "Abrir Referentes", brujula: "Abrir la Brújula", pizarra: "Abrir la Pizarra", bitacora: "Abrir la Bitácora", taller: "Abrir el Taller", vitrina: "Ir a la Vitrina", biblia: "Abrir la biblia", oportunidades: "Ver oportunidades", costos: "Abrir Costos", resumen: "Escribir el resumen" };
 async function irTecnica(id) {
   const x = Object.values(R.TECNICAS).flat().find((t) => t.id === id); if (!x || !x.ir || !R.disponible(x)) return;
   const [dest, dato] = x.ir.split(":");
@@ -752,6 +753,7 @@ function pintarSigue() {
 }
 let etapaVista = null, verTodas = false;
 function ruta() {
+  try { localStorage.setItem("forja-vio-ruta", "1"); } catch (e) {}
   const E = R.estado(P.ruta), sen = R.senales(ctxRuta()), k = R.etapaActual(P.ruta, sen), ed = puedeRuta();
   if (!R.ETAPAS.some((e) => e.k === etapaVista)) etapaVista = k;
   const v = R.ETAPAS.find((e) => e.k === etapaVista), iv = R.etapaIndice(v.k), ik = R.etapaIndice(k);
@@ -1060,12 +1062,12 @@ function irA(k) {
 function calcRO() { return nivelDe(pest) !== "editar" || !editable(P, ACT, PL); }
 function pintarPestana() {
   if (EDITOR) { EDITOR.destruir(); EDITOR = null; }
-  ({ ruta, mapa, estructura, taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest](); activarAvisame($("panel"));
+  ({ ruta, mapa, estructura, lectores, taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest](); activarAvisame($("panel"));
   pista($("panel"), pest); // la primera vez en cada herramienta, una nota corta
 }
 // Tarjetas "Próximamente" de Forja Más, por clave de planes.js.
-const pronto = (claves, titulo) => '<section class="pronto-fila" aria-label="' + (titulo || "Próximamente en Forja Más") + '"><div class="pronto-cab"><b>' + (titulo || "Próximamente en Forja Más") + '</b><a href="../planes/">Ver todo lo que trae</a></div><div class="pronto-grid">' +
-  claves.map((k) => { const f = funcion(k); return proximamente(f.k, f.t, f.d, true); }).join("") + "</div></section>";
+const pronto = (claves, titulo) => { const k = pendientes(claves); return k.length ? '<section class="pronto-fila" aria-label="' + (titulo || "Próximamente en Forja Más") + '"><div class="pronto-cab"><b>' + (titulo || "Próximamente en Forja Más") + '</b><a href="../planes/">Ver todo lo que trae</a></div><div class="pronto-grid">' +
+  k.map((x) => { const f = funcion(x); return proximamente(f.k, f.t, f.d, true); }).join("") + "</div></section>" : ""; };
 
 /* ================= PIZARRA ================= */
 // Plan gratis: una pizarra libre por proyecto (la primera) con hasta 20 tarjetas. Forja Más: sin límite y con los otros modos.
@@ -1294,7 +1296,7 @@ function pintarHoja() {
 
 /* ================= MAPA DE LA IDEA Y ESTRUCTURA (herramientas de la ruta) ================= */
 // Se abren desde la Ruta (técnicas «mapa» y «estructura») y viven en #mapa y #estructura; la pestaña marcada sigue siendo Ruta.
-const HERR = { mapa: "Mapa de la idea", estructura: "Estructura" };
+const HERR = { mapa: "Mapa de la idea", estructura: "Estructura", lectores: "Lectores beta" };
 const volverRuta = () => '<button type="button" class="btn chico es-volver" data-volver>← Ruta</button>';
 const conVolver = () => { const b = $("panel").querySelector("[data-volver]"); if (b) b.onclick = () => irA("ruta"); };
 // Agrega bloques de texto al final de secciones del Taller (crea las que falten). bloques: [{ guia, texto }]. Devuelve cuántas secciones cambiaron.
@@ -1316,6 +1318,16 @@ async function alTaller(bloques) {
   return n;
 }
 const marcarHecho = (id) => { const h = R.estado(P.ruta).hechos; if (!h[id] && puedeRuta()) guardarRuta({ hechos: { ...h, [id]: new Date().toISOString().slice(0, 10) } }); };
+
+/* --- Lectores beta (testers, probadores): rondas sobre una copia; todo el detalle en js/lectores.js --- */
+let cssLB = false;
+function lectores() {
+  if (!cssLB) { document.head.insertAdjacentHTML("beforeend", "<style>" + LB.CSS_LECTORES + "</style>"); cssLB = true; }
+  LB.vista({ P, SECS, PL, panel: $("panel"), tc: tc(P.tipo), ed: puedeRuta(), publica: !!(ACC && ACC.publica), tope: tope(PL, "lectores"),
+    volver: volverRuta(), conVolver,
+    alAbrir: () => marcarHecho("lectores"),
+    alCerrar: async () => { const { data } = await sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }); NOTAS = data || NOTAS; pintarTabs(); } });
+}
 
 /* --- Mapa de la idea --- */
 let mapaSel = null;
@@ -1763,7 +1775,7 @@ function costos() {
   $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Costos</h2><span class="hint">Actualizada ' + hace(COT.actualizado_en) + "</span></div>" +
     (comps.length ? '<div class="comps">' + comps.map((c) => { const n = qs.filter((q) => q.compId === c.id).length; return '<span class="' + (n ? "ok" : "") + '">' + esc(c.nombre) + (n ? " · " + n : " · sin precios") + "</span>"; }).join("") + "</div>" : '<p class="hint" style="margin:0">La cotización aún no tiene componentes.</p>') +
     '<p class="hint" style="margin:0">' + qs.length + (qs.length === 1 ? " precio registrado" : " precios registrados") + (d.cantidades && d.cantidades.length ? " · comparando " + d.cantidades.join(", ") + " unidades" : "") + '.</p><div><a class="btn prim" style="text-decoration:none;display:inline-block" href="../cotizador/?c=' + COT.id + '">Abrir la cotización</a> <a class="btn" style="text-decoration:none;display:inline-block" href="../cotizador/?c=' + COT.id + '#campana">Campaña y recompensas</a></div></section>';
-  $("panel").insertAdjacentHTML("beforeend", pronto(["versiones-precio", "campanas", "presupuesto-fondos"]));
+  $("panel").insertAdjacentHTML("beforeend", '<div class="pronto-grid" style="margin-top:14px">' + tarjetaFuncion("campanas", "../cotizador/?c=" + COT.id + "#campana") + "</div>" + pronto(["versiones-precio", "campanas", "presupuesto-fondos"]));
 }
 
 /* ================= OPORTUNIDADES ================= */

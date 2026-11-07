@@ -411,3 +411,16 @@ create table public.sugerencias (
 --   (FORJA_SUGERIR_SIN_CUENTA, FORJA_SUGERIR_TEXTO, FORJA_SUGERIR_LIMITE, FORJA_SUGERIR_REPETIDA); un área desconocida queda 'otra'.
 -- mod_sugerencia(s, estado leida|anotada|descartada, respuesta?) (admin): la respuesta llega en public.avisos con enlace planes/#sugerir; queda en privado.registro ('sugerencia').
 -- mod_panel() trae 'sugerencias' (nuevas), 'sugerencias_vistas' (30 últimas revisadas) y 'sugerencias_areas' (cuántas por área, sin descartadas).
+
+-- Lectores beta (2026-11-07, migraciones lectores_beta y lectores_beta_ajustes) -----------------------------------------------
+-- public.rondas (id, espacio_id, proyecto_id, numero único por proyecto, titulo, estado abierta|cerrada, cierra date, contenido jsonb {intro, partes},
+--   preguntas jsonb [{k, t, propia}], resumen, creado_por, creado_en, cerrada_en). RLS: ver = privado.acceso_area(proyecto, 'taller') no nulo; escribir solo por funciones.
+-- public.ronda_lectores (id, ronda_id, token uuid único, nombre, user_id (amarrado a la primera cuenta que abre), reclamado_en, quitado_en, creado_en),
+-- public.ronda_respuestas (ronda_id, lector_id, pregunta, texto ≤4000, marca opinion|mejora|resuelta, único por lector y pregunta),
+-- public.ronda_comentarios (ronda_id, lector_id, parte, parrafo, cita ≤200, texto ≤2000, marca): RLS sin políticas (solo por funciones).
+-- privado.maneja_rondas(p) = acceso_area(p,'taller') = 'editar' y editable(p). privado.lector_de(t) reclama o valida el enlace
+--   (FORJA_RONDA_NO, FORJA_RONDA_SIN_CUENTA, FORJA_RONDA_OTRA); privado.ronda_abierta(l) (FORJA_RONDA_CERRADA).
+-- Funciones: abrir_ronda, invitar_lector, quitar_lector, ronda_panel, marcar_opinion, cerrar_ronda (resumen a public.notas), borrar_ronda,
+--   ver_ronda (también anon: solo proyecto y tipo), responder_ronda, comentar_ronda (máx. 300 por persona), borrar_comentario_ronda, borrar_mis_respuestas, mis_lecturas.
+-- Topes: privado.tope(e,'lectores') 3 · 15 · 40 personas activas por ronda; plan gratis una ronda abierta a la vez; preguntas propias solo Más/Estudio.
+-- mover_proyecto incluye 'rondas'.

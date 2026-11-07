@@ -107,7 +107,7 @@ button{cursor:pointer}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, hace, navApp, espacio, espacioActual, conSesion, avisos, plan, LIMITES, tope, limite, editable, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
+import { sb, $, esc, toast, hace, fecha, navApp, espacio, espacioActual, conSesion, avisos, plan, LIMITES, tope, limite, editable, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
 import { TIPOS, ESTADOS, tc, avance } from "../js/guias.js";
 import { sendero } from "../js/ayuda.js";
 import { FORMATOS } from "../js/brujula.js";
@@ -120,32 +120,34 @@ if (location.hash === "#cotizaciones") location.replace("../cotizaciones/");
 const viejo = location.hash.match(/^#p=([0-9a-f-]{36})/);
 if (viejo) location.replace("../proyecto/?p=" + viejo[1]);
 
-let ESP = null, EA = null, COMP = [], PL = { mas: false }, PROYS = [], COTS = [], AV = {}, vista = location.hash === "#cotizaciones" ? "cot" : "proy", tipoNuevo = "historia";
+let ESP = null, EA = null, COMP = [], LECT = [], PL = { mas: false }, PROYS = [], COTS = [], AV = {}, vista = location.hash === "#cotizaciones" ? "cot" : "proy", tipoNuevo = "historia";
 let F = { tipo: "", estado: "", q: "", orden: "recientes" };
 try { Object.assign(F, JSON.parse(localStorage.getItem("forja-filtros") || "{}")); F.q = ""; } catch (e) {}
 const guardarF = () => { try { localStorage.setItem("forja-filtros", JSON.stringify(F)); } catch (e) {} };
 
 conSesion($("app"), async () => {
   ESP = await espacio(); EA = await espacioActual();
-  if (EA && EA.tipo === "personal") COMP = (await sb.rpc("mis_compartidos")).data || [];
+  if (EA && EA.tipo === "personal") [COMP, LECT] = await Promise.all([sb.rpc("mis_compartidos").then((r) => r.data || []), sb.rpc("mis_lecturas").then((r) => (r.data || []).filter((x) => x.abierta))]);
   if (!ESP) throw new Error("sin espacio");
   PL = await plan();
-  const [p, se, vi, tx, rf, pz] = await Promise.all([
-    sb.from("proyectos").select("id,nombre,tipo,estado,resumen,ejes,formato,acceso,actualizado_en").eq("espacio_id", ESP).order("actualizado_en", { ascending: false }),
+  const [p, se, vi, tx, rf] = await Promise.all([
+    sb.from("proyectos").select("id,nombre,tipo,estado,resumen,ejes,formato,acceso,ruta,actualizado_en").eq("espacio_id", ESP).order("actualizado_en", { ascending: false }),
     sb.from("secciones").select("proyecto_id,avance,peso").eq("espacio_id", ESP),
     sb.from("vitrinas").select("proyecto_id,publicada").eq("espacio_id", ESP),
     sb.from("secciones").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("texto", ""),
     sb.from("referentes").select("id", { count: "exact", head: true }).eq("espacio_id", ESP),
-    sb.from("pizarras").select("id", { count: "exact", head: true }).eq("espacio_id", ESP),
   ]);
   // primeros pasos: se marcan solos con lo que ya existe
-  HECHO.taller = (tx.count || 0) > 0; HECHO.referentes = (rf.count || 0) > 0; HECHO.pizarra = (pz.count || 0) > 0;
+  HECHO.taller = (tx.count || 0) > 0; HECHO.referentes = (rf.count || 0) > 0;
   (vi.data || []).forEach((v) => { if (v.publicada) VIT.add(v.proyecto_id); });
   const por = {}; (se.data || []).forEach((x) => (por[x.proyecto_id] = por[x.proyecto_id] || []).push(x));
   Object.keys(por).forEach((k) => { AV[k] = avance(por[k]); });
   if (p.error) throw p.error;
   PROYS = p.data || [];
   HECHO.plantar = PROYS.length > 0; HECHO.vitrina = VIT.size > 0;
+  // La ruta cuenta como vista si alguna vez se abrió la pestaña o si algún proyecto ya tiene etapa o técnicas marcadas.
+  try { HECHO.ruta = localStorage.getItem("forja-vio-ruta") === "1"; } catch (e) {}
+  HECHO.ruta = HECHO.ruta || PROYS.some((x) => x.ruta && (x.ruta.etapa || Object.keys(x.ruta.hechos || {}).length));
   pintar();
 });
 
@@ -156,6 +158,8 @@ function pintar() {
     '<div id="avisos"></div><div id="sendero"></div><div id="panel"></div>' +
     (COMP.length ? '<section class="compartidos"><h2>Compartidos contigo</h2><p class="hint">Proyectos de otras personas en los que te invitaron. No ocupan tu cupo.</p><div class="comp-grid">' +
       COMP.map((p) => '<a class="tile e-' + p.estado + '" href="../proyecto/?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')"><span class="arriba"><span class="k">' + esc(TIPOS[p.tipo]) + '</span><span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span><h3>" + esc(p.nombre) + '</h3><span class="de">De ' + esc(p.de || "otra persona") + (p.edita ? "" : " · puedes mirar") + "</span>" + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") + '<span class="pie"><span></span><span>' + hace(p.actualizado_en) + "</span></span></a>").join("") + "</div></section>" : "");
+  if (LECT.length) $("app").insertAdjacentHTML("beforeend", '<section class="compartidos"><h2>Para leer y opinar</h2><p class="hint">Rondas de prueba de otras personas a las que te invitaron. Ves solo una copia; tus respuestas las lee quien creó el proyecto.</p><div class="comp-grid">' +
+    LECT.map((x) => '<a class="tile lectura" href="../prueba/?t=' + x.token + '" style="--tc:' + tc(x.tipo) + '"><span class="arriba"><span class="k">' + esc(TIPOS[x.tipo] || "Proyecto") + '</span><span class="fx-estado">' + esc(x.titulo) + "</span></span><h3>" + esc(x.proyecto) + '</h3><span class="de">' + (Object.keys(x.respuestas || {}).length ? "Ya respondiste " + Object.keys(x.respuestas).length + (Object.keys(x.respuestas).length === 1 ? " pregunta" : " preguntas") : "Aún no respondes") + (x.cierra ? " · cierra el " + fecha(x.cierra + "T12:00:00") : "") + "</span></a>").join("") + "</div></section>");
   avisos($("avisos"));
   proyectos();
   if (!EQUIPO()) sendero($("sendero"), HECHO, PROYS[0] ? PROYS[0].id : null);
@@ -236,7 +240,7 @@ function proyectos() {
 }
 
 const VIT = new Set(); // proyectos con vitrina publicada
-const HECHO = { plantar: false, taller: false, referentes: false, pizarra: false, vitrina: false };
+const HECHO = { plantar: false, ruta: false, taller: false, referentes: false, vitrina: false };
 function tile(p) {
   const elegido = FORMATOS.find((f) => f.k === p.formato), av = AV[p.id] || 0, ro = !editable(p, activos(), PL);
   return '<a class="tile e-' + p.estado + '" href="../proyecto/?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')">' +

@@ -26,6 +26,7 @@ const ICO = {
   invitar: '<path d="M4 7h16v11H4z"/><path d="m4 7 8 6 8-6"/><path d="M18 3v4M16 5h4"/>',
   equipo: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M15 14.4c2.6-.4 4.8 1.2 5.5 4.6"/>',
   privacidad: '<path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>',
+  lectores: '<path d="M3 6.5C5 5.2 7.5 5 9.5 6v12.5c-2-1-4.5-.8-6.5.5z"/><path d="M9.5 6c2-1 4.5-.8 6.5.5v12.5c-2-1.3-4.5-1.5-6.5-.5"/><path d="M18.5 4.5l2 2-2 2"/><circle cx="20" cy="14" r="1.3"/>',
   app: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
 };
 export const icono = (k, tam = 22) => '<svg viewBox="0 0 24 24" width="' + tam + '" height="' + tam + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICO[k] || ICO.plantar) + "</svg>";
@@ -41,14 +42,14 @@ export const TEMAS = [
     para: "Un proyecto es la carpeta de una idea: un videojuego, un juego de mesa, una historia, contenido para redes o un producto. Al plantarlo, Forja prepara sus secciones según la categoría, y desde ahí lo vas haciendo crecer.",
     pasos: ["En Proyectos, escribe el nombre de tu idea y elige su categoría.", "Toca «Plantar»: se abre el proyecto con su Taller listo para escribir.", "Arriba cambias el estado (semilla, en desarrollo, en pausa, listo) y el formato cuando lo tengas claro.", "Cuando un proyecto quede atrás, archívalo: no se borra y libera un cupo."],
     consejo: "No esperes a tener la idea completa. Una semilla con nombre y una frase ya sirve: Forja te va haciendo las preguntas.",
-    plan: ["3 proyectos en curso (los archivados no cuentan)", "15 en curso con Forja Más; sin límite con Forja Estudio"],
+    plan: ["3 proyectos en curso (los archivados no cuentan)", "15 proyectos en curso", "Proyectos sin límite"],
     ir: () => u("proyectos/#semilla"), claves: "crear nuevo proyecto empezar categoría formato estado archivar semilla cupo" },
   { id: "semillero", n: "Semillero", donde: "Menú Semillero",
     corto: "Ideas de una frase que todavía no son proyectos. No gastan cupo: plantas la que te siga dando vueltas.",
     para: "No toda idea merece un proyecto el mismo día que aparece. El Semillero guarda frases cortas, sin juzgarlas, y te deja volver a ellas: cada vez que una te sigue entusiasmando, su semilla crece. Cuando quieras, la plantas y se vuelve un proyecto con su Taller listo. Si eres parte de un equipo, el equipo tiene su propio semillero compartido.",
     pasos: ["Anota la idea en una frase de hasta 80 caracteres. Si no aparece ninguna, toca «Otro detonante» para un ejercicio corto.", "Vuelve en unos días, toca la idea y marca «Me sigue dando vueltas»: la semilla crece hasta tener flor.", "Toca «Plantar» en la que tenga fuerza: eliges su categoría y cómo trabajas, y se abre el proyecto.", "Arriba cambias entre tu semillero y el del equipo; una idea tuya se puede pasar al equipo."],
     consejo: "Ordena por «Con más fuerza» cuando no sepas cuál plantar: la que más vueltas tiene suele ser la buena.",
-    plan: ["50 ideas en el semillero (las plantadas no cuentan)", "500 con Forja Más; sin límite con Forja Estudio"],
+    plan: ["50 ideas en el Semillero (las plantadas no cuentan)", "500 ideas", "Ideas sin límite"],
     ir: () => u("semillero/"), claves: "ideas idea suelta anotar frase banco caja detonante ejercicio inspiración plantar brotar sembrar vueltas equipo" },
   { id: "obras", n: "Analizar una obra", donde: "Pestaña Referentes → Agregar una obra",
     corto: "La ficha de un libro, juego, película o canción, con su cita armada, y tres miradas para entender cómo está hecha.",
@@ -71,6 +72,13 @@ export const TEMAS = [
     consejo: "No hay estructura correcta: prueba dos y quédate con la que haga que tu historia o tu juego se entienda mejor.",
     plan: ["Los dos modelos principales de tu categoría", "Todos los modelos, comparar dos lado a lado y pasarlo a la Escaleta"],
     ir: enProyecto("estructura"), claves: "estructura tres actos viaje del héroe círculo pirámide cuatro tiempos curva de dificultad ciclo de juego turno partida gancho remate modelo momentos escaleta" },
+  { id: "lectores", n: "Lectores beta", donde: "Ruta → etapa 6 (Revisar)",
+    corto: "Comparte una copia de tu proyecto con pocas personas, hazles preguntas concretas y mira juntas sus respuestas.",
+    para: "Antes de mostrar algo al mundo conviene que otras personas lo lean, lo jueguen o lo prueben. Abres una ronda con lo que quieres mostrar (partes del Taller, el enlace a tu prototipo o imágenes) y Forja guarda una copia: lo que cambies después no les llega. Cada persona recibe su propio enlace, que queda amarrado a su cuenta, y entra a una sala sin menú del proyecto donde responde tus preguntas y comenta párrafos. Tú ves todo junto por pregunta, marcas cada opinión y Forja destaca lo que dos o más personas señalan. Según tu categoría se llaman lectores beta, testers o probadores.",
+    pasos: ["En la Ruta, ve a la etapa Revisar y toca «Abrir una ronda».", "Elige qué mostrar y qué preguntar: las preguntas cambian según tu categoría.", "Crea un enlace para cada persona, cópialo y mándalo por donde quieras. Si alguien lo reenvía, no le sirve a otra persona.", "Marca cada respuesta como opinión, mejora necesaria o ya resuelta. Al cerrar la ronda, la Bitácora anota un resumen."],
+    consejo: "Separa el gusto personal de lo que hay que mejorar: si una sola persona dice algo, anótalo; si lo dicen dos o tres, ahí hay trabajo.",
+    plan: ["Una ronda abierta a la vez, con 3 personas", "Rondas sin límite, 15 personas por ronda y preguntas propias", "Rondas sin límite, 40 personas por ronda y preguntas propias"],
+    ir: enProyecto("lectores"), claves: "lectores beta testers probadores opiniones feedback retroalimentación probar prueba testear revisar ronda preguntas comentarios" },
   { id: "ruta", n: "La ruta del proyecto", donde: "Pestaña Ruta de cada proyecto",
     corto: "Las etapas de cualquier proyecto, de la inspiración a la vitrina, con técnicas para cada una. Te orienta, no te obliga.",
     para: "Todo proyecto pasa por etapas parecidas: inspirarse, sembrar ideas, dibujar el mapa de la idea, darle estructura, hacer una primera versión, revisarla y mostrarla. La ruta te dice en qué etapa vas y qué podrías hacer ahora, con técnicas que te llevan a la herramienta indicada. Tú decides el ritmo: puedes saltar etapas, volver atrás o cerrar las sugerencias.",
@@ -129,10 +137,10 @@ export const TEMAS = [
     ir: enProyecto("vitrina"), claves: "página pública compartir mostrar publicar enlace qr feria editorial portfolio redes seguir seguidores wishlist lista de deseos avisar correo pagos preventa apoyo" },
   { id: "biblia", linea: true, n: "La biblia del proyecto", donde: "Botón «Exportar la biblia»",
     corto: "Un documento imprimible con todo tu proyecto, para guardarlo como PDF o llevarlo a una reunión.",
-    para: "La biblia junta en un solo documento la portada, la escritura, los referentes, la brújula, las pizarras, los costos, las oportunidades y la bitácora. Eliges qué partes incluir y la guardas como PDF desde la impresión del navegador.",
+    para: "La biblia junta en un solo documento la portada, el mapa de la idea, la estructura con su dibujo, la escritura, los referentes y las obras analizadas, la brújula, las pizarras, los costos, las oportunidades y la bitácora. Eliges qué partes incluir y la guardas como PDF desde la impresión del navegador.",
     pasos: ["En el proyecto, toca «Exportar la biblia del proyecto (PDF)».", "Marca las partes que quieres incluir.", "Toca «Imprimir o guardar PDF» y elige «Guardar como PDF»."],
     consejo: "Es ideal para enviarla a un fondo, a una editorial o para tener un respaldo de tu proyecto fuera de Forja.",
-    plan: ["Incluida", "Incluida"],
+    plan: ["Incluida", "Incluida, más la bibliografía en APA, MLA o Chicago"],
     ir: (ctx) => (ctx && ctx.p ? u("biblia/?p=" + ctx.p) : u("proyectos/")), claves: "pdf imprimir exportar documento respaldo descargar" },
   { id: "bitacora", n: "Bitácora", donde: "Pestaña Bitácora",
     corto: "Tu diario privado del proyecto: notas con fecha de lo que hiciste, decidiste o se te ocurrió.",
@@ -146,12 +154,12 @@ export const TEMAS = [
     pasos: ["Sigue oportunidades desde cada proyecto o desde las sugerencias de Eventos.", "Mira lo que viene: lo que vence en dos semanas se destaca."],
     consejo: "Revisa Eventos una vez por semana: es lo que más ayuda a no perderse un cierre.",
     plan: ["Incluido", "Incluido, y pronto alertas"], ir: () => u("eventos/"), claves: "fechas plazos calendario cierres recordatorio" },
-  { id: "cuenta", n: "Planes y límites", donde: "Mejorar plan",
+  { id: "cuenta", n: "Planes y límites", donde: "Menú Planes",
     corto: "El plan gratis sirve de verdad; Forja Más y Forja Estudio suben los límites y suman herramientas. Si dejas de pagar, nada se borra.",
     para: "Con el plan gratis puedes tener 3 proyectos en curso con 20.000 palabras y 30 referentes cada uno, una pizarra libre y tu vitrina. Forja Más (próximamente) trae todas las herramientas y hasta 15 proyectos en curso; Forja Estudio, para equipos y creadores con mucho en marcha, quita el tope de proyectos y deja invitar a más personas. Los precios son de lanzamiento y pueden cambiar.",
     pasos: ["Mira tu cupo en Proyectos y los contadores en el Taller y Referentes.", "Si llegas a un límite, archiva o recorta: lo anterior queda guardado.", "Si un proyecto queda en solo lectura, igual puedes verlo, exportarlo, archivarlo o borrarlo."],
-    consejo: "En «Mejorar plan», el botón «Avísame» en cada herramienta nos dice qué construir primero, y en la casilla de sugerencias puedes contarnos lo que falta.",
-    plan: ["Gratis para siempre", "Forja Más $2.990 y Forja Estudio $5.990 al mes (próximamente, precios de lanzamiento)"], ir: () => u("planes/"), claves: "precio pagar suscripción gratis límite forja más forja estudio plan cupo solo lectura lanzamiento sugerencia sugerir idea falta casilla" },
+    consejo: "En Planes, el botón «Avísame» en cada herramienta nos dice qué construir primero, y en la casilla de sugerencias puedes contarnos lo que falta.",
+    plan: ["Gratis para siempre", "$2.990 al mes (próximamente)", "$5.990 al mes (próximamente)"], ir: () => u("planes/"), claves: "precio pagar suscripción gratis límite forja más forja estudio plan cupo solo lectura lanzamiento sugerencia sugerir idea falta casilla" },
   { id: "privacidad", n: "Quién ve qué", donde: "Tu cuenta",
     corto: "Tus proyectos son solo tuyos. Lo único público es lo que publicas en una vitrina.",
     para: "Entras con un enlace a tu correo, sin contraseña. Todo lo que creas queda en tu espacio privado: nadie más lo ve, ni otras cuentas. Lo único que se puede ver sin cuenta es la versión publicada de una vitrina, y los precios que decides compartir en el cotizador van sin tu nombre.",
@@ -169,13 +177,13 @@ export const TEMAS = [
     para: "Un equipo tiene sus propios proyectos, aparte de tu forja personal. Cada persona administra, edita o solo lee; los proyectos delicados se reservan para quienes elijas. Hoy los equipos son para Digital Monster: toda cuenta con correo del equipo entra sola, como lectora.",
     pasos: ["Cambia entre «Mi forja» y el equipo desde el menú de tu cuenta: la etiqueta junto al logo te dice dónde estás.", "Para llevar una idea tuya al equipo, abre el proyecto y toca «Mover a…» bajo la cabecera.", "Quien administra decide los roles en «Personas del equipo» y reserva un proyecto con «Quién lo ve».", "Si alguien más está en el proyecto, lo verás bajo la cabecera; en el Taller, escriban en secciones distintas para no pisarse."],
     consejo: "Las vitrinas del equipo las publica quien administra: quien edita prepara el borrador y avisa.",
-    plan: ["Solo Digital Monster", "Pronto: invitar personas a un proyecto"], ir: () => u("equipo/"), claves: "equipo compartir colaborar colaborativo roles miembros digital monster invitar permisos reservado mover" },
+    plan: ["Hoy, solo Digital Monster", "Igual; además puedes invitar a otras personas a cada proyecto"], ir: () => u("equipo/"), claves: "equipo compartir colaborar colaborativo roles miembros digital monster invitar permisos reservado mover" },
   { id: "invitar", n: "Invitar personas a un proyecto", donde: "Bajo la cabecera del proyecto → Personas",
     corto: "Trabaja con otras personas en un proyecto, cada una con lo que le toca.",
     para: "Puedes invitar a alguien por correo a un proyecto tuyo. Para cada parte (Taller y ficha, Referentes, Pizarra, Costos, Oportunidades, Bitácora y Vitrina) eliges si edita, solo ve o no ve. Así un grupo puede repartirse el trabajo: unos en lo creativo, otros en costos o en la vitrina.",
     pasos: ["Abre el proyecto y toca «Invitar personas» (o «Personas») bajo la cabecera.", "Escribe su correo, elige desde dónde partir (Todo, Lo creativo, Costos, La vitrina o Solo mirar) y toca cada área para ajustarla.", "Le llega un correo con un enlace que solo funciona con esa dirección y vence en 14 días. Si no tiene cuenta, la crea gratis.", "Puedes cambiar lo que hace cada persona o quitarle el acceso cuando quieras; ella también puede salirse."],
     consejo: "Publicar la vitrina, borrar, mover e invitar siempre queda en tus manos. Si dos personas escriben en la misma sección a la vez, se guarda lo último: repártanse las secciones.",
-    plan: ["1 persona por proyecto", "Hasta 5 por proyecto; 15 con Forja Estudio"], ir: null, claves: "invitar colaborar colaboradores compartir compañero grupo correo permisos acceso areas costos vitrina salir compartidos" },
+    plan: ["1 persona por proyecto", "Hasta 5 por proyecto", "Hasta 15 por proyecto"], ir: null, claves: "invitar colaborar colaboradores compartir compañero grupo correo permisos acceso areas costos vitrina salir compartidos" },
   { id: "app", n: "Forja en tu teléfono", donde: "Tu navegador",
     corto: "Instálala como una app desde el navegador, sin tienda de aplicaciones.",
     para: "Forja se puede instalar en el teléfono o el computador y abre como una app, con su ícono.",
@@ -189,7 +197,7 @@ export const tema = (id) => TEMAS.find((t) => t.id === id);
 export function temaDe(href = location.href, hash = location.hash) {
   const rel = href.split(/[?#]/)[0].slice(RAIZ.length).replace(/index\.html$/, ""), h = (hash || "").slice(1);
   if (rel === "proyecto/") return tema(h) ? h : "taller"; // #mapa y #estructura tienen su propio tema
-  return ({ "proyectos/": "plantar", "cotizador/": "costos", "cotizaciones/": "costos", "eventos/": "eventos", "planes/": "cuenta", "vitrina/editar/": "vitrina", "biblia/": "biblia", "oportunidades/": "oportunidades", "entrar/": "privacidad", "cuenta/": "comunidad", "normas/": "comunidad", "terminos/": "privacidad", "privacidad/": "privacidad", "explorar/": "comunidad", "equipo/": "equipo", "boletin/": "comunidad", "invitacion/": "invitar", "semillero/": "semillero" })[rel] || "plantar";
+  return ({ "proyectos/": "plantar", "cotizador/": "costos", "cotizaciones/": "costos", "eventos/": "eventos", "planes/": "cuenta", "vitrina/editar/": "vitrina", "biblia/": "biblia", "oportunidades/": "oportunidades", "entrar/": "privacidad", "cuenta/": "comunidad", "normas/": "comunidad", "terminos/": "privacidad", "privacidad/": "privacidad", "explorar/": "comunidad", "equipo/": "equipo", "prueba/": "lectores", "boletin/": "comunidad", "invitacion/": "invitar", "semillero/": "semillero" })[rel] || "plantar";
 }
 export const contexto = () => { let p = null; try { p = localStorage.getItem("forja-ultimo-proyecto"); } catch (e) {} return { p }; };
 
@@ -213,7 +221,7 @@ export function temaHTML(t, ctx = contexto(), { conIr = true } = {}) {
   return '<div class="ay-tema"><span class="ay-donde">' + icono(t.id, 18) + esc(t.donde) + "</span><h2>" + esc(t.n) + '</h2><p class="ay-para">' + esc(t.para) + "</p>" +
     '<div class="ay-pasos" role="list">' + t.pasos.map((p, i) => '<div class="ay-paso" role="listitem"><b>' + (i + 1) + "</b><span>" + esc(p) + "</span></div>").join("") + "</div>" +
     '<p class="ay-consejo"><b>Consejo</b> ' + esc(t.consejo) + "</p>" +
-    '<div class="ay-plan"><span><small>Plan gratis</small>' + esc(t.plan[0]) + '</span><span class="mas"><small>Forja Más</small>' + esc(t.plan[1]) + "</span></div>" +
+    '<div class="ay-plan' + (t.plan[2] ? " tres" : "") + '"><span><small>Plan gratis</small>' + esc(t.plan[0]) + '</span><span class="mas"><small>' + (t.plan[2] ? "Forja Más" : "Forja Más y Estudio") + "</small>" + esc(t.plan[1]) + "</span>" + (t.plan[2] ? '<span class="mas"><small>Forja Estudio</small>' + esc(t.plan[2]) + "</span>" : "") + "</div>" +
     (conIr && href ? '<a class="ay-ir" href="' + esc(href) + '">Ir a ' + esc(t.n.replace(/^(El|La|Los|Las) /, "").toLowerCase()) + " →</a>" : "") + "</div>";
 }
 
@@ -259,12 +267,12 @@ export function pista(contenedor, id) {
 export const reiniciarPistas = () => { try { localStorage.removeItem("forja-pistas"); localStorage.removeItem("forja-sendero-oculto"); } catch (e) {} };
 
 /* ---------- primeros pasos (en Proyectos) ---------- */
-// hecho = { plantar, taller, referentes, pizarra, vitrina } (booleans), p = proyecto más reciente
+// hecho = { plantar, ruta, taller, referentes, vitrina } (booleans), p = proyecto más reciente
 export const PASOS = [
-  ["plantar", "Planta tu primera idea", "Ponle nombre y elige qué es."],
+  ["plantar", "Planta tu primera idea", "Ponle nombre, elige qué es y cómo trabajas."],
+  ["ruta", "Mira tu ruta", "Las etapas de tu proyecto y qué podrías hacer ahora."],
   ["taller", "Escribe en el Taller", "Responde una pregunta guía, aunque sea con dos frases."],
-  ["referentes", "Guarda un referente", "Una imagen, una canción o un color que te inspire."],
-  ["pizarra", "Arma tu pizarra", "Ordena tus ideas en tarjetas y únelas."],
+  ["referentes", "Guarda un referente", "Una imagen, una canción, un color o una obra para analizar."],
   ["vitrina", "Publica su vitrina", "Muestra tu proyecto con un enlace propio."],
 ];
 export function sendero(contenedor, hecho, p) {
@@ -310,6 +318,8 @@ export const CSS_AYUDA = `
 .ay-plan{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13.5px}
 .ay-plan span{padding:9px 12px;display:flex;flex-direction:column;gap:2px}
 .ay-plan span+span{border-left:1px solid var(--line)}
+.ay-plan.tres{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:420px){.ay-plan.tres{grid-template-columns:minmax(0,1fr)}.ay-plan.tres span+span{border-left:0;border-top:1px solid var(--line)}}
 .ay-plan small{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .ay-plan .mas small{color:var(--ember)}
 .ay-ir{align-self:flex-start;font-weight:700;text-decoration:none;color:var(--accent)}

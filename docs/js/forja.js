@@ -12,9 +12,9 @@ export const sb = createClient(SB_URL, SB_KEY, { auth: { persistSession: true, a
 export const RAIZ = new URL("../", import.meta.url).href;
 export const u = (ruta = "") => RAIZ + ruta;
 const PUBLICO = [
+  { href: u("guia/"), nombre: "Cómo funciona", id: "guia" },
   { href: u("oportunidades/"), nombre: "Oportunidades", id: "oportunidades" },
   { href: u("planes/"), nombre: "Planes", id: "planes" },
-  { href: u("guia/"), nombre: "Guía", id: "guia" },
   { href: u("boletin/"), nombre: "Boletín", id: "boletin" },
 ];
 // Explorar aparece en el menú solo cuando hay suficientes proyectos para que no se vea vacío.
@@ -32,7 +32,7 @@ const APP = [
   { href: u("semillero/"), nombre: "Semillero", id: "semillero" },
   { href: u("eventos/"), nombre: "Eventos", id: "eventos" },
   { href: u("cotizaciones/"), nombre: "Cotizaciones", id: "cotizaciones" },
-  { href: u("planes/"), nombre: "Mejorar plan", id: "plan" },
+  { href: u("planes/"), nombre: "Planes", id: "plan" },
 ];
 const svg = (k) => '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' + ICONO[k] + "</svg>";
 
@@ -69,7 +69,7 @@ export function nav(actual) {
     PUBLICO.map((m) => '<a href="' + m.href + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + m.nombre + "</a>").join("") +
     '</span><span class="fx-user" id="fx-user"><a class="fx-entrar" href="' + u("entrar/") + '">Entrar</a></span>';
   sb.from("vitrinas_publicadas").select("slug", { count: "exact", head: true }).eq("en_explorar", true).then(({ count }) => {
-    if ((count || 0) >= MIN_EXPLORAR || actual === "explorar") el.querySelector(".fx-mods").insertAdjacentHTML("afterbegin", '<a href="' + u("explorar/") + '"' + (actual === "explorar" ? ' aria-current="page"' : "") + ">Explorar</a>");
+    if ((count || 0) >= MIN_EXPLORAR || actual === "explorar") el.querySelector(".fx-mods > a").insertAdjacentHTML("afterend", '<a href="' + u("explorar/") + '"' + (actual === "explorar" ? ' aria-current="page"' : "") + ">Explorar</a>");
   });
   sb.auth.getSession().then(({ data }) => { if (data.session && $("fx-user")) $("fx-user").innerHTML = '<a class="fx-entrar lleno" href="' + u("proyectos/") + '">Ir a mi forja</a>'; });
 }
@@ -116,7 +116,7 @@ export function navApp(actual) {
 
 /* --- plan y límites (los mismos que aplica la base de datos en privado.limite y privado.tope) --- */
 export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30, pizarras: 1, tarjetas: 20, ideas: 50, analisis: 3 };
-// Topes que cambian por plan (privado.tope): null = sin límite. Los lectores beta llegan con su herramienta.
+// Topes que cambian por plan (privado.tope): null = sin límite. «lectores» = personas por ronda de Lectores beta.
 export const TOPES = {
   libre: { proyectos: 3, invitados: 1, lectores: 3, ideas: 50 },
   mas: { proyectos: 15, invitados: 5, lectores: 15, ideas: 500 },
@@ -183,6 +183,19 @@ const MSG = {
   FORJA_AVISO_ESPERA: "Puedes avisar a tus seguidores una vez cada 7 días.",
   FORJA_VITRINA_ENLACES: "La vitrina admite hasta 10 enlaces en «Dónde seguirlo».",
   FORJA_VITRINA_PAGO_TIER: "Un enlace de pago de una recompensa no es de un medio de pago conocido (Mercado Pago, PayPal, Flow, Ko-fi, Webpay…).",
+  FORJA_RONDA_ABIERTA: "El plan gratis permite una ronda abierta a la vez. Cierra la actual para abrir otra.",
+  FORJA_RONDA_VACIA: "Elige al menos una parte del Taller, un enlace o una imagen para la ronda.",
+  FORJA_RONDA_GRANDE: "La ronda es demasiado grande. Elige menos partes del Taller.",
+  FORJA_RONDA_PREGUNTAS: "Deja entre 1 y 12 preguntas, de 3 a 300 caracteres cada una.",
+  FORJA_RONDA_FECHA: "La fecha de cierre no puede estar en el pasado.",
+  FORJA_RONDA_CERRADA: "Esta ronda ya cerró: no recibe más respuestas.",
+  FORJA_RONDA_NO: "Este enlace ya no funciona.",
+  FORJA_RONDA_OTRA: "Este enlace es de otra persona.",
+  FORJA_RONDA_SIN_CUENTA: "Entra con tu cuenta y confirma tu correo para abrir la ronda.",
+  FORJA_LIMITE_LECTORES: "Llegaste al máximo de personas por ronda de tu plan (3 gratis, 15 con Forja Más, 40 con Forja Estudio).",
+  FORJA_LECTOR_NOMBRE: "Escribe el nombre de la persona (hasta 60 caracteres).",
+  FORJA_COMENTARIO_TEXTO: "El comentario va de 1 a 2.000 caracteres.",
+  FORJA_COMENTARIO_LIMITE: "Ya dejaste muchos comentarios en esta ronda.",
   FORJA_SUGERIR_SIN_CUENTA: "Para dejar una sugerencia entra con tu cuenta y confirma tu correo.",
   FORJA_SUGERIR_TEXTO: "La sugerencia va de 10 a 800 caracteres.",
   FORJA_SUGERIR_LIMITE: "Ya dejaste 5 sugerencias hoy. ¡Gracias! Puedes dejar más mañana.",

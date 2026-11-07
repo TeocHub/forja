@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Guía de Forja</title>
-<meta name="description" content="Cómo funciona Forja, estación por estación, con ejemplos para probar.">
+<meta name="description" content="Cómo funciona Forja: la Ruta de un proyecto en siete etapas, con cada herramienta para probar aquí mismo.">
 <meta name="theme-color" content="#2a3fd1">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icon.svg" type="image/svg+xml">
@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap">
 <link rel="stylesheet" href="../css/forja.css">
 <style>
-/* Layout: guía — buscador arriba, el recorrido de una idea como una línea de estaciones; cada estación abre su lámina (explicación + demo real), y debajo cuenta, datos y dudas */
+/* Layout: guía — buscador arriba; la Ruta del proyecto como camino de siete etapas, cada etapa abre sus herramientas en una lámina (explicación + demo real); debajo cuenta y datos, los planes y dudas */
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
 .wrap{max-width:1180px;margin:0 auto;padding-block:24px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 :where(button,a,input,select,textarea,summary):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -38,17 +38,37 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16
 .g-sug button:hover{border-color:var(--accent);color:var(--accent)}
 .g-h2{font-family:var(--f-num);font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:56px 0 18px;display:flex;align-items:center;gap:14px}
 .g-h2::after{content:"";flex:1;height:1px;background:var(--line)}
-.g-linea{position:relative;display:flex;justify-content:space-between;gap:4px;overflow-x:auto;scrollbar-width:none;padding:4px 2px 10px;scroll-snap-type:x proximity}
-.g-linea::-webkit-scrollbar{display:none}
-.g-linea::before{content:"";position:absolute;left:34px;right:34px;top:30px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--accent) var(--hecho,0%),var(--line) var(--hecho,0%))}
-.g-est{position:relative;flex:1 0 76px;display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;padding:0;scroll-snap-align:center}
-.g-est .p{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:2px solid var(--line);color:var(--muted);transition:transform .15s,border-color .15s}
-.g-est:hover .p{transform:translateY(-2px);border-color:var(--accent);color:var(--accent)}
-.g-est .n{font-family:var(--f-num);font-size:10.5px;letter-spacing:.08em}
-.g-est b{font-weight:700;color:var(--fg);font-size:13.5px;white-space:nowrap}
-.g-est.visto .p{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));color:var(--accent)}
-.g-est[aria-selected=true] .p{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 6px var(--accent-soft)}
-.g-est[aria-selected=true] b{color:var(--accent)}
+/* la ruta: siete etapas sobre un camino; cada etapa muestra los íconos de sus herramientas */
+.g-ruta-intro{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:10px 24px;margin-bottom:6px}
+.g-ruta-intro p{margin:0;color:var(--muted);max-width:62ch}
+.g-ruta-intro button{font:inherit;font-weight:700;font-size:14px;border:1.5px solid var(--accent);color:var(--accent);background:transparent;border-radius:12px;padding:8px 14px;cursor:pointer}
+.g-ruta-intro button[aria-pressed=true]{background:var(--accent);color:#fff}
+.g-camino{position:relative;overflow-x:auto;scrollbar-width:none;padding:10px 2px 6px;scroll-snap-type:x proximity}
+.g-camino::-webkit-scrollbar{display:none}
+.g-paradas{position:relative;display:grid;grid-template-columns:repeat(7,minmax(104px,1fr));min-width:760px}
+.g-senda{position:absolute;left:0;right:0;top:0;width:100%;height:76px;pointer-events:none;overflow:visible}
+.g-senda path{fill:none;stroke:var(--line);stroke-width:3;stroke-dasharray:2 9;stroke-linecap:round}
+.g-senda path.hecho{stroke:var(--accent);stroke-dasharray:none}
+.g-etapa{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;border:0;background:none;color:var(--muted);font:inherit;cursor:pointer;padding:0 4px;scroll-snap-align:center}
+.g-etapa .p{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:2px solid var(--line);font:700 16px var(--f-num);color:var(--muted);transition:transform .15s,border-color .15s}
+.g-etapa:nth-of-type(even) .p{margin-top:24px}
+.g-etapa:hover .p{transform:translateY(-2px);border-color:var(--accent);color:var(--accent)}
+.g-etapa b{font-family:var(--f-display);font-size:14.5px;color:var(--fg);text-align:center;line-height:1.15}
+.g-etapa .hs{display:flex;gap:3px;color:var(--muted)}
+.g-etapa.visto .p{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));color:var(--accent)}
+.g-etapa[aria-selected=true] .p{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 6px var(--accent-soft)}
+.g-etapa[aria-selected=true] b{color:var(--accent)}
+.g-etapa[aria-selected=true] .hs{color:var(--accent)}
+.g-herrs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;grid-column:1/-1}
+.g-herrs .eq{font-size:13px;color:var(--muted);margin-right:4px}
+.g-herrs button{font:inherit;font-size:14px;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:999px;padding:6px 13px 6px 9px;cursor:pointer}
+.g-herrs button svg{color:var(--accent)}
+.g-herrs button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.g-herrs button[aria-pressed=true] svg{color:var(--bg)}
+.g-etapa-cab{grid-column:1/-1;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--line);padding-bottom:14px}
+.g-etapa-cab small{font:700 12px var(--f-num);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.g-etapa-cab h2{font-family:var(--f-display);font-size:clamp(24px,4vw,30px);margin:0;line-height:1.1}
+.g-etapa-cab p{margin:0;color:var(--muted);max-width:70ch}
 .g-lamina{margin-top:14px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:22px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px;min-height:420px}
 .g-lamina.sola{grid-template-columns:minmax(0,1fr)}
 .g-lamina .ay-tema h2{font-size:32px}
@@ -112,6 +132,60 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16
 .d-pag i:first-child{background:var(--accent);width:70%}
 .d-pag.fuera{opacity:.18;transform:scale(.92)}
 .d-nota{margin:0;font-size:12.5px;color:var(--muted)}
+.d-semilla{display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;align-items:center}
+.d-semilla svg{width:96px;height:96px}
+.d-semilla .tallo{stroke:var(--good);stroke-width:2.5;fill:none;stroke-linecap:round;transition:all .3s}
+.d-semilla .hoja{fill:color-mix(in srgb,var(--good) 70%,var(--card));transition:opacity .3s}
+.d-semilla .flor{fill:var(--ember);transition:opacity .3s}
+.d-semilla .tierra{fill:color-mix(in srgb,#a86200 30%,var(--field))}
+.d-det{border-left:3px solid var(--ember);padding:4px 0 4px 12px;font-size:14px}
+.d-det b{display:block;font-family:var(--f-display)}
+.d-ficha{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.d-ficha label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+.d-ficha input{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:9px;padding:7px 9px;width:100%}
+.d-cita{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px;padding-left:36px;text-indent:-22px}
+.d-mapa{position:relative;aspect-ratio:1.25;border-radius:14px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.d-mapa svg{position:absolute;inset:0;width:100%;height:100%}
+.d-mapa svg line{stroke:var(--line);stroke-width:.5}
+@media (max-width:520px){.d-mapa{aspect-ratio:1}.d-mapa button{font-size:11px!important;padding:3px 7px!important;max-width:40%!important}}
+.d-mapa button{position:absolute;transform:translate(-50%,-50%);font:inherit;font-size:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--fg);border-radius:999px;padding:4px 9px;cursor:pointer;white-space:nowrap;max-width:44%;overflow:hidden;text-overflow:ellipsis}
+.d-mapa button.foco{border-color:color-mix(in srgb,var(--ember) 60%,var(--line))}
+.d-mapa button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.d-mapa .centro{left:50%;top:50%;font-weight:700;font-family:var(--f-display);font-size:13px;border-radius:14px;padding:8px 12px;background:var(--accent);color:#fff;border-color:var(--accent);cursor:default}
+.d-preg-m{margin:0;font-size:15px;min-height:2.8em}
+.d-preg-m b{font-family:var(--f-display)}
+.d-etapas-r{display:flex;gap:4px;align-items:center;overflow-x:auto;scrollbar-width:none;padding:2px}
+.d-etapas-r button{flex:none;font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:4px 10px;cursor:pointer}
+.d-etapas-r button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.d-tecs{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.d-tec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.d-tec b{font-family:var(--f-display);font-size:14.5px}
+.d-tec small{color:var(--muted)}
+.d-tec.mas{border-style:dashed}
+.d-tec.mas small:last-child{color:var(--ember);font-weight:700}
+.d-sala{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;gap:4px;position:relative}
+.d-sala p.par{margin:0;padding:6px 8px;border-radius:8px;font-size:15px;line-height:1.6;cursor:pointer;position:relative}
+.d-sala p.par:hover{background:var(--field)}
+.d-sala p.par.con{background:color-mix(in srgb,var(--ember) 9%,transparent)}
+.d-sala .voces{margin:0 8px 6px;font-size:13px;display:flex;flex-direction:column;gap:4px}
+.d-sala .voces span{border-left:3px solid var(--line);padding-left:8px}
+.d-sala .voces span.tu{border-left-color:var(--accent)}
+.d-fuerte{font:700 10.5px var(--f-num);letter-spacing:.06em;text-transform:uppercase;color:var(--ember)}
+.d-sala textarea{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:9px;padding:7px 9px;margin:0 8px;min-height:54px}
+.d-sala .pie{margin:4px 8px 0;font:500 11px var(--f-num);color:var(--muted);letter-spacing:.04em;text-align:center}
+.g-planes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+@media (max-width:760px){.g-planes{grid-template-columns:minmax(0,1fr)}}
+.g-plan{padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.g-plan+.g-plan{border-left:1px solid var(--line)}
+@media (max-width:760px){.g-plan+.g-plan{border-left:0;border-top:1px solid var(--line)}}
+.g-plan small{font:700 11px var(--f-num);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.g-plan b{font-family:var(--f-display);font-size:20px}
+.g-plan .pr{font-family:var(--f-num);font-size:26px;font-weight:700;line-height:1}
+.g-plan .pr span{font-family:var(--f-body);font-size:13px;font-weight:400;color:var(--muted)}
+.g-plan p{margin:0;font-size:14px;color:var(--muted)}
+.g-plan.mas b,.g-plan.mas .pr{color:var(--ember)}
+.g-lanz{margin:10px 0 0;font-size:13.5px;color:var(--muted)}
+.g-lanz a{color:inherit}
 .g-cuenta{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
 .g-cuenta button{font:inherit;text-align:left;display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:16px;padding:14px 16px;cursor:pointer;transition:border-color .15s,transform .15s}
 .g-cuenta button:hover{border-color:var(--accent);transform:translateY(-2px)}
@@ -131,7 +205,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16
 .g-cta h2{font-family:var(--f-display);font-size:26px;margin:0}
 .g-cta p{margin:4px 0 0;opacity:.75}
 .g-cta a{background:var(--bg);color:var(--fg);text-decoration:none;font-weight:700;border-radius:12px;padding:11px 18px}
-@media (prefers-reduced-motion:reduce){.g-est .p,.g-cuenta button,.d-pag,.d-barra span{transition:none}}
+@media (prefers-reduced-motion:reduce){.g-etapa .p,.g-cuenta button,.d-pag,.d-barra span{transition:none}}
 </style>
 </head>
 <body>
@@ -139,15 +213,19 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16
   <header><nav data-forja-nav></nav></header>
   <main>
     <section class="g-hero">
-      <div><span class="g-k">Guía</span><h1>Cómo funciona Forja</h1><p>Forja acompaña una idea desde su primera frase hasta mostrarla al mundo. Recorre el camino estación por estación, prueba cada herramienta aquí mismo y vuelve cuando la necesites.</p></div>
-      <div class="g-busca"><label for="g-q">¿Qué quieres hacer?</label><input id="g-q" type="search" autocomplete="off" placeholder="Ej.: calcular el precio de mi juego" aria-controls="g-res" aria-expanded="false"><div class="g-res" id="g-res" hidden></div>
+      <div><span class="g-k">Guía</span><h1>Cómo funciona Forja</h1><p>Cada proyecto tiene su Ruta: siete etapas, de la primera inspiración hasta mostrarlo al mundo, con una herramienta para cada momento. Recórrela aquí, prueba cada herramienta sin guardar nada y vuelve cuando la necesites.</p></div>
+      <div class="g-busca"><label for="g-q">¿Qué quieres hacer?</label><input id="g-q" type="search" autocomplete="off" placeholder="Ej.: pedir opiniones de mi novela" aria-controls="g-res" aria-expanded="false"><div class="g-res" id="g-res" hidden></div>
         <div class="g-sug" id="g-sug"></div></div>
     </section>
-    <h2 class="g-h2" id="recorrido">El recorrido de una idea</h2>
-    <div class="g-linea" role="tablist" aria-label="Estaciones del recorrido" id="g-linea"></div>
+    <h2 class="g-h2" id="recorrido">La ruta de un proyecto</h2>
+    <div class="g-ruta-intro"><p>La ruta orienta y nunca obliga: marcas en qué etapa vas, saltas o vuelves cuando quieras. Toca una etapa para ver sus herramientas.</p><button type="button" id="g-ver-ruta" aria-pressed="false">Cómo te guía la Ruta</button></div>
+    <div class="g-camino" id="g-camino"><div class="g-paradas" id="g-paradas" role="tablist" aria-label="Etapas de la ruta"></div></div>
     <article class="g-lamina" id="g-lamina" role="tabpanel" aria-live="polite"></article>
     <h2 class="g-h2">Tu cuenta y tus datos</h2>
     <div class="g-cuenta" id="g-cuenta"></div>
+    <h2 class="g-h2" id="planes">Planes</h2>
+    <div class="g-planes" id="g-planes"></div>
+    <p class="g-lanz">Los precios son de lanzamiento y pueden cambiar, igual que lo que trae cada plan. <a href="../planes/">Ver los planes lado a lado</a> · <a href="../terminos/#planes">Planes y precios en los Términos</a></p>
     <h2 class="g-h2">Dudas comunes</h2>
     <div class="g-dudas" id="g-dudas"></div>
     <div id="g-cta"></div>
@@ -160,7 +238,14 @@ import { TIPOS, SECCIONES, PLANTILLA, ETAPAS, etapaDe } from "../js/guias.js";
 import { EJES, radar, lectura, base, pct, CSS_BRUJULA } from "../js/brujula.js";
 import { montar } from "../js/pizarra.js";
 import { pintarVitrina, detectar, yt, CSS_VITRINA } from "../js/vitrina.js";
-document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_AYUDA + CSS_BRUJULA + CSS_VITRINA + "</style>");
+import { ETAPAS as ETAPAS_R, CREADORES, tecnicasDe, etapaNombre } from "../js/ruta.js";
+import { detonante, MAX_IDEA } from "../js/semillero.js";
+import { CLASES, campo, cita } from "../js/obras.js";
+import { nodos } from "../js/mapa.js";
+import { modelosDe, dibujo, momentos, LIBRES, CSS_ESTRUCTURA } from "../js/estructura.js";
+import { quienes, preguntasDe } from "../js/lectores.js";
+import { PRECIOS } from "../js/planes.js";
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_AYUDA + CSS_BRUJULA + CSS_VITRINA + CSS_ESTRUCTURA + "</style>");
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 let SES = null, CTX = { p: null };
@@ -168,14 +253,34 @@ try { CTX.p = localStorage.getItem("forja-ultimo-proyecto"); } catch (e) {}
 const { data } = await sb.auth.getSession(); SES = data.session;
 if (SES) navApp(null); else nav("guia");
 
-const LINEA = TEMAS.filter((t) => t.linea), OTROS = TEMAS.filter((t) => !t.linea);
-const CORTO = { plantar: "Plantar", taller: "Taller", referentes: "Referentes", brujula: "Brújula", pizarra: "Pizarra", costos: "Costos", oportunidades: "Oportunidades", vitrina: "Vitrina", biblia: "Biblia" };
+// Las siete etapas de la Ruta y las herramientas de cada una (los temas de ayuda.js).
+const ESTACIONES = [
+  { k: "inspirar", temas: ["obras", "referentes", "brujula"] },
+  { k: "sembrar", temas: ["semillero", "plantar"] },
+  { k: "mapa", temas: ["mapa"] },
+  { k: "estructura", temas: ["estructura", "pizarra"] },
+  { k: "hacer", temas: ["taller"] },
+  { k: "revisar", temas: ["lectores"] },
+  { k: "pulir", temas: ["vitrina", "costos", "oportunidades", "biblia"] },
+].map((e) => ({ ...e, ...ETAPAS_R.find((x) => x.k === e.k) }));
+const EN_RUTA = new Set(["ruta", ...ESTACIONES.flatMap((e) => e.temas)]);
+const OTROS = TEMAS.filter((t) => !EN_RUTA.has(t.id));
+const estacionDe = (id) => ESTACIONES.findIndex((e) => e.temas.includes(id));
 let actual = null, limpiar = null;
 const vistos = new Set(); try { JSON.parse(sessionStorage.getItem("forja-guia-vistos") || "[]").forEach((x) => vistos.add(x)); } catch (e) {}
 
-/* ---------- recorrido ---------- */
-$("g-linea").innerHTML = LINEA.map((t, i) => '<button type="button" class="g-est" role="tab" id="est-' + t.id + '" data-t="' + t.id + '" aria-controls="g-lamina"><span class="p">' + icono(t.id, 22) + '</span><span class="n">' + String(i + 1).padStart(2, "0") + "</span><b>" + CORTO[t.id] + "</b></button>").join("");
-$("g-linea").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => abrir(b.dataset.t, true));
+/* ---------- el camino: siete paradas unidas por una senda que sube y baja ---------- */
+$("g-paradas").innerHTML = '<svg class="g-senda" id="g-senda" preserveAspectRatio="none" aria-hidden="true"></svg>' + ESTACIONES.map((e, i) =>
+  '<button type="button" class="g-etapa" role="tab" id="et-' + e.k + '" data-e="' + i + '" aria-controls="g-lamina"><span class="p">' + (i + 1) + "</span><b>" + esc(e.n) + '</b><span class="hs">' + e.temas.map((x) => icono(x, 14)).join("") + "</span></button>").join("");
+function senda(hasta) {
+  const s = $("g-senda"), w = $("g-paradas").offsetWidth, n = ESTACIONES.length; if (!w) return;
+  const pts = ESTACIONES.map((_, i) => [(i + .5) * w / n, i % 2 ? 50 : 26]);
+  const d = (a) => a.map((p, i) => (i ? "S" + ((a[i - 1][0] + p[0]) / 2).toFixed(1) + " " + p[1] + " " : "M") + p[0].toFixed(1) + " " + p[1]).join(" ");
+  s.setAttribute("viewBox", "0 0 " + w + " 76");
+  s.innerHTML = '<path d="' + d(pts) + '"/>' + (hasta > 0 ? '<path class="hecho" d="' + d(pts.slice(0, hasta + 1)) + '"/>' : "");
+}
+$("g-paradas").querySelectorAll("[data-e]").forEach((b) => b.onclick = () => abrir(ESTACIONES[+b.dataset.e].temas[0], true));
+$("g-ver-ruta").onclick = () => abrir("ruta", true);
 $("g-cuenta").innerHTML = OTROS.map((t) => '<button type="button" data-t="' + t.id + '" aria-pressed="false">' + icono(t.id, 22) + "<b>" + esc(t.n) + "</b><small>" + esc(t.corto) + "</small></button>").join("");
 $("g-cuenta").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { abrir(b.dataset.t, true); $("g-lamina").scrollIntoView({ behavior: "smooth", block: "start" }); });
 
@@ -183,27 +288,126 @@ function abrir(id, empujar) {
   const t = tema(id); if (!t) return;
   if (limpiar) { limpiar(); limpiar = null; }
   actual = id; vistos.add(id); try { sessionStorage.setItem("forja-guia-vistos", JSON.stringify([...vistos])); } catch (e) {}
-  const i = LINEA.findIndex((x) => x.id === id);
-  $("g-linea").querySelectorAll("[data-t]").forEach((b) => { b.setAttribute("aria-selected", String(b.dataset.t === id)); b.classList.toggle("visto", vistos.has(b.dataset.t)); });
+  const i = estacionDe(id), E = ESTACIONES[i];
+  $("g-paradas").querySelectorAll("[data-e]").forEach((b) => { const j = +b.dataset.e; b.setAttribute("aria-selected", String(j === i)); b.classList.toggle("visto", ESTACIONES[j].temas.some((x) => vistos.has(x))); });
+  $("g-ver-ruta").setAttribute("aria-pressed", String(id === "ruta"));
   $("g-cuenta").querySelectorAll("[data-t]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.t === id)));
-  $("g-linea").style.setProperty("--hecho", i >= 0 ? (i / (LINEA.length - 1)) * 100 + "%" : "0%");
+  senda(i);
   const conDemo = !!DEMOS[id];
   $("g-lamina").className = "g-lamina" + (conDemo ? "" : " sola");
-  $("g-lamina").setAttribute("aria-labelledby", i >= 0 ? "est-" + id : "");
-  $("g-lamina").innerHTML = '<div>' + temaHTML(t, CTX, { conIr: !!SES || !t.ir || t.publico }) + (!SES && t.ir && !t.publico ? '<p class="d-nota" style="margin-top:14px"><a href="../entrar/">Crea tu cuenta gratis</a> para usarlo en tus proyectos.</p>' : "") + "</div>" +
+  $("g-lamina").setAttribute("aria-labelledby", E ? "et-" + E.k : "");
+  $("g-lamina").innerHTML = (E ? '<div class="g-etapa-cab"><small>Etapa ' + (i + 1) + " de 7</small><h2>" + esc(E.n) + "</h2><p>" + esc(E.que) + "</p>" +
+      '<div class="g-herrs" role="group" aria-label="Herramientas de esta etapa"><span class="eq">' + (E.temas.length > 1 ? "Sus herramientas:" : "Su herramienta:") + "</span>" + E.temas.map((x) => '<button type="button" data-t="' + x + '" aria-pressed="' + (x === id) + '">' + icono(x, 16) + esc(tema(x).n) + "</button>").join("") + "</div></div>"
+      : "") +
+    '<div>' + temaHTML(t, CTX, { conIr: !!(SES || !t.ir || t.publico) }) + (!SES && t.ir && !t.publico ? '<p class="d-nota" style="margin-top:14px"><a href="../entrar/">Crea tu cuenta gratis</a> para usarlo en tus proyectos.</p>' : "") + "</div>" +
     (conDemo ? '<div class="g-demo"><div class="g-demo-cab"><b>Pruébalo aquí</b><span>Es una demostración: no se guarda.</span></div><div id="g-demo-c"></div></div>' : "") +
-    (i >= 0 ? '<div class="g-nav"><button type="button" id="g-ant"' + (i ? "" : " disabled") + ">← " + (i ? CORTO[LINEA[i - 1].id] : "") + '</button><button type="button" id="g-sig"' + (i < LINEA.length - 1 ? "" : " disabled") + ">" + (i < LINEA.length - 1 ? CORTO[LINEA[i + 1].id] : "") + " →</button></div>" : "");
+    (i >= 0 ? '<div class="g-nav"><button type="button" id="g-ant"' + (i ? "" : " disabled") + ">← " + (i ? esc(ESTACIONES[i - 1].n) : "") + '</button><button type="button" id="g-sig"' + (i < ESTACIONES.length - 1 ? "" : " disabled") + ">" + (i < ESTACIONES.length - 1 ? esc(ESTACIONES[i + 1].n) : "") + " →</button></div>"
+      : id === "ruta" ? '<div class="g-nav"><span></span><button type="button" id="g-sig">' + esc(ESTACIONES[0].n) + " →</button></div>" : "");
+  $("g-lamina").querySelectorAll(".g-herrs [data-t]").forEach((b) => b.onclick = () => abrir(b.dataset.t, true));
   if (i >= 0) {
-    $("g-ant").onclick = () => abrir(LINEA[i - 1].id, true);
-    $("g-sig").onclick = () => abrir(LINEA[i + 1].id, true);
-    const est = $("est-" + id); est.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
-  }
+    if (i) $("g-ant").onclick = () => abrir(ESTACIONES[i - 1].temas[0], true);
+    if (i < ESTACIONES.length - 1) $("g-sig").onclick = () => abrir(ESTACIONES[i + 1].temas[0], true);
+    $("et-" + E.k).scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+  } else if (id === "ruta") $("g-sig").onclick = () => abrir(ESTACIONES[0].temas[0], true);
   if (conDemo) { const r = DEMOS[id]($("g-demo-c")); limpiar = typeof r === "function" ? r : null; }
   if (empujar) history.replaceState(null, "", "#" + id);
 }
+addEventListener("resize", () => senda(estacionDe(actual)));
 
 /* ---------- demos: las piezas reales de Forja, sin guardar nada ---------- */
 const DEMOS = {
+  ruta(c) {
+    const tipos = Object.entries(TIPOS); let tipo = "historia", cr = "rumbo", et = "inspirar";
+    const pintar = () => {
+      const tecs = tecnicasDe(et, tipo, cr === "explora" ? "rumbo" : cr);
+      c.innerHTML = '<div class="chips" role="group" aria-label="Cómo trabajas">' + Object.entries(CREADORES).map(([k, x]) => '<button type="button" data-cr="' + k + '" aria-pressed="' + (k === cr) + '">' + esc(x.n) + "</button>").join("") + "</div>" +
+        '<p class="d-nota">' + esc(CREADORES[cr].d) + "</p>" +
+        '<div class="chips" role="group" aria-label="Categoría">' + tipos.map(([k, n]) => '<button type="button" data-k="' + k + '" aria-pressed="' + (k === tipo) + '">' + n + "</button>").join("") + "</div>" +
+        '<div class="d-etapas-r" role="group" aria-label="Etapa">' + ETAPAS_R.map((e, i) => '<button type="button" data-et="' + e.k + '" aria-pressed="' + (e.k === et) + '">' + (i + 1) + ". " + esc(etapaNombre(e.k, tipo)) + "</button>").join("") + "</div>" +
+        '<div class="d-tecs">' + tecs.map((x) => '<div class="d-tec' + (x.mas ? " mas" : "") + '"><b>' + esc(x.t) + "</b><small>" + esc(x.d) + "</small><small>" + (x.min ? "unos " + x.min + " min" : "sin apuro") + (x.mas ? " · Forja Más" : "") + "</small></div>").join("") + "</div>" +
+        '<p class="d-nota">' + (cr === "explora" ? "«Lo descubro haciendo» tiene la ruta a mano, pero sin la franja «Lo que sigue»." : cr === "plano" ? "«Lo planifico todo» ve todas las técnicas de cada etapa." : "«Sé a dónde voy» ve lo esencial de cada etapa.") + "</p>";
+      c.querySelectorAll("[data-cr]").forEach((b) => b.onclick = () => { cr = b.dataset.cr; pintar(); });
+      c.querySelectorAll("[data-k]").forEach((b) => b.onclick = () => { tipo = b.dataset.k; pintar(); });
+      c.querySelectorAll("[data-et]").forEach((b) => b.onclick = () => { et = b.dataset.et; pintar(); });
+    };
+    pintar();
+  },
+  semillero(c) {
+    let v = 0, det = detonante("todo");
+    const pintar = () => {
+      c.innerHTML = '<div class="d-ref"><input id="d-idea" maxlength="' + MAX_IDEA + '" placeholder="Una idea en una frase" value="Un faro que se apaga con las mentiras" aria-label="Tu idea"></div>' +
+        '<div class="d-semilla"><svg viewBox="0 0 96 96" aria-hidden="true"><ellipse class="tierra" cx="48" cy="84" rx="34" ry="8"/><ellipse cx="48" cy="80" rx="7" ry="5" fill="#a86200"/>' +
+          '<path class="tallo" d="M48 80 V' + (80 - [0, 18, 34, 48][v]) + '"/><path class="hoja" style="opacity:' + (v >= 1 ? 1 : 0) + '" d="M48 66 C38 60 34 64 32 70 C40 72 44 70 48 66Z"/><path class="hoja" style="opacity:' + (v >= 2 ? 1 : 0) + '" d="M48 54 C58 46 64 50 66 56 C58 60 52 58 48 54Z"/>' +
+          '<g class="flor" style="opacity:' + (v >= 3 ? 1 : 0) + '"><circle cx="48" cy="30" r="5"/><circle cx="41" cy="30" r="4.5"/><circle cx="55" cy="30" r="4.5"/><circle cx="48" cy="23" r="4.5"/><circle cx="48" cy="37" r="4.5"/></g><circle cx="48" cy="30" r="2.6" fill="#ffd166" style="opacity:' + (v >= 3 ? 1 : 0) + '"/></svg>' +
+          "<div><b style=\"font-family:var(--f-display)\">" + ["Semilla", "Brote", "Creciendo", "Con flor"][v] + '</b><p class="d-nota">Cada vez que vuelves y la idea te sigue entusiasmando, tocas «Me sigue dando vueltas» (una vez por día) y crece.</p>' +
+          '<button type="button" class="chip" id="d-vuelta" style="cursor:pointer">' + (v < 3 ? "Me sigue dando vueltas" : "Plantarla como proyecto") + "</button></div></div>" +
+        '<div class="d-det"><b>' + esc(det.t) + "</b>" + esc(det.d) + '</div><button type="button" class="chip" id="d-otro" style="cursor:pointer;align-self:flex-start">Otro detonante</button>';
+      $("d-vuelta").onclick = () => { if (v < 3) { v++; pintar(); } else { c.querySelector(".d-nota").textContent = "Al plantarla, la frase queda como resumen y el proyecto nace con su Taller listo."; } };
+      $("d-otro").onclick = () => { det = detonante("todo", det); pintar(); };
+    };
+    pintar();
+  },
+  obras(c) {
+    let clase = "libro"; const f = { clase, autores: "Allende, Isabel", anio: "1982", titulo: "La casa de los espíritus", editorial: "Plaza & Janés" };
+    const pintar = () => {
+      const cs = CLASES[clase].campos.filter((k) => ["autores", "anio", "titulo", "editorial", "fecha", "sitio"].includes(k));
+      c.innerHTML = '<div class="chips" role="group" aria-label="Qué es">' + Object.entries(CLASES).map(([k, x]) => '<button type="button" data-cl="' + k + '" aria-pressed="' + (k === clase) + '">' + esc(x.n) + "</button>").join("") + "</div>" +
+        '<div class="d-ficha">' + cs.map((k) => { const m = campo(k, clase); return "<label>" + esc(m.n) + '<input data-f="' + k + '" value="' + esc(f[k] || "") + '" placeholder="' + esc(m.ph || "") + '"></label>'; }).join("") + "</div>" +
+        '<p class="d-nota">Así queda la referencia en APA 7. Solo el título es obligatorio.</p><div class="d-cita" id="d-cita"></div>' +
+        '<p class="d-nota">Después la analizas con tres miradas (cómo se ve, cómo está armada, de qué trata) y anotas lo que aprendiste. Con Forja Más, también MLA, Chicago y la bibliografía.</p>';
+      const ver = () => { $("d-cita").innerHTML = cita({ ...f, clase }, "apa", true) || "<i>Escribe al menos el título.</i>"; };
+      c.querySelectorAll("[data-f]").forEach((i) => i.oninput = () => { f[i.dataset.f] = i.value; ver(); });
+      c.querySelectorAll("[data-cl]").forEach((b) => b.onclick = () => { clase = b.dataset.cl; pintar(); });
+      ver();
+    };
+    pintar();
+  },
+  mapa(c) {
+    let tipo = "juegomesa", sel = null;
+    const POS = [[50, 24], [63, 74], [37, 74], [24, 10], [76, 10], [79, 50], [76, 90], [24, 90], [21, 50]];
+    const pintar = () => {
+      const N = nodos(tipo), n = sel !== null ? N[sel] : null;
+      c.innerHTML = '<div class="chips" role="group" aria-label="Categoría">' + Object.entries(TIPOS).map(([k, x]) => '<button type="button" data-k="' + k + '" aria-pressed="' + (k === tipo) + '">' + x + "</button>").join("") + "</div>" +
+        '<div class="d-mapa"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' + POS.map(([x, y]) => '<line x1="50" y1="50" x2="' + x + '" y2="' + y + '"/>').join("") + "</svg>" +
+        '<span class="centro" style="position:absolute;transform:translate(-50%,-50%)">Tu idea</span>' +
+        N.map((x, i) => '<button type="button" class="' + (x.foco ? "foco" : "") + '" data-n="' + i + '" style="left:' + POS[i][0] + "%;top:" + POS[i][1] + '%" aria-pressed="' + (i === sel) + '">' + esc(x.n) + "</button>").join("") + "</div>" +
+        '<p class="d-preg-m">' + (n ? "<b>" + esc(n.n) + ".</b> " + esc(n.q) : "Toca un punto: cerca del centro está el foco y alrededor, seis ramas propias de " + esc(TIPOS[tipo].toLowerCase()) + ".") + "</p>";
+      c.querySelectorAll("[data-k]").forEach((b) => b.onclick = () => { tipo = b.dataset.k; sel = null; pintar(); });
+      c.querySelectorAll("[data-n]").forEach((b) => b.onclick = () => { sel = +b.dataset.n; pintar(); });
+    };
+    pintar();
+  },
+  estructura(c) {
+    let tipo = "historia", k = null;
+    const pintar = () => {
+      const ms = modelosDe(tipo); if (!ms.some((m) => m.k === k)) k = ms[0].k;
+      const M = ms.find((m) => m.k === k);
+      c.innerHTML = '<div class="chips" role="group" aria-label="Categoría">' + Object.entries(TIPOS).map(([t2, x]) => '<button type="button" data-k="' + t2 + '" aria-pressed="' + (t2 === tipo) + '">' + x + "</button>").join("") + "</div>" +
+        '<div class="chips" role="group" aria-label="Modelo">' + ms.map((m, i) => '<button type="button" data-m="' + m.k + '" aria-pressed="' + (m.k === k) + '">' + esc(m.n) + (i >= LIBRES ? " · Más" : "") + "</button>").join("") + "</div>" +
+        '<div style="--tc:var(--t-' + tipo + ')">' + dibujo(k, { llenos: new Set([0, 1, 2]) }) + "</div>" +
+        '<p class="d-nota">' + esc(M.d) + " Tus seis momentos (" + momentos(tipo).map((m) => m.n.toLowerCase()).join(", ") + ") se ponen solos en cada paso.</p>";
+      c.querySelectorAll("[data-k]").forEach((b) => b.onclick = () => { tipo = b.dataset.k; pintar(); });
+      c.querySelectorAll("[data-m]").forEach((b) => b.onclick = () => { k = b.dataset.m; pintar(); });
+    };
+    pintar();
+  },
+  lectores(c) {
+    const Q = quienes("historia"), preg = preguntasDe("historia");
+    const pars = ["La campana sonó tres veces antes de que la capitana entendiera que venía de abajo del agua.", "Nadie en el puerto quiso hablar de la ciudad hundida. Solo la abuela, que guardaba un mapa en una lata de galletas, le dijo dónde buscar.", "Esa noche bajó sola, con una linterna y la certeza de que alguien la estaba esperando."];
+    const otros = { 1: ["Camila: aquí me perdí, ¿la abuela es la misma del prólogo?"] }, mios = {};
+    let abierto = null;
+    const pintar = () => {
+      c.innerHTML = '<div class="d-sala">' + pars.map((p, i) => { const v = [...(otros[i] || []), ...(mios[i] || []).map((x) => "Tú: " + x)], fuerte = (otros[i] || []).length && (mios[i] || []).length;
+          return '<p class="par' + (v.length ? " con" : "") + '" data-i="' + i + '" tabindex="0" role="button">' + esc(p) + "</p>" +
+            (v.length || abierto === i ? '<div class="voces">' + (fuerte ? '<span class="d-fuerte" style="border:0;padding:0">Señal fuerte: dos personas marcaron este párrafo</span>' : "") + v.map((x) => '<span class="' + (x.startsWith("Tú") ? "tu" : "") + '">' + esc(x) + "</span>").join("") + "</div>" : "") +
+            (abierto === i ? '<textarea id="d-com" placeholder="¿Qué te pasó al leer esto?"></textarea><div class="d-fila" style="margin:4px 8px"><span></span><button type="button" class="chip" id="d-guardar" style="cursor:pointer">Guardar comentario</button></div>' : ""); }).join("") +
+        '<p class="pie">Copia para ti · no la compartas</p></div>' +
+        '<p class="d-nota">Toca un párrafo para comentarlo, como lo haría tu ' + Q.uno + '. Al final de la sala, tus preguntas: «' + esc(preg[0].t) + "», «" + esc(preg[2].t) + "»…</p>";
+      c.querySelectorAll("[data-i]").forEach((p) => { const f = () => { abierto = abierto === +p.dataset.i ? null : +p.dataset.i; pintar(); const t2 = $("d-com"); if (t2) t2.focus(); }; p.onclick = f; p.onkeydown = (e) => { if (e.key === "Enter") f(); }; });
+      const g = $("d-guardar"); if (g) g.onclick = () => { const v = $("d-com").value.trim(); if (!v) return; (mios[abierto] = mios[abierto] || []).push(v); abierto = null; pintar(); };
+    };
+    pintar();
+  },
   plantar(c) {
     const tipos = Object.entries(TIPOS);
     const pintar = (k) => {
@@ -292,7 +496,7 @@ const DEMOS = {
       novedades: [{ id: "n1", fecha: "2026-11-01", titulo: "Terminé el primer acto", texto: "Ya está el borrador completo." }], enlaces: [{ id: "e1", nombre: "Instagram", url: "https://instagram.com" }] }, { previa: true });
   },
   biblia(c) {
-    const P = [["Portada", 1], ["Escritura", 4], ["Referentes", 2], ["Brújula", 1], ["Pizarras", 2], ["Costos", 1], ["Oportunidades", 1], ["Bitácora", 1]];
+    const P = [["Portada", 1], ["Mapa", 1], ["Estructura", 1], ["Escritura", 4], ["Referentes", 2], ["Obras", 2], ["Brújula", 1], ["Pizarras", 2], ["Costos", 1], ["Oportunidades", 1], ["Bitácora", 1]];
     const on = new Set(P.map((p) => p[0]));
     const pintar = () => {
       const n = P.filter((p) => on.has(p[0])).reduce((a, p) => a + p[1], 0);
@@ -306,14 +510,14 @@ const DEMOS = {
 };
 
 /* ---------- buscador ---------- */
-const SUG = [["Calcular el precio de mi juego", "costos"], ["Ordenar a mis personajes", "pizarra"], ["Encontrar un fondo", "oportunidades"], ["Mostrar mi proyecto", "vitrina"], ["Empezar a escribir", "taller"], ["Elegir el formato", "brujula"]];
+const SUG = [["Anotar una idea suelta", "semillero"], ["Aprender de una obra", "obras"], ["Ordenar mi historia", "estructura"], ["Pedir opiniones", "lectores"], ["Calcular el precio", "costos"], ["Encontrar un fondo", "oportunidades"], ["Mostrar mi proyecto", "vitrina"]];
 $("g-sug").innerHTML = SUG.map(([n, t]) => '<button type="button" data-t="' + t + '">' + n + "</button>").join("");
 $("g-sug").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { abrir(b.dataset.t, true); $("recorrido").scrollIntoView({ behavior: "smooth" }); });
 const q = $("g-q"), res = $("g-res");
 q.oninput = () => {
   const r = buscar(q.value);
   if (!q.value.trim()) { res.hidden = true; q.setAttribute("aria-expanded", "false"); return; }
-  res.innerHTML = r.length ? r.slice(0, 5).map((t) => '<button type="button" data-t="' + t.id + '">' + icono(t.id, 18) + "<span><b>" + esc(t.n) + "</b><small>" + esc(t.corto) + "</small></span></button>").join("") : "<p>No encontré eso. Prueba con otras palabras, como «precio», «fondo» o «personajes».</p>";
+  res.innerHTML = r.length ? r.slice(0, 5).map((t) => '<button type="button" data-t="' + t.id + '">' + icono(t.id, 18) + "<span><b>" + esc(t.n) + "</b><small>" + esc(t.corto) + "</small></span></button>").join("") : "<p>No encontré eso. Prueba con otras palabras, como «precio», «opiniones» o «personajes».</p>";
   res.hidden = false; q.setAttribute("aria-expanded", "true");
   res.querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { res.hidden = true; abrir(b.dataset.t, true); $("recorrido").scrollIntoView({ behavior: "smooth" }); });
 };
@@ -322,7 +526,9 @@ document.addEventListener("click", (e) => { if (!e.target.closest(".g-busca")) r
 
 /* ---------- dudas ---------- */
 const DUDAS = [
-  ["¿Forja es gratis?", "Sí. El plan gratis no vence y sirve para trabajar de verdad: 3 proyectos en curso, con su Taller, referentes, pizarra, cotización y vitrina. Forja Más y Forja Estudio, que llegan pronto, suben los límites y suman todas las herramientas, con precios de lanzamiento que pueden cambiar."],
+  ["¿Forja es gratis?", "Sí. El plan gratis no vence y sirve para trabajar de verdad: 3 proyectos en curso, con su Ruta, Taller, referentes, pizarra, cotización, vitrina y una ronda de lectores beta. Forja Más y Forja Estudio, que llegan pronto, suben los límites y suman todas las herramientas, con precios de lanzamiento que pueden cambiar."],
+  ["¿Tengo que seguir la Ruta en orden?", "No. La Ruta orienta, no obliga: marcas en qué etapa vas, saltas o vuelves cuando quieras, y si eliges «Lo descubro haciendo» no te sugiere nada. Todas las herramientas se pueden abrir también desde sus pestañas."],
+  ["¿Quienes leen mi proyecto pueden copiarlo?", "Leen una copia de lo que elegiste, sin acceso al proyecto real, y cada página dice para quién es la copia. Cada enlace sirve para una sola cuenta y puedes quitar el acceso al instante. Nada de una ronda es público."],
   ["¿Alguien más puede ver mis proyectos?", "No. Todo lo que creas es privado de tu cuenta. Lo único público es lo que tú publicas en una vitrina."],
   ["¿Por qué no tengo contraseña?", "Entras con un enlace que llega a tu correo. Así no hay contraseñas que olvidar ni que se puedan filtrar. El correo llega en inglés («Your Magic Link»)."],
   ["¿Puedo subir archivos?", "No: Forja guarda enlaces y códigos (imágenes, videos, colores, citas), nunca archivos. Así funciona rápido en cualquier teléfono y tus archivos siguen donde ya los tienes."],
@@ -333,13 +539,18 @@ const DUDAS = [
   ["¿Qué pasa si reportan mi vitrina?", "Una persona la revisa; nunca se oculta sola por recibir reportes. Si infringe las Normas de la comunidad, te avisamos el motivo en Mi cuenta y puedes apelar."],
   ["¿Cómo vuelvo a ver los primeros pasos?", "En el menú de tu cuenta (tu inicial, arriba a la derecha), toca «Volver a ver las pistas». También tienes el botón «?» en cada página."],
 ];
+const $$ = (n) => "$" + n.toLocaleString("es-CL");
+$("g-planes").innerHTML =
+  '<div class="g-plan"><small>Para empezar</small><b>Gratis</b><span class="pr">$0</span><p>3 proyectos en curso, la Ruta completa con sus técnicas esenciales, las herramientas esenciales y una ronda de lectores beta con 3 personas.</p></div>' +
+  '<div class="g-plan mas"><small>Próximamente</small><b>Forja Más</b><span class="pr">' + $$(PRECIOS.mas.mes) + ' <span>al mes</span></span><p>Todas las herramientas, 15 proyectos en curso, 5 personas por proyecto y rondas de 15 lectores. O ' + $$(PRECIOS.mas.anio) + " al año.</p></div>" +
+  '<div class="g-plan"><small>Próximamente</small><b>Forja Estudio</b><span class="pr">' + $$(PRECIOS.estudio.mes) + ' <span>al mes</span></span><p>Todo lo de Forja Más, sin tope de proyectos ni ideas, 15 personas por proyecto y rondas de 40 lectores. O ' + $$(PRECIOS.estudio.anio) + " al año.</p></div>";
 $("g-dudas").innerHTML = DUDAS.map(([p, r]) => "<details><summary>" + esc(p) + "</summary><p>" + esc(r) + "</p></details>").join("");
 $("g-cta").innerHTML = SES
   ? '<div class="g-cta"><div><h2>Tu forja te espera</h2><p>Vuelve a esta guía cuando quieras con el botón «?» de cada página.</p></div><a href="../proyectos/">Ir a mis proyectos</a></div>'
   : '<div class="g-cta"><div><h2>Planta tu primera idea</h2><p>Gratis, sin contraseña y desde cualquier dispositivo.</p></div><a href="../entrar/">Empezar gratis</a></div>';
 
 const h = location.hash.slice(1);
-abrir(tema(h) ? h : "plantar", false);
+abrir(tema(h) ? h : "ruta", false);
 if (tema(h)) $("recorrido").scrollIntoView();
 window.addEventListener("hashchange", () => { const x = location.hash.slice(1); if (tema(x) && x !== actual) abrir(x, false); });
 </script>

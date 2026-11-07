@@ -2,7 +2,7 @@
 // Los datos se piden primero a la red (siempre lo más nuevo) y solo se usa la caché si no hay conexión.
 // Al instalar se guarda solo lo esencial; cada página queda guardada la primera vez que se visita.
 // Al cambiar de versión, lo ya guardado pasa a la caché nueva (no se vuelve a descargar todo el sitio).
-const CACHE = "forja-v30";
+const CACHE = "forja-v31";
 const SHELL = ["./", "proyectos/", "manifest.webmanifest", "icon.svg", "css/forja.css", "js/forja.js"];
 self.addEventListener("install", e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener("activate", e => e.waitUntil((async () => {

@@ -43,7 +43,7 @@ h2{font-family:var(--f-display);font-size:19px;margin:28px 0 10px}
 <script type="module">
 import { sb, $, esc, toast, hace, navApp, espacio, conSesion, limite, proximamente, activarAvisame } from "../js/forja.js";
 import { TIPOS, tc } from "../js/guias.js";
-import { funcion } from "../js/planes.js";
+import { funcion, tarjetaFuncion, pendientes } from "../js/planes.js";
 navApp("cotizaciones");
 
 conSesion($("app"), async () => {
@@ -62,13 +62,12 @@ conSesion($("app"), async () => {
       (comps.length ? '<div class="chips">' + comps.slice(0, 6).map((x) => '<span class="' + (qs.some((q) => q.compId === x.id) ? "ok" : "") + '">' + esc(x.nombre) + "</span>").join("") + (comps.length > 6 ? "<span>+" + (comps.length - 6) + "</span>" : "") + "</div>" : '<span style="font-size:13px;color:var(--muted)">Sin piezas todavía</span>') +
       "<small>" + qs.length + (qs.length === 1 ? " precio de proveedor" : " precios de proveedores") + " · " + hace(k.actualizado_en) + "</small></a>";
   };
-  const fv = funcion("versiones-precio"), fc = funcion("campanas"), ff = funcion("presupuesto-fondos");
   $("app").innerHTML =
     '<header><h1>Cotizaciones</h1><p class="lead">Una por proyecto: lo que cuesta producirlo pieza por pieza y a cuánto venderlo. Las piezas en verde ya tienen precio.</p></header>' +
     (COTS.length || sin.length ? '<div class="cots">' + COTS.map(tarjeta).join("") +
       sin.map((x) => '<button type="button" class="nueva" data-p="' + x.id + '"><span>' + esc(TIPOS[x.tipo]) + "</span><b>" + esc(x.nombre) + "</b><span>+ Crear su cotización</span></button>").join("") + "</div>"
       : '<div class="vacio">Aún no tienes proyectos. Planta uno en <a href="../proyectos/">Proyectos</a> y aquí aparecerá su cotización.</div>') +
-    '<h2>Próximamente</h2><div class="extras">' + [fv, fc, ff].map((f) => proximamente(f.k, f.t, f.d, true)).join("") + "</div>";
+    '<h2>Más para tus costos</h2><div class="extras">' + tarjetaFuncion("campanas", COTS[0] ? "../cotizador/?c=" + COTS[0].id + "#campana" : null) + pendientes(["versiones-precio", "presupuesto-fondos"]).map((k) => tarjetaFuncion(k)).join("") + "</div>";
   activarAvisame($("app"));
   $("app").querySelectorAll("[data-p]").forEach((b) => b.onclick = async () => {
     const pr = PROYS.find((x) => x.id === b.dataset.p);

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sala de prueba · Forja</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: sala de prueba — una sola columna de lectura (la copia de la ronda), comentarios por párrafo y las preguntas al final; sin menú del proyecto */
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding-block:24px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(a,button,textarea,[role=button]):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:7px 13px;cursor:pointer;text-decoration:none}
+.btn.prim{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
+.btn.chico{font-size:13px;padding:5px 10px}
+.hint{color:var(--muted);font-size:13.5px}
+.puerta{max-width:560px;margin:clamp(24px,8vw,72px) auto 0;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,5vw,32px);display:flex;flex-direction:column;gap:12px}
+.puerta .k{margin:0;font:600 12px var(--f-num);letter-spacing:.08em;text-transform:uppercase;color:var(--ember)}
+.puerta h1{font-family:var(--f-display);font-size:clamp(26px,6vw,36px);line-height:1.08;margin:0;overflow-wrap:anywhere}
+.puerta p{margin:0;color:var(--muted)}
+.puerta .acc{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="c"><div class="fx-empty">Cargando…</div></main>
+</div>
+<script type="module">
+import { sb, $, esc, nav, navApp, conSesion, limite, u } from "../js/forja.js";
+import { pintarSala, quienes, CSS_LECTORES } from "../js/lectores.js";
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_LECTORES + "</style>");
+const t = new URLSearchParams(location.search).get("t") || "", c = $("c");
+const puerta = (k, titulo, texto, acc) => '<section class="puerta"><p class="k">' + k + "</p><h1>" + titulo + "</h1><p>" + texto + "</p>" + (acc ? '<div class="acc">' + acc + "</div>" : "") + "</section>";
+const { data: { session } } = await sb.auth.getSession();
+if (!/^[0-9a-f-]{36}$/i.test(t)) { nav(null); c.innerHTML = puerta("Sala de prueba", "Este enlace no está completo", "Revisa que hayas copiado el enlace entero que te mandaron."); }
+else if (!session) {
+  nav(null);
+  const { data: D, error } = await sb.rpc("ver_ronda", { t });
+  if (error || !D) c.innerHTML = puerta("Sala de prueba", "Este enlace ya no funciona", "Puede que la ronda haya terminado o que te hayan quitado el acceso. Pídele a quien te invitó un enlace nuevo.");
+  else { const Q = quienes(D.tipo);
+    c.innerHTML = puerta("Te invitaron a " + Q.verbo, "«" + esc(D.proyecto) + "»", "Quien lo está creando quiere saber qué te parece antes de mostrarlo al mundo. Para entrar necesitas una cuenta de Forja (gratis, sin contraseña): así tu enlace queda solo para ti y nadie más puede usarlo.",
+      '<a class="btn prim" href="../entrar/?siguiente=' + encodeURIComponent("prueba/?t=" + t) + '">Entrar y ' + Q.verbo + "</a>"); }
+} else {
+  navApp(null);
+  conSesion(c, async () => {
+    const { data: D, error } = await sb.rpc("ver_ronda", { t });
+    if (error || !D) {
+      const m = error && error.message || "";
+      c.innerHTML = m.includes("FORJA_RONDA_OTRA") ? puerta("Sala de prueba", "Este enlace es de otra persona", "Cada enlace queda amarrado a la primera cuenta que lo abre. Si te lo reenviaron, pídele a quien creó el proyecto uno a tu nombre.")
+        : m.includes("FORJA_RONDA_SIN_CUENTA") ? puerta("Sala de prueba", "Confirma tu correo para entrar", "Abre el enlace que te mandamos al correo y vuelve a este enlace.")
+        : puerta("Sala de prueba", "Este enlace ya no funciona", "Puede que la ronda se haya borrado o que te hayan quitado el acceso. Pídele a quien te invitó un enlace nuevo.");
+      return;
+    }
+    document.title = D.proyecto + " · Sala de prueba · Forja";
+    pintarSala(c, D, t);
+  });
+}
+</script>
+</body>
+</html>
