@@ -47,6 +47,16 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .sec p.preg{font-style:italic;color:var(--soft);margin-bottom:.2em}
 .vacia{color:var(--soft);font-style:italic;font-size:10pt}
 .refs{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.obra{break-inside:avoid;margin:0 0 20px;padding:0 0 14px;border-bottom:1px solid #e3e5ea}
+.obra .ref-apa{font-weight:700;padding-left:1.6em;text-indent:-1.6em;margin:0 0 6px}
+.obra h4{font-family:"Atkinson Hyperlegible",sans-serif;font-size:9.5pt;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin:10px 0 2px}
+.obra .apr{margin:4px 0 0;padding-left:18px}
+.obra .nota{font-style:italic;color:var(--soft)}
+.ref blockquote .cc{font-style:normal;font-size:9.5pt;color:var(--soft)}
+.biblio p{padding-left:1.6em;text-indent:-1.6em;margin:0 0 8px}
+.solo-print{display:none}
+@media print{.no-print{display:none}.solo-print{display:inline}}
+
 .ref{break-inside:avoid;border:1px solid var(--rule);border-radius:8px;overflow:hidden;font-size:10pt;font-family:"Atkinson Hyperlegible",sans-serif;background:#fff}
 .ref img{display:block;width:100%;max-height:260px;object-fit:cover}
 .ref .sw{height:70px;display:flex;align-items:flex-end;padding:8px 10px;font-family:"JetBrains Mono",monospace;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -88,7 +98,8 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 </div>
 
 <script type="module">
-import { sb, $, esc, fecha, navApp, espacio, conSesion } from "../js/forja.js";
+import { sb, $, esc, fecha, navApp, espacio, conSesion, accesoProyecto } from "../js/forja.js";
+import * as O from "../js/obras.js";
 import { TIPOS, ESTADOS, tc } from "../js/guias.js";
 import { EJES, FORMATOS, radar, dial, lectura, tocado, vals, pct, base, CSS_BRUJULA } from "../js/brujula.js";
 import { MODOS, estatica, cuentaTarjetas, CSS_PIZARRA } from "../js/pizarra.js";
@@ -97,11 +108,13 @@ document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZA
 
 const ID = new URLSearchParams(location.search).get("p");
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-const PARTES = [["taller", "Escritura"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarras", "Pizarras"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"]];
+const PARTES = [["taller", "Escritura"], ["referentes", "Referentes"], ["obras", "Obras analizadas"], ["brujula", "Brújula"], ["pizarras", "Pizarras"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["bibliografia", "Bibliografía"]];
+let MAS = false;
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../proyectos/");
 else conSesion($("app"), async () => {
   await espacio();
+  const acc = await accesoProyecto(ID); MAS = !!(acc && acc.mas);
   const [pr, se, re, no, co, po, pz] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
     sb.from("secciones").select("id,titulo,texto,orden").eq("proyecto_id", ID).order("orden"),
@@ -129,11 +142,12 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
   const f = FORMATOS.find((x) => x.k === P.formato), conTexto = SECS.filter((s) => s.texto.trim());
   const palabras = SECS.reduce((a, s) => a + (s.texto.trim().match(/\S+/g) || []).length, 0);
   const PZ = PIZ.filter((z) => cuentaTarjetas(z.datos) || ((z.datos || {}).regiones || []).length);
-  const tiene = { taller: conTexto.length, referentes: REFS.length, brujula: tocado(P.ejes) || f, pizarras: PZ.length, costos: COT && (COT.datos.componentes || []).length, oportunidades: SEGS.length, bitacora: NOTAS.length };
+  const OBRAS = REFS.filter((r) => r.tipo === "obra"), OTROS = REFS.filter((r) => r.tipo !== "obra");
+  const tiene = { taller: conTexto.length, referentes: OTROS.length, obras: OBRAS.length, bibliografia: MAS && OBRAS.length, brujula: tocado(P.ejes) || f, pizarras: PZ.length, costos: COT && (COT.datos.componentes || []).length, oportunidades: SEGS.length, bitacora: NOTAS.length };
 
   $("app").innerHTML =
     '<section class="opciones"><h1>Biblia del proyecto</h1><p>Un documento con todo lo que has trabajado. Elige qué incluir y guárdalo como PDF desde la ventana de impresión (opción “Guardar como PDF”).</p>' +
-    '<div class="partes" id="partes">' + PARTES.map(([k, n]) => '<label><input type="checkbox" data-parte="' + k + '"' + (tiene[k] ? " checked" : " disabled") + "> " + n + (tiene[k] ? "" : " (vacío)") + "</label>").join("") + "</div>" +
+    '<div class="partes" id="partes">' + PARTES.map(([k, n]) => '<label><input type="checkbox" data-parte="' + k + '"' + (tiene[k] ? " checked" : " disabled") + "> " + n + (tiene[k] ? "" : k === "bibliografia" && OBRAS.length ? " (Forja Más)" : " (vacío)") + "</label>").join("") + "</div>" +
     '<div class="acciones"><button class="imprimir" id="b-print">Guardar como PDF</button><a href="../proyecto/?p=' + P.id + '">Volver al proyecto</a></div></section>' +
     '<article class="doc" id="doc" style="--tc:' + tc(P.tipo) + '">' +
     '<section class="portada"><div><span class="k">Biblia del proyecto</span><h1>' + esc(P.nombre) + "</h1>" + (P.resumen ? '<p class="resumen">' + esc(P.resumen) + "</p>" : "") + "</div>" +
@@ -145,15 +159,20 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
     conTexto.map((s) => '<div class="sec"><h3>' + esc(s.titulo) + "</h3>" + parrafos(s.texto) + "</div>").join("") + "</section>" +
 
     '<section class="parte" data-p="referentes"><h2>Referentes</h2><p class="bajada">Lo que inspira este proyecto y qué se toma de cada cosa.</p><div class="refs">' +
-    REFS.map((r) => {
+    OTROS.map((r) => {
       let m = "";
       if (r.tipo === "imagen" && segura(r.valor)) m = '<img src="' + esc(r.valor) + '" alt="" referrerpolicy="no-referrer" onerror="this.remove()">';
       else if (r.tipo === "video" && ytId(r.valor)) m = '<img src="https://i.ytimg.com/vi/' + ytId(r.valor) + '/hqdefault.jpg" alt="" onerror="this.remove()">';
       else if (r.tipo === "color") m = '<div class="sw" style="background:' + esc(r.valor) + ";color:" + (parseInt(r.valor.slice(1).padEnd(6, r.valor.slice(-1)), 16) > 0x999999 ? "#111" : "#fff") + '">' + esc(r.valor.toUpperCase()) + "</div>";
-      else if (r.tipo === "cita") m = "<blockquote>“" + esc(r.valor) + "”</blockquote>";
+      else if (r.tipo === "cita") { const fo = r.ficha || {}, ob = fo.obra && OBRAS.find((x) => x.id === fo.obra); m = "<blockquote>“" + esc(r.valor) + "”" + (ob ? ' <span class="cc">' + esc(O.citaCorta(ob.ficha, fo.pagina)) + "</span>" : "") + "</blockquote>"; }
       const url = segura(r.valor) ? '<span class="u">' + esc(r.valor) + "</span>" : "";
       return '<div class="ref">' + m + '<div class="t">' + (r.titulo ? "<b>" + esc(r.titulo) + "</b>" : "") + url + (r.nota ? "<p>" + esc(r.nota) + "</p>" : "") + "</div></div>";
     }).join("") + "</div></section>" +
+
+    '<section class="parte" data-p="obras"><h2>Obras analizadas</h2><p class="bajada">Obras que se estudiaron para este proyecto: cómo se ven, cómo están armadas, de qué tratan y qué se aprendió de cada una.</p>' +
+    OBRAS.map((r) => { const f = O.normalFicha(r.ficha), A = r.analisis || {};
+      return '<div class="obra"><p class="ref-apa">' + O.cita(f, "apa", true) + "</p>" + O.MIRADAS.filter((m) => A[m.k]).map((m) => "<h4>" + m.n + "</h4>" + parrafos(A[m.k])).join("") +
+        ((A.aprendi || []).length ? '<h4>Lo que aprendí</h4><ul class="apr">' + A.aprendi.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") + (r.nota ? '<p class="nota">' + esc(r.nota) + "</p>" : "") + "</div>"; }).join("") + "</section>" +
 
     '<section class="parte" data-p="brujula"><h2>Brújula de formatos</h2><p class="bajada">Cómo se describió la idea en seis ejes (0 a 4) y qué formatos se le parecen. Es una referencia; el formato lo decide quien crea.</p>' +
     '<div class="bru"><svg class="radar" id="d-radar"></svg><svg class="dial" id="d-dial"></svg></div>' +
@@ -170,6 +189,8 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
 
     '<section class="parte" data-p="bitacora"><h2>Bitácora</h2><p class="bajada">Cómo avanzó el proyecto, de lo más antiguo a lo más reciente.</p><div class="hilo">' +
     NOTAS.map((n) => '<div class="n"><time>' + fecha(n.creado_en) + "</time><p>" + esc(n.texto) + "</p></div>").join("") + "</div></section>" +
+
+    '<section class="parte" data-p="bibliografia"><h2>Bibliografía</h2><p class="bajada">Las obras citadas y analizadas, en formato <select id="b-estilo" class="no-print" aria-label="Formato">' + Object.entries(O.ESTILOS).map(([k, n]) => '<option value="' + k + '">' + n + "</option>").join("") + '</select><span class="solo-print" id="b-estilo-n">APA 7</span>.</p><div class="biblio" id="biblio"></div></section>' +
     '<p class="pie-doc">Hecho con Forja · forja.digitalmonster.cl</p></article>';
 
   if (tocado(P.ejes) || f) { const B = base(P.tipo, P.formato); radar($("d-radar"), () => P.ejes, () => {}, null, () => B); dial($("d-dial"), P.ejes, P.formato, B); $("d-radar").style.pointerEvents = "none"; }
@@ -182,6 +203,13 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
     const vis = PARTES.filter(([k]) => on[k]);
     $("indice").innerHTML = vis.length ? "<h2>Contenido</h2><ol>" + vis.map(([k, n]) => "<li>" + n + (k === "taller" ? "<ol>" + conTexto.map((s) => "<li>" + esc(s.titulo) + "</li>").join("") + "</ol>" : k === "pizarras" && PZ.length > 1 ? "<ol>" + PZ.map((z) => "<li>" + esc(z.nombre) + "</li>").join("") + "</ol>" : "") + "</li>").join("") + "</ol>" : "";
   };
+  // Bibliografía (Forja Más): las obras en orden alfabético, en el formato elegido.
+  const biblio = () => {
+    const est = $("b-estilo").value;
+    $("b-estilo-n").textContent = O.ESTILOS[est];
+    $("biblio").innerHTML = O.ordenarBiblio(OBRAS).map((r) => "<p>" + O.cita(r.ficha, est, true) + "</p>").join("");
+  };
+  $("b-estilo").onchange = biblio; biblio();
   $("partes").onchange = aplicar; aplicar();
   $("b-print").onclick = () => window.print();
 }

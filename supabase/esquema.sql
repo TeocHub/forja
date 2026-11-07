@@ -368,5 +368,12 @@ create table public.ideas(        -- Semillero: ideas de una frase, por espacio 
   proyecto_id uuid references public.proyectos(id) on delete set null,   -- el proyecto que nació de la idea
   creado_en timestamptz not null default now()
 );
+-- + vueltas smallint 0..99 default 0 y vuelta_en timestamptz («Me sigue dando vueltas», migración semillero_vueltas_y_resguardos).
+-- Índices: ideas(espacio_id, creado_en desc) e ideas(proyecto_id) where proyecto_id is not null.
 -- RLS: ver = miembro del espacio (privado.rol_en); crear, editar y borrar = privado.escribe_en.
--- Trigger privado.t_ideas: espacio fijo, plan gratis 50 ideas por espacio (FORJA_LIMITE_IDEAS).
+-- Trigger privado.t_ideas: espacio fijo; creado_por = auth.uid() al crear y no cambia (tampoco creado_en);
+--   plan gratis 50 ideas por espacio contando solo las que no brotaron (proyecto_id null) (FORJA_LIMITE_IDEAS);
+--   proyecto_id solo puede apuntar a un proyecto que la persona ve (privado.ve, si no FORJA_NO_PERMITIDO); texto recortado.
+-- Analizar una obra (web en docs/js/obras.js): ficha = {clase libro|capitulo|videojuego|juegomesa|pelicula|cancion|web, autores, anio, titulo,
+--   edicion, editorial, editores, libro, paginas, album, sitio, fecha, url, formato}; valor = la cita APA en texto; titulo = ficha.titulo.
+--   analisis = {ve, armada, trata, aprendi[], en}; una cita (tipo 'cita') puede apuntar a una obra con ficha = {obra: id, pagina}.

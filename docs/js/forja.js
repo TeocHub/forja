@@ -22,12 +22,14 @@ export const MIN_EXPLORAR = 6;
 // Menú de la cuenta. Íconos dibujados a mano, de trazo, para que se lean en la barra del celular.
 const ICONO = {
   proyectos: '<path d="M4 6.5h6l2 2h8v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-10.5a1 1 0 0 1 1-1z"/>',
+  semillero: '<path d="M12 20v-6.5"/><path d="M12 13.5c0-3.6 2.6-6.2 6.5-6.2 0 3.6-2.7 6.2-6.5 6.2Z"/><path d="M12 15.5c0-2.8-2.2-5-5.4-5 0 2.8 2.2 5 5.4 5Z"/><path d="M5 20h14"/>',
   eventos: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
   cotizaciones: '<path d="M6 3h9l4 4v14H6z"/><path d="M14.5 3v4.5H19M9 12h7M9 16h5"/>',
   plan: '<path d="M12 3.5l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/>',
 };
 const APP = [
   { href: u("proyectos/"), nombre: "Proyectos", id: "proyectos" },
+  { href: u("semillero/"), nombre: "Semillero", id: "semillero" },
   { href: u("eventos/"), nombre: "Eventos", id: "eventos" },
   { href: u("cotizaciones/"), nombre: "Cotizaciones", id: "cotizaciones" },
   { href: u("planes/"), nombre: "Mejorar plan", id: "plan" },

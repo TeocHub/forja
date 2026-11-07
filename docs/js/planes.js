@@ -15,6 +15,7 @@ export const AREAS = [
 ];
 
 export const FUNCIONES = [
+  { k: "analizar-obras", a: "escritura", t: "Analizar obras", d: "La ficha de cada libro, juego o película con su cita armada, tres miradas para entender cómo está hecha y lo que aprendiste. Con Forja Más, también MLA, Chicago y la bibliografía en la biblia.", listo: true, libre: "Gratis: 3 obras analizadas por proyecto y cita APA." },
   { k: "capitulos", a: "escritura", t: "Capítulos y conteo", d: "Divide una sección en capítulos o escenas y cuenta palabras, páginas y tiempo de lectura de cada uno." },
   { k: "metas", a: "escritura", t: "Metas y constancia", d: "Meta de palabras por día o semana y un calendario de los días que escribiste." },
   { k: "manuscrito", a: "escritura", t: "Modo manuscrito", d: "El formato estándar para enviar a editoriales y concursos." },
@@ -27,6 +28,7 @@ export const FUNCIONES = [
   { k: "relaciones", a: "pizarras", t: "Mapa de relaciones", d: "Personajes o facciones unidos por lazos con nombre: familia, amor, rivalidad, secreto…", listo: true },
   { k: "escaleta", a: "pizarras", t: "Escaleta en tarjetas", d: "Escenas por actos que se reordenan arrastrando, con duración, y el orden vuelve al Taller.", listo: true },
   { k: "mapa-mundo", a: "pizarras", t: "Mapa del mundo", d: "Lugares, regiones y rutas sobre la imagen de tu mapa, cada uno con su ficha.", listo: true },
+  { k: "semillero", a: "organizacion", t: "Semillero sin límite", d: "Ideas de una frase que no gastan proyectos, con detonantes para encontrarlas y un semillero compartido para tu equipo.", listo: true, libre: "Gratis: 50 ideas en el semillero." },
   { k: "fichas", a: "organizacion", t: "Fichas y línea de tiempo", d: "Personajes, lugares y objetos con sus campos, y la cronología de la historia." },
   { k: "tareas", a: "organizacion", t: "Tareas con recordatorios", d: "Qué falta para la feria o la postulación, con aviso por correo." },
   { k: "versiones-precio", a: "venta", t: "Versiones de precio", d: "Comparar edición normal, deluxe y preventa en la misma cotización." },

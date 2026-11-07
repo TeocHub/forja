@@ -34,6 +34,10 @@ button{cursor:pointer}
 .semilla input:focus-visible{outline:none}
 .plantar{font-weight:700;border:1px solid var(--accent);background:var(--accent);color:var(--card);border-radius:10px;padding:8px 14px;white-space:nowrap}
 .plantar:disabled{opacity:.6}
+.a-semillero{font-size:13px;color:var(--muted);text-decoration:none;border-top:1px dashed var(--line);padding-top:8px}
+.a-semillero b{color:var(--good)}
+.a-semillero:hover{color:var(--fg)}
+.a-semillero.fuerte{color:var(--fg);font-size:14px}
 .tipos{display:flex;flex-wrap:wrap;gap:6px}
 .tipo{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 11px 3px 9px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
 .tipo::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--tc)}
@@ -111,10 +115,11 @@ button{cursor:pointer}
 
 <script type="module">
 import { sb, $, esc, toast, hace, navApp, espacio, espacioActual, conSesion, avisos, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
-import { TIPOS, ESTADOS, tc, PLANTILLA, SECCIONES, pesoDe, avance } from "../js/guias.js";
+import { TIPOS, ESTADOS, tc, avance } from "../js/guias.js";
 import { sendero } from "../js/ayuda.js";
 import { FORMATOS } from "../js/brujula.js";
 import { CREADORES, CREADOR_INICIAL } from "../js/ruta.js";
+import { plantarProyecto } from "../js/semillero.js";
 navApp("proyectos");
 if (location.hash === "#cotizaciones") location.replace("../cotizaciones/");
 
@@ -185,7 +190,8 @@ function proyectos() {
     Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipoNuevo) + '">' + n + "</button>").join("") +
     '</div><div class="como" role="radiogroup" aria-label="Cómo trabajas en este proyecto"><span class="como-t">¿Cómo trabajas?</span>' +
     Object.entries(CREADORES).map(([k, c]) => '<button type="button" role="radio" data-cr="' + k + '" aria-checked="' + (k === creadorNuevo) + '" title="' + esc(c.d) + '">' + c.n + "</button>").join("") +
-    '<span class="como-d" id="como-d">' + esc(CREADORES[creadorNuevo].d) + '</span></div></form>') + '<div class="buscador" id="buscador"></div><div id="mosaico" style="margin-top:12px"></div>';
+    '<span class="como-d" id="como-d">' + esc(CREADORES[creadorNuevo].d) + '</span></div>' +
+    '<a class="a-semillero' + (sinCupo ? " fuerte" : "") + '" href="../semillero/">' + (sinCupo ? "Mientras tanto, anota la idea en el <b>Semillero</b>: las ideas sueltas no gastan cupo." : "¿Todavía es solo una frase? Anótala en el <b>Semillero</b> y plántala cuando te siga dando vueltas.") + "</a></form>") + '<div class="buscador" id="buscador"></div><div id="mosaico" style="margin-top:12px"></div>';
   if (!lector) $("semilla").querySelectorAll(".tipo").forEach((b) => b.onclick = () => {
     tipoNuevo = b.dataset.t; $("semilla").querySelectorAll(".tipo").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
   });
@@ -199,11 +205,10 @@ function proyectos() {
     const nombre = $("s-nombre").value.trim();
     if (!nombre) { $("s-nombre").focus(); return; }
     const btn = e.target.querySelector(".plantar"); btn.disabled = true;
-    const { data, error } = await sb.from("proyectos").insert({ espacio_id: ESP, nombre, tipo: tipoNuevo, ruta: { creador: creadorNuevo, abrir: "ruta" } }).select("id").single();
-    if (error) { btn.disabled = false; toast(limite(error) || "No se pudo guardar. Revisa tu conexión."); return; }
-    // Nace con las secciones que suele necesitar su tipo.
-    await sb.from("secciones").insert(PLANTILLA[tipoNuevo].map((g, i) => ({ espacio_id: ESP, proyecto_id: data.id, titulo: SECCIONES[g].t, guia: g, orden: i, peso: pesoDe(g) })));
-    location.href = "../proyecto/?p=" + data.id;
+    // Nace con las secciones que suele necesitar su tipo (la misma función que usa el Semillero).
+    const r = await plantarProyecto({ espacio: ESP, nombre, tipo: tipoNuevo, creador: creadorNuevo });
+    if (r.error) { btn.disabled = false; toast(limite(r.error) || "No se pudo guardar. Revisa tu conexión."); return; }
+    location.href = "../proyecto/?p=" + r.id;
   };
   const ESTO = ["semilla", "desarrollo", "pausa", "listo", "archivado"];
   const cuenta = (e) => PROYS.filter((p) => p.estado === e).length;

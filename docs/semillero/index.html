@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forja · Semillero</title>
+<meta name="description" content="Ideas de una frase que todavía no son proyectos.">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: semillero — arriba se anota una idea (con un detonante al lado); abajo, la bandeja: cada idea en su alvéolo,
+   con una semilla que crece cada vez que la persona vuelve y le sigue dando vueltas. Al tocar una, se abre en su lugar. */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0}
+h2{font-family:var(--f-display);font-size:19px;margin:0}
+.lead{margin:6px 0 0;color:var(--muted);max-width:62ch}
+a{color:var(--accent)}
+button,input,select{font:inherit;color:var(--fg)}
+button{cursor:pointer}
+:where(button,input,select,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#app{display:flex;flex-direction:column;gap:18px}
+.btn{font-size:14px;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:7px 13px;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.prim{background:var(--accent);border-color:var(--accent);color:var(--card);font-weight:700}
+.btn:disabled{opacity:.55;cursor:default}
+.hint{font-size:13px;color:var(--muted)}
+
+/* bandejas: personal o del equipo */
+.bandejas{display:inline-flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;align-self:flex-start;max-width:100%;overflow-x:auto}
+.bandejas button{border:0;background:none;border-radius:9px;padding:6px 12px;font-size:14px;color:var(--muted);white-space:nowrap}
+.bandejas button[aria-pressed="true"]{background:var(--accent-soft);color:var(--fg);font-weight:700}
+.bandejas small{font-family:var(--f-num);font-size:11px;margin-left:6px;color:var(--muted)}
+
+/* anotar + detonante */
+.arriba{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px;align-items:stretch}
+@media (max-width:760px){.arriba{grid-template-columns:minmax(0,1fr)}}
+.anotar{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.anotar:focus-within{border-color:var(--good)}
+.anotar .k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.anotar .linea{display:flex;gap:10px;align-items:center}
+.anotar input{flex:1;min-width:0;font-family:var(--f-display);font-size:clamp(18px,2.6vw,21px);font-weight:500;border:0;border-bottom:1.5px dashed var(--line);background:transparent;padding:6px 2px}
+.anotar input:focus-visible{outline:none;border-bottom-color:var(--good)}
+.anotar input::placeholder{color:var(--muted);font-weight:400}
+.anillo{width:30px;height:30px;flex:none}
+.anillo circle{fill:none;stroke-width:3}
+.anillo .f{stroke:var(--line)}
+.anillo .v{stroke:var(--good);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .15s}
+.anillo.cerca .v{stroke:var(--warn)}
+.anillo.lleno .v{stroke:var(--bad)}
+.anillo text{font-family:var(--f-num);font-size:9px;fill:var(--muted);text-anchor:middle;dominant-baseline:central}
+.sembrar{font-weight:700;border:1px solid var(--good);background:var(--good);color:var(--card);border-radius:10px;padding:8px 15px}
+.sembrar:disabled{opacity:.5;cursor:default}
+.anotar .pie{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.tope{display:flex;align-items:center;gap:8px}
+.tope .fx-avance{width:90px}
+
+.detona{position:relative;border-radius:16px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:8px;
+  background:var(--ember-soft);border:1px solid color-mix(in srgb,var(--ember) 30%,var(--line))}
+.detona .k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ember);font-weight:700;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.detona select{font-size:12px;border:1px solid color-mix(in srgb,var(--ember) 35%,var(--line));background:var(--card);border-radius:8px;padding:3px 6px;text-transform:none;letter-spacing:0;font-weight:400}
+.detona b{font-family:var(--f-display);font-size:18px;line-height:1.25}
+.detona p{margin:0;font-size:14.5px}
+.detona .acc{display:flex;gap:6px;margin-top:auto;padding-top:4px}
+.detona .acc button{font-size:13px;border:1px solid color-mix(in srgb,var(--ember) 40%,var(--line));background:var(--card);border-radius:8px;padding:5px 11px}
+.detona .acc button:hover{border-color:var(--ember)}
+.detona .carta{display:flex;flex-direction:column;gap:6px;animation:barajar .35s ease}
+@keyframes barajar{from{opacity:0;transform:translateY(6px) rotate(-.6deg)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.detona .carta{animation:none}}
+
+/* bandeja */
+.cab{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.cab .der{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.orden{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
+.orden button{border:0;background:none;font-size:13px;padding:4px 11px;color:var(--muted)}
+.orden button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.buscar{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 12px;font-size:13px;width:170px}
+.bandeja{display:grid;grid-template-columns:repeat(auto-fill,minmax(186px,1fr));gap:10px;padding:12px;border-radius:18px;
+  background:color-mix(in srgb,var(--good) 6%,var(--card));border:1px solid color-mix(in srgb,var(--good) 18%,var(--line));grid-auto-flow:dense}
+.alv{position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:10px 12px 10px;min-height:136px;
+  box-shadow:inset 0 -10px 0 -6px color-mix(in srgb,var(--warn) 10%,transparent);transition:border-color .15s,transform .15s}
+.alv:hover{border-color:color-mix(in srgb,var(--good) 55%,var(--line))}
+.alv>.toca{position:absolute;inset:0;border:0;background:none;border-radius:14px;z-index:1}
+.alv .planta{width:44px;height:44px;color:var(--good)}
+.alv .frase{font-family:var(--f-display);font-size:16px;line-height:1.3;overflow-wrap:anywhere;flex:1}
+.alv .meta{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.alv .quien{font-family:var(--f-num);font-size:11px;max-width:12ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alv .vueltas{display:inline-flex;gap:3px}
+.alv .vueltas i{width:6px;height:6px;border-radius:50%;background:var(--good)}
+.alv.abierto{grid-column:span 2;border-color:var(--good);box-shadow:0 6px 24px -14px color-mix(in srgb,var(--good) 70%,transparent)}
+@media (max-width:440px){.alv.abierto{grid-column:1/-1}}
+.alv.abierto>.toca{display:none}
+.alv .abrir{display:none;flex-direction:column;gap:8px;position:relative;z-index:2}
+.alv.abierto .abrir{display:flex}
+.alv .acc{display:flex;flex-wrap:wrap;gap:6px}
+.alv .acc button{font-size:13px;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:5px 10px}
+.alv .acc button:hover{border-color:var(--accent)}
+.alv .acc .plantar{background:var(--good);border-color:var(--good);color:var(--card);font-weight:700}
+.alv .acc .vuelta{border-color:color-mix(in srgb,var(--good) 45%,var(--line));color:var(--good);font-weight:700}
+.alv .acc .borrar{color:var(--bad);margin-left:auto}
+.alv .acc button:disabled{opacity:.55;cursor:default}
+.alv .editar{display:flex;gap:6px}
+.alv .editar input{flex:1;min-width:0;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:6px 9px;font-family:var(--f-display);font-size:15px}
+.alv .nota{font-size:12.5px;color:var(--muted);margin:0}
+.alv.nueva{animation:brota .5s ease}
+@keyframes brota{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.alv.nueva{animation:none}}
+.vacia{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.vacia span{aspect-ratio:1.4;border:1.5px dashed color-mix(in srgb,var(--good) 30%,var(--line));border-radius:14px}
+.vacia p{grid-column:1/-1;margin:0;text-align:center;color:var(--muted)}
+@media (max-width:560px){.vacia{grid-template-columns:repeat(2,1fr)}}
+
+/* las que brotaron */
+.brotaron{display:flex;flex-wrap:wrap;gap:8px}
+.brote{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 12px 4px 6px;font-size:13.5px;text-decoration:none;color:var(--fg);max-width:100%}
+.brote svg{width:24px;height:24px;color:var(--good);flex:none}
+.brote span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brote b{font-weight:700}
+.brote small{color:var(--muted)}
+a.brote:hover{border-color:var(--good)}
+
+/* plantar */
+dialog.pl{border:0;border-radius:18px;padding:0;width:min(560px,calc(100vw - 24px));background:var(--card);color:var(--fg);box-shadow:0 24px 70px rgba(0,0,0,.3)}
+dialog.pl::backdrop{background:rgba(10,12,20,.45)}
+.pl form{display:flex;flex-direction:column;gap:14px;padding:20px}
+.pl .k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--good);font-weight:700}
+.pl label>span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.pl input[type=text],.pl select{width:100%;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:9px 11px}
+.pl input[type=text]{font-family:var(--f-display);font-size:18px}
+.pl .tipos{display:flex;flex-wrap:wrap;gap:6px}
+.pl .tipo{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 11px 3px 9px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.pl .tipo::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--tc)}
+.pl .tipo[aria-pressed="true"]{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent);font-weight:700}
+.pl .como{display:flex;flex-wrap:wrap;gap:6px}
+.pl .como button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 11px;font-size:13px}
+.pl .como button[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.pl .como-d{font-size:13px;color:var(--muted);margin:4px 0 0}
+.pl .aviso{font-size:13.5px;background:var(--warn-soft);color:var(--fg);border-radius:10px;padding:8px 11px;margin:0}
+.pl .acc{display:flex;justify-content:flex-end;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="app"><div class="fx-empty">Cargando…</div></main>
+</div>
+<script type="module">
+import { sb, $, esc, toast, navApp, conSesion, espacios, espacioActual, limite, hace, LIMITES, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
+import { TIPOS, tc } from "../js/guias.js";
+import { CREADORES, CREADOR_INICIAL } from "../js/ruta.js";
+import { MAX_IDEA, PARA, detonante, plantarProyecto } from "../js/semillero.js";
+import { pista } from "../js/ayuda.js";
+navApp("semillero");
+
+let YO = null, ESPS = [], E = null, IDEAS = [], PROYS = {}, NOMBRES = {}, abierta = null, orden = "recientes", q = "", paraDet = "todo", det = null;
+const DIA = 20 * 3600 * 1000; // «me sigue dando vueltas» cuenta una vez por día
+const escribe = (e) => e && e.rol !== "lector";
+const nombreEsp = (e) => (e.tipo === "personal" ? "Mi semillero" : e.nombre);
+let creador = (() => { try { const c = localStorage.getItem("forja-creador"); return CREADORES[c] ? c : CREADOR_INICIAL; } catch (e) { return CREADOR_INICIAL; } })();
+
+conSesion($("app"), async (ses) => {
+  YO = ses.user; ESPS = await espacios();
+  const pedida = new URLSearchParams(location.search).get("e"), act = await espacioActual();
+  E = ESPS.find((x) => x.id === pedida) || act || ESPS[0];
+  if (!E) throw new Error("sin espacio");
+  await cargar();
+});
+
+async function cargar() {
+  const { data, error } = await sb.from("ideas").select("*").eq("espacio_id", E.id).order("creado_en", { ascending: false });
+  if (error) throw error;
+  IDEAS = data || [];
+  // Nombres de los proyectos que brotaron (solo los que la persona puede ver).
+  const ids = [...new Set(IDEAS.map((i) => i.proyecto_id).filter(Boolean))];
+  PROYS = {};
+  if (ids.length) { const { data: ps } = await sb.from("proyectos").select("id,nombre,tipo").in("id", ids); (ps || []).forEach((p) => (PROYS[p.id] = p)); }
+  // En el equipo, quién anotó cada idea (el nombre del correo, como en el resto de Forja).
+  NOMBRES = {};
+  if (E.tipo === "equipo") { const { data: pn } = await sb.rpc("equipo_panel", { e: E.id }); ((pn && pn.miembros) || []).forEach((m) => (NOMBRES[m.user_id] = m.user_id === YO.id ? "tú" : String(m.correo || "").split("@")[0])); }
+  pintar();
+}
+
+const enSemillero = () => IDEAS.filter((i) => !i.proyecto_id);
+function pintar() {
+  const ed = escribe(E), n = enSemillero().length, libre = !E.mas, max = LIMITES.ideas, lleno = libre && n >= max;
+  $("app").innerHTML =
+    '<header><h1>Semillero</h1><p class="lead">' + (E.tipo === "equipo" ? "Las ideas sueltas de " + esc(E.nombre) + ". Cualquiera del equipo con permiso para editar puede anotar y plantar." : "Ideas de una frase. No son proyectos ni gastan cupo: las plantas cuando una te siga dando vueltas.") + "</p></header>" +
+    (ESPS.length > 1 ? '<div class="bandejas" role="group" aria-label="Qué semillero ver">' + ESPS.map((x) => '<button type="button" data-bandeja="' + x.id + '" aria-pressed="' + (x.id === E.id) + '">' + esc(nombreEsp(x)) + (x.tipo === "equipo" ? "<small>equipo</small>" : "") + "</button>").join("") + "</div>" : "") +
+    (ed ? '<div class="arriba"><form class="anotar" id="f-idea" autocomplete="off"><span class="k">Anota una idea</span>' +
+      '<div class="linea"><label class="fx-sr" for="i-texto">La idea, en una frase</label><input id="i-texto" maxlength="' + MAX_IDEA + '" placeholder="' + (lleno ? "El semillero está lleno: planta o borra una idea" : "Ej.: un faro que se apaga con las mentiras") + '"' + (lleno ? " disabled" : "") + ">" +
+      '<svg class="anillo" id="anillo" viewBox="0 0 30 30" aria-hidden="true"><circle class="f" cx="15" cy="15" r="12"/><circle class="v" cx="15" cy="15" r="12" stroke-dasharray="75.4" stroke-dashoffset="75.4"/><text x="15" y="15.5" id="anillo-n"></text></svg>' +
+      '<button class="sembrar" type="submit" id="b-sembrar" disabled>Anotar</button></div>' +
+      '<div class="pie"><span>Una frase de hasta ' + MAX_IDEA + " caracteres. Sin juzgarla: eso viene después.</span>" +
+      (libre ? '<span class="tope"><span>' + n + " de " + max + '</span><span class="fx-avance"><i style="width:' + Math.min(100, (n / max) * 100) + '%"></i></span></span>' : "<span>Forja Más · sin límite</span>") + "</div>" +
+      (lleno ? '<p class="hint" style="margin:0">Llegaste a las ' + max + " ideas del plan gratis. Las que plantes dejan de contar. " + MAS_PRONTO + MAS_LINK + "</p>" : "") + "</form>" +
+      '<aside class="detona" aria-live="polite" id="detona"></aside></div>'
+      : '<p class="hint">Puedes ver el semillero del equipo. Para anotar o plantar ideas, pídele permiso de edición a quien administra el equipo.</p>') +
+    '<section style="display:flex;flex-direction:column;gap:10px"><div class="cab"><h2>La bandeja <span class="hint" style="font-family:var(--f-body);font-weight:400">· ' + (n === 1 ? "1 idea" : n + " ideas") + "</span></h2>" +
+      '<div class="der">' + (n > 9 ? '<label class="fx-sr" for="i-buscar">Buscar</label><input class="buscar" id="i-buscar" type="search" placeholder="Buscar…" value="' + esc(q) + '">' : "") +
+      (n > 1 ? '<div class="orden" role="group" aria-label="Ordenar"><button type="button" data-o="recientes" aria-pressed="' + (orden === "recientes") + '">Recientes</button><button type="button" data-o="fuerza" aria-pressed="' + (orden === "fuerza") + '">Con más fuerza</button></div>' : "") + "</div></div>" +
+      '<div class="bandeja" id="bandeja"></div><p class="hint" style="margin:0">' + (ed ? "Vuelve en unos días: toca una idea y marca «Me sigue dando vueltas». La semilla crece con cada vuelta, y la que más crece suele ser la que tiene fuerza." : "") + "</p></section>" +
+    '<section id="brotaron"></section>';
+
+  $("app").querySelectorAll("[data-bandeja]").forEach((b) => b.onclick = () => { if (b.dataset.bandeja === E.id) return; E = ESPS.find((x) => x.id === b.dataset.bandeja); abierta = null; q = ""; history.replaceState(null, "", "?e=" + E.id); cargar(); });
+  $("app").querySelectorAll("[data-o]").forEach((b) => b.onclick = () => { orden = b.dataset.o; $("app").querySelectorAll("[data-o]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); pintarBandeja(); });
+  if ($("i-buscar")) $("i-buscar").oninput = (e) => { q = e.target.value; pintarBandeja(); };
+  if (ed) { formulario(); pintarDetonante(); }
+  pintarBandeja(); pintarBrotes();
+  pista($("app").querySelector("header"), "semillero");
+}
+
+function formulario() {
+  const inp = $("i-texto"), b = $("b-sembrar");
+  const contar = () => {
+    const l = inp.value.length, r = 75.4 * (1 - l / MAX_IDEA);
+    $("anillo").querySelector(".v").style.strokeDashoffset = r;
+    $("anillo").classList.toggle("cerca", l >= MAX_IDEA - 15 && l < MAX_IDEA); $("anillo").classList.toggle("lleno", l >= MAX_IDEA);
+    $("anillo-n").textContent = l >= MAX_IDEA - 15 ? MAX_IDEA - l : "";
+    b.disabled = !inp.value.trim();
+  };
+  inp.oninput = contar; contar();
+  $("f-idea").onsubmit = async (e) => {
+    e.preventDefault();
+    const texto = inp.value.trim(); if (!texto) return;
+    b.disabled = true;
+    const { data, error } = await sb.from("ideas").insert({ espacio_id: E.id, texto }).select("*").single();
+    if (error) { b.disabled = false; toast(limite(error) || "No se pudo anotar la idea. Revisa tu conexión."); return; }
+    IDEAS.unshift(data); inp.value = ""; orden = "recientes"; q = "";
+    pintar(); const n = document.querySelector('.alv[data-id="' + data.id + '"]'); if (n) n.classList.add("nueva");
+    $("i-texto").focus();
+  };
+}
+
+function pintarDetonante() {
+  det = detonante(paraDet, det);
+  $("detona").innerHTML = '<span class="k"><span>¿Nada todavía?</span><label><span class="fx-sr">Detonantes para</span><select id="d-para">' + Object.entries(PARA).map(([k, n]) => '<option value="' + k + '"' + (k === paraDet ? " selected" : "") + ">" + n + "</option>").join("") + "</select></label></span>" +
+    '<div class="carta"><b>' + esc(det.t) + "</b><p>" + esc(det.d) + "</p></div>" +
+    '<div class="acc"><button type="button" id="d-otro">Otro detonante</button><button type="button" id="d-anotar">Anotar lo que salió</button></div>';
+  $("d-para").onchange = (e) => { paraDet = e.target.value; pintarDetonante(); };
+  $("d-otro").onclick = pintarDetonante;
+  $("d-anotar").onclick = () => { const i = $("i-texto"); if (!i.disabled) { i.focus(); i.scrollIntoView({ block: "center", behavior: "smooth" }); } };
+}
+
+// La semilla crece con las vueltas: 0 semilla, 1 brote, 2 dos hojas, 3 o más con flor.
+function planta(v) {
+  const e = Math.min(3, v || 0);
+  const suelo = '<path d="M6 40h32" stroke="color-mix(in srgb,var(--warn) 55%,var(--line))" stroke-width="2" stroke-linecap="round"/>';
+  if (e === 0) return '<svg class="planta" viewBox="0 0 44 44" aria-hidden="true">' + suelo + '<ellipse cx="22" cy="35" rx="7" ry="4.6" fill="color-mix(in srgb,var(--warn) 70%,var(--card))"/><path d="M19.5 33.6c1.8-1 3.6-1 5.4 0" stroke="var(--card)" stroke-width="1" fill="none" stroke-linecap="round"/></svg>';
+  const tallo = '<path d="M22 40V' + (e === 1 ? 28 : e === 2 ? 22 : 15) + '" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>';
+  const h1 = '<path d="M22 ' + (e === 1 ? 30 : 27) + 'c0-5 3.6-8.5 9-8.5 0 5-3.8 8.5-9 8.5Z" fill="currentColor"/>';
+  const h2 = e >= 2 ? '<path d="M22 32c0-4.2-3-7.2-7.6-7.2 0 4.2 3.2 7.2 7.6 7.2Z" fill="color-mix(in srgb,currentColor 75%,var(--card))"/>' : "";
+  const flor = e >= 3 ? '<circle cx="22" cy="12" r="4.4" fill="var(--ember)"/><circle cx="22" cy="12" r="1.7" fill="var(--warn-soft)"/>' : "";
+  return '<svg class="planta" viewBox="0 0 44 44" aria-hidden="true">' + suelo + tallo + h1 + h2 + flor + "</svg>";
+}
+const estadoPlanta = (v) => ["Semilla", "Brote", "Creciendo", "Con flor"][Math.min(3, v || 0)];
+
+function pintarBandeja() {
+  const ed = escribe(E), norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  let vis = enSemillero();
+  if (q.trim()) vis = vis.filter((i) => norm(i.texto).includes(norm(q.trim())));
+  if (orden === "fuerza") vis = vis.slice().sort((a, b) => (b.vueltas - a.vueltas) || b.creado_en.localeCompare(a.creado_en));
+  const bj = $("bandeja");
+  if (!enSemillero().length) { bj.innerHTML = '<div class="vacia"><span></span><span></span><span></span><span></span><p>' + (ed ? "La bandeja está vacía. Anota arriba la primera idea, aunque sea a medias." : "El equipo todavía no anota ideas aquí.") + "</p></div>"; return; }
+  if (!vis.length) { bj.innerHTML = '<div class="vacia"><p>Ninguna idea tiene esas palabras.</p></div>'; return; }
+  const otros = ESPS.filter((x) => x.id !== E.id && x.tipo === "equipo" && escribe(x));
+  bj.innerHTML = vis.map((i) => {
+    const hoy = i.vuelta_en && Date.now() - new Date(i.vuelta_en).getTime() < DIA;
+    return '<article class="alv' + (abierta === i.id ? " abierto" : "") + '" data-id="' + i.id + '">' +
+      '<button type="button" class="toca" aria-label="Abrir la idea: ' + esc(i.texto) + '" aria-expanded="' + (abierta === i.id) + '"></button>' +
+      planta(i.vueltas) + '<span class="frase">' + esc(i.texto) + "</span>" +
+      '<span class="meta"><span>' + (E.tipo === "equipo" && NOMBRES[i.creado_por] ? '<span class="quien">' + esc(NOMBRES[i.creado_por]) + "</span> · " : "") + hace(i.creado_en) + "</span>" +
+      (i.vueltas ? '<span class="vueltas" title="' + i.vueltas + (i.vueltas === 1 ? " vuelta" : " vueltas") + '">' + "<i></i>".repeat(Math.min(5, i.vueltas)) + "</span>" : "") + "</span>" +
+      '<div class="abrir">' + (ed ? '<div class="acc">' +
+        '<button type="button" class="vuelta" data-a="vuelta"' + (hoy ? " disabled" : "") + ">" + (hoy ? "Ya volviste hoy" : "Me sigue dando vueltas") + "</button>" +
+        '<button type="button" class="plantar" data-a="plantar">Plantar</button>' +
+        '<button type="button" data-a="editar">Editar</button>' +
+        (E.tipo === "personal" && otros.length ? otros.map((o) => '<button type="button" data-a="pasar" data-a-esp="' + o.id + '">Pasar a ' + esc(o.nombre) + "</button>").join("") : "") +
+        '<button type="button" class="borrar" data-a="borrar">Borrar</button></div>' : "") +
+        '<p class="nota">' + estadoPlanta(i.vueltas) + (i.vueltas ? " · volviste " + (i.vueltas === 1 ? "una vez" : i.vueltas + " veces") + (i.vuelta_en ? ", la última " + hace(i.vuelta_en) : "") : " · aún no vuelves a ella") + "</p></div></article>";
+  }).join("");
+  bj.querySelectorAll(".toca").forEach((t) => t.onclick = () => { abierta = t.closest(".alv").dataset.id; pintarBandeja(); const a = bj.querySelector(".alv.abierto [data-a]"); if (a) a.focus({ preventScroll: true }); });
+  bj.onkeydown = (e) => { if (e.key === "Escape" && abierta) { const id = abierta; abierta = null; pintarBandeja(); const t = bj.querySelector('.alv[data-id="' + id + '"] .toca'); if (t) t.focus(); } };
+  bj.querySelectorAll("[data-a]").forEach((b) => b.onclick = () => accion(b, IDEAS.find((x) => x.id === b.closest(".alv").dataset.id)));
+}
+
+async function accion(b, i) {
+  const a = b.dataset.a;
+  if (a === "vuelta") {
+    b.disabled = true;
+    const { error } = await sb.from("ideas").update({ vueltas: Math.min(99, (i.vueltas || 0) + 1), vuelta_en: new Date().toISOString() }).eq("id", i.id);
+    if (error) { b.disabled = false; toast("No se pudo guardar."); return; }
+    i.vueltas = Math.min(99, (i.vueltas || 0) + 1); i.vuelta_en = new Date().toISOString();
+    pintarBandeja(); toast(i.vueltas >= 3 ? "Esta idea ya tiene flor. ¿La plantas?" : "Anotado. La semilla creció.");
+    return;
+  }
+  if (a === "editar") {
+    const caja = b.closest(".abrir");
+    caja.innerHTML = '<form class="editar"><label class="fx-sr" for="e-' + i.id + '">Idea</label><input id="e-' + i.id + '" maxlength="' + MAX_IDEA + '" value="' + esc(i.texto) + '"><button class="btn prim" type="submit">Guardar</button><button class="btn" type="button" data-x>Cancelar</button></form>';
+    const f = caja.querySelector("form"), inp = f.querySelector("input"); inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
+    f.querySelector("[data-x]").onclick = pintarBandeja;
+    f.onsubmit = async (e) => {
+      e.preventDefault(); const texto = inp.value.trim(); if (!texto) { inp.focus(); return; }
+      const { error } = await sb.from("ideas").update({ texto }).eq("id", i.id);
+      if (error) { toast("No se pudo guardar."); return; }
+      i.texto = texto; pintarBandeja();
+    };
+    return;
+  }
+  if (a === "borrar") {
+    if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "¿Borrarla?"; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ""; b.textContent = "Borrar"; } }, 3500); return; }
+    const { error } = await sb.from("ideas").delete().eq("id", i.id);
+    if (error) { toast("No se pudo borrar."); return; }
+    IDEAS = IDEAS.filter((x) => x.id !== i.id); abierta = null; pintar(); return;
+  }
+  if (a === "pasar") {
+    const destino = ESPS.find((x) => x.id === b.dataset.aEsp); if (!destino) return;
+    b.disabled = true;
+    const { error } = await sb.from("ideas").insert({ espacio_id: destino.id, texto: i.texto, vueltas: i.vueltas || 0, vuelta_en: i.vuelta_en });
+    if (error) { b.disabled = false; toast(limite(error) || "No se pudo pasar la idea."); return; }
+    await sb.from("ideas").delete().eq("id", i.id);
+    IDEAS = IDEAS.filter((x) => x.id !== i.id); abierta = null; pintar(); toast("La idea quedó en el semillero de " + destino.nombre + ".");
+    return;
+  }
+  if (a === "plantar") dialogoPlantar(i);
+}
+
+/* ---------- plantar una idea ---------- */
+async function dialogoPlantar(i) {
+  const destinos = ESPS.filter(escribe);
+  let destino = destinos.find((x) => x.id === E.id) || destinos[0], tipo = "historia";
+  const d = document.createElement("dialog"); d.className = "pl"; d.setAttribute("aria-label", "Plantar la idea");
+  document.body.appendChild(d);
+  const cupo = async () => {
+    if (destino.mas) return null;
+    const { count } = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", destino.id).neq("estado", "archivado");
+    return (count || 0) >= LIMITES.proyectos ? count : null;
+  };
+  const pintarD = async () => {
+    const lleno = await cupo();
+    d.innerHTML = '<form method="dialog"><span class="k">Plantar la idea</span>' +
+      '<label><span>Nombre del proyecto</span><input type="text" id="p-nombre" maxlength="160" value="' + esc(d.dataset.nombre || i.texto) + '"></label>' +
+      '<p class="hint" style="margin:-8px 0 0">La frase de la idea queda como resumen del proyecto. Puedes cambiarla después.</p>' +
+      '<div><span class="hint">¿Qué es?</span><div class="tipos" role="group" aria-label="Categoría">' + Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipo) + '">' + n + "</button>").join("") + "</div></div>" +
+      '<div><span class="hint">¿Cómo trabajas en este proyecto?</span><div class="como" role="radiogroup" aria-label="Cómo trabajas">' + Object.entries(CREADORES).map(([k, c]) => '<button type="button" role="radio" data-cr="' + k + '" aria-checked="' + (k === creador) + '">' + c.n + "</button>").join("") + '</div><p class="como-d">' + esc(CREADORES[creador].d) + "</p></div>" +
+      (destinos.length > 1 ? '<label><span>Plantarlo en</span><select id="p-dest">' + destinos.map((x) => '<option value="' + x.id + '"' + (x.id === destino.id ? " selected" : "") + ">" + esc(x.tipo === "personal" ? "Mi forja" : x.nombre) + "</option>").join("") + "</select></label>" : "") +
+      (lleno !== null ? '<p class="aviso">' + (destino.tipo === "personal" ? "Tienes " : "El equipo tiene ") + lleno + " proyectos en curso y el plan gratis permite " + LIMITES.proyectos + ". Archiva uno en Proyectos para plantar esta idea; mientras, sigue guardada aquí.</p>" : "") +
+      '<div class="acc"><button type="button" class="btn" data-x>Ahora no</button><button type="submit" class="btn prim" id="p-ok"' + (lleno !== null ? " disabled" : "") + ">Plantar y abrir</button></div></form>";
+    d.querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { tipo = b.dataset.t; d.querySelectorAll("[data-t]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
+    d.querySelectorAll("[data-cr]").forEach((b) => b.onclick = () => { creador = b.dataset.cr; try { localStorage.setItem("forja-creador", creador); } catch (e) {} d.querySelectorAll("[data-cr]").forEach((x) => x.setAttribute("aria-checked", String(x === b))); d.querySelector(".como-d").textContent = CREADORES[creador].d; });
+    if (d.querySelector("#p-dest")) d.querySelector("#p-dest").onchange = (e) => { d.dataset.nombre = d.querySelector("#p-nombre").value; destino = destinos.find((x) => x.id === e.target.value); pintarD(); };
+    d.querySelector("[data-x]").onclick = () => d.close();
+    d.querySelector("form").onsubmit = async (e) => {
+      e.preventDefault();
+      const nombre = d.querySelector("#p-nombre").value.trim(); if (!nombre) { d.querySelector("#p-nombre").focus(); return; }
+      const ok = d.querySelector("#p-ok"); ok.disabled = true; ok.textContent = "Plantando…";
+      const r = await plantarProyecto({ espacio: destino.id, nombre, tipo, creador, resumen: i.texto, hechos: { semillero: new Date().toISOString().slice(0, 10) } });
+      if (r.error) { ok.disabled = false; ok.textContent = "Plantar y abrir"; toast(limite(r.error) || "No se pudo plantar. Revisa tu conexión."); return; }
+      await sb.from("ideas").update({ proyecto_id: r.id }).eq("id", i.id);
+      location.href = "../proyecto/?p=" + r.id;
+    };
+  };
+  d.addEventListener("close", () => d.remove());
+  d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
+  await pintarD(); d.showModal();
+  const n = d.querySelector("#p-nombre"); n.focus(); n.select();
+}
+
+function pintarBrotes() {
+  const br = IDEAS.filter((i) => i.proyecto_id);
+  if (!br.length) { $("brotaron").innerHTML = ""; return; }
+  $("brotaron").innerHTML = '<div style="display:flex;flex-direction:column;gap:8px"><h2>Ya brotaron</h2><p class="hint" style="margin:0">Ideas que se volvieron proyecto. No cuentan en el tope del semillero.</p><div class="brotaron">' +
+    br.map((i) => { const p = PROYS[i.proyecto_id]; return p ? '<a class="brote" href="../proyecto/?p=' + p.id + '">' + planta(3) + '<span><b>' + esc(p.nombre) + "</b>" + (p.nombre.trim().toLowerCase() !== i.texto.trim().toLowerCase() ? " <small>· " + esc(i.texto) + "</small>" : "") + "</span></a>" : '<span class="brote">' + planta(3) + "<span>" + esc(i.texto) + " <small>· en un proyecto reservado</small></span></span>"; }).join("") + "</div></div>";
+}
+</script>
+</body>
+</html>

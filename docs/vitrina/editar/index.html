@@ -204,7 +204,7 @@ else conSesion($("app"), async () => {
   const [pr, se, re, pz, no, vi] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
     sb.from("secciones").select("id,titulo,texto,orden").eq("proyecto_id", ID).order("orden"),
-    sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
+    sb.from("referentes").select("*").eq("proyecto_id", ID).neq("tipo", "obra").order("creado_en", { ascending: false }), // las obras analizadas no van a la galería
     sb.from("pizarras").select("id,nombre,modo,datos,creado_en").eq("proyecto_id", ID).order("creado_en"),
     sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
     sb.from("vitrinas").select("*").eq("proyecto_id", ID).maybeSingle(),

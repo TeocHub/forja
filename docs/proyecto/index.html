@@ -316,6 +316,107 @@ textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;
 .ref .cuerpo .meta button:hover{color:var(--accent)}
 .ref .cuerpo textarea,.ref .cuerpo input{width:100%;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:6px 8px;font-size:14px}
 
+/* obras: ficha, tarjeta y análisis */
+.agregar .extra[hidden],.de-obra[hidden]{display:none}
+.r-pie{display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap}
+.ob-nueva{display:inline-flex;align-items:center;gap:8px;border:1px dashed color-mix(in srgb,var(--t-historia) 45%,var(--line));background:color-mix(in srgb,var(--t-historia) 6%,var(--card));color:var(--fg);border-radius:10px;padding:7px 12px;font-size:14px;font-weight:700}
+.ob-nueva svg{color:var(--t-historia)}
+.ob-nueva small{font-weight:400;color:var(--muted)}
+.ob-nueva[aria-expanded="true"]{border-style:solid}
+.de-obra{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:8px}
+.de-obra label{display:flex;flex-direction:column;gap:3px}
+.de-obra span{font-size:12px;color:var(--muted)}
+.de-obra select,.de-obra input{width:100%;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:6px 8px;font-size:14px}
+.obra-f{border:1px solid color-mix(in srgb,var(--oc) 40%,var(--line));border-left:5px solid var(--oc);border-radius:14px;background:var(--card);padding:14px;display:flex;flex-direction:column;gap:12px}
+.of-cab{display:flex;justify-content:space-between;align-items:center}
+.of-cab b{font-family:var(--f-display);font-size:17px}
+.of-x{border:0;background:none;font-size:22px;line-height:1;color:var(--muted);padding:0 4px}
+.of-clases,.of-chips{display:flex;flex-wrap:wrap;gap:6px}
+.of-clases button,.of-chips button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 11px;font-size:13px}
+.of-clases button[aria-checked="true"]{border-color:var(--oc);background:color-mix(in srgb,var(--oc) 13%,transparent);font-weight:700}
+.of-chips button[aria-checked="true"]{border-color:var(--fg);font-weight:700}
+.of-campos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:620px){.of-campos{grid-template-columns:minmax(0,1fr)}}
+.of-campo{display:flex;flex-direction:column;gap:3px}
+.of-campo.ancho{grid-column:1/-1}
+.of-campo>span{font-size:12.5px;color:var(--muted)}
+.of-campo em{font-style:normal;color:var(--oc);font-weight:700;margin-left:4px}
+.of-campo input{width:100%;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:7px 9px}
+.of-campo input[data-of="titulo"]{font-family:var(--f-display);font-size:17px}
+.of-campo small{font-size:12px;color:var(--muted)}
+.of-vista{background:var(--field);border-radius:10px;padding:10px 12px}
+.of-vista>span{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.of-vista select{font-size:12px;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:2px 4px;text-transform:none;letter-spacing:0}
+.of-vista p{margin:6px 0 0;font-family:"Literata",Georgia,serif;font-size:15px;line-height:1.55;padding-left:1.6em;text-indent:-1.6em;overflow-wrap:anywhere}
+.of-acc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end}
+.of-acc .hint{margin-right:auto;flex:1 1 220px}
+.ref.obra{border-top:0}
+.ob-tapa{display:flex;flex-direction:column;gap:2px;padding:14px 14px 12px;background:linear-gradient(135deg,color-mix(in srgb,var(--oc) 16%,var(--card)),color-mix(in srgb,var(--oc) 5%,var(--card)));border-top:4px solid var(--oc);position:relative}
+.ob-tapa::after{content:"";position:absolute;left:10px;top:0;bottom:0;width:1px;background:color-mix(in srgb,var(--oc) 25%,transparent)}
+.ob-k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--oc);font-weight:700;padding-left:6px}
+.ob-tapa b{font-family:var(--f-display);font-size:19px;line-height:1.2;padding-left:6px;overflow-wrap:anywhere}
+.ob-tapa small{font-size:13px;color:var(--muted);padding-left:6px}
+.ob-partes{display:flex;align-items:center;gap:8px}
+.ob-barra{display:inline-flex;gap:3px}
+.ob-barra i{width:18px;height:6px;border-radius:3px;background:var(--line)}
+.ob-barra i.si{background:var(--oc)}
+.ob-barra i.apr-k.si{background:var(--ember)}
+.ob-apr{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.ob-apr li{font-size:14px;border-left:3px solid var(--ember);padding:1px 0 1px 8px}
+.ob-apr li.mas{border:0;padding:0;font-size:12px;color:var(--muted)}
+.ob-abrir{align-self:flex-start}
+.ob-cita summary{font-size:12px;color:var(--muted);cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
+.ob-cita p{margin:6px 0;font-family:"Literata",Georgia,serif;font-size:13.5px;line-height:1.5;padding-left:1.4em;text-indent:-1.4em;overflow-wrap:anywhere}
+.ob-est{display:flex;flex-wrap:wrap;gap:4px}
+.ob-est button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:1px 9px;font-size:12px}
+.ob-est button[aria-pressed="true"]{border-color:var(--fg);font-weight:700}
+.ob-est button.bloq{color:var(--muted)}
+.ob-est button.bloq{border-style:dashed}
+.ob-est button.bloq::after{content:"Más";font-size:9.5px;font-weight:700;color:var(--ember);margin-left:4px;letter-spacing:.03em}
+.ob-est [data-a=copiar]{margin-left:auto;border-color:var(--accent);color:var(--accent)}
+.ob-de{display:block;padding:0 18px 4px;font-style:normal;font-size:12.5px;color:var(--muted)}
+.ob-de i{font-style:italic}
+.aprendido{display:flex;flex-direction:column;gap:8px}
+.apr-cab{display:flex;align-items:baseline;gap:8px}
+.apr-cab b{font-family:var(--f-display);font-size:16px}
+.apr-tira{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity;scrollbar-width:thin}
+.apr{flex:0 0 min(260px,78vw);scroll-snap-align:start;display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid color-mix(in srgb,var(--ember) 30%,var(--line));background:var(--ember-soft);border-radius:12px;padding:10px 12px;font-size:14.5px;line-height:1.4}
+.apr small{font-size:12px;color:var(--muted);border-top:1px solid color-mix(in srgb,var(--oc) 40%,transparent);padding-top:4px}
+.apr:hover{border-color:var(--ember)}
+dialog.an-d{border:0;border-radius:18px;padding:0;width:min(680px,calc(100vw - 20px));max-height:calc(100dvh - 24px);background:var(--card);color:var(--fg);box-shadow:0 24px 70px rgba(0,0,0,.32)}
+dialog.an-d::backdrop{background:rgba(10,12,20,.5)}
+.an-c{display:flex;flex-direction:column;gap:12px;padding:18px}
+.an-cab{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;border-left:4px solid var(--oc);padding-left:12px}
+.an-k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--oc);font-weight:700}
+.an-cab h2{font-family:var(--f-display);font-size:22px;line-height:1.15;margin:2px 0 0}
+.an-firma{font-size:13px;color:var(--muted)}
+.an-x{border:0;background:none;font-size:26px;line-height:1;color:var(--muted);padding:0 4px}
+.an-via{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.an-via button{display:flex;flex-direction:column;align-items:flex-start;gap:6px;border:0;background:none;padding:6px 2px 4px;font-size:13px;color:var(--muted);text-align:left}
+.an-via i{display:block;width:100%;height:5px;border-radius:3px;background:var(--line)}
+.an-via .con i{background:var(--oc)}
+.an-via .apr-k.con i{background:var(--ember)}
+.an-via [aria-selected="true"]{color:var(--fg);font-weight:700}
+.an-via [aria-selected="true"] i{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px color-mix(in srgb,var(--oc) 60%,transparent)}
+@media (max-width:480px){.an-via span{font-size:11.5px}}
+.an-cuerpo{display:flex;flex-direction:column;gap:10px}
+.an-d-txt{margin:0;color:var(--muted);font-size:14px}
+.an-preg{display:flex;flex-wrap:wrap;gap:6px}
+.an-preg button{border:1px solid var(--line);background:var(--field);border-radius:10px;padding:5px 10px;font-size:13.5px;text-align:left;line-height:1.35}
+.an-preg button:hover{border-color:var(--oc)}
+.an-cuerpo textarea{width:100%;border:1px solid var(--line);background:var(--field);border-radius:12px;padding:10px 12px;font:inherit;font-size:15.5px;line-height:1.6;resize:vertical;color:var(--fg)}
+.an-cuerpo textarea:focus-visible{outline:none;border-color:var(--oc)}
+.an-apr{display:flex;flex-direction:column;gap:8px}
+.an-apr-f{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;align-items:start}
+.an-apr-f>span{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--ember-soft);color:var(--ember);font-family:var(--f-num);font-size:13px;font-weight:700;margin-top:6px}
+.an-apr textarea{font-size:15px;border-color:color-mix(in srgb,var(--ember) 30%,var(--line))}
+.an-mas{align-self:flex-start;border:0;background:none;color:var(--ember);font-weight:700;font-size:14px;padding:2px 0}
+.an-ayuda{margin:0;font-size:13px;color:var(--muted);font-style:italic}
+.an-tope{background:var(--warn-soft);border-radius:12px;padding:12px 14px}
+.an-tope p{margin:4px 0 0;font-size:14px}
+.an-pie{display:flex;justify-content:flex-end;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.an-estado{margin-right:auto;font-size:12.5px;color:var(--muted)}
+
 /* brújula */
 .brujula{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:center}
 @media (max-width:760px){.brujula{grid-template-columns:minmax(0,1fr)}}
@@ -379,6 +480,7 @@ import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJU
 import { montar, MODOS, cuentaTarjetas, normal as normalPiz, CSS_PIZARRA } from "../js/pizarra.js";
 import { pista } from "../js/ayuda.js";
 import * as R from "../js/ruta.js";
+import * as O from "../js/obras.js";
 navApp("proyectos");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + "</style>");
 
@@ -498,12 +600,23 @@ async function guardarRuta(c, aviso) {
   P.ruta = { ...(P.ruta || {}), ...c };
   await guardar({ ruta: P.ruta }, aviso);
 }
-const DESTINO = { referentes: "Abrir Referentes", brujula: "Abrir la Brújula", pizarra: "Abrir la Pizarra", bitacora: "Abrir la Bitácora", taller: "Abrir el Taller", vitrina: "Ir a la Vitrina", biblia: "Abrir la biblia", oportunidades: "Ver oportunidades", costos: "Abrir Costos", resumen: "Escribir el resumen" };
+const DESTINO = { analizar: "Agregar una obra", semillero: "Abrir el Semillero", referentes: "Abrir Referentes", brujula: "Abrir la Brújula", pizarra: "Abrir la Pizarra", bitacora: "Abrir la Bitácora", taller: "Abrir el Taller", vitrina: "Ir a la Vitrina", biblia: "Abrir la biblia", oportunidades: "Ver oportunidades", costos: "Abrir Costos", resumen: "Escribir el resumen" };
 async function irTecnica(id) {
   const x = Object.values(R.TECNICAS).flat().find((t) => t.id === id); if (!x || !x.ir || !R.disponible(x)) return;
   const [dest, dato] = x.ir.split(":");
   if (dest === "resumen") { const t = $("f-resumen"); t.scrollIntoView({ behavior: "smooth", block: "center" }); t.focus({ preventScroll: true }); return; }
   if (dest === "biblia") { window.open("../biblia/?p=" + P.id, "_blank", "noopener"); return; }
+  if (dest === "semillero") { location.href = "../semillero/" + (ACC.tipo === "equipo" ? "?e=" + ESP : ""); return; }
+  if (dest === "analizar") {
+    if (!nivelDe("referentes")) { toast("No tienes acceso a los referentes de este proyecto."); return; }
+    // Si ya hay una obra a medio analizar, se retoma; si no, se abre la ficha de una nueva.
+    const pend = OBRAS().find((r) => O.partesHechas(r.analisis) < 4);
+    if (!pend && puedeRefs()) obraForm = { clase: "libro", ficha: { clase: "libro" } };
+    irA("referentes");
+    window.scrollTo({ top: $("tabs").getBoundingClientRect().top + scrollY - 12, behavior: "smooth" });
+    if (pend) analizar(pend);
+    return;
+  }
   if (!nivelDe(dest)) { toast("No tienes acceso a esa parte del proyecto."); return; }
   if (dest === "taller" && dato) {
     const gs = dato.split(",");
@@ -786,7 +899,7 @@ let obs = null;
 function aplicarSoloLectura() {
   if (obs) { obs.disconnect(); obs = null; }
   if (!RO) return;
-  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fx-tabs, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir]") || el.id === "h-foco";
+  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fx-tabs, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr") || el.id === "h-foco";
   const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
   aplicar();
   obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });
@@ -1087,8 +1200,8 @@ function pintarHoja() {
 }
 
 /* ================= REFERENTES ================= */
-let filtroRef = "";
-const TREF = { imagen: "Imagen", video: "Video", audio: "Audio", enlace: "Enlace", color: "Color", cita: "Cita" };
+let filtroRef = "", obraForm = null; // obraForm: null | { id?: editando, clase, ficha }
+const TREF = { imagen: "Imagen", video: "Video", audio: "Audio", enlace: "Enlace", color: "Color", cita: "Cita", obra: "Obra" };
 const esURL = (v) => /^https?:\/\/[^\s<>"]+$/i.test(v);
 function srcDeIframe(v) { const m = v.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i); return m ? m[1] : null; }
 function detectar(v) {
@@ -1105,65 +1218,221 @@ function vimeo(u) { const m = u.match(/vimeo\.com\/(?:video\/)?(\d+)/i); return 
 function spotify(u) { const m = u.match(/open\.spotify\.com\/(?:embed\/)?(track|album|playlist|episode|show|artist)\/([\w]+)/i); return m && [m[1], m[2]]; }
 const dominio = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
 
+// Obras: color por clase (los mismos de las categorías) y el estilo de cita elegido.
+const OCOLOR = { libro: "var(--t-historia)", capitulo: "var(--t-historia)", videojuego: "var(--t-videojuego)", juegomesa: "var(--t-juegomesa)", pelicula: "var(--t-contenido)", cancion: "var(--t-producto)", web: "var(--t-otro)" };
+const OBRAS = () => REFS.filter((r) => r.tipo === "obra");
+const nAnalizadas = () => OBRAS().filter(O.analizada).length;
+let estiloCita = (() => { try { const e = localStorage.getItem("forja-estilo-cita"); return O.ESTILOS[e] ? e : "apa"; } catch (e) { return "apa"; } })();
+const estiloUsable = () => (PL.mas || estiloCita === "apa" ? estiloCita : "apa");
+const puedeRefs = () => nivelDe("referentes") === "editar" && editable(P, ACT, PL);
+
 function referentes() {
+  const obras = OBRAS(), apr = O.aprendizajes(REFS);
   $("panel").innerHTML = '<div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">' +
+    (apr.length ? '<section class="aprendido" aria-label="Lo que aprendiste de tus obras"><div class="apr-cab"><b>Lo que aprendiste</b><span class="hint">de ' + (new Set(apr.map((a) => a.obra.id)).size === 1 ? "1 obra" : new Set(apr.map((a) => a.obra.id)).size + " obras") + "</span></div>" +
+      '<div class="apr-tira">' + apr.map((a) => '<button type="button" class="apr" data-apr="' + a.obra.id + '" style="--oc:' + OCOLOR[(a.obra.ficha || {}).clase] + '"><span>' + esc(a.t) + "</span><small>" + esc((a.obra.ficha || {}).titulo || a.obra.titulo || "Obra") + "</small></button>").join("") + "</div></section>" : "") +
     '<form class="bloque agregar" id="f-ref"><label class="fx-sr" for="r-val">Enlace, color o cita</label>' +
     '<input id="r-val" placeholder="Pega un enlace (imagen, YouTube, Vimeo, Spotify, cualquier página), un color #e0602f o escribe una cita" autocomplete="off">' +
     '<button class="btn prim" type="submit">Guardar</button>' +
     '<div class="detecta" id="r-det"></div>' +
     '<div class="extra" id="r-extra" hidden><label class="fx-sr" for="r-tit">Título</label><input id="r-tit" maxlength="200" placeholder="Título (opcional)">' +
     '<label class="fx-sr" for="r-nota">Qué tomas de aquí</label><input id="r-nota" maxlength="4000" placeholder="¿Qué te sirve de este referente? Ej.: la paleta, el ritmo, cómo presenta al villano">' +
-    '<label class="fx-sr" for="r-tipo">Tipo</label><select id="r-tipo">' + Object.entries(TREF).map(([k, n]) => '<option value="' + k + '">' + n + "</option>").join("") + "</select></div>" +
-    (PL.mas ? "" : '<p class="hint" style="grid-column:1/-1;margin:0"><b style="color:var(--fg)">' + REFS.length + " de " + LIMITES.referentes + "</b> referentes del plan gratis en este proyecto.</p>") +
+    '<label class="fx-sr" for="r-tipo">Tipo</label><select id="r-tipo">' + Object.entries(TREF).filter(([k]) => k !== "obra").map(([k, n]) => '<option value="' + k + '">' + n + "</option>").join("") + "</select>" +
+    (obras.length ? '<div class="de-obra" id="r-de-obra" hidden><label><span>¿De qué obra es la cita?</span><select id="r-obra"><option value="">De ninguna en especial</option>' + obras.map((o) => '<option value="' + o.id + '">' + esc((o.ficha || {}).titulo || o.titulo || "Obra") + "</option>").join("") + '</select></label><label><span>Página</span><input id="r-pag" maxlength="20" placeholder="45" inputmode="numeric"></label></div>' : "") + "</div>" +
+    '<div class="r-pie" style="grid-column:1/-1"><button type="button" class="ob-nueva" id="b-obra"' + (obraForm ? ' aria-expanded="true"' : ' aria-expanded="false"') + ">" + '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M10 4h4v16h-4z"/><path d="m15 5.2 3.6-1 3.4 14.7-3.6.9z"/></svg>' + "Agregar una obra para analizar <small>libro, juego, película, canción…</small></button>" +
+    (PL.mas ? "" : '<span class="hint"><b style="color:var(--fg)">' + REFS.length + " de " + LIMITES.referentes + "</b> referentes · <b style=\"color:var(--fg)\">" + nAnalizadas() + " de " + LIMITES.analisis + "</b> obras analizadas</span>") + "</div>" +
+    '<div id="obra-f" style="grid-column:1/-1"></div>' +
     '<p class="hint" style="grid-column:1/-1;margin:0">Forja no guarda archivos: solo el enlace. Si la página original borra la imagen o el video, aquí también desaparece.</p><div style="grid-column:1/-1">' + ayudaImagenes() + '</div><span class="fx-imgprueba" id="r-prueba" style="grid-column:1/-1"></span></form>' +
     '<div class="filtro" id="r-filtro"></div><div id="muro"></div></div>';
   let det = null;
+  const mostrarDeObra = () => { if ($("r-de-obra")) $("r-de-obra").hidden = $("r-tipo").value !== "cita"; };
   $("r-val").oninput = () => {
     det = detectar($("r-val").value);
     $("r-extra").hidden = !det;
     if (det && det.tipo === "imagen") probarImagen($("r-val").value, $("r-prueba")); else $("r-prueba").textContent = "";
     if (det) { $("r-tipo").value = det.tipo; $("r-det").textContent = "Se guardará como " + TREF[det.tipo].toLowerCase() + (det.tipo === "enlace" ? ". Si es una imagen, cambia el tipo a Imagen." : "."); }
     else $("r-det").textContent = "";
+    mostrarDeObra();
   };
+  $("r-tipo").onchange = mostrarDeObra;
   $("f-ref").onsubmit = async (e) => {
     e.preventDefault(); if (!det) { $("r-val").focus(); return; }
     let tipo = $("r-tipo").value, valor = det.valor;
     if (["imagen", "video", "audio", "enlace"].includes(tipo) && !esURL(valor)) { toast("Para ese tipo se necesita un enlace que empiece con https://"); return; }
     if (tipo === "color" && !/^#[0-9a-f]{3,6}$/i.test(valor)) { toast("Un color se escribe como #e0602f"); return; }
     const fila = { espacio_id: ESP, proyecto_id: P.id, tipo, valor, titulo: $("r-tit").value.trim() || null, nota: $("r-nota").value.trim() || null };
+    if (tipo === "cita" && $("r-obra") && $("r-obra").value) fila.ficha = { obra: $("r-obra").value, pagina: $("r-pag").value.trim().slice(0, 20) };
     const { data, error } = await sb.from("referentes").insert(fila).select("*").single();
     if (error) { toast(limite(error) || "No se pudo guardar el referente."); return; }
     REFS.unshift(data); tocarProyecto(); pintarTabs(); referentes();
   };
+  $("b-obra").onclick = () => { obraForm = obraForm ? null : { clase: "libro", ficha: { clase: "libro" } }; referentes(); if (obraForm) $("obra-f").scrollIntoView({ block: "nearest", behavior: "smooth" }); };
+  $("panel").querySelectorAll("[data-apr]").forEach((b) => b.onclick = () => { const r = REFS.find((x) => x.id === b.dataset.apr); if (r) analizar(r, "aprendi"); });
+  if (obraForm) formObra();
   pintarMuro();
 }
+
+/* --- ficha de una obra: nueva o editando --- */
+function formObra() {
+  const F = obraForm, C = O.CLASES[F.clase], f = F.ficha;
+  const campoHTML = (k) => {
+    const c = O.campo(k, F.clase), v = esc(f[k] || "");
+    if (k === "formato") return '<div class="of-campo ancho"><span>' + c.n + '</span><div class="of-chips" role="radiogroup" aria-label="Película o serie">' + [["pelicula", "Película"], ["serie", "Serie"]].map(([x, n]) => '<button type="button" role="radio" data-fmt="' + x + '" aria-checked="' + ((f.formato || "pelicula") === x) + '">' + n + "</button>").join("") + "</div></div>";
+    return '<label class="of-campo' + (k === "titulo" || k === "autores" || k === "libro" || k === "url" ? " ancho" : "") + '"><span>' + c.n + (c.req ? " <em>obligatorio</em>" : "") + '</span><input data-of="' + k + '" value="' + v + '" maxlength="' + (c.max || 300) + '" placeholder="' + esc(c.ph || "") + '"' + (k === "url" ? ' inputmode="url"' : k === "anio" ? ' inputmode="numeric"' : "") + ">" + (c.ayuda ? "<small>" + esc(c.ayuda) + "</small>" : "") + "</label>";
+  };
+  $("obra-f").innerHTML = '<div class="obra-f" style="--oc:' + OCOLOR[F.clase] + '"><div class="of-cab"><b>' + (F.id ? "Ficha de la obra" : "Una obra para analizar") + '</b><button type="button" class="of-x" id="of-x" aria-label="Cerrar">×</button></div>' +
+    '<div class="of-clases" role="radiogroup" aria-label="Qué es">' + O.ORDEN_CLASES.map((k) => '<button type="button" role="radio" data-cl="' + k + '" aria-checked="' + (k === F.clase) + '" style="--oc:' + OCOLOR[k] + '">' + O.CLASES[k].n + "</button>").join("") + "</div>" +
+    '<div class="of-campos">' + C.campos.map(campoHTML).join("") + "</div>" +
+    '<div class="of-vista"><span>Así queda la referencia <select id="of-estilo" aria-label="Formato de la cita">' + Object.entries(O.ESTILOS).map(([k, n]) => '<option value="' + k + '"' + (k === estiloUsable() ? " selected" : "") + ">" + n + (k !== "apa" && !PL.mas ? " · Forja Más" : "") + "</option>").join("") + '</select></span><p id="of-cita"></p></div>' +
+    '<div class="of-acc"><span class="hint">Solo el título es obligatorio. Llena lo que sepas: la cita se arma con lo que haya.</span><button type="button" class="btn" id="of-cancelar">Cancelar</button>' +
+    (F.id ? "" : '<button type="button" class="btn" id="of-guardar">Guardar</button>') + '<button type="button" class="btn prim" id="of-analizar">' + (F.id ? "Guardar ficha" : "Guardar y analizar") + "</button></div></div>";
+  const w = $("obra-f"), leer = () => { w.querySelectorAll("[data-of]").forEach((i) => (f[i.dataset.of] = i.value)); f.clase = F.clase; };
+  const vista = () => { leer(); $("of-cita").innerHTML = O.cita(f, estiloUsable(), true); };
+  w.querySelectorAll("[data-of]").forEach((i) => (i.oninput = vista));
+  w.querySelectorAll("[data-cl]").forEach((b) => b.onclick = () => { leer(); F.clase = b.dataset.cl; formObra(); });
+  w.querySelectorAll("[data-fmt]").forEach((b) => b.onclick = () => { f.formato = b.dataset.fmt; w.querySelectorAll("[data-fmt]").forEach((x) => x.setAttribute("aria-checked", String(x === b))); vista(); });
+  $("of-estilo").onchange = (e) => {
+    if (e.target.value !== "apa" && !PL.mas) { e.target.value = "apa"; toast("MLA y Chicago vienen con Forja Más. APA está siempre incluido."); return; }
+    estiloCita = e.target.value; try { localStorage.setItem("forja-estilo-cita", estiloCita); } catch (x) {} vista();
+  };
+  const cerrar = () => { obraForm = null; referentes(); };
+  $("of-x").onclick = cerrar; $("of-cancelar").onclick = cerrar;
+  const guardarObra = async (y) => {
+    leer();
+    const ficha = O.normalFicha(f);
+    if (!ficha.titulo) { toast("Escribe al menos el título de la obra."); w.querySelector('[data-of="titulo"]').focus(); return; }
+    const cambios = { ficha, titulo: ficha.titulo.slice(0, 200), valor: O.cita(ficha, "apa").slice(0, 4000) };
+    let r;
+    if (F.id) {
+      const { error } = await sb.from("referentes").update(cambios).eq("id", F.id);
+      if (error) { toast(limite(error) || "No se pudo guardar la ficha."); return; }
+      r = REFS.find((x) => x.id === F.id); Object.assign(r, cambios);
+    } else {
+      const { data, error } = await sb.from("referentes").insert({ espacio_id: ESP, proyecto_id: P.id, tipo: "obra", ...cambios }).select("*").single();
+      if (error) { toast(limite(error) || "No se pudo guardar la obra."); return; }
+      r = data; REFS.unshift(r); tocarProyecto(); pintarTabs();
+    }
+    obraForm = null; referentes();
+    if (y) analizar(r); else toast("Obra guardada. Cuando quieras, tócala para analizarla.");
+  };
+  if ($("of-guardar")) $("of-guardar").onclick = () => guardarObra(false);
+  $("of-analizar").onclick = () => guardarObra(!F.id);
+  vista();
+  if (!F.id) { const t = w.querySelector('[data-of="titulo"]'); if (t && !t.value) t.focus({ preventScroll: true }); }
+}
+
+/* --- analizar una obra: tres miradas y lo aprendido --- */
+let anD = null;
+function analizar(r, paso = null) {
+  const ed = puedeRefs(), libre = !PL.mas, A = O.normalAnalisis(r.analisis), f = O.normalFicha(r.ficha);
+  const bloqueada = ed && libre && !O.analizada(r) && nAnalizadas() >= LIMITES.analisis;
+  const PASOS = [...O.MIRADAS, O.APRENDI];
+  let i = Math.max(0, PASOS.findIndex((p) => p.k === paso));
+  if (paso === null) { const j = PASOS.findIndex((p) => (p.k === "aprendi" ? !(A.aprendi || []).length : !A[p.k])); i = j < 0 ? 0 : j; }
+  if (anD) anD.remove();
+  anD = document.createElement("dialog"); anD.className = "an-d"; anD.setAttribute("aria-label", "Analizar " + (f.titulo || "la obra"));
+  anD.style.setProperty("--oc", OCOLOR[f.clase]);
+  document.body.appendChild(anD);
+  let estado = "", sucio = false;
+  const guardarYa = async () => {
+    if (!sucio) return; sucio = false;
+    const analisis = O.normalAnalisis(A);
+    const { error } = await sb.from("referentes").update({ analisis }).eq("id", r.id);
+    if (error) { estado = limite(error) || "No se pudo guardar."; pintarEstado(); toast(estado); return; }
+    r.analisis = analisis; estado = "Guardado"; pintarEstado();
+    // La primera vez que una obra deja algo aprendido, la técnica de la ruta queda hecha.
+    const h = R.estado(P.ruta).hechos;
+    if ((analisis.aprendi || []).length && !h.analizar && puedeRuta()) guardarRuta({ hechos: { ...h, analizar: new Date().toISOString().slice(0, 10) } });
+  };
+  const subir = debounce(guardarYa, 700);
+  const pintarEstado = () => { const s = anD && anD.querySelector(".an-estado"); if (s) s.textContent = estado; };
+  const cambio = () => { sucio = true; estado = "Guardando…"; pintarEstado(); subir(); };
+  const pintarD = () => {
+    const p = PASOS[i], hecho = (k) => (k === "aprendi" ? (A.aprendi || []).length : !!A[k]);
+    const preg = O.preguntas(p.k, f.clase);
+    anD.innerHTML = '<div class="an-c"><div class="an-cab"><div><span class="an-k">' + esc(O.CLASES[f.clase].n) + "</span><h2>" + esc(f.titulo || "Obra") + "</h2>" + (O.firma(f) ? '<span class="an-firma">' + esc(O.firma(f)) + "</span>" : "") + '</div><button type="button" class="an-x" aria-label="Cerrar">×</button></div>' +
+      (bloqueada ? '<div class="an-tope"><b>Ya analizaste ' + LIMITES.analisis + " obras en este proyecto.</b><p>El plan gratis permite " + LIMITES.analisis + " análisis por proyecto. La ficha y la cita de esta obra siguen guardadas. " + MAS_PRONTO + MAS_LINK + "</p></div>" :
+      '<div class="an-via" role="tablist" aria-label="Partes del análisis">' + PASOS.map((x, j) => '<button type="button" role="tab" data-an="' + j + '" aria-selected="' + (j === i) + '" class="' + (hecho(x.k) ? "con" : "") + (x.k === "aprendi" ? " apr-k" : "") + '"><i></i><span>' + x.n + "</span></button>").join("") + "</div>" +
+      '<div class="an-cuerpo"><p class="an-d-txt">' + esc(p.d) + "</p>" +
+      (p.k !== "aprendi"
+        ? '<div class="an-preg">' + preg.map((q) => '<button type="button" data-q="' + esc(q) + '"' + (ed ? "" : " disabled") + ">" + esc(q) + "</button>").join("") + "</div>" +
+          '<label class="fx-sr" for="an-t">' + esc(p.n) + '</label><textarea id="an-t" rows="8" maxlength="3000" placeholder="' + (ed ? "Toca una pregunta para traerla, o escribe lo que notaste." : "") + '"' + (ed ? "" : " readonly") + ">" + esc(A[p.k] || "") + "</textarea>"
+        : '<div class="an-apr" id="an-apr">' + ((A.aprendi || []).length ? A.aprendi : [""]).map((x, j) => '<div class="an-apr-f"><span aria-hidden="true">' + (j + 1) + '</span><label class="fx-sr" for="ap-' + j + '">Lo que aprendí ' + (j + 1) + '</label><textarea id="ap-' + j + '" data-ap="' + j + '" rows="2" maxlength="300" placeholder="' + esc(j === 0 ? "Ej.: " + O.EJEMPLOS_APRENDI[Math.floor(Math.random() * O.EJEMPLOS_APRENDI.length)] : "Otra cosa que quieras probar") + '"' + (ed ? "" : " readonly") + ">" + esc(x) + "</textarea></div>").join("") + "</div>" +
+          (ed && (A.aprendi || []).length < 6 ? '<button type="button" class="an-mas" id="an-mas">+ Anotar otra</button>' : "") +
+          '<p class="an-ayuda">' + preg.map(esc).join(" · ") + "</p>") +
+      "</div>") +
+      '<div class="an-pie"><span class="an-estado" aria-live="polite"></span>' + (bloqueada ? "" : (i > 0 ? '<button type="button" class="btn chico" data-ir="-1">← ' + PASOS[i - 1].n + "</button>" : "") +
+        (i < PASOS.length - 1 ? '<button type="button" class="btn chico prim" data-ir="1">' + PASOS[i + 1].n + " →</button>" : '<button type="button" class="btn chico prim" data-listo>Listo</button>')) + "</div></div>";
+    pintarEstado();
+    anD.querySelector(".an-x").onclick = () => anD.close();
+    if (anD.querySelector("[data-listo]")) anD.querySelector("[data-listo]").onclick = () => anD.close();
+    anD.querySelectorAll("[data-an]").forEach((b) => b.onclick = () => { i = +b.dataset.an; pintarD(); });
+    anD.querySelectorAll("[data-ir]").forEach((b) => b.onclick = () => { i += +b.dataset.ir; pintarD(); const t = anD.querySelector("textarea"); if (t && ed) t.focus({ preventScroll: true }); });
+    const ta = anD.querySelector("#an-t");
+    if (ta && ed) {
+      ta.oninput = () => { A[p.k] = ta.value; anD.querySelectorAll("[data-an]")[i].classList.toggle("con", !!ta.value.trim()); cambio(); };
+      anD.querySelectorAll("[data-q]").forEach((b) => b.onclick = () => {
+        const v = ta.value.replace(/\s+$/, ""), q = "— " + b.dataset.q + "\n";
+        ta.value = (v ? v + "\n\n" : "") + q; ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); ta.oninput();
+      });
+    }
+    if (p.k === "aprendi" && ed) {
+      const leerAp = () => { A.aprendi = [...anD.querySelectorAll("[data-ap]")].map((t) => t.value); anD.querySelectorAll("[data-an]")[i].classList.toggle("con", A.aprendi.some((x) => x.trim())); cambio(); };
+      anD.querySelectorAll("[data-ap]").forEach((t) => (t.oninput = leerAp));
+      if ($("an-mas")) $("an-mas").onclick = () => { A.aprendi = [...anD.querySelectorAll("[data-ap]")].map((t) => t.value).concat(""); pintarD(); const ts = anD.querySelectorAll("[data-ap]"); ts[ts.length - 1].focus(); };
+    }
+  };
+  const yo = anD;
+  yo.addEventListener("close", async () => { await guardarYa(); yo.remove(); if (anD === yo) anD = null; if (pest === "referentes") { referentes(); pintarSigue(); } });
+  yo.addEventListener("click", (e) => { if (e.target === yo) yo.close(); });
+  pintarD(); yo.showModal();
+  const t = anD.querySelector("textarea"); if (t && ed && !bloqueada) t.focus({ preventScroll: true });
+}
+
 function pintarMuro() {
   const tipos = [...new Set(REFS.map((r) => r.tipo))];
-  $("r-filtro").innerHTML = tipos.length > 1 ? '<button data-f="" aria-pressed="' + (!filtroRef) + '">Todos</button>' + tipos.map((t) => '<button data-f="' + t + '" aria-pressed="' + (filtroRef === t) + '">' + TREF[t] + " · " + REFS.filter((r) => r.tipo === t).length + "</button>").join("") : "";
+  $("r-filtro").innerHTML = tipos.length > 1 ? '<button data-f="" aria-pressed="' + (!filtroRef) + '">Todos</button>' + tipos.map((t) => '<button data-f="' + t + '" aria-pressed="' + (filtroRef === t) + '">' + (t === "obra" ? "Obras" : TREF[t]) + " · " + REFS.filter((r) => r.tipo === t).length + "</button>").join("") : "";
   $("r-filtro").querySelectorAll("[data-f]").forEach((b) => b.onclick = () => { filtroRef = b.dataset.f; pintarMuro(); });
   const vis = REFS.filter((r) => !filtroRef || r.tipo === filtroRef);
-  $("muro").innerHTML = REFS.length ? '<div class="muro">' + vis.map(tarjeta).join("") + "</div>" : '<div class="vacio">Aún no hay referentes. Pega arriba el enlace de una imagen, un video o una canción que tenga algo de lo que buscas.</div>';
+  $("muro").innerHTML = REFS.length ? '<div class="muro">' + vis.map(tarjeta).join("") + "</div>" : '<div class="vacio">Aún no hay referentes. Pega arriba el enlace de una imagen, un video o una canción que tenga algo de lo que buscas, o agrega una obra para analizarla.</div>';
   $("muro").querySelectorAll("img[data-ref]").forEach((img) => img.onerror = () => { const r = REFS.find((x) => x.id === img.dataset.ref); img.closest(".media").outerHTML = linkCard(r.valor, "No se pudo mostrar la imagen; ábrela en su página"); });
   $("muro").onclick = async (e) => {
     const b = e.target.closest("button"); if (!b) return;
     const card = b.closest(".ref"), r = REFS.find((x) => x.id === card.dataset.id);
     if (b.classList.contains("play")) { b.closest(".media").innerHTML = reproductor(r.valor); return; }
+    if (b.dataset.a === "analizar") { analizar(r); return; }
+    if (b.dataset.a === "ficha") { obraForm = { id: r.id, clase: O.normalFicha(r.ficha).clase, ficha: { ...O.normalFicha(r.ficha) } }; referentes(); $("obra-f").scrollIntoView({ block: "center", behavior: "smooth" }); return; }
+    if (b.dataset.a === "copiar") {
+      const est = b.dataset.est || estiloUsable(), txt = O.cita(r.ficha, est);
+      try { await navigator.clipboard.writeText(txt); toast("Cita copiada (" + O.ESTILOS[est] + ")."); } catch (x) { toast("No se pudo copiar. Selecciona el texto de la cita."); }
+      return;
+    }
+    if (b.dataset.est) {
+      if (b.dataset.est !== "apa" && !PL.mas) { toast("MLA y Chicago vienen con Forja Más. APA está siempre incluido."); return; }
+      estiloCita = b.dataset.est; try { localStorage.setItem("forja-estilo-cita", estiloCita); } catch (x) {} pintarMuro();
+      const c = $("muro").querySelector('.ref[data-id="' + r.id + '"] details'); if (c) c.open = true; return;
+    }
     if (b.dataset.a === "edit") {
-      card.querySelector(".cuerpo").innerHTML = '<input data-e="t" maxlength="200" placeholder="Título" value="' + esc(r.titulo || "") + '"><textarea data-e="n" rows="3" maxlength="4000" placeholder="¿Qué tomas de aquí?">' + esc(r.nota || "") + '</textarea><div style="display:flex;gap:6px"><button class="btn chico prim" data-a="ok">Guardar</button><button class="btn chico" data-a="cancel">Cancelar</button></div>';
+      const obras = OBRAS(), fo = r.ficha || {};
+      card.querySelector(".cuerpo").innerHTML = '<input data-e="t" maxlength="200" placeholder="Título" value="' + esc(r.titulo || "") + '"><textarea data-e="n" rows="3" maxlength="4000" placeholder="¿Qué tomas de aquí?">' + esc(r.nota || "") + "</textarea>" +
+        (r.tipo === "cita" && obras.length ? '<div class="de-obra"><label><span>¿De qué obra es?</span><select data-e="o"><option value="">De ninguna en especial</option>' + obras.map((o) => '<option value="' + o.id + '"' + (fo.obra === o.id ? " selected" : "") + ">" + esc((o.ficha || {}).titulo || o.titulo || "Obra") + '</option>').join("") + '</select></label><label><span>Página</span><input data-e="pg" maxlength="20" value="' + esc(fo.pagina || "") + '" placeholder="45"></label></div>' : "") +
+        '<div style="display:flex;gap:6px"><button class="btn chico prim" data-a="ok">Guardar</button><button class="btn chico" data-a="cancel">Cancelar</button></div>';
       return;
     }
     if (b.dataset.a === "cancel") { pintarMuro(); return; }
     if (b.dataset.a === "ok") {
-      const titulo = card.querySelector('[data-e="t"]').value.trim() || null, nota = card.querySelector('[data-e="n"]').value.trim() || null;
-      const { error } = await sb.from("referentes").update({ titulo, nota }).eq("id", r.id);
+      const titulo = card.querySelector('[data-e="t"]').value.trim() || null, nota = card.querySelector('[data-e="n"]').value.trim() || null, cambios = { titulo, nota };
+      const so = card.querySelector('[data-e="o"]');
+      if (so) cambios.ficha = so.value ? { obra: so.value, pagina: card.querySelector('[data-e="pg"]').value.trim().slice(0, 20) } : {};
+      const { error } = await sb.from("referentes").update(cambios).eq("id", r.id);
       if (error) { toast(limite(error) || "No se pudo guardar."); return; }
-      Object.assign(r, { titulo, nota }); pintarMuro(); return;
+      Object.assign(r, cambios); pintarMuro(); return;
     }
     if (b.dataset.a === "del") {
       if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "¿seguro?"; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ""; b.textContent = "quitar"; } }, 3500); return; }
       const { error } = await sb.from("referentes").delete().eq("id", r.id);
       if (error) { toast("No se pudo quitar."); return; }
-      REFS = REFS.filter((x) => x.id !== r.id); pintarTabs(); pintarMuro();
+      REFS = REFS.filter((x) => x.id !== r.id); pintarTabs(); referentes();
     }
   };
 }
@@ -1175,13 +1444,29 @@ function reproductor(u) {
   if (s) return '<iframe src="https://open.spotify.com/embed/' + s[0] + "/" + s[1] + '" height="' + (s[0] === "track" || s[0] === "episode" ? 152 : 352) + '" title="Spotify" allow="encrypted-media" loading="lazy"></iframe>';
   return linkCard(u);
 }
+function tarjetaObra(r) {
+  const f = O.normalFicha(r.ficha), A = r.analisis || {}, n = O.partesHechas(A), ed = puedeRefs(), est = estiloUsable();
+  const partes = [...O.MIRADAS, O.APRENDI].map((m) => '<i class="' + ((m.k === "aprendi" ? (A.aprendi || []).length : A[m.k]) ? "si" : "") + (m.k === "aprendi" ? " apr-k" : "") + '" title="' + m.n + '"></i>').join("");
+  return '<article class="ref obra" data-id="' + r.id + '" style="--oc:' + OCOLOR[f.clase] + '">' +
+    '<div class="ob-tapa"><span class="ob-k">' + esc(O.CLASES[f.clase].n) + "</span><b>" + esc(f.titulo || "Obra") + "</b>" + (O.firma(f) ? "<small>" + esc(O.firma(f)) + "</small>" : "") + "</div>" +
+    '<div class="cuerpo"><div class="ob-partes"><span class="ob-barra" aria-hidden="true">' + partes + '</span><span class="hint">' + (n ? (n === 4 ? "Analizada" : n + " de 4 partes") : "Sin analizar") + "</span></div>" +
+    ((A.aprendi || []).length ? '<ul class="ob-apr">' + A.aprendi.slice(0, 2).map((x) => "<li>" + esc(x) + "</li>").join("") + (A.aprendi.length > 2 ? '<li class="mas">y ' + (A.aprendi.length - 2) + " más</li>" : "") + "</ul>" : "") +
+    (r.nota ? "<p>" + esc(r.nota) + "</p>" : "") +
+    '<button type="button" class="btn chico ' + (ed && !n ? "prim " : "") + 'ob-abrir" data-a="analizar">' + (!ed ? (n ? "Ver el análisis" : "Sin análisis todavía") : n ? (n === 4 ? "Ver el análisis" : "Seguir analizando") : "Analizar") + "</button>" +
+    '<details class="ob-cita"><summary>Cita ' + O.ESTILOS[est] + '</summary><p>' + O.cita(f, est, true) + '</p><div class="ob-est">' + Object.keys(O.ESTILOS).map((k) => '<button type="button" data-est="' + k + '" aria-pressed="' + (k === est) + '"' + (k !== "apa" && !PL.mas ? ' class="bloq" title="Forja Más"' : "") + ">" + O.ESTILOS[k] + "</button>").join("") + '<button type="button" data-a="copiar" data-est-c="' + est + '">Copiar</button></div></details>' +
+    '<div class="meta"><span>Obra · ' + fecha(r.creado_en) + "</span><span>" + (f.url ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener noreferrer" style="font-size:12px;text-transform:none;letter-spacing:0">abrir</a>' : "") + '<button data-a="ficha">ficha</button><button data-a="del">quitar</button></span></div></div></article>';
+}
 function tarjeta(r) {
+  if (r.tipo === "obra") return tarjetaObra(r);
   let media = "";
   if (r.tipo === "imagen") media = '<div class="media"><img data-ref="' + r.id + '" src="' + esc(r.valor) + '" alt="' + esc(r.titulo || "Referente") + '" loading="lazy" referrerpolicy="no-referrer"></div>';
   else if (r.tipo === "video") { const y = yt(r.valor); media = '<div class="media">' + (y ? '<img src="https://i.ytimg.com/vi/' + y + '/hqdefault.jpg" alt="" loading="lazy"><button class="play" aria-label="Reproducir"><span>▶ Reproducir</span></button>' : vimeo(r.valor) ? '<div style="aspect-ratio:16/9"></div><button class="play" aria-label="Reproducir"><span>▶ Vimeo</span></button>' : linkCard(r.valor)) + "</div>"; }
   else if (r.tipo === "audio") media = '<div class="media">' + reproductor(r.valor) + "</div>";
   else if (r.tipo === "color") { const c = r.valor, l = parseInt((c.length === 4 ? c.replace(/#(.)(.)(.)/, "$1$1$2$2$3$3") : c.slice(1)), 16), lum = ((l >> 16) * .299 + ((l >> 8) & 255) * .587 + (l & 255) * .114); media = '<div class="swatch" style="background:' + esc(c) + ";color:" + (lum > 150 ? "#111" : "#fff") + '">' + esc(c.toUpperCase()) + "</div>"; }
-  else if (r.tipo === "cita") media = "<blockquote>" + esc(r.valor) + "</blockquote>";
+  else if (r.tipo === "cita") {
+    const fo = r.ficha || {}, ob = fo.obra && REFS.find((x) => x.id === fo.obra && x.tipo === "obra");
+    media = "<blockquote>" + esc(r.valor) + "</blockquote>" + (ob ? '<cite class="ob-de">' + esc(O.citaCorta(ob.ficha, fo.pagina)) + " · <i>" + esc(O.normalFicha(ob.ficha).titulo || "") + "</i></cite>" : "");
+  }
   else media = '<div class="media">' + linkCard(r.valor, r.titulo) + "</div>";
   const abrir = esURL(r.valor) ? '<a href="' + esc(r.valor) + '" target="_blank" rel="noopener noreferrer" style="font-size:12px;text-transform:none;letter-spacing:0">abrir</a>' : "";
   return '<article class="ref" data-id="' + r.id + '">' + media + '<div class="cuerpo">' + (r.titulo && r.tipo !== "enlace" ? "<b>" + esc(r.titulo) + "</b>" : "") + (r.nota ? "<p>" + esc(r.nota) + "</p>" : "") +

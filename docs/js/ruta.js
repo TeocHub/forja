@@ -31,7 +31,7 @@ export const etapaNombre = (k, tipo) => { const e = ETAPAS.find((x) => x.k === k
 export const etapaIndice = (k) => Math.max(0, ETAPAS.findIndex((x) => x.k === k));
 
 // Herramientas que todavía no existen: su tarjeta se ve, pero dice «Llega pronto».
-export const PRONTO = new Set(["analizar", "semillero", "mapa", "estructura", "sesion", "metrabe", "revision", "lectores", "pulido", "prototipo"]);
+export const PRONTO = new Set(["mapa", "estructura", "sesion", "metrabe", "revision", "lectores", "pulido", "prototipo"]);
 
 // Técnicas por etapa. Campos:
 // id, t (título), d (qué es y para qué), pasos (cómo, en 2 o 3 pasos), min (minutos aprox.),
@@ -59,7 +59,7 @@ export const TECNICAS = {
     { id: "resumen", t: "Escribir de qué se trata", esencial: true, min: 10, ir: "resumen",
       d: "Dos o tres líneas que expliquen el proyecto a alguien que no sabe nada. Si cuesta escribirlas, la idea aún está creciendo.",
       pasos: ["Escribe qué es, para quién y por qué te importa.", "Léelo en voz alta: si suena a otra cosa, ajústalo."] },
-    { id: "chispas", t: "Buscar ideas donde no las buscas", mas: true, min: 15, ir: null,
+    { id: "chispas", t: "Buscar ideas donde no las buscas", mas: true, min: 15, ir: "semillero",
       d: "Ejercicios cortos para cuando la idea todavía no aparece o quieres darle una vuelta.",
       pasos: ["Toma algo que conoces bien y pregúntate «¿y si fuera al revés?».", "Junta dos cosas que no tienen nada que ver y busca qué historia o juego las une.", "Sal a mirar a la gente diez minutos e inventa qué le pasa a alguien."] },
     { id: "origen", t: "Anotar de dónde salió", min: 5, ir: "bitacora",
@@ -165,14 +165,14 @@ export function estado(ruta) {
 }
 
 // Señales de avance sacadas de lo que ya existe en el proyecto. Solo sugieren: nunca cambian la etapa solas.
-// ctx: { tipo, resumen, secs: [{guia, texto, avance}], refs: [{tipo, analisis}], notas: n, pizarras: [{modo}], vitrina: {publicada}, hechos }
+// ctx: { tipo, resumen, secs: [{guia, texto, avance}], refs: [{tipo, analisis}] (una obra cuenta si ya tiene análisis), notas: n, pizarras: [{modo}], vitrina: {publicada}, hechos }
 const pal = (t) => ((t || "").trim().match(/\S+/g) || []).length;
 const conTexto = (secs, guias, min) => secs.some((s) => guias.includes(s.guia) && pal(s.texto) >= min);
 export function senales(c) {
   const secs = c.secs || [], h = c.hechos || {}, total = secs.reduce((a, s) => a + pal(s.texto), 0);
   const prom = secs.length ? secs.reduce((a, s) => a + (s.avance || 0), 0) / secs.length : 0;
   return {
-    inspirar: (c.refs || []).length >= 3 || (c.refs || []).some((r) => r.tipo === "obra"),
+    inspirar: (c.refs || []).length >= 3 || (c.refs || []).some((r) => r.tipo === "obra" && r.analisis && Object.keys(r.analisis).length),
     sembrar: pal(c.resumen) >= 15,
     mapa: conTexto(secs, ["premisa", "pitch", "idea", "queEs"], 40) || Object.keys(c.esquema || {}).length >= 4,
     estructura: conTexto(secs, ["estructura", "bucle", "turno", "guion", "proceso", "capitulos", "escaleta", "vinetas", "temporada"], 60) || (c.pizarras || []).some((p) => p.modo === "escaleta") || !!(c.estructura && c.estructura.modelo),

@@ -6,6 +6,8 @@
 
 const ICO = {
   plantar: '<path d="M12 21v-8"/><path d="M12 13c0-4 3-7 7-7 0 4-3 7-7 7Z"/><path d="M12 15c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5Z"/>',
+  semillero: '<path d="M12 20v-6.5"/><path d="M12 13.5c0-3.6 2.6-6.2 6.5-6.2 0 3.6-2.7 6.2-6.5 6.2Z"/><path d="M12 15.5c0-2.8-2.2-5-5.4-5 0 2.8 2.2 5 5.4 5Z"/><path d="M5 20h14"/>',
+  obras: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M10 4h4v16h-4z"/><path d="m15 5.2 3.6-1 3.4 14.7-3.6.9z"/>',
   ruta: '<circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M7 18h6a4 4 0 0 0 0-8h-2a4 4 0 0 1 0-8"/>',
   taller: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/>',
   referentes: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
@@ -39,6 +41,20 @@ export const TEMAS = [
     consejo: "No esperes a tener la idea completa. Una semilla con nombre y una frase ya sirve: Forja te va haciendo las preguntas.",
     plan: ["3 proyectos en curso (los archivados no cuentan)", "Proyectos sin límite"],
     ir: () => u("proyectos/#semilla"), claves: "crear nuevo proyecto empezar categoría formato estado archivar semilla cupo" },
+  { id: "semillero", n: "Semillero", donde: "Menú Semillero",
+    corto: "Ideas de una frase que todavía no son proyectos. No gastan cupo: plantas la que te siga dando vueltas.",
+    para: "No toda idea merece un proyecto el mismo día que aparece. El Semillero guarda frases cortas, sin juzgarlas, y te deja volver a ellas: cada vez que una te sigue entusiasmando, su semilla crece. Cuando quieras, la plantas y se vuelve un proyecto con su Taller listo. Si eres parte de un equipo, el equipo tiene su propio semillero compartido.",
+    pasos: ["Anota la idea en una frase de hasta 80 caracteres. Si no aparece ninguna, toca «Otro detonante» para un ejercicio corto.", "Vuelve en unos días, toca la idea y marca «Me sigue dando vueltas»: la semilla crece hasta tener flor.", "Toca «Plantar» en la que tenga fuerza: eliges su categoría y cómo trabajas, y se abre el proyecto.", "Arriba cambias entre tu semillero y el del equipo; una idea tuya se puede pasar al equipo."],
+    consejo: "Ordena por «Con más fuerza» cuando no sepas cuál plantar: la que más vueltas tiene suele ser la buena.",
+    plan: ["50 ideas en el semillero (las plantadas no cuentan)", "Ideas sin límite"],
+    ir: () => u("semillero/"), claves: "ideas idea suelta anotar frase banco caja detonante ejercicio inspiración plantar brotar sembrar vueltas equipo" },
+  { id: "obras", n: "Analizar una obra", donde: "Pestaña Referentes → Agregar una obra",
+    corto: "La ficha de un libro, juego, película o canción, con su cita armada, y tres miradas para entender cómo está hecha.",
+    para: "Para aprender de otras obras no basta con guardarlas: hay que mirarlas por dentro. Una obra guarda su ficha (título, autoría, año, editorial…) y Forja arma la cita en formato APA sin que tengas que saberlo, aunque no tenga enlace. Después la analizas con tres miradas: cómo se ve, cómo está armada y de qué trata. Al final anotas lo que aprendí: lo que quieres probar en tu proyecto. Todo lo aprendido se junta arriba de tus referentes.",
+    pasos: ["En Referentes, toca «Agregar una obra», elige qué es y llena lo que sepas: solo el título es obligatorio.", "Toca «Analizar» y responde cada mirada; las preguntas cambian según si es un libro, un juego o una película.", "En «Lo que aprendí» escribe una cosa concreta que quieras usar.", "Para citar una frase, guarda una cita y elige de qué obra es y en qué página: se muestra como (Apellido, año, p. 45)."],
+    consejo: "Analiza dos obras parecidas a lo que quieres hacer y compara: lo que se repite en las dos suele ser lo que sostiene ese tipo de proyecto.",
+    plan: ["3 obras analizadas por proyecto y cita APA", "Sin límite, más MLA, Chicago y bibliografía en la biblia"],
+    ir: enProyecto("referentes"), claves: "obra libro juego película canción ficha cita citar apa mla chicago bibliografía referencia análisis analizar aprender aprendí autor editorial página" },
   { id: "ruta", n: "La ruta del proyecto", donde: "Pestaña Ruta de cada proyecto",
     corto: "Las etapas de cualquier proyecto, de la inspiración a la vitrina, con técnicas para cada una. Te orienta, no te obliga.",
     para: "Todo proyecto pasa por etapas parecidas: inspirarse, sembrar ideas, dibujar el mapa de la idea, darle estructura, hacer una primera versión, revisarla y mostrarla. La ruta te dice en qué etapa vas y qué podrías hacer ahora, con técnicas que te llevan a la herramienta indicada. Tú decides el ritmo: puedes saltar etapas, volver atrás o cerrar las sugerencias.",
@@ -56,7 +72,7 @@ export const TEMAS = [
   { id: "referentes", linea: true, n: "Referentes", donde: "Pestaña Referentes",
     corto: "Tu muro de inspiración: imágenes, videos, música, colores, citas y enlaces. Solo enlaces y códigos, nunca archivos.",
     para: "Junta lo que inspira tu proyecto sin llenar tu teléfono: pegas un enlace o un color y Forja reconoce qué es. Los videos y la música se cargan solo cuando los tocas.",
-    pasos: ["Pega un enlace (imagen, YouTube, Vimeo, Spotify, SoundCloud, una página) o un color como #2a9d8f.", "Ponle un título y una nota sobre por qué te sirve.", "Fíltralos por tipo cuando el muro crezca.", "Úsalos después en la Pizarra o en la Vitrina."],
+    pasos: ["Pega un enlace (imagen, YouTube, Vimeo, Spotify, SoundCloud, una página) o un color como #2a9d8f.", "Ponle un título y una nota sobre por qué te sirve.", "Para un libro, juego o película que quieras estudiar, usa «Agregar una obra»: guarda su ficha y se puede analizar.", "Fíltralos por tipo cuando el muro crezca. Úsalos después en la Pizarra o en la Vitrina."],
     consejo: "Para que una imagen funcione, el enlace tiene que llevar directo a la imagen (al abrirlo se ve solo la imagen).",
     plan: ["30 referentes por proyecto", "Referentes sin límite"],
     ir: enProyecto("referentes"), claves: "inspiración imagen video música color paleta cita enlace youtube spotify moodboard" },
@@ -157,7 +173,7 @@ export const tema = (id) => TEMAS.find((t) => t.id === id);
 export function temaDe(href = location.href, hash = location.hash) {
   const rel = href.split(/[?#]/)[0].slice(RAIZ.length).replace(/index\.html$/, ""), h = (hash || "").slice(1);
   if (rel === "proyecto/") return tema(h) ? h : "taller";
-  return ({ "proyectos/": "plantar", "cotizador/": "costos", "cotizaciones/": "costos", "eventos/": "eventos", "planes/": "cuenta", "vitrina/editar/": "vitrina", "biblia/": "biblia", "oportunidades/": "oportunidades", "entrar/": "privacidad", "cuenta/": "comunidad", "normas/": "comunidad", "terminos/": "privacidad", "privacidad/": "privacidad", "explorar/": "comunidad", "equipo/": "equipo", "boletin/": "comunidad", "invitacion/": "invitar" })[rel] || "plantar";
+  return ({ "proyectos/": "plantar", "cotizador/": "costos", "cotizaciones/": "costos", "eventos/": "eventos", "planes/": "cuenta", "vitrina/editar/": "vitrina", "biblia/": "biblia", "oportunidades/": "oportunidades", "entrar/": "privacidad", "cuenta/": "comunidad", "normas/": "comunidad", "terminos/": "privacidad", "privacidad/": "privacidad", "explorar/": "comunidad", "equipo/": "equipo", "boletin/": "comunidad", "invitacion/": "invitar", "semillero/": "semillero" })[rel] || "plantar";
 }
 export const contexto = () => { let p = null; try { p = localStorage.getItem("forja-ultimo-proyecto"); } catch (e) {} return { p }; };
 
