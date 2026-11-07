@@ -80,7 +80,7 @@ conSesion($("app"), async (ses) => {
     '<section class="blq"><div class="fila"><h2>' + esc(ses.user.email) + '</h2><span class="plan">' + (pl.mas ? "Forja Más" + (pl.hasta ? " hasta el " + fecha(pl.hasta) : "") : "Plan gratis") + "</span></div>" +
     "<p>" + (creada ? "Cuenta creada el " + creada + ". " : "") + 'Entras con un enlace a tu correo, sin contraseña. <a href="../planes/">Ver los planes</a></p></section>' +
     '<section class="blq" id="b-avisos"><h2>Avisos</h2><div id="avisos"></div><p class="vacio" id="sin-avisos" hidden>No tienes avisos nuevos. Aquí te contamos si revisamos algo tuyo o respondemos un mensaje.</p></section>' +
-    '<section class="blq" id="escribenos"><h2>Escríbenos</h2><p>Para dudas, problemas, solicitudes sobre tus datos personales o para apelar una decisión. Te respondemos aquí mismo, como aviso.</p>' +
+    '<section class="blq" id="escribenos"><h2>Escríbenos</h2><p>Para dudas, problemas, solicitudes sobre tus datos personales o para apelar una decisión. Te respondemos aquí mismo, como aviso. También puedes escribir a forja@digitalmonster.cl.</p>' +
     '<form class="forma" id="f-msj"><label>Sobre qué<select id="m-tipo"><option value="contacto">Contacto o consulta</option><option value="privacidad">Mis datos personales (acceso, corrección, oposición, bloqueo…)</option></select></label>' +
     '<label>Mensaje<textarea id="m-texto" maxlength="3000" required placeholder="Cuéntanos qué necesitas."></textarea></label>' +
     '<div class="acc"><button class="fx-primary" type="submit">Enviar</button><small class="vacio">Para apelar la suspensión de una vitrina, usa el botón "Apelar" en su editor.</small></div></form>' +

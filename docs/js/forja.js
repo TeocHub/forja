@@ -8,7 +8,7 @@ export const SB_KEY = "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j";
 export const sb = createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 
 // Raíz del sitio (la carpeta de index.html), sacada de la ubicación de este archivo: sirve igual en
-// teochub.github.io/forja/ que en un dominio propio. Cada página vive en su carpeta: proyectos/, proyecto/?p=…
+// forja.digitalmonster.cl (antes teochub.github.io/forja/) que en cualquier otro dominio. Cada página vive en su carpeta: proyectos/, proyecto/?p=…
 export const RAIZ = new URL("../", import.meta.url).href;
 export const u = (ruta = "") => RAIZ + ruta;
 const PUBLICO = [

@@ -2,7 +2,7 @@
 
 Plataforma de Digital Monster para organizar proyectos creativos: oportunidades, proyectos, proveedores y campañas.
 
-Web: https://teochub.github.io/forja/ (GitHub Pages, carpeta `docs/`)
+Web: https://forja.digitalmonster.cl/ (GitHub Pages, carpeta `docs/`; la dirección vieja teochub.github.io/forja/ redirige sola)
 
 ## Qué tiene
 

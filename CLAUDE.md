@@ -3,6 +3,8 @@
 Proyecto de Teoc (TeocHub) y Skynook, empresa Digital Monster (Chile; no tiene relación con Digimon). Responder y escribir en español.
 
 ## Cómo trabajar en este repo
+- Dirección: https://forja.digitalmonster.cl/ (GitHub Pages con dominio propio; DNS en Cloudflare con el CNAME `forja` → `teochub.github.io` sin proxy). La dirección vieja teochub.github.io/forja/ redirige sola. Supabase Auth tiene ambas en Redirect URLs.
+- Correo: los correos de entrada salen de `forja@digitalmonster.cl` (Titan, de HostGator) por SMTP propio en Supabase (`smtp.titan.email:465`; en Titan, "Habilitar Titan en otras aplicaciones" debe seguir activo). Plantillas Magic Link y Confirm signup en español. Contacto de la empresa: `contacto@digitalmonster.cl`.
 - Commits directo a `main`, sin ramas ni pull requests (decisión del dueño). Mensajes de commit en español, cortos.
 - Sitio estático en `docs/` publicado por GitHub Pages. Sin build ni dependencias: HTML, CSS y JS planos.
 - El repositorio es público: nunca guardar datos privados, claves, cotizaciones reales ni datos personales. Lo privado va a Supabase.
