@@ -1,7 +1,7 @@
 // Forja: caché simple para que la app abra sin conexión.
 // Los datos se piden primero a la red (siempre lo más nuevo) y solo se usa la caché si no hay conexión.
-const CACHE = "forja-v27";
-const SHELL = ["./", "oportunidades/", "proyectos/", "proyecto/", "cotizador/", "biblia/", "entrar/", "planes/", "eventos/", "cotizaciones/", "vitrina/", "vitrina/editar/", "guia/", "explorar/", "cuenta/", "terminos/", "privacidad/", "normas/", "correo/", "boletin/", "equipo/", "invitacion/", "semillero/", "manifest.webmanifest", "icon.svg", "js/forja.js", "js/brujula.js", "js/guias.js", "js/planes.js", "js/pizarra.js", "js/vitrina.js", "js/ayuda.js", "js/ruta.js", "js/obras.js", "js/semillero.js", "css/forja.css"];
+const CACHE = "forja-v28";
+const SHELL = ["./", "oportunidades/", "proyectos/", "proyecto/", "cotizador/", "biblia/", "entrar/", "planes/", "eventos/", "cotizaciones/", "vitrina/", "vitrina/editar/", "guia/", "explorar/", "cuenta/", "terminos/", "privacidad/", "normas/", "correo/", "boletin/", "equipo/", "invitacion/", "semillero/", "manifest.webmanifest", "icon.svg", "js/forja.js", "js/brujula.js", "js/guias.js", "js/planes.js", "js/pizarra.js", "js/vitrina.js", "js/ayuda.js", "js/ruta.js", "js/obras.js", "js/mapa.js", "js/estructura.js", "js/semillero.js", "css/forja.css"];
 self.addEventListener("install", e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener("activate", e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener("fetch", e => {

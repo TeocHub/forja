@@ -6,6 +6,8 @@
 
 const ICO = {
   plantar: '<path d="M12 21v-8"/><path d="M12 13c0-4 3-7 7-7 0 4-3 7-7 7Z"/><path d="M12 15c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5Z"/>',
+  mapa: '<circle cx="12" cy="12" r="2.6"/><circle cx="5" cy="6" r="1.8"/><circle cx="19" cy="6" r="1.8"/><circle cx="5" cy="18" r="1.8"/><circle cx="19" cy="18" r="1.8"/><path d="m6.5 7.2 3.4 3.1M17.5 7.2l-3.4 3.1M6.5 16.8l3.4-3.1M17.5 16.8l-3.4-3.1"/>',
+  estructura: '<path d="M3 18c3 0 4-9 7-9s3 5 5 5 3-9 6-9"/><path d="M3 21h18"/>',
   semillero: '<path d="M12 20v-6.5"/><path d="M12 13.5c0-3.6 2.6-6.2 6.5-6.2 0 3.6-2.7 6.2-6.5 6.2Z"/><path d="M12 15.5c0-2.8-2.2-5-5.4-5 0 2.8 2.2 5 5.4 5Z"/><path d="M5 20h14"/>',
   obras: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M10 4h4v16h-4z"/><path d="m15 5.2 3.6-1 3.4 14.7-3.6.9z"/>',
   ruta: '<circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M7 18h6a4 4 0 0 0 0-8h-2a4 4 0 0 1 0-8"/>',
@@ -55,6 +57,20 @@ export const TEMAS = [
     consejo: "Analiza dos obras parecidas a lo que quieres hacer y compara: lo que se repite en las dos suele ser lo que sostiene ese tipo de proyecto.",
     plan: ["3 obras analizadas por proyecto y cita APA", "Sin límite, más MLA, Chicago y bibliografía en la biblia"],
     ir: enProyecto("referentes"), claves: "obra libro juego película canción ficha cita citar apa mla chicago bibliografía referencia análisis analizar aprender aprendí autor editorial página" },
+  { id: "mapa", n: "Mapa de la idea", donde: "Ruta → etapa 3",
+    corto: "La idea completa en una sola vista: en el centro la idea, alrededor su foco y seis ramas que cambian según lo que estés creando.",
+    para: "Antes de construir conviene ver la idea entera. El mapa pone en el centro tu idea en una frase; cerca, el foco (de qué habla en el fondo, por qué tú y para quién); y alrededor, seis preguntas propias de tu categoría, como quién protagoniza en una historia o qué haces en tu turno en un juego de mesa. Las respuestas son cortas: lo profundo va en el Taller.",
+    pasos: ["Abre la Ruta, ve a la etapa 3 y toca «Abrir el Mapa».", "Toca cualquier punto del mapa y responde en pocas líneas. Pasa al siguiente con las flechas.", "Deja en blanco lo que aún no sabes: verlo vacío también ayuda.", "Con Forja Más, «Llevar al Taller» copia cada respuesta a su sección."],
+    consejo: "Si te cuesta una rama, salta a otra. Muchas veces la última respuesta aclara la primera.",
+    plan: ["Completo", "Además, llevar cada respuesta al Taller con un toque"],
+    ir: enProyecto("mapa"), claves: "mapa idea esquema foco tema para quién por qué ramas preguntas resumen centro" },
+  { id: "estructura", n: "Estructura", donde: "Ruta → etapa 4",
+    corto: "Resume tu proyecto en seis momentos y pruébalo en modelos dibujados: tres actos, el viaje, curva de dificultad, arco de partida…",
+    para: "Primero escribes tu proyecto en seis momentos, con nombres según tu categoría (en un juego de mesa: preparación, primeros turnos, medio juego…). Después eliges un modelo y lo ves dibujado como curva o como ciclo, con tus momentos puestos en cada paso. Así se nota qué falta o qué está de más. Lo que aprendiste de tus obras queda a mano arriba.",
+    pasos: ["Abre la Ruta, ve a la etapa 4 y toca «Probar estructuras».", "Escribe tus seis momentos en dos o tres líneas cada uno.", "Toca un modelo y revisa sus pasos: los pasos propios del modelo traen su pregunta.", "«Escribir en el Taller» deja la estructura en su sección. Con Forja Más, compara dos modelos y pásalo a la Escaleta."],
+    consejo: "No hay estructura correcta: prueba dos y quédate con la que haga que tu historia o tu juego se entienda mejor.",
+    plan: ["Los dos modelos principales de tu categoría", "Todos los modelos, comparar dos lado a lado y pasarlo a la Escaleta"],
+    ir: enProyecto("estructura"), claves: "estructura tres actos viaje del héroe círculo pirámide cuatro tiempos curva de dificultad ciclo de juego turno partida gancho remate modelo momentos escaleta" },
   { id: "ruta", n: "La ruta del proyecto", donde: "Pestaña Ruta de cada proyecto",
     corto: "Las etapas de cualquier proyecto, de la inspiración a la vitrina, con técnicas para cada una. Te orienta, no te obliga.",
     para: "Todo proyecto pasa por etapas parecidas: inspirarse, sembrar ideas, dibujar el mapa de la idea, darle estructura, hacer una primera versión, revisarla y mostrarla. La ruta te dice en qué etapa vas y qué podrías hacer ahora, con técnicas que te llevan a la herramienta indicada. Tú decides el ritmo: puedes saltar etapas, volver atrás o cerrar las sugerencias.",
@@ -172,7 +188,7 @@ export const tema = (id) => TEMAS.find((t) => t.id === id);
 // Qué tema explica la página donde está la persona.
 export function temaDe(href = location.href, hash = location.hash) {
   const rel = href.split(/[?#]/)[0].slice(RAIZ.length).replace(/index\.html$/, ""), h = (hash || "").slice(1);
-  if (rel === "proyecto/") return tema(h) ? h : "taller";
+  if (rel === "proyecto/") return tema(h) ? h : "taller"; // #mapa y #estructura tienen su propio tema
   return ({ "proyectos/": "plantar", "cotizador/": "costos", "cotizaciones/": "costos", "eventos/": "eventos", "planes/": "cuenta", "vitrina/editar/": "vitrina", "biblia/": "biblia", "oportunidades/": "oportunidades", "entrar/": "privacidad", "cuenta/": "comunidad", "normas/": "comunidad", "terminos/": "privacidad", "privacidad/": "privacidad", "explorar/": "comunidad", "equipo/": "equipo", "boletin/": "comunidad", "invitacion/": "invitar", "semillero/": "semillero" })[rel] || "plantar";
 }
 export const contexto = () => { let p = null; try { p = localStorage.getItem("forja-ultimo-proyecto"); } catch (e) {} return { p }; };

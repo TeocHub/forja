@@ -31,7 +31,7 @@ export const etapaNombre = (k, tipo) => { const e = ETAPAS.find((x) => x.k === k
 export const etapaIndice = (k) => Math.max(0, ETAPAS.findIndex((x) => x.k === k));
 
 // Herramientas que todavía no existen: su tarjeta se ve, pero dice «Llega pronto».
-export const PRONTO = new Set(["mapa", "estructura", "sesion", "metrabe", "revision", "lectores", "pulido", "prototipo"]);
+export const PRONTO = new Set(["sesion", "metrabe", "revision", "lectores", "pulido", "prototipo"]);
 
 // Técnicas por etapa. Campos:
 // id, t (título), d (qué es y para qué), pasos (cómo, en 2 o 3 pasos), min (minutos aprox.),
@@ -174,8 +174,8 @@ export function senales(c) {
   return {
     inspirar: (c.refs || []).length >= 3 || (c.refs || []).some((r) => r.tipo === "obra" && r.analisis && Object.keys(r.analisis).length),
     sembrar: pal(c.resumen) >= 15,
-    mapa: conTexto(secs, ["premisa", "pitch", "idea", "queEs"], 40) || Object.keys(c.esquema || {}).length >= 4,
-    estructura: conTexto(secs, ["estructura", "bucle", "turno", "guion", "proceso", "capitulos", "escaleta", "vinetas", "temporada"], 60) || (c.pizarras || []).some((p) => p.modo === "escaleta") || !!(c.estructura && c.estructura.modelo),
+    mapa: conTexto(secs, ["premisa", "pitch", "idea", "queEs"], 40) || Object.values((c.esquema || {}).r || {}).filter((v) => String(v).trim()).length >= 4,
+    estructura: conTexto(secs, ["estructura", "bucle", "turno", "guion", "proceso", "capitulos", "escaleta", "vinetas", "temporada"], 60) || (c.pizarras || []).some((p) => p.modo === "escaleta") || Object.values((c.estructura || {}).m || {}).filter((v) => String(v).trim()).length >= 4,
     hacer: total >= 3000 || prom >= 50 || !!h.prototipo,
     revisar: secs.some((s) => (s.avance || 0) >= 75) || !!h.revision,
     pulir: !!(c.vitrina && c.vitrina.publicada),

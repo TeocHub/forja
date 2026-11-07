@@ -16,6 +16,7 @@ export const AREAS = [
 
 export const FUNCIONES = [
   { k: "analizar-obras", a: "escritura", t: "Analizar obras", d: "La ficha de cada libro, juego o película con su cita armada, tres miradas para entender cómo está hecha y lo que aprendiste. Con Forja Más, también MLA, Chicago y la bibliografía en la biblia.", listo: true, libre: "Gratis: 3 obras analizadas por proyecto y cita APA." },
+  { k: "estructuras", a: "escritura", t: "Mapa de la idea y estructuras", d: "La idea completa en una vista y tus momentos probados en modelos dibujados. Con Forja Más: todos los modelos, comparar dos lado a lado, llevar el mapa al Taller y pasar la estructura a la Escaleta.", listo: true, libre: "Gratis: el mapa completo y dos modelos de estructura por categoría." },
   { k: "capitulos", a: "escritura", t: "Capítulos y conteo", d: "Divide una sección en capítulos o escenas y cuenta palabras, páginas y tiempo de lectura de cada uno." },
   { k: "metas", a: "escritura", t: "Metas y constancia", d: "Meta de palabras por día o semana y un calendario de los días que escribiste." },
   { k: "manuscrito", a: "escritura", t: "Modo manuscrito", d: "El formato estándar para enviar a editoriales y concursos." },

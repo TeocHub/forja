@@ -100,15 +100,17 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 <script type="module">
 import { sb, $, esc, fecha, navApp, espacio, conSesion, accesoProyecto } from "../js/forja.js";
 import * as O from "../js/obras.js";
+import * as MP from "../js/mapa.js";
+import * as ES from "../js/estructura.js";
 import { TIPOS, ESTADOS, tc } from "../js/guias.js";
 import { EJES, FORMATOS, radar, dial, lectura, tocado, vals, pct, base, CSS_BRUJULA } from "../js/brujula.js";
 import { MODOS, estatica, cuentaTarjetas, CSS_PIZARRA } from "../js/pizarra.js";
 navApp("proyectos");
-document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ".doc .piz{break-inside:avoid;margin:0 0 22px}.doc .piz h3{margin:0 0 2px}.doc .piz .modo{font-family:'Atkinson Hyperlegible',sans-serif;font-size:9pt;color:var(--soft);margin:0 0 8px}.doc .radar text,.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .radar .forma{fill:rgba(42,63,209,.15);stroke:#2a3fd1}.doc .dial .petalo{fill:#e6e9fb}.doc .dial .petalo.top{fill:#f6cdb9}.doc .dial .borde{fill:#fafafa;stroke:#d9dbe2}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + ".doc .mapa{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:6px 14px;margin:0}.doc .mapa dt{font-weight:700;font-family:'Atkinson Hyperlegible',sans-serif;font-size:10pt}.doc .mapa dd{margin:0}.doc .centro{font-size:13pt;font-style:italic;margin:0 0 12px}.doc .es-bib{max-width:520px;margin:0 0 14px}.doc .es-dib .es-p .es-lbl{stroke:#fff}" + ".doc .piz{break-inside:avoid;margin:0 0 22px}.doc .piz h3{margin:0 0 2px}.doc .piz .modo{font-family:'Atkinson Hyperlegible',sans-serif;font-size:9pt;color:var(--soft);margin:0 0 8px}.doc .radar text,.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .radar .forma{fill:rgba(42,63,209,.15);stroke:#2a3fd1}.doc .dial .petalo{fill:#e6e9fb}.doc .dial .petalo.top{fill:#f6cdb9}.doc .dial .borde{fill:#fafafa;stroke:#d9dbe2}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
 
 const ID = new URLSearchParams(location.search).get("p");
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-const PARTES = [["taller", "Escritura"], ["referentes", "Referentes"], ["obras", "Obras analizadas"], ["brujula", "Brújula"], ["pizarras", "Pizarras"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["bibliografia", "Bibliografía"]];
+const PARTES = [["mapa", "Mapa de la idea"], ["estructura", "Estructura"], ["taller", "Escritura"], ["referentes", "Referentes"], ["obras", "Obras analizadas"], ["brujula", "Brújula"], ["pizarras", "Pizarras"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["bibliografia", "Bibliografía"]];
 let MAS = false;
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../proyectos/");
@@ -143,7 +145,8 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
   const palabras = SECS.reduce((a, s) => a + (s.texto.trim().match(/\S+/g) || []).length, 0);
   const PZ = PIZ.filter((z) => cuentaTarjetas(z.datos) || ((z.datos || {}).regiones || []).length);
   const OBRAS = REFS.filter((r) => r.tipo === "obra"), OTROS = REFS.filter((r) => r.tipo !== "obra");
-  const tiene = { taller: conTexto.length, referentes: OTROS.length, obras: OBRAS.length, bibliografia: MAS && OBRAS.length, brujula: tocado(P.ejes) || f, pizarras: PZ.length, costos: COT && (COT.datos.componentes || []).length, oportunidades: SEGS.length, bitacora: NOTAS.length };
+  const EQ = MP.normalEsquema(P.esquema), NODOS = MP.nodos(P.tipo).filter((n) => EQ.r[n.k]), ESx = ES.normalEstructura(P.estructura), MOM = ES.momentos(P.tipo).filter((m) => ESx.m[m.k]);
+  const tiene = { mapa: NODOS.length || EQ.centro, estructura: MOM.length, taller: conTexto.length, referentes: OTROS.length, obras: OBRAS.length, bibliografia: MAS && OBRAS.length, brujula: tocado(P.ejes) || f, pizarras: PZ.length, costos: COT && (COT.datos.componentes || []).length, oportunidades: SEGS.length, bitacora: NOTAS.length };
 
   $("app").innerHTML =
     '<section class="opciones"><h1>Biblia del proyecto</h1><p>Un documento con todo lo que has trabajado. Elige qué incluir y guárdalo como PDF desde la ventana de impresión (opción “Guardar como PDF”).</p>' +
@@ -154,6 +157,13 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
     '<div><div class="ficha"><span>Tipo</span><b>' + esc(TIPOS[P.tipo]) + "</b><span>Estado</span><b>" + esc(ESTADOS[P.estado]) + "</b>" + (f ? "<span>Formato</span><b>" + esc(f.n) + "</b>" : "") +
     (palabras ? "<span>Escritura</span><b>" + palabras.toLocaleString("es-CL") + " palabras</b>" : "") + "<span>Exportado</span><b>" + fecha(new Date().toISOString()) + "</b></div>" +
     '<div class="indice" id="indice"></div></div></section>' +
+
+    '<section class="parte" data-p="mapa"><h2>Mapa de la idea</h2><p class="bajada">La idea completa en una vista: su foco y sus ramas.</p>' +
+      (EQ.centro ? '<p class="centro">' + esc(EQ.centro) + "</p>" : "") + '<dl class="mapa">' + NODOS.map((n) => "<dt>" + esc(n.n) + "</dt><dd>" + esc(EQ.r[n.k]) + "</dd>").join("") + "</dl></section>" +
+
+    '<section class="parte" data-p="estructura"><h2>Estructura</h2><p class="bajada">' + (ESx.modelo ? "Ordenada con el modelo «" + esc(ES.MODELOS[ESx.modelo].n) + "»." : "Los momentos del proyecto.") + "</p>" +
+      (ESx.modelo ? '<div class="es-bib">' + ES.dibujo(ESx.modelo, { llenos: new Set(ES.MODELOS[ESx.modelo].p.map((p, i) => (p.m ? (ESx.m[p.m] ? i : -1) : (((ESx.notas || {})[ESx.modelo] || {})[i] ? i : -1)))) }) + "</div>" : "") +
+      '<dl class="mapa">' + (ESx.modelo ? ES.MODELOS[ESx.modelo].p.map((p, i) => { const t2 = p.m ? ESx.m[p.m] : ((ESx.notas || {})[ESx.modelo] || {})[i]; return t2 ? "<dt>" + (i + 1) + ". " + esc(p.n) + "</dt><dd>" + esc(t2) + "</dd>" : ""; }).join("") : MOM.map((m) => "<dt>" + esc(m.n) + "</dt><dd>" + esc(ESx.m[m.k]) + "</dd>").join("")) + "</dl></section>" +
 
     '<section class="parte" data-p="taller"><h2>Escritura</h2><p class="bajada">Las secciones del taller, en el orden en que las organizaste.</p>' +
     conTexto.map((s) => '<div class="sec"><h3>' + esc(s.titulo) + "</h3>" + parrafos(s.texto) + "</div>").join("") + "</section>" +
