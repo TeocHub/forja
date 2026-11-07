@@ -75,7 +75,50 @@ const nada = (t, x) => { raiz.innerHTML = '<div class="vt-estado"><div><h1>' + t
   const rb = raiz.querySelector(".vt-reportar"); if (rb) rb.onclick = reportar;
   if (location.hash === "#reportar") reportar();
   if (d.seguir.activo) seguir(d);
+  if (raiz.querySelector("[data-anotar]")) anotar(d);
 })();
+
+// "Me interesa" en una recompensa: con cuenta, sin pago ni compromiso. Quien creó la vitrina ve cuántas personas, nunca quiénes.
+async function anotar(d) {
+  const botones = [...raiz.querySelectorAll("[data-anotar]")];
+  const pintar = (e) => {
+    if (!e) return;
+    const mias = new Set(e.mias || []);
+    botones.forEach((b) => {
+      const si = mias.has(b.dataset.anotar);
+      b.setAttribute("aria-pressed", String(si)); b.querySelector("span").textContent = si ? "Anotado ✓" : "Me interesa";
+      if (e.propia) { b.disabled = true; b.title = "Es tu vitrina: así la ve la gente"; }
+      const c = b.nextElementSibling, n = e.conteo ? e.conteo[b.dataset.anotar] || 0 : null;
+      if (c) { c.hidden = !n; c.textContent = n === 1 ? "1 persona interesada" : (n || 0).toLocaleString("es-CL") + " personas interesadas"; }
+    });
+  };
+  const { data: ses } = await sb.auth.getSession();
+  const est = await sb.rpc("estado_recompensas", { slug }); pintar(est.data);
+  const q = new URLSearchParams(location.search), pedido = q.get("anotar");
+  if (ses.session && pedido) {
+    q.delete("anotar"); history.replaceState(null, "", location.pathname + "?" + q.toString() + "#recompensas");
+    if (est.data && !est.data.propia && !(est.data.mias || []).includes(pedido)) {
+      const r = await sb.rpc("anotar_recompensa", { slug, tier: pedido, si: true });
+      if (!r.error) { pintar(r.data); aviso(r.data.sigue ? "Listo: quedaste anotado y te avisaremos por correo cuando abra." : "Listo: quedaste anotado."); }
+    }
+  }
+  botones.forEach((b) => b.onclick = async () => {
+    if (!ses.session) {
+      let dl = document.getElementById("rep"); if (dl) dl.remove();
+      const t = d.recompensas.tiers.find((x) => x.id === b.dataset.anotar) || {};
+      dl = document.createElement("dialog"); dl.id = "rep"; dl.className = "rep";
+      dl.innerHTML = '<div class="rep-c"><h2>Me interesa «' + esc(t.nombre || "esta recompensa") + '»</h2><p>Anotarte no es un pago ni un compromiso: le muestra a quien crea <b>' + esc(d.titulo || "el proyecto") + '</b> qué quiere la gente' + (d.seguir.activo ? ", y te llegará un correo cuando abra la campaña" : "") + '. Puedes quitarte cuando quieras.</p><p>Necesitas una cuenta gratis de Forja: solo pide tu correo. Nadie ve tu correo.</p><div class="rep-pie"><button type="button" class="rep-no">Ahora no</button><a class="rep-si" href="' + u("entrar/?siguiente=" + encodeURIComponent("vitrina/?v=" + slug + "&anotar=" + b.dataset.anotar)) + '">Entrar y anotarme</a></div></div>';
+      document.body.appendChild(dl); dl.showModal(); dl.querySelector(".rep-no").onclick = () => dl.close();
+      return;
+    }
+    const si = b.getAttribute("aria-pressed") !== "true";
+    b.disabled = true;
+    const r = await sb.rpc("anotar_recompensa", { slug, tier: b.dataset.anotar, si });
+    b.disabled = false;
+    if (r.error) { aviso(limite(r.error) || "No se pudo guardar. Intenta de nuevo."); return; }
+    pintar(r.data); aviso(!si ? "Ya no estás anotado en esa recompensa." : r.data.sigue ? "Listo: quedaste anotado y te avisaremos por correo cuando abra." : "Listo: quedaste anotado.");
+  });
+}
 
 // Seguir el proyecto: con cuenta (así nadie anota correos ajenos ni hay bots). Quien creó la vitrina
 // solo ve cuántas personas la siguen, nunca quiénes; los avisos llegan por correo y se cancelan con un toque.

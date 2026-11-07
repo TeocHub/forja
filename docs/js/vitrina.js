@@ -5,7 +5,8 @@
 //
 // datos = { v:1, titulo, lema, firma, tipo, formato, portada:{url,foco}, tono, acento,
 //           historia:[{id,titulo,texto}], galeria:[{id,tipo,valor,titulo,nota}],
-//           pizarras:[{id,nombre,modo,soloTitulos,ocultas:[],datos}], novedades:[{id,fecha,titulo,texto}], enlaces:[{id,nombre,url}] }
+//           pizarras:[{id,nombre,modo,soloTitulos,ocultas:[],datos}], novedades:[{id,fecha,titulo,texto}], enlaces:[{id,nombre,url}],
+//           recompensas:{activo,plataforma,enlace,estado,abre,meta,verMeta,interes,contador,tiers:[{id,nombre,precio,desc,incluye:[],envio,limite,entrega}]} }
 import { TIPOS } from "./guias.js";
 import { FORMATOS } from "./brujula.js";
 import { montar, MODOS, CSS_PIZARRA } from "./pizarra.js";
@@ -48,6 +49,44 @@ export const cuentaPagos = (d) => [...arr(d.enlaces).map((e) => e.url), ...arr(d
 export const SEGUIR_TEXTOS = { seguir: "Seguir el proyecto", lanzamiento: "Avísame cuando lance", jugar: "Quiero jugarlo", leer: "Quiero leerlo", tener: "Lo quiero" };
 const dominio = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
 
+/* ---------- recompensas de la campaña (copiadas desde la pestaña Campaña del cotizador) ---------- */
+export const ESTADOS_CAMP = { pronto: "Abre pronto", abierta: "Campaña abierta", cerrada: "Campaña cerrada" };
+export const ENVIOS = { aparte: "Envío aparte", incluido: "Envío incluido", digital: "Digital: sin envío" };
+export const MAX_TIERS = 12;
+export function normalRecompensas(x) {
+  x = x && typeof x === "object" ? x : {};
+  return {
+    activo: !!x.activo, plataforma: corta(x.plataforma, 60), enlace: okUrl(x.enlace), estado: ESTADOS_CAMP[x.estado] ? x.estado : "pronto",
+    abre: /^\d{4}-\d{2}-\d{2}$/.test(x.abre || "") ? x.abre : "", meta: Math.max(0, Math.round(+x.meta || 0)), verMeta: !!x.verMeta,
+    interes: x.interes !== false, contador: !!x.contador, ...(x.tomada ? { tomada: String(x.tomada).slice(0, 30) } : {}),
+    tiers: arr(x.tiers).filter((t) => t && t.id).slice(0, MAX_TIERS).map((t) => ({ id: String(t.id).slice(0, 20), nombre: corta(t.nombre, 80), precio: Math.max(0, Math.round(+t.precio || 0)),
+      desc: corta(t.desc, 600), incluye: arr(t.incluye).map((i) => corta(i, 80)).filter(Boolean).slice(0, 12), envio: ENVIOS[t.envio] ? t.envio : "aparte",
+      limite: Math.max(0, Math.round(+t.limite || 0)) || null, entrega: /^\d{4}-\d{2}$/.test(t.entrega || "") ? t.entrega : "" })),
+  };
+}
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const mesTxt = (s) => { const m = /^(\d{4})-(\d{2})/.exec(s || ""); return m ? MESES[+m[2] - 1] + " de " + m[1] : ""; };
+const pesos = (n) => "$" + Math.round(n).toLocaleString("es-CL");
+function recompensasHTML(R, previa) {
+  const plat = R.plataforma || "la campaña", abierta = R.estado === "abierta" && R.enlace;
+  const cab = R.estado === "abierta" ? "La campaña está abierta" + (R.plataforma ? " en " + esc(R.plataforma) : "") + "."
+    : R.estado === "cerrada" ? "La campaña ya cerró. Gracias a quienes apoyaron."
+    : "La campaña abre " + (R.abre ? "el " + esc(fechaTxt(R.abre)) : "pronto") + (R.plataforma ? " en " + esc(R.plataforma) : "") + "." + (R.interes ? " Anótate en lo que te interese y te avisamos." : "");
+  return '<section class="vt-sec" id="vt-recompensas"><h2 class="vt-h2">Recompensas</h2><p class="vt-guia vt-camp-cab">' + cab +
+    (R.verMeta && R.meta ? ' Meta: <b>' + pesos(R.meta) + "</b>." : "") + "</p>" +
+    (abierta ? '<p><a class="vt-camp-ir" href="' + esc(R.enlace) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + ">Ir a la campaña en " + esc(plat) + " ↗</a></p>" : "") +
+    '<div class="vt-tiers">' + R.tiers.map((t, i) =>
+      '<article class="vt-tier" data-tier="' + esc(t.id) + '"><div class="vt-tier-top"><span class="vt-tier-n">' + String(i + 1).padStart(2, "0") + "</span>" + (t.limite ? '<span class="vt-tier-cupo">' + t.limite + " cupos</span>" : "") + "</div>" +
+      "<h3>" + esc(t.nombre || "Recompensa") + '</h3><p class="vt-tier-precio">' + (t.precio ? pesos(t.precio) : "Lo que quieras") + "</p>" +
+      (t.desc ? '<p class="vt-tier-desc">' + esc(t.desc) + "</p>" : "") +
+      (t.incluye.length ? '<ul class="vt-tier-inc">' + t.incluye.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") +
+      '<p class="vt-tier-pie">' + ENVIOS[t.envio] + (t.entrega ? " · Entrega estimada: " + esc(mesTxt(t.entrega)) : "") + "</p>" +
+      (R.estado === "cerrada" ? "" : abierta ? '<a class="vt-tier-b" href="' + esc(R.enlace) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + ">Apoyar en " + esc(plat) + "</a>"
+        : R.interes ? '<button type="button" class="vt-tier-b" data-anotar="' + esc(t.id) + '" aria-pressed="false"' + (previa ? " disabled" : "") + '><span>Me interesa</span></button><span class="vt-tier-cuenta" hidden></span>' : "") +
+      "</article>").join("") + "</div>" +
+    '<p class="vt-camp-nota">' + (abierta ? "El apoyo y el pago se hacen en " + esc(plat) + ", no en Forja." : "Anotarte no es un pago ni un compromiso: sirve para que el proyecto sepa qué quiere la gente y te avise cuando abra.") + "</p></section>";
+}
+
 /* ---------- datos ---------- */
 export function nuevaVitrina(P) {
   return { v: 1, titulo: P.nombre || "", lema: corta(P.resumen || "", 180), firma: "", tipo: P.tipo, formato: P.formato || null,
@@ -65,6 +104,7 @@ export function normal(d) {
     pizarras: arr(d.pizarras).filter((z) => z && z.id && MODOS[z.modo]).map((z) => ({ id: z.id, nombre: corta(z.nombre, 120), modo: z.modo, soloTitulos: !!z.soloTitulos, ocultas: arr(z.ocultas), datos: z.datos || {}, ...(z.tomada ? { tomada: z.tomada } : {}) })),
     novedades: arr(d.novedades).filter((n) => n && n.id).map((n) => ({ id: n.id, fecha: /^\d{4}-\d{2}-\d{2}$/.test(n.fecha || "") ? n.fecha : "", titulo: corta(n.titulo, 160), texto: corta(n.texto, 8000) })),
     enlaces: arr(d.enlaces).filter((e) => e && e.id).slice(0, LIM.enlaces).map((e) => ({ id: e.id, nombre: corta(e.nombre, 60), url: String(e.url || "").trim() })),
+    recompensas: normalRecompensas(d.recompensas),
     seguir: { activo: !!(d.seguir && d.seguir.activo), texto: d.seguir && SEGUIR_TEXTOS[d.seguir.texto] ? d.seguir.texto : "seguir", contador: !!(d.seguir && d.seguir.contador) },
   };
 }
@@ -76,6 +116,9 @@ export function paraPublicar(b, { mas }) {
   d.galeria = d.galeria.map(({ id, tipo, valor, titulo, nota }) => ({ id, tipo, valor, titulo, nota }));
   d.novedades = d.novedades.filter((n) => n.titulo.trim() || n.texto.trim()).sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
   d.enlaces = d.enlaces.filter((e) => okUrl(e.url)).map((e) => ({ ...e, nombre: e.nombre.trim() || dominio(e.url) }));
+  d.recompensas.tiers = d.recompensas.tiers.filter((t) => t.nombre.trim());
+  if (!d.recompensas.activo || !d.recompensas.tiers.length) delete d.recompensas;
+  else delete d.recompensas.tomada;
   d.pizarras = !mas ? [] : d.pizarras.map((z) => {
     const ocultas = new Set(z.ocultas), x = z.datos || {};
     const tarjetas = arr(x.tarjetas).filter((t) => !ocultas.has(t.id)).map((t) => { const c = { ...t }; delete c.enlace; if (z.soloTitulos) delete c.texto; return c; });
@@ -98,6 +141,7 @@ export function pintarVitrina(raiz, datos, opts = {}) {
     d.historia.length && ["historia", "La historia"],
     (piezas.length || colores.length) && ["galeria", "Galería"],
     d.pizarras.length && ["mundo", "El mundo"],
+    d.recompensas && d.recompensas.activo && d.recompensas.tiers.length && ["recompensas", "Recompensas"],
     d.novedades.length && ["novedades", "Novedades"],
     d.enlaces.length && ["enlaces", "Dónde seguirlo"],
   ].filter(Boolean);
@@ -123,6 +167,7 @@ export function pintarVitrina(raiz, datos, opts = {}) {
     (d.pizarras.length ? '<section class="vt-sec" id="vt-mundo"><h2 class="vt-h2">El mundo</h2><p class="vt-guia">Explóralo: arrastra para moverte, acerca con la rueda o pellizcando, y toca una tarjeta para leerla.</p>' +
       (d.pizarras.length > 1 ? '<div class="vt-tabs" role="tablist">' + d.pizarras.map((z, i) => '<button type="button" role="tab" aria-selected="' + !i + '" data-pz="' + i + '">' + esc(z.nombre) + "<small>" + MODOS[z.modo].corto + "</small></button>").join("") + "</div>" : "") +
       '<div class="vt-pizarra"></div></section>' : "") +
+    (d.recompensas && d.recompensas.activo && d.recompensas.tiers.length ? recompensasHTML(d.recompensas, previa) : "") +
     (d.novedades.length ? '<section class="vt-sec" id="vt-novedades"><h2 class="vt-h2">Novedades</h2><div class="vt-linea">' + d.novedades.map((n) =>
       '<article class="vt-nov"><time datetime="' + esc(n.fecha) + '">' + esc(fechaTxt(n.fecha)) + "</time><div>" + (n.titulo ? "<h3>" + esc(n.titulo) + "</h3>" : "") + parrafos(n.texto, 600) + "</div></article>").join("") + "</div></section>" : "") +
     (d.enlaces.length ? '<section class="vt-sec" id="vt-enlaces"><h2 class="vt-h2">Dónde seguirlo</h2><div class="vt-enlaces">' + d.enlaces.map((e) =>
@@ -277,6 +322,26 @@ export const CSS_VITRINA = CSS_PIZARRA + `
 .vt-seguir[aria-pressed=true] svg{color:var(--vt-acento)}
 .vt-seguir:disabled{opacity:.6;cursor:default;transform:none}
 .vt-seguir-n{font-size:14px;opacity:.85}
+.vt-camp-cab{margin-top:-6px}
+.vt-camp-ir{display:inline-block;background:var(--vt-acento);color:#fff;text-decoration:none;font-weight:700;border-radius:999px;padding:10px 20px}
+.vt-tiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:8px}
+.vt-tier{position:relative;display:flex;flex-direction:column;gap:8px;background:var(--vt-card);border:1px solid var(--vt-line);border-radius:18px;padding:18px 18px 16px;overflow:hidden}
+.vt-tier::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:var(--vt-acento);opacity:.85}
+.vt-tier-top{display:flex;justify-content:space-between;align-items:center}
+.vt-tier-n{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--vt-muted)}
+.vt-tier-cupo{font-size:12px;font-weight:700;color:var(--vt-acento);border:1px solid var(--vt-acento);border-radius:999px;padding:1px 9px}
+.vt-tier h3{margin:0;font-family:var(--vt-titulo);font-size:21px;line-height:1.15}
+.vt-tier-precio{margin:0;font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:700;color:var(--vt-acento)}
+.vt-tier-desc{margin:0;color:var(--vt-muted)}
+.vt-tier-inc{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.vt-tier-inc li{font-size:13px;border:1px solid var(--vt-line);border-radius:999px;padding:2px 10px}
+.vt-tier-pie{margin:auto 0 0;font-size:12.5px;color:var(--vt-muted);padding-top:4px}
+.vt-tier-b{display:inline-flex;justify-content:center;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;border-radius:12px;padding:10px 14px;border:1.5px solid var(--vt-acento);background:transparent;color:var(--vt-acento)}
+.vt-tier-b[aria-pressed="true"],a.vt-tier-b{background:var(--vt-acento);color:#fff}
+.vt-tier-b:disabled{opacity:.6;cursor:default}
+.vt-tier-cuenta{font-size:12.5px;color:var(--vt-muted);text-align:center}
+.vt-tier-cuenta[hidden]{display:none}
+.vt-camp-nota{font-size:13px;color:var(--vt-muted);margin:14px 0 0}
 .vt-enlaces{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
 .vt-enlaces a{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:var(--vt-fg);background:var(--vt-card);border:1px solid var(--vt-line);border-radius:14px;padding:16px 18px;transition:border-color .15s,transform .15s}
 .vt-enlaces a:hover{border-color:var(--vt-acento);transform:translateY(-2px)}

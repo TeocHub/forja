@@ -1053,7 +1053,7 @@ function costos() {
   const d = COT.datos || {}, comps = d.componentes || [], qs = d.cotizaciones || [];
   $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Costos</h2><span class="hint">Actualizada ' + hace(COT.actualizado_en) + "</span></div>" +
     (comps.length ? '<div class="comps">' + comps.map((c) => { const n = qs.filter((q) => q.compId === c.id).length; return '<span class="' + (n ? "ok" : "") + '">' + esc(c.nombre) + (n ? " · " + n : " · sin precios") + "</span>"; }).join("") + "</div>" : '<p class="hint" style="margin:0">La cotización aún no tiene componentes.</p>') +
-    '<p class="hint" style="margin:0">' + qs.length + (qs.length === 1 ? " precio registrado" : " precios registrados") + (d.cantidades && d.cantidades.length ? " · comparando " + d.cantidades.join(", ") + " unidades" : "") + '.</p><div><a class="btn prim" style="text-decoration:none;display:inline-block" href="../cotizador/?c=' + COT.id + '">Abrir la cotización</a></div></section>';
+    '<p class="hint" style="margin:0">' + qs.length + (qs.length === 1 ? " precio registrado" : " precios registrados") + (d.cantidades && d.cantidades.length ? " · comparando " + d.cantidades.join(", ") + " unidades" : "") + '.</p><div><a class="btn prim" style="text-decoration:none;display:inline-block" href="../cotizador/?c=' + COT.id + '">Abrir la cotización</a> <a class="btn" style="text-decoration:none;display:inline-block" href="../cotizador/?c=' + COT.id + '#campana">Campaña y recompensas</a></div></section>';
   $("panel").insertAdjacentHTML("beforeend", pronto(["versiones-precio", "campanas", "presupuesto-fondos"]));
 }
 

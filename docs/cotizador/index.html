@@ -100,7 +100,7 @@ a{color:var(--accent)}
 .pasos .hecho .nro{background:var(--good-soft);border-color:var(--good);color:var(--good)}
 .pasos small{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 .pasos b{font-family:var(--f-num);font-size:14px;overflow-wrap:anywhere}
-.tabc[hidden]{display:none!important}
+.tabc[hidden],.row[hidden]{display:none!important}
 .tabc{display:flex;flex-direction:column;gap:22px}
 .fx-tabs{position:sticky;top:0;z-index:5;background:var(--bg)}
 /* comunidad */
@@ -154,6 +154,36 @@ a{color:var(--accent)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--c-prod:#8c9bff;--c-extra:#6d7fa3;--c-time:#c49be6;--c-fee:#59626f;--c-reinv:#3cc2ac;--c-gain:#f2b937}}
 :root[data-theme="dark"]{--c-prod:#8c9bff;--c-extra:#6d7fa3;--c-time:#c49be6;--c-fee:#59626f;--c-reinv:#3cc2ac;--c-gain:#f2b937}
 .guardado{font-size:12px;color:var(--muted);font-family:var(--f-num);margin-left:auto}
+/* campaña */
+.c-prods,.c-tiers{display:flex;flex-direction:column;gap:12px}
+.c-prod,.c-tier{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--field)}
+.c-prod .name,.c-tier .name{font:inherit;font-family:var(--f-display);font-weight:700;font-size:16px;border:0;border-bottom:1px dashed var(--line);background:transparent;color:var(--fg);padding:2px 0;flex:1 1 160px;min-width:0}
+.c-chips,.c-items{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.c-chip{display:inline-flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 10px;font-size:13px}
+.c-chip button{border:0;background:none;padding:0 6px;color:var(--muted)}
+.c-chips select,.c-item select{font:inherit;font-size:13px;border:1px dashed var(--line);border-radius:999px;padding:3px 8px;background:var(--card);color:var(--fg)}
+.c-item{display:inline-flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px 6px;font-size:13px}
+.c-item input{width:52px;font:inherit;font-size:13px;padding:2px 4px}
+.c-pres{margin:0;font-size:13.5px;color:var(--muted)}.c-pres b{color:var(--fg);font-family:var(--f-num)}
+.c-tier-cab{display:flex;align-items:center;gap:8px}
+.c-nro{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--card);font-family:var(--f-num);font-size:13px}
+.c-tbol{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
+.c-tbol b{font-family:var(--f-num);color:var(--fg);font-weight:500}.c-tbol .mal b{color:var(--bad)}
+.c-barra{height:12px;border-radius:999px;background:var(--field);overflow:hidden;display:flex}
+.c-barra i{background:var(--c-reinv);height:100%}.c-barra i.sobre{background:var(--c-gain)}
+.c-avt{font-size:13px;color:var(--muted);margin-top:6px}.c-avt b{color:var(--fg);font-family:var(--f-num)}
+.c-zonas input{width:100%;min-width:70px}
+.c-ped{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.c-ped-cab{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}.c-ped-cab span{color:var(--muted);font-size:13.5px;flex:1}
+.c-ped select{font:inherit;font-size:13px;max-width:180px}
+.c-ped-tot{display:flex;justify-content:space-between;font-size:15px;padding:6px 2px}
+.mono{font-family:var(--f-num);font-weight:500}
+.c-curva svg{width:100%;height:auto;display:block}
+.c-curva .linea{fill:none;stroke:var(--accent);stroke-width:2.5}
+.c-curva .cero{stroke:var(--line);stroke-width:1.5}
+.c-curva .meta{stroke:var(--c-gain);stroke-dasharray:4 4}
+.c-curva .punto{fill:var(--accent);stroke:var(--card);stroke-width:2}
+.c-curva .t{font-size:11px;fill:var(--muted);font-family:var(--f-num)}
 </style>
 <link rel="stylesheet" href="../css/forja.css">
 </head>
@@ -162,7 +192,7 @@ a{color:var(--accent)}
   <header>
     <nav data-forja-nav></nav>
     <h1 id="title">Cotizador</h1>
-    <p class="lead">Primero calcula cuánto cuesta producir una unidad, pieza por pieza y con precios reales de proveedores. Después, a cuánto venderla.</p>
+    <p class="lead">Primero calcula cuánto cuesta producir una unidad, pieza por pieza y con precios reales de proveedores. Después, a cuánto venderla, o arma tu campaña de crowdfunding con sus recompensas.</p>
   </header>
 
   <div id="gate"></div>
@@ -181,6 +211,7 @@ a{color:var(--accent)}
   <div class="fx-tabs" role="tablist" aria-label="Partes de la cotización">
     <button role="tab" id="tb-prod" aria-selected="true">1 · Cuánto cuesta producirlo</button>
     <button role="tab" id="tb-venta" aria-selected="false">2 · A cuánto venderlo</button>
+    <button role="tab" id="tb-camp" aria-selected="false">3 · Campaña y recompensas</button>
   </div>
   <div id="tab-prod" class="tabc" role="tabpanel" aria-labelledby="tb-prod">
 
@@ -229,6 +260,7 @@ a{color:var(--accent)}
 
   </div>
   <div id="tab-venta" class="tabc" role="tabpanel" aria-labelledby="tb-venta" hidden></div>
+  <div id="tab-camp" class="tabc" role="tabpanel" aria-labelledby="tb-camp" hidden></div>
 
   <section class="panel" aria-labelledby="h-datos">
     <h2 id="h-datos">Tus datos</h2>
@@ -276,6 +308,10 @@ navApp("cotizaciones");
     materia:{g:"Producto",nombre:"Materia prima",c:{medida:"Ej.: cera de abeja",cantidad:"Ej.: 150 g por producto",material:"Ej.: calidad, origen",impresion:"",acabado:"Ej.: proveedor local o importado"},s:[]},
     sticker:{g:"Merch",nombre:"Stickers",c:{medida:"Ej.: 7 × 7 cm",cantidad:"Ej.: 1 hoja de 6",material:"Ej.: vinilo",impresion:"Ej.: 4/0",acabado:"Ej.: troquel al contorno, laminado"},s:[]},
     pin:{g:"Merch",nombre:"Pines o llaveros",c:{medida:"Ej.: 3 cm",cantidad:"Ej.: 1",material:"Ej.: metal esmaltado o acrílico",impresion:"Ej.: esmalte duro",acabado:"Ej.: cierre mariposa"},s:[]},
+    peluche:{g:"Merch",nombre:"Peluches",c:{medida:"Ej.: 20 cm de alto",cantidad:"Ej.: 1",material:"Ej.: minky o felpa, relleno de poliéster",impresion:"Ej.: bordado, sin piezas pequeñas",acabado:"Ej.: etiqueta cosida, bolsa individual"},s:[]},
+    mousepad:{g:"Merch",nombre:"Mousepads",c:{medida:"Ej.: 25 × 21 cm o 80 × 30 cm",cantidad:"Ej.: 1",material:"Ej.: tela con base de goma 3 mm",impresion:"Ej.: sublimación a todo color",acabado:"Ej.: bordes cosidos"},s:[]},
+    taza:{g:"Merch",nombre:"Tazas o vasos",c:{medida:"Ej.: 11 oz",cantidad:"Ej.: 1",material:"Ej.: cerámica blanca o enlozada",impresion:"Ej.: sublimación",acabado:"Ej.: caja individual"},s:[]},
+    lamina:{g:"Merch",nombre:"Láminas o prints",c:{medida:"Ej.: A4 o A3",cantidad:"Ej.: 1",material:"Ej.: papel fotográfico o hilado 250 g",impresion:"Ej.: inyección de tinta",acabado:"Ej.: firmada y numerada"},s:[]},
     polera:{g:"Merch",nombre:"Poleras o textiles",c:{medida:"Ej.: tallas S a XL",cantidad:"Ej.: 1",material:"Ej.: algodón 180 g",impresion:"Ej.: serigrafía 2 colores, DTF",acabado:"Ej.: etiqueta propia"},s:[]},
     servicio:{g:"Servicios",nombre:"Servicio",c:{medida:"Ej.: música original, doblaje, programación",cantidad:"Ej.: 5 temas de 2 minutos",material:"Ej.: qué se entrega",impresion:"Ej.: formato de entrega",acabado:"Ej.: derechos de uso"},s:[]},
     stand:{g:"Servicios",nombre:"Stand o exhibición",c:{medida:"Ej.: mesa de 2 × 1 m",cantidad:"Ej.: 1 por feria",material:"Ej.: pendón roller, mantel impreso",impresion:"Ej.: 4/0",acabado:"Ej.: estructura reutilizable"},s:[]},
@@ -349,9 +385,11 @@ navApp("cotizaciones");
     if(v<0){v=0;F=sy/n;} if(F<0){F=0;v=sxy/sxx;}
     return {F:F,v:v};
   }
-  function costFor(compId,qty){ // mejor costo por unidad entre proveedores
-    var byProv={};
-    S.cotizaciones.filter(function(q){return q.compId===compId;}).forEach(function(q){
+  function costFor(compId,qty,libre){ // mejor costo por unidad entre proveedores (o el proveedor elegido para esa pieza)
+    var byProv={},comp=S.componentes.filter(function(c){return c.id===compId;})[0],el=!libre&&comp&&comp.elegido?comp.elegido.trim().toLowerCase():"";
+    var todas=S.cotizaciones.filter(function(q){return q.compId===compId;});
+    if(el&&!todas.some(function(q){return (q.proveedor||"Sin nombre").trim().toLowerCase()===el;}))el="";
+    todas.filter(function(q){return !el||(q.proveedor||"Sin nombre").trim().toLowerCase()===el;}).forEach(function(q){
       var L=landed(q);if(L.total==null||!num(q.cantidad))return;
       var k=(q.proveedor||"Sin nombre").trim().toLowerCase();
       (byProv[k]=byProv[k]||{nombre:q.proveedor||"Sin nombre",pts:[]}).pts.push({q:num(q.cantidad),t:L.total});
@@ -731,14 +769,260 @@ navApp("cotizaciones");
       verTab("prod");var el=$(d==="res"?"h-res":"h-comp");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});};});
   }
   function verTab(k){
-    var venta=k==="venta";
-    $("tb-prod").setAttribute("aria-selected",String(!venta));$("tb-venta").setAttribute("aria-selected",String(venta));
-    $("tab-prod").hidden=venta;$("tab-venta").hidden=!venta;
-    history.replaceState(null,"","?c="+(HOJA?HOJA.id:"")+(venta?"#venta":""));
-    if(venta)pintarVenta();
+    ["prod","venta","camp"].forEach(function(x){$("tb-"+x).setAttribute("aria-selected",String(x===k));$("tab-"+x).hidden=x!==k;});
+    history.replaceState(null,"","?c="+(HOJA?HOJA.id:"")+(k==="venta"?"#venta":k==="camp"?"#campana":""));
+    if(k==="venta")pintarVenta();
+    if(k==="camp")pintarCamp();
   }
   $("tb-prod").onclick=function(){verTab("prod");};
+  $("tb-camp").onclick=function(){verTab("camp");};
   $("tb-venta").onclick=function(){verTab("venta");};
+
+  /* --- campaña de crowdfunding: productos, recompensas, envíos y proyección ---
+     Cada producto (el juego, un llavero, un peluche…) agrupa piezas de la pestaña 1; su costo por unidad sale de las
+     cotizaciones a la cantidad total que pide la campaña (si llegan más apoyos, baja). Cada recompensa junta productos;
+     su precio sugerido = costo (productos + empaque + envío si va incluido) × imprevistos × margen / (1 − comisión).
+     La persona decide el precio final. Lo publicable se copia a la vitrina desde su editor. */
+  var CAMP_LIBRE=3,ANOT={};
+  var PLATAFORMAS=["Kickstarter","Gamefound","Verkami","Idea.me","Preventa propia"];
+  function cDefaults(){
+    // Al empezar: las piezas de merch (llaveros, peluches, tazas…) quedan como productos propios; el resto arma el producto principal.
+    var pid=uid(),esMerch=function(c){return (TIPOS[c.tipo]||{}).g==="Merch";};
+    var prods=[{id:pid,nombre:S.nombre||"Producto principal",comps:S.componentes.filter(function(c){return !esMerch(c);}).map(function(c){return c.id;}),costoManual:null,digital:false,fijo:0}]
+      .concat(S.componentes.filter(esMerch).map(function(c){return {id:uid(),nombre:c.nombre,comps:[c.id],costoManual:null,digital:false,fijo:0};}));
+    return {plataforma:"",enlace:"",comision:10,margen:30,imprevistos:10,extra:5,round:"990",meta:null,escala:1,
+      productos:prods,
+      envio:{modo:"aparte",empaque:0,zonas:[{id:uid(),nombre:"Santiago",costo:0,pct:45},{id:uid(),nombre:"Regiones",costo:0,pct:45},{id:uid(),nombre:"Internacional",costo:0,pct:10}]},
+      tiers:[{id:uid(),nombre:S.nombre||"La edición base",desc:"",items:[{p:pid,n:1}],precio:null,apoyos:50,limite:null,entrega:""}]};
+  }
+  function Cm(){
+    if(!S.campana)S.campana=cDefaults();
+    var c=S.campana;c.productos=c.productos||[];c.tiers=c.tiers||[];c.envio=c.envio||{modo:"aparte",empaque:0,zonas:[]};c.envio.zonas=c.envio.zonas||[];
+    // las piezas que se borraron en la pestaña 1 salen de sus productos; las nuevas quedan "fuera de la campaña" hasta que las agrupes
+    c.productos.forEach(function(p){p.comps=(p.comps||[]).filter(function(id){return S.componentes.some(function(x){return x.id===id;});});});
+    c.tiers.forEach(function(t){t.items=(t.items||[]).filter(function(it){return c.productos.some(function(p){return p.id===it.p;});});});
+    return c;
+  }
+  function redondearArriba(x,paso){return x<=0?0:Math.ceil(x/paso)*paso;}
+  function calcCamp(escala){
+    var c=Cm(),s=escala==null?(num(c.escala)||1):escala,com=Math.min(60,num(c.comision))/100,ex=num(c.extra)/100,imp=num(c.imprevistos)/100;
+    var zs=c.envio.zonas,pctT=zs.reduce(function(a,z){return a+num(z.pct);},0),avgShip=pctT?zs.reduce(function(a,z){return a+num(z.costo)*num(z.pct);},0)/pctT:0;
+    var tb=c.tiers.map(function(t){var B=Math.round(num(t.apoyos)*s);if(num(t.limite)>0)B=Math.min(B,num(t.limite));return {t:t,B:B};});
+    var N={};tb.forEach(function(x){x.t.items.forEach(function(it){N[it.p]=(N[it.p]||0)+x.B*num(it.n);});});
+    var prods=c.productos.map(function(p){
+      var need=N[p.id]||0,q=Math.ceil(need*(1+ex)),qq=Math.max(q,1),unit=0,est=false,falta=[],pend=[],det=[];
+      if(p.comps.length){
+        p.comps.forEach(function(id){
+          var comp=S.componentes.filter(function(x){return x.id===id;})[0];if(!comp)return;
+          if(!S.cotizaciones.some(function(x){return x.compId===id;})){pend.push(comp.nombre);det.push({comp:comp,b:null});return;}
+          var b=costFor(id,qq);if(!b)falta.push(comp.nombre);else{unit+=b.unit;if(b.est)est=true;}
+          det.push({comp:comp,b:b});
+        });
+      } else unit=num(p.costoManual);
+      var fijoU=q>0?num(p.fijo)/q:0;
+      return {p:p,need:need,q:q,unit:unit+fijoU,base:unit,est:est,falta:falta,pend:pend,det:det,total:unit*q+(q>0?num(p.fijo):0)};
+    });
+    var pm={};prods.forEach(function(x){pm[x.p.id]=x;});
+    var emp=num(c.envio.empaque),incl=c.envio.modo==="incluido";
+    var rows=tb.map(function(x){
+      var t=x.t,fis=t.items.some(function(it){return pm[it.p]&&!pm[it.p].p.digital;});
+      var prodC=t.items.reduce(function(a,it){return a+(pm[it.p]?pm[it.p].unit*num(it.n):0);},0);
+      var costo=prodC+(fis?emp:0)+(fis&&incl?avgShip:0),cImp=costo*(1+imp);
+      var sug=roundPrice(cImp*(1+num(c.margen)/100)/(1-com),c.round),P=num(t.precio)>0?num(t.precio):sug;
+      return {t:t,B:x.B,fis:fis,prodC:prodC,costo:costo,cImp:cImp,sug:sug,P:P,neto:P*(1-com)-cImp,ing:P*x.B,
+        falta:t.items.some(function(it){return pm[it.p]&&(pm[it.p].falta.length||pm[it.p].pend.length);})};
+    });
+    var ingresos=rows.reduce(function(a,r){return a+r.ing;},0),comision=ingresos*com,produccion=prods.reduce(function(a,x){return a+x.total;},0);
+    var fisB=rows.reduce(function(a,r){return a+(r.fis?r.B:0);},0),empT=fisB*emp,envT=incl?fisB*avgShip:0,imprev=(produccion+empT+envT)*imp;
+    var costoT=produccion+empT+envT+imprev,neto=ingresos-comision-costoT,apoyos=rows.reduce(function(a,r){return a+r.B;},0);
+    var metaSug=redondearArriba(costoT/(1-com),10000),meta=num(c.meta)>0?num(c.meta):metaSug;
+    return {c:c,s:s,com:com,avgShip:avgShip,incl:incl,prods:prods,rows:rows,ingresos:ingresos,comision:comision,produccion:produccion,empT:empT,envT:envT,imprev:imprev,
+      costoT:costoT,neto:neto,apoyos:apoyos,fisB:fisB,envAparte:incl?0:fisB*avgShip,metaSug:metaSug,meta:meta,
+      apoyosMeta:ingresos>0?Math.ceil(apoyos*meta/ingresos):null,
+      est:prods.some(function(x){return x.est;}),falta:prods.some(function(x){return x.falta.length||x.pend.length;})};
+  }
+  // Lo que la vitrina puede copiar de cada recompensa: precio final (o sugerido), qué incluye y cómo se envía.
+  function cVista(){
+    var R=calcCamp(1),pm={};R.prods.forEach(function(x){pm[x.p.id]=x.p;});
+    R.rows.forEach(function(r){r.t.vista={precio:r.P,envio:r.t.items.length&&!r.fis?"digital":R.incl?"incluido":"aparte",
+      incluye:r.t.items.filter(function(it){return pm[it.p];}).map(function(it){return (num(it.n)>1?num(it.n)+" × ":"")+pm[it.p].nombre;})};});
+    R.c.metaVista=R.meta;
+  }
+  function cGuardar(){cVista();save();pintarCampRes();pintarPasos();}
+  function cCampo(o,k,label,unidad,step,title,id){
+    return '<label class="f"'+(title?' title="'+esc(title)+'"':'')+'>'+label+(unidad?' <span class="hint">('+unidad+')</span>':'')+'<input type="number" min="0" step="'+(step||1)+'" inputmode="decimal" data-cc="'+k+'" id="'+(id||"c-"+k)+'" value="'+(o[k]!=null&&o[k]!==""?o[k]:"")+'" placeholder="0"></label>';
+  }
+  function pintarCamp(){
+    var c=Cm(),box=$("tab-camp");
+    box.innerHTML='<p class="lead" style="margin:0">Arma la campaña con lo que ya cotizaste: agrupa las piezas en <b>productos</b> (el juego, un llavero, un peluche…), junta productos en <b>recompensas</b> y decide cuántos apoyos esperas en cada una. Forja calcula el costo de cada recompensa a la cantidad total que tendrías que mandar a hacer, sugiere un precio y te muestra la meta. El precio final lo pones tú.</p>'+
+    '<div class="venta"><div class="forms">'+
+      '<section class="panel"><h2>La campaña</h2><div class="fields">'+
+        '<label class="f">Dónde se hará<input id="c-plat" list="c-plats" value="'+esc(c.plataforma)+'" placeholder="Ej.: Kickstarter"></label>'+
+        '<label class="f">Enlace de la campaña <span class="hint">(cuando exista)</span><input id="c-enlace" type="url" value="'+esc(c.enlace)+'" placeholder="https://"></label>'+
+        cCampo(c,"comision","Comisión de la plataforma y del pago","%",0.5,"Lo que cobran la plataforma y el procesador de pagos sobre lo recaudado. Revisa las condiciones de la plataforma que elijas.")+
+        cCampo(c,"margen","Margen","% sobre costo",5,"Lo que queda para el proyecto después de cubrir costos")+
+        cCampo(c,"imprevistos","Imprevistos","% sobre costos",1,"Para cambios de precio, dólar, reposiciones y envíos que salen mal")+
+        cCampo(c,"extra","Unidades extra","%",1,"Cuánto más mandar a hacer: reposiciones, prensa, venta posterior")+
+      '</div><datalist id="c-plats">'+PLATAFORMAS.map(function(x){return '<option value="'+x+'">';}).join("")+'</datalist>'+
+      '<div class="f">Redondear los precios sugeridos<div class="seg" id="c-round"><button type="button" data-r="none">Exacto</button><button type="button" data-r="100">A $100</button><button type="button" data-r="500">A $500</button><button type="button" data-r="990">Terminado en 990</button></div></div></section>'+
+      '<section class="panel"><h2>Productos</h2><p class="hint" style="margin:0">Cada producto junta piezas de la pestaña 1. Si algo no se fabrica (una copia digital, tu nombre en los créditos, una ilustración que haces tú), déjalo sin piezas y ponle un costo a mano.</p><div class="c-prods" id="c-prods"></div><div class="row"><button type="button" id="c-addp">+ Agregar producto</button></div></section>'+
+      '<section class="panel"><h2>Recompensas</h2><p class="hint" style="margin:0">Lo que recibe cada persona según cuánto aporta. Anota cuántos apoyos esperas en cada una: con eso se calcula cuánto mandar a hacer.</p><div class="c-tiers" id="c-tiers"></div><div class="row"><button type="button" id="c-addt">+ Agregar recompensa</button><span class="hint" id="c-lim"></span></div></section>'+
+      '<section class="panel"><h2>Envíos</h2><div class="f">El envío<div class="seg" id="c-envmodo"><button type="button" data-m="aparte">Lo pagan aparte al apoyar</button><button type="button" data-m="incluido">Va incluido en el precio</button></div></div>'+
+        '<div class="fields">'+cCampo(c.envio,"empaque","Empaque por paquete","CLP",50,"Caja, relleno, etiqueta","c-empaque")+'</div>'+
+        '<div class="tablewrap"><table class="c-zonas"><thead><tr><th>Zona</th><th class="num">Costo por paquete</th><th class="num">% de los apoyos</th><th></th></tr></thead><tbody id="c-zonas"></tbody></table></div>'+
+        '<div class="row"><button type="button" id="c-addz">+ Agregar zona</button><span class="hint" id="c-avg"></span></div></section>'+
+    '</div><aside class="boleta" aria-label="Resultado de la campaña"><div class="b-head"><div class="b-label">Meta sugerida</div><div class="precio" id="c-meta"></div><div class="hint" id="c-metanota"></div>'+
+      '<div class="row" style="margin-top:10px"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Tu meta<input type="number" min="0" step="10000" id="c-metaman" style="width:140px" value="'+(num(c.meta)>0?c.meta:"")+'"></label><button type="button" class="link" id="c-metasug">Usar sugerida</button></div></div>'+
+      '<div class="b-body"><div><div class="b-label" style="margin-bottom:8px">Con los apoyos que esperas</div><div class="c-avance" id="c-avance"></div></div><div class="status" id="c-status"></div><div class="kv" id="c-kv"></div></div></aside></div>'+
+    '<section class="panel"><h2>Qué mandar a hacer</h2><p class="hint" style="margin:0">Unidades de cada producto según tus recompensas, más el extra. En cada pieza puedes dejar el proveedor más barato o fijar uno; el elegido también se usa en las otras pestañas.</p><div id="c-pedido"></div></section>'+
+    '<section class="panel"><h2>¿Y si llegan más o menos apoyos?</h2><p class="hint" style="margin:0">Mueve la barra: cambian todas las recompensas en la misma proporción, y con más unidades el costo por unidad baja según tus cotizaciones.</p>'+
+      '<div class="row"><input type="range" id="c-esc" min="25" max="300" step="5" value="'+Math.round((num(c.escala)||1)*100)+'" style="flex:1 1 260px" aria-label="Apoyos respecto a lo esperado"><b id="c-escv" class="mono"></b><button type="button" class="link" id="c-esc0">Volver a lo esperado</button></div>'+
+      '<div id="c-curva" class="c-curva"></div><div class="kv" id="c-esckv"></div></section>';
+    pintarCProds();pintarCTiers();pintarCZonas();pintarCSegs();pintarCampRes();
+    $("c-plat").addEventListener("input",function(e){Cm().plataforma=e.target.value;save();});
+    $("c-enlace").addEventListener("input",function(e){Cm().enlace=e.target.value.trim();save();});
+    box.querySelectorAll("[data-cc]").forEach(function(i){i.addEventListener("input",function(){
+      var o=i.id==="c-empaque"?Cm().envio:Cm();o[i.dataset.cc]=num(i.value);cGuardar();});});
+    $("c-round").onclick=function(e){var b=e.target.closest("button");if(!b)return;Cm().round=b.dataset.r;pintarCSegs();cGuardar();pintarCTiers();};
+    $("c-envmodo").onclick=function(e){var b=e.target.closest("button");if(!b)return;Cm().envio.modo=b.dataset.m;pintarCSegs();cGuardar();pintarCTiers();};
+    $("c-metaman").addEventListener("input",function(e){Cm().meta=num(e.target.value)||null;cGuardar();});
+    $("c-metasug").onclick=function(){Cm().meta=null;$("c-metaman").value="";cGuardar();};
+    $("c-esc").addEventListener("input",function(e){Cm().escala=num(e.target.value)/100;cGuardar();pintarCTiers();});
+    $("c-esc0").onclick=function(){Cm().escala=1;$("c-esc").value=100;cGuardar();pintarCTiers();};
+    $("c-addp").onclick=function(){Cm().productos.push({id:uid(),nombre:"Producto "+(Cm().productos.length+1),comps:[],costoManual:null,digital:false,fijo:0});pintarCProds();pintarCTiers();cGuardar();};
+    $("c-addt").onclick=function(){
+      var c=Cm();if(!PLAN.mas&&c.tiers.length>=CAMP_LIBRE){toast("En el plan gratis puedes armar hasta "+CAMP_LIBRE+" recompensas.");return;}
+      var last=c.tiers[c.tiers.length-1];c.tiers.push({id:uid(),nombre:"Recompensa "+(c.tiers.length+1),desc:"",items:last?JSON.parse(JSON.stringify(last.items)):[],precio:null,apoyos:20,limite:null,entrega:last?last.entrega:""});
+      pintarCTiers();cGuardar();};
+    $("c-addz").onclick=function(){Cm().envio.zonas.push({id:uid(),nombre:"Zona",costo:0,pct:0});pintarCZonas();cGuardar();};
+    cargarAnotados();
+  }
+  function pintarCSegs(){
+    var c=Cm();
+    document.querySelectorAll("#c-round button").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.r===c.round));});
+    document.querySelectorAll("#c-envmodo button").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.m===c.envio.modo));});
+  }
+  function pintarCProds(){
+    var c=Cm(),R=calcCamp(),pm={};R.prods.forEach(function(x){pm[x.p.id]=x;});
+    var sinProd=S.componentes.filter(function(x){return !c.productos.some(function(p){return p.comps.indexOf(x.id)>=0;});});
+    $("c-prods").innerHTML=c.productos.map(function(p,i){
+      var x=pm[p.id],otros=S.componentes.filter(function(k){return p.comps.indexOf(k.id)<0;});
+      return '<article class="c-prod" data-p="'+p.id+'"><div class="row" style="justify-content:space-between"><input class="name" data-pf="nombre" value="'+esc(p.nombre)+'" aria-label="Nombre del producto">'+
+        (c.productos.length>1?'<button type="button" class="link danger" data-pdel="'+p.id+'">Quitar</button>':'')+'</div>'+
+        '<div class="c-chips">'+(p.comps.length?p.comps.map(function(id){var k=S.componentes.filter(function(z){return z.id===id;})[0];return k?'<span class="c-chip">'+esc(k.nombre)+'<button type="button" data-psac="'+id+'" aria-label="Sacar '+esc(k.nombre)+' de este producto">×</button></span>':"";}).join(""):'<span class="hint">Sin piezas: el costo se pone a mano.</span>')+
+        (otros.length?'<select data-pmete aria-label="Agregar una pieza a este producto"><option value="">+ pieza…</option>'+otros.map(function(k){return '<option value="'+k.id+'">'+esc(k.nombre)+'</option>';}).join("")+'</select>':'')+'</div>'+
+        '<div class="fields">'+(p.comps.length?'':cCampo(p,"costoManual","Costo por unidad","CLP",10,"Si no se fabrica, cuánto te cuesta cada una (0 si es digital)","cp-"+p.id+"-m"))+
+          cCampo(p,"fijo","Costo fijo","CLP",1000,"Molde, muestra o arte que se paga una vez","cp-"+p.id+"-f")+
+          '<label class="check" style="align-self:end"><input type="checkbox" data-pdig'+(p.digital?" checked":"")+'> Es digital (no se envía)</label></div>'+
+        '<p class="c-pres">'+(x.q?'<b>'+clp2(x.unit)+'</b> c/u a '+x.q.toLocaleString("es-CL")+' unidades'+(x.est?' <span class="hint">≈ estimado</span>':''):'Aún no está en ninguna recompensa')+
+          (x.falta.length||x.pend.length?' <span class="pill warn">'+(x.pend.length?"sin precio: "+esc(x.pend.join(", ")):"las cotizaciones no alcanzan: "+esc(x.falta.join(", ")))+'</span>':'')+'</p></article>';
+    }).join("")+(sinProd.length?'<p class="status warn">Piezas que no están en ningún producto (no cuentan en la campaña): '+esc(sinProd.map(function(k){return k.nombre;}).join(", "))+'. Agrégalas a un producto con «+ pieza…» o crea uno nuevo para ellas.</p>':'');
+    var box=$("c-prods");
+    box.querySelectorAll("[data-p]").forEach(function(card){
+      var p=Cm().productos.filter(function(x){return x.id===card.dataset.p;})[0];
+      card.querySelector('[data-pf="nombre"]').addEventListener("input",function(e){p.nombre=e.target.value;save();pintarCTiersNombres();});
+      card.querySelectorAll("[data-cc]").forEach(function(i){i.addEventListener("input",function(){p[i.dataset.cc]=i.value===""?null:num(i.value);cGuardar();pintarCTiers();});});
+      card.querySelector("[data-pdig]").onchange=function(e){p.digital=e.target.checked;cGuardar();pintarCTiers();};
+      var sel=card.querySelector("[data-pmete]");if(sel)sel.onchange=function(){var id=sel.value;if(!id)return;Cm().productos.forEach(function(o){o.comps=o.comps.filter(function(z){return z!==id;});});p.comps.push(id);var k=S.componentes.filter(function(z){return z.id===id;})[0];if(k)delete k.sinCampana;pintarCProds();pintarCTiers();cGuardar();};
+      card.querySelectorAll("[data-psac]").forEach(function(b){b.onclick=function(){p.comps=p.comps.filter(function(z){return z!==b.dataset.psac;});var k=S.componentes.filter(function(z){return z.id===b.dataset.psac;})[0];if(k)k.sinCampana=true;pintarCProds();pintarCTiers();cGuardar();};});
+      var del=card.querySelector("[data-pdel]");if(del)del.onclick=function(){
+        if(del.dataset.seguro!=="1"){del.dataset.seguro="1";del.textContent="¿Quitar el producto?";return;}
+        var c=Cm();c.productos=c.productos.filter(function(x){return x.id!==p.id;});c.productos[0].comps=c.productos[0].comps.concat(p.comps);pintarCProds();pintarCTiers();cGuardar();};
+    });
+  }
+  function pintarCTiersNombres(){document.querySelectorAll("[data-itp]").forEach(function(sel){var v=sel.value;sel.innerHTML=Cm().productos.map(function(p){return '<option value="'+p.id+'"'+(p.id===v?" selected":"")+'>'+esc(p.nombre)+'</option>';}).join("");});}
+  function pintarCTiers(){
+    var c=Cm(),R=calcCamp(),rm={};R.rows.forEach(function(r){rm[r.t.id]=r;});
+    $("c-lim").textContent=PLAN.mas?"":"Plan gratis: hasta "+CAMP_LIBRE+" recompensas.";
+    $("c-tiers").innerHTML=c.tiers.map(function(t,i){
+      var r=rm[t.id],an=ANOT[t.id];
+      return '<article class="c-tier" data-t="'+t.id+'"><div class="c-tier-cab"><span class="c-nro">'+(i+1)+'</span><input class="name" data-tf="nombre" value="'+esc(t.nombre)+'" aria-label="Nombre de la recompensa">'+
+        '<span class="row" style="gap:2px">'+(i?'<button type="button" class="link" data-tsub aria-label="Subir">↑</button>':'')+'<button type="button" class="link danger" data-tdel>Quitar</button></span></div>'+
+        '<label class="f">Qué dice la recompensa <span class="hint">(se puede publicar en la vitrina)</span><textarea data-tf="desc" rows="2" placeholder="Ej.: El juego completo, con un llavero exclusivo de la campaña.">'+esc(t.desc)+'</textarea></label>'+
+        '<div class="c-items">'+(t.items.length?t.items.map(function(it,j){return '<span class="c-item"><input type="number" min="1" step="1" data-itn="'+j+'" value="'+(num(it.n)||1)+'" aria-label="Cantidad"> × <select data-itp="'+j+'" aria-label="Producto">'+c.productos.map(function(p){return '<option value="'+p.id+'"'+(p.id===it.p?" selected":"")+'>'+esc(p.nombre)+'</option>';}).join("")+'</select><button type="button" class="link" data-itdel="'+j+'" aria-label="Quitar">×</button></span>';}).join(""):'<span class="hint">Sin productos: es un apoyo simbólico.</span>')+
+          '<button type="button" class="link" data-itadd>+ producto</button></div>'+
+        '<div class="fields">'+
+          '<label class="f">Apoyos esperados<input type="number" min="0" step="1" data-tn="apoyos" value="'+(t.apoyos!=null?t.apoyos:"")+'">'+(an!=null?'<span class="hint">'+an+(an===1?' persona anotada':' personas anotadas')+' en la vitrina</span>':'')+'</label>'+
+          '<label class="f">Cupo <span class="hint">(vacío: sin límite)</span><input type="number" min="0" step="1" data-tn="limite" value="'+(t.limite||"")+'"></label>'+
+          '<label class="f">Entrega estimada<input type="month" data-tf="entrega" value="'+esc(t.entrega||"")+'"></label>'+
+          '<label class="f">Precio final<input type="number" min="0" step="100" data-tn="precio" value="'+(num(t.precio)>0?t.precio:"")+'" placeholder="'+(r?r.sug:"")+'"></label></div>'+
+        (r?'<div class="c-tbol"><span>Costo <b>'+clp(r.cImp)+'</b>'+(r.fis?' <small>con empaque'+(R.incl?' y envío':'')+'</small>':' <small>digital</small>')+'</span><span>Sugerido <b>'+(r.sug?clp(r.sug):"elige tú")+'</b></span><span'+(r.neto<0?' class="mal"':'')+'>Deja por apoyo <b>'+clp(r.neto)+'</b></span>'+(!r.sug&&!(num(t.precio)>0)?'<span class="pill warn">No cuesta producirla: ponle el precio que quieras (por ejemplo, el mínimo para apoyar).</span>':'')+''+
+          (num(t.precio)>0?'<button type="button" class="link" data-tsug>Usar sugerido</button>':'')+(r.falta?'<span class="pill warn">faltan precios</span>':'')+'</div>':'')+'</article>';
+    }).join("")||'<div class="empty">Sin recompensas aún.</div>';
+    var box=$("c-tiers");
+    box.querySelectorAll("[data-t]").forEach(function(card){
+      var c=Cm(),t=c.tiers.filter(function(x){return x.id===card.dataset.t;})[0];
+      card.querySelectorAll("[data-tf]").forEach(function(i){i.addEventListener("input",function(){t[i.dataset.tf]=i.value;save();});});
+      card.querySelectorAll("[data-tn]").forEach(function(i){i.addEventListener("change",function(){t[i.dataset.tn]=i.value===""?null:num(i.value);cGuardar();pintarCTiers();pintarCProds();});});
+      card.querySelectorAll("[data-itn]").forEach(function(i){i.addEventListener("change",function(){t.items[+i.dataset.itn].n=Math.max(1,Math.floor(num(i.value)));cGuardar();pintarCTiers();pintarCProds();});});
+      card.querySelectorAll("[data-itp]").forEach(function(i){i.addEventListener("change",function(){t.items[+i.dataset.itp].p=i.value;cGuardar();pintarCTiers();pintarCProds();});});
+      card.querySelectorAll("[data-itdel]").forEach(function(b){b.onclick=function(){t.items.splice(+b.dataset.itdel,1);cGuardar();pintarCTiers();pintarCProds();};});
+      card.querySelector("[data-itadd]").onclick=function(){var p=c.productos.filter(function(x){return !t.items.some(function(it){return it.p===x.id;});})[0]||c.productos[0];if(!p)return;t.items.push({p:p.id,n:1});cGuardar();pintarCTiers();pintarCProds();};
+      var sg=card.querySelector("[data-tsug]");if(sg)sg.onclick=function(){t.precio=null;cGuardar();pintarCTiers();};
+      var up=card.querySelector("[data-tsub]");if(up)up.onclick=function(){var i=c.tiers.indexOf(t);c.tiers.splice(i,1);c.tiers.splice(i-1,0,t);cGuardar();pintarCTiers();};
+      var del=card.querySelector("[data-tdel]");del.onclick=function(){if(del.dataset.seguro!=="1"){del.dataset.seguro="1";del.textContent="¿Quitarla?";return;}c.tiers=c.tiers.filter(function(x){return x!==t;});cGuardar();pintarCTiers();pintarCProds();};
+    });
+  }
+  function pintarCZonas(){
+    var z=Cm().envio.zonas;
+    $("c-zonas").innerHTML=z.map(function(x,i){return '<tr><td><input type="text" data-zi="'+i+'" data-zk="nombre" value="'+esc(x.nombre)+'" aria-label="Zona"></td><td><input type="number" min="0" step="100" data-zi="'+i+'" data-zk="costo" value="'+(num(x.costo)||"")+'" placeholder="Ej.: 3.500" aria-label="Costo por paquete"></td><td><input type="number" min="0" max="100" step="1" data-zi="'+i+'" data-zk="pct" value="'+(num(x.pct)||"")+'" aria-label="Porcentaje"></td><td style="width:1%"><button type="button" class="link" data-zdel="'+i+'" aria-label="Quitar zona">✕</button></td></tr>';}).join("")||'<tr><td colspan="4" class="hint">Sin zonas: no se calcula envío.</td></tr>';
+    $("c-zonas").querySelectorAll("[data-zi]").forEach(function(i){i.addEventListener("input",function(){var o=Cm().envio.zonas[+i.dataset.zi];o[i.dataset.zk]=i.dataset.zk==="nombre"?i.value:num(i.value);cGuardar();if(Cm().envio.modo==="incluido")pintarCTiers();});});
+    $("c-zonas").querySelectorAll("[data-zdel]").forEach(function(b){b.onclick=function(){Cm().envio.zonas.splice(+b.dataset.zdel,1);pintarCZonas();cGuardar();pintarCTiers();};});
+  }
+  function pintarCampRes(){
+    if($("tab-camp").hidden||!$("c-meta"))return;
+    var R=calcCamp(),c=R.c;
+    $("c-avg").textContent=R.avgShip?"Envío promedio por paquete: "+clp(R.avgShip)+(R.incl?" (va dentro del precio)":" (lo pagan aparte)"):"";
+    $("c-meta").textContent=clp(num(c.meta)>0?c.meta:R.metaSug);
+    $("c-metanota").textContent=num(c.meta)>0?"La sugerida sería "+clp(R.metaSug)+": lo justo para cubrir todos los costos y comisiones.":"Cubre producción, empaque, "+(R.incl?"envíos, ":"")+"imprevistos y la comisión.";
+    var pct=R.meta>0?Math.min(160,R.ingresos/R.meta*100):0;
+    $("c-avance").innerHTML='<div class="c-barra"><i style="width:'+Math.min(100,pct)+'%"></i>'+(pct>100?'<i class="sobre" style="width:'+Math.min(60,pct-100)+'%"></i>':'')+'</div><div class="c-avt"><b>'+clp(R.ingresos)+'</b> de '+clp(R.meta)+' · '+Math.round(pct)+'%</div>';
+    var st=$("c-status");
+    if(!S.componentes.length&&!c.productos.some(function(p){return num(p.costoManual)>0;})){st.className="status warn";st.textContent="Aún no hay costos: agrega piezas y precios en la pestaña 1, o ponle costo a mano a tus productos.";}
+    else if(R.falta){st.className="status warn";st.textContent="Algunas piezas no tienen precio para estas cantidades: el costo real será mayor. Revisa “Qué mandar a hacer”.";}
+    else if(R.neto<0){st.className="status bad";st.textContent="Con estos precios y apoyos la campaña pierde "+clp(-R.neto)+". Sube precios o ajusta las recompensas.";}
+    else if(R.ingresos<R.meta){st.className="status warn";st.textContent="Con los apoyos que esperas no llegas a la meta: necesitas unos "+(R.apoyosMeta||"–")+" apoyos con esta mezcla.";}
+    else{st.className="status ok";st.textContent="Llegas a la meta y quedan "+clp(R.neto)+" para el proyecto."+(R.est?" (Hay costos estimados con ≈.)":"");}
+    $("c-kv").innerHTML=[["Apoyos esperados",R.apoyos.toLocaleString("es-CL")],["Para la meta",R.apoyosMeta?R.apoyosMeta.toLocaleString("es-CL")+" apoyos":"–"],["Recaudas",clp(R.ingresos)],["Comisión",clp(R.comision)],["Producción",clp(R.produccion)],["Empaque"+(R.incl?" y envíos":""),clp(R.empT+R.envT)],["Imprevistos",clp(R.imprev)],["Queda para el proyecto",clp(R.neto)]]
+      .concat(R.incl||!R.envAparte?[]:[["Envíos que pagan aparte",clp(R.envAparte)]]).map(function(x){return '<div><span>'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join("");
+    // qué mandar a hacer
+    var tot=0;
+    $("c-pedido").innerHTML=R.prods.filter(function(x){return x.q>0||x.p.comps.length;}).map(function(x){
+      tot+=x.total;
+      var provs=function(comp){var ps=Array.from(new Set(S.cotizaciones.filter(function(q){return q.compId===comp.id;}).map(function(q){return (q.proveedor||"Sin nombre").trim();})));
+        return '<select data-elegir="'+comp.id+'" aria-label="Proveedor de '+esc(comp.nombre)+'"><option value="">Más barato</option>'+ps.map(function(n){return '<option'+(comp.elegido&&comp.elegido.trim().toLowerCase()===n.toLowerCase()?" selected":"")+'>'+esc(n)+'</option>';}).join("")+'</select>';};
+      return '<div class="c-ped"><div class="c-ped-cab"><b>'+esc(x.p.nombre)+'</b><span>'+(x.q?x.q.toLocaleString("es-CL")+' unidades'+(x.q>x.need?' <small>('+x.need.toLocaleString("es-CL")+' + extra)</small>':''):'No está en ninguna recompensa')+'</span><b class="mono">'+clp(x.total)+'</b></div>'+
+        (x.det.length?'<div class="tablewrap"><table><thead><tr><th>Pieza</th><th>Proveedor</th><th class="num">c/u</th><th class="num">Total</th></tr></thead><tbody>'+x.det.map(function(d){
+          return '<tr><td>'+esc(d.comp.nombre)+'</td><td>'+(d.b?provs(d.comp)+'<span class="sub">usa '+esc(d.b.prov)+'</span>':'<span class="hint">'+(S.cotizaciones.some(function(q){return q.compId===d.comp.id;})?"las cotizaciones no alcanzan":"sin precio")+'</span>')+'</td>'+
+            '<td class="num'+(d.b&&d.b.est?' est':'')+'">'+(d.b?(d.b.est?"≈ ":"")+clp2(d.b.unit):"–")+'</td><td class="num">'+(d.b&&x.q?clp(d.b.unit*x.q):"–")+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="hint">Costo a mano: '+clp2(num(x.p.costoManual))+' c/u.</p>')+'</div>';
+    }).join("")+'<div class="c-ped-tot"><span>Pedido total de producción</span><b class="mono">'+clp(tot)+'</b></div>';
+    $("c-pedido").querySelectorAll("[data-elegir]").forEach(function(sel){sel.onchange=function(){var k=S.componentes.filter(function(z){return z.id===sel.dataset.elegir;})[0];if(!k)return;k.elegido=sel.value||null;save();pintarCampRes();pintarCTiers();pintarCProds();renderResumen();};});
+    // escenarios
+    var e=R.s;$("c-escv").textContent=Math.round(e*100)+"% · "+R.apoyos.toLocaleString("es-CL")+" apoyos";
+    var R1=e===1?R:calcCamp(1),pts=[];for(var k=25;k<=300;k+=25)pts.push(calcCamp(k/100));
+    $("c-esckv").innerHTML=[["Recaudas",clp(R.ingresos)],["Costo total",clp(R.costoT+R.comision)],["Queda",clp(R.neto)],["vs. lo esperado",(R.neto-R1.neto>=0?"+":"")+clp(R.neto-R1.neto)]].map(function(x){return '<div><span>'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join("");
+    $("c-curva").innerHTML=curva(pts,R);
+  }
+  // Curva: cuánto queda para el proyecto según cuántos apoyos lleguen (línea), con la meta y el punto actual.
+  function curva(pts,R){
+    var W=640,H=200,P=36,xs=pts.map(function(p){return p.apoyos;}),ys=pts.map(function(p){return p.neto;}).concat([0,R.neto]);
+    var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs)||1,y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);if(y1===y0)y1=y0+1;
+    var X=function(v){return P+(v-x0)/((x1-x0)||1)*(W-P-12);},Y=function(v){return 12+(y1-v)/(y1-y0)*(H-12-P+8);};
+    var d=pts.map(function(p,i){return (i?"L":"M")+X(p.apoyos).toFixed(1)+" "+Y(p.neto).toFixed(1);}).join(" ");
+    var meta=pts.filter(function(p){return p.ingresos>=p.meta;})[0];
+    return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Lo que queda para el proyecto según los apoyos"><line x1="'+P+'" x2="'+(W-12)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" class="cero"/>'+
+      '<path d="'+d+'" class="linea"/>'+(meta?'<line x1="'+X(meta.apoyos)+'" x2="'+X(meta.apoyos)+'" y1="10" y2="'+(H-P+4)+'" class="meta"/><text x="'+(X(meta.apoyos)+4)+'" y="22" class="t">meta ≈ '+meta.apoyos+'</text>':'')+
+      '<circle cx="'+X(R.apoyos)+'" cy="'+Y(R.neto)+'" r="5" class="punto"/><text x="'+P+'" y="'+(H-8)+'" class="t">'+x0+' apoyos</text><text x="'+(W-12)+'" y="'+(H-8)+'" class="t" text-anchor="end">'+x1+' apoyos</text>'+
+      '<text x="'+(P-4)+'" y="'+(Y(0)+4)+'" class="t" text-anchor="end">$0</text></svg>';
+  }
+  // Personas anotadas en cada recompensa desde la vitrina (las recompensas copiadas conservan su id).
+  function cargarAnotados(){
+    if(!HOJA||!HOJA.proyecto_id)return;
+    sb.from("vitrinas").select("id").eq("proyecto_id",HOJA.proyecto_id).maybeSingle().then(function(r){
+      if(!r.data)return;
+      return sb.rpc("recompensas_de",{v:r.data.id}).then(function(x){if(x.error||!x.data)return;ANOT=x.data.conteo||{};if(!$("tab-camp").hidden)pintarCTiers();});
+    });
+  }
 
   /* --- cotizaciones en la cuenta --- */
   function valida(d){return d&&Array.isArray(d.componentes)&&Array.isArray(d.cotizaciones);}
@@ -767,7 +1051,7 @@ navApp("cotizaciones");
       if(valida(HOJA.datos))S=HOJA.datos;else{S=defaults(pr&&pr.tipo,pr&&pr.formato);S.nombre=pr?pr.nombre:(HOJA.nombre!=="Sin nombre"?HOJA.nombre:"");save();}
       history.replaceState(null,"","?c="+HOJA.id+location.hash);
       $("h-estado").textContent="";pintarHoja();renderAll();cargarComunidad();soloLectura();
-      verTab(location.hash==="#venta"?"venta":"prod");
+      verTab(location.hash==="#venta"?"venta":location.hash==="#campana"?"camp":"prod");
   }
   function nueva(datos,proyecto){
     var fila={espacio_id:ESP,nombre:(datos.nombre||"").trim()||"Sin nombre",datos:datos,proyecto_id:proyecto||null};

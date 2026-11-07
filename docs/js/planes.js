@@ -30,7 +30,7 @@ export const FUNCIONES = [
   { k: "fichas", a: "organizacion", t: "Fichas y línea de tiempo", d: "Personajes, lugares y objetos con sus campos, y la cronología de la historia." },
   { k: "tareas", a: "organizacion", t: "Tareas con recordatorios", d: "Qué falta para la feria o la postulación, con aviso por correo." },
   { k: "versiones-precio", a: "venta", t: "Versiones de precio", d: "Comparar edición normal, deluxe y preventa en la misma cotización." },
-  { k: "campanas", a: "venta", t: "Planificador de campañas", d: "La meta de un Kickstarter, una preventa o un fondo, con comisiones, impuestos, margen y recompensas." },
+  { k: "campanas", a: "venta", t: "Planificador de campañas", d: "Recompensas armadas con los productos que cotizas, precio sugerido, cuánto mandar a hacer, envíos por zona y la meta de tu Kickstarter o preventa; se muestran en la vitrina.", listo: true, libre: "Gratis: hasta 3 recompensas." },
   { k: "presupuesto-fondos", a: "venta", t: "Presupuesto para fondos", d: "Tus costos ordenados como los piden los formularios de postulación." },
   { k: "biblia-diseno", a: "presentacion", t: "Biblia con diseño", d: "Plantillas de portada y página, sin la marca de Forja, en PDF, Word o EPUB." },
   { k: "pagina-publica", a: "presentacion", t: "Vitrina del proyecto", d: "Una página pública para ferias, fondos o editoriales, con lo que elijas mostrar, enlace propio y QR. Con Forja Más, tus pizarras se publican para explorarlas.", listo: true, libre: "Gratis: vitrina con portada, historia, galería, novedades y enlaces." },

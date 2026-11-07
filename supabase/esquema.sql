@@ -344,3 +344,10 @@ create table privado.config(clave text primary key, valor text not null);   -- '
 -- privado.correos: user_id ahora nullable, + email; tipo admite 'invitacion'; check user_id o email. cola_tomar devuelve coalesce(email, correo de la cuenta), token solo si hay cuenta, salta invitaciones anuladas o aceptadas.
 -- RPCs: proyecto_personas, invitar, anular_invitacion, ver_invitacion (anon y authenticated), aceptar_invitacion, rechazar_invitacion, persona_cambiar, persona_quitar, mis_compartidos.
 -- despublicar_vitrina exige editar el área vitrina; proyecto_acceso (equipo) solo toca accesos de miembros del equipo.
+
+-- ===== Recompensas de campaña en la vitrina (migración recompensas_interes) =====
+-- public.recompensa_interes(vitrina_id, tier, user_id, creado_en) pk (vitrina_id, tier, user_id); RLS sin políticas (solo RPC).
+-- RPCs: estado_recompensas(slug) (anon y authenticated: conteo si datos.recompensas.contador, mias, propia), anotar_recompensa(slug, tier, si)
+--   (con cuenta; tier debe existir en lo publicado; no la propia; interés activo y campaña no cerrada; 40 por día; sigue la vitrina si seguir.activo),
+--   recompensas_de(v) (privado.ve del proyecto: conteo por recompensa y personas), mis_anotadas().
+-- La campaña en sí vive en cotizaciones.datos.campana (sin cambios de esquema).

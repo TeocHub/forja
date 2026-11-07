@@ -141,6 +141,7 @@ dialog::backdrop{background:rgba(10,12,20,.5)}
 .apelar summary{cursor:pointer;font-weight:700;color:var(--accent)}
 .apelar textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:8px;margin:8px 0}
 .avisar{gap:10px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:420px){.dos{grid-template-columns:1fr}}
 .check.exp{align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;line-height:1.45}
 .check.exp input{margin-top:3px}
 </style>
@@ -154,7 +155,7 @@ dialog::backdrop{background:rgba(10,12,20,.5)}
 <dialog id="dlg-comp"><div class="dlg" id="dlg-comp-c"></div></dialog>
 <script type="module">
 import { sb, $, esc, toast, hace, navApp, espacio, accesoProyecto, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame, proximamente } from "../../js/forja.js";
-import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA, SEGUIR_TEXTOS, LIM, esPago, cuentaPagos } from "../../js/vitrina.js";
+import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA, SEGUIR_TEXTOS, LIM, esPago, cuentaPagos, normalRecompensas, ENVIOS, MAX_TIERS } from "../../js/vitrina.js";
 import { MODOS } from "../../js/pizarra.js";
 import { pista } from "../../js/ayuda.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
@@ -163,7 +164,7 @@ const ID = new URLSearchParams(location.search).get("p");
 const CANDADO = '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M5 7V5a3 3 0 0 1 6 0v2h.5A1.5 1.5 0 0 1 13 8.5v5A1.5 1.5 0 0 1 11.5 15h-7A1.5 1.5 0 0 1 3 13.5v-5A1.5 1.5 0 0 1 4.5 7H5Zm1.5 0h3V5a1.5 1.5 0 0 0-3 0v2Z"/></svg>';
 let EXP = false; // ¿aparece en Explorar?
 let SEG = null; // { total, ultimo_envio, proximo, en_cola } de seguidores_de
-let ACC = null, P, PL, RO, V, B, PUB = null, SECS = [], REFS = [], PIZ = [], NOTAS = [], abiertas = new Set(["portada"]), pendiente = false;
+let ACC = null, CAMP = null, ANOT = null, P, PL, RO, V, B, PUB = null, SECS = [], REFS = [], PIZ = [], NOTAS = [], abiertas = new Set(["portada"]), pendiente = false;
 const hoy = () => new Date().toISOString().slice(0, 10);
 // Comparar contenido sin importar el orden de las claves (la base las reordena).
 const canon = (o) => JSON.stringify(o, (k, v) => (v && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map((x) => [x, v[x]])) : v));
@@ -199,6 +200,10 @@ else conSesion($("app"), async () => {
   if (V.suspendida) { const r = await sb.from("mensajes").select("id").eq("tipo", "apelacion").eq("vitrina_id", V.id).eq("estado", "abierto").limit(1); APELADA = !!(r.data && r.data.length); }
   if (V.publicada && !V.suspendida) { const r = await sb.from("vitrinas_publicadas").select("datos,publicado_en,en_explorar").eq("slug", V.slug).maybeSingle(); PUB = r.data ? r.data.datos : null; EXP = !!(r.data && r.data.en_explorar); }
   const sg = await sb.rpc("seguidores_de", { v: V.id }); SEG = sg.data || { total: 0 };
+  // La campaña del cotizador (si existe) y cuántas personas hay anotadas en cada recompensa.
+  const [ct, an] = await Promise.all([sb.from("cotizaciones").select("id,datos").eq("proyecto_id", ID).maybeSingle(), sb.rpc("recompensas_de", { v: V.id })]);
+  CAMP = ct.data && ct.data.datos && ct.data.datos.campana ? { id: ct.data.id, c: ct.data.datos.campana } : ct.data ? { id: ct.data.id, c: null } : null;
+  ANOT = an.data || null;
   armar();
 }, "La vitrina se edita en privado: nada se ve hasta que publicas.");
 
@@ -281,6 +286,7 @@ function pintarPanel() {
     sec("mundo", "El mundo", PL.mas ? n(B.pizarras) : '<span class="tag">Forja Más</span>', mundoHTML()) +
     sec("novedades", "Novedades", n(B.novedades), novedadesHTML()) +
     sec("enlaces", "Dónde seguirlo", n(B.enlaces), enlacesHTML()) +
+    sec("recompensas", "Recompensas", B.recompensas.activo ? n(B.recompensas.tiers) : '<span class="tag">Apagado</span>', recompensasHTML()) +
     sec("seguir", "Seguidores", SEG && SEG.total ? "<small>" + SEG.total + "</small>" : B.seguir.activo ? "" : '<span class="tag">Apagado</span>', seguirHTML()) +
     sec("publicacion", "Dirección y publicación", "", publicacionHTML());
   panel.scrollTop = y;
@@ -351,6 +357,37 @@ function enlacesHTML() {
     '<div class="fila"><button type="button" class="btn chico" data-nuevo="enlaces"' + (lleno ? " disabled" : "") + '>+ Enlace</button><span class="ayuda">' + B.enlaces.length + " de " + LIM.enlaces + (pagos ? " · " + pagos + " de " + LIM.pagos + " de pago" : "") + "</span></div>" +
     proximamente("apoyo-pagos", "Apoyo y preventas en la vitrina", "Recibir apoyo, reservas o preventas desde tu vitrina con medios de pago chilenos, con metas y recompensas a la vista. Mientras tanto, puedes poner hasta " + LIM.pagos + " enlaces de pago tuyos.", true);
 }
+function recompensasHTML() {
+  const R = B.recompensas, an = (ANOT && ANOT.conteo) || {};
+  const traer = CAMP && CAMP.c && (CAMP.c.tiers || []).length
+    ? '<div class="fila"><button type="button" class="btn chico" id="rc-traer">' + (R.tiers.length ? "Volver a copiar desde la campaña" : "Traer desde la campaña") + '</button><a class="ayuda" href="../../cotizador/?c=' + CAMP.id + '#campana">Abrir la campaña</a></div>' + (R.tomada ? '<p class="ayuda">Copiadas el ' + esc(new Date(R.tomada).toLocaleDateString("es-CL", { day: "numeric", month: "long" })) + ". Si cambias la campaña, vuelve a copiarlas.</p>" : "")
+    : '<p class="ayuda">' + (CAMP ? '<a href="../../cotizador/?c=' + CAMP.id + '#campana">Arma la campaña</a> en la cotización del proyecto (productos, recompensas y precios) y tráela aquí.' : "Arma la campaña en la pestaña Costos del proyecto (cotización → Campaña y recompensas) y tráela aquí. También puedes escribirlas a mano.") + "</p>";
+  return '<p class="ayuda">Las recompensas de tu campaña de crowdfunding o preventa, con su precio y lo que incluyen. Mientras la campaña no abre, la gente puede tocar <b>Me interesa</b> (con cuenta, sin pagar nada): ves cuántas personas hay en cada una, nunca quiénes.</p>' +
+    '<label class="check"><input type="checkbox" data-rc="activo"' + (R.activo ? " checked" : "") + "> Mostrar las recompensas en la vitrina</label>" + traer +
+    (R.activo ? '<div class="dos"><label class="c"><span>Estado</span><select data-rc="estado"><option value="pronto"' + (R.estado === "pronto" ? " selected" : "") + '>Abre pronto</option><option value="abierta"' + (R.estado === "abierta" ? " selected" : "") + '>Campaña abierta</option><option value="cerrada"' + (R.estado === "cerrada" ? " selected" : "") + ">Campaña cerrada</option></select></label>" +
+      '<label class="c"><span>Abre el</span><input type="date" data-rc="abre" value="' + esc(R.abre) + '"></label></div>' +
+      '<div class="dos"><label class="c"><span>Dónde</span><input data-rc="plataforma" maxlength="60" value="' + esc(R.plataforma) + '" placeholder="Ej.: Kickstarter"></label><label class="c"><span>Enlace de la campaña</span><input type="url" data-rc="enlace" value="' + esc(R.enlace) + '" placeholder="https://"></label></div>' +
+      '<label class="check"><input type="checkbox" data-rc="verMeta"' + (R.verMeta ? " checked" : "") + "> Mostrar la meta" + (R.meta ? " (" + "$" + R.meta.toLocaleString("es-CL") + ")" : "") + "</label>" +
+      '<label class="check"><input type="checkbox" data-rc="interes"' + (R.interes ? " checked" : "") + '> Botón «Me interesa» mientras no abre</label>' +
+      (R.interes ? '<label class="check"><input type="checkbox" data-rc="contador"' + (R.contador ? " checked" : "") + "> Mostrar cuántas personas se anotaron</label>" : "") +
+      R.tiers.map((t, i) => '<div class="bloque"><div class="bloque-cab"><b class="ayuda">' + (i + 1) + '</b><input data-rt="nombre" data-id="' + t.id + '" value="' + esc(t.nombre) + '" maxlength="80" placeholder="Nombre de la recompensa" aria-label="Nombre"><button type="button" class="ico x" data-rtq="' + t.id + '" aria-label="Quitar recompensa">×</button></div>' +
+        '<div class="dos"><label class="c"><span>Precio (CLP)</span><input type="number" min="0" step="100" data-rt="precio" data-id="' + t.id + '" value="' + (t.precio || "") + '"></label><label class="c"><span>Envío</span><select data-rt="envio" data-id="' + t.id + '">' + Object.entries(ENVIOS).map(([k, v]) => '<option value="' + k + '"' + (t.envio === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></label></div>" +
+        '<label class="c"><span>Qué dice</span><textarea data-rt="desc" data-id="' + t.id + '" rows="2" maxlength="600">' + esc(t.desc) + "</textarea></label>" +
+        '<label class="c"><span>Qué incluye (separado por comas)</span><input data-rt="incluye" data-id="' + t.id + '" value="' + esc(t.incluye.join(", ")) + '" placeholder="Ej.: El juego, 1 llavero, Tu nombre en los créditos"></label>' +
+        '<div class="dos"><label class="c"><span>Cupos</span><input type="number" min="0" step="1" data-rt="limite" data-id="' + t.id + '" value="' + (t.limite || "") + '" placeholder="Sin límite"></label><label class="c"><span>Entrega estimada</span><input type="month" data-rt="entrega" data-id="' + t.id + '" value="' + esc(t.entrega) + '"></label></div>' +
+        (an[t.id] ? '<p class="ayuda"><b>' + an[t.id] + (an[t.id] === 1 ? " persona anotada" : " personas anotadas") + "</b>.</p>" : "") + "</div>").join("") +
+      '<div class="fila"><button type="button" class="btn chico" id="rc-nueva"' + (R.tiers.length >= MAX_TIERS ? " disabled" : "") + '>+ Recompensa</button>' + (ANOT && ANOT.personas ? '<span class="ayuda">' + ANOT.personas + (ANOT.personas === 1 ? " persona anotada" : " personas anotadas") + " en total</span>" : "") + "</div>" +
+      '<p class="ayuda">Pagar dentro de Forja llegará más adelante. Por ahora, cuando la campaña abra, cambia el estado a «Campaña abierta» y pon su enlace: los botones llevarán ahí.</p>' : "");
+}
+// Copia las recompensas de la campaña (se conservan los ids: así lo anotado sigue contando en la misma recompensa).
+function traerCampana() {
+  const c = CAMP.c, viejo = new Map(B.recompensas.tiers.map((t) => [t.id, t]));
+  B.recompensas = normalRecompensas({ ...B.recompensas, activo: true, plataforma: c.plataforma || B.recompensas.plataforma, enlace: c.enlace || B.recompensas.enlace,
+    meta: c.metaVista || c.meta || B.recompensas.meta,
+    tiers: (c.tiers || []).map((t) => ({ id: t.id, nombre: t.nombre, desc: t.desc || "", precio: t.vista ? t.vista.precio : t.precio, incluye: t.vista ? t.vista.incluye : [], envio: t.vista ? t.vista.envio : "aparte", limite: t.limite, entrega: t.entrega || (viejo.get(t.id) || {}).entrega || "" })) });
+  B.recompensas.tomada = new Date().toISOString();
+  cambio(true); toast("Recompensas copiadas desde la campaña: revísalas antes de publicar.");
+}
 function seguirHTML() {
   const t = SEG ? SEG.total || 0 : 0, espera = SEG && SEG.proximo && new Date(SEG.proximo) > new Date();
   const fechaTxt = (x) => new Date(x).toLocaleDateString("es-CL", { day: "numeric", month: "long" });
@@ -378,6 +415,22 @@ function publicacionHTML() {
 const lista = (k) => B[k];
 function enlazar() {
   const panel = $("panel");
+  // recompensas
+  panel.querySelectorAll("[data-rc]").forEach((i) => i.onchange = () => {
+    const k = i.dataset.rc, R = B.recompensas;
+    R[k] = i.type === "checkbox" ? i.checked : i.value.trim();
+    if (k === "enlace" && R.enlace && !okUrl(R.enlace)) { toast("El enlace debe empezar con https://"); R.enlace = ""; }
+    if (k === "activo" && R.activo && !R.tiers.length && CAMP && CAMP.c && (CAMP.c.tiers || []).length) { traerCampana(); return; }
+    cambio(i.type === "checkbox" || k === "estado");
+  });
+  panel.querySelectorAll("[data-rt]").forEach((i) => i.oninput = () => {
+    const t = B.recompensas.tiers.find((x) => x.id === i.dataset.id); if (!t) return; const k = i.dataset.rt;
+    t[k] = k === "precio" || k === "limite" ? Math.max(0, Math.round(+i.value || 0)) || (k === "limite" ? null : 0) : k === "incluye" ? i.value.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 12) : i.value;
+    cambio();
+  });
+  panel.querySelectorAll("[data-rtq]").forEach((b) => b.onclick = () => { B.recompensas.tiers = B.recompensas.tiers.filter((t) => t.id !== b.dataset.rtq); cambio(true); });
+  const rcN = panel.querySelector("#rc-nueva"); if (rcN) rcN.onclick = () => { B.recompensas.tiers.push({ id: uid(), nombre: "", precio: 0, desc: "", incluye: [], envio: "aparte", limite: null, entrega: "" }); cambio(true); };
+  const rcT = panel.querySelector("#rc-traer"); if (rcT) rcT.onclick = traerCampana;
   panel.querySelectorAll("details.sec").forEach((d) => d.addEventListener("toggle", () => { d.open ? abiertas.add(d.dataset.sec) : abiertas.delete(d.dataset.sec); try { localStorage.setItem("forja-vt-abiertas", JSON.stringify([...abiertas])); } catch (e) {} }));
   panel.querySelectorAll("[data-f]").forEach((i) => i.oninput = () => { B[i.dataset.f] = i.value; cambio(); });
   const pu = panel.querySelector('[data-portada="url"]');
