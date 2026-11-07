@@ -50,6 +50,15 @@ h1{font-family:var(--f-display);font-size:clamp(26px,5vw,36px);margin:0}
 details.borrar summary{cursor:pointer;color:var(--bad);font-weight:700}
 details.borrar[open] summary{margin-bottom:8px}
 .vacio{color:var(--muted);font-size:14px}
+.prefs{display:flex;flex-direction:column;gap:8px}
+.pref{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
+.pref input{accent-color:var(--accent);width:18px;height:18px;margin-top:2px;flex:none}
+.pref span{display:flex;flex-direction:column;gap:2px}
+.pref small{color:var(--muted);font-size:13px;line-height:1.45}
+.sub{font-family:var(--f-display);font-size:16px;margin:8px 0 0}
+.seguidas{display:flex;flex-direction:column}
+.seguida{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding:8px 0}
+.seguida .btn{font-size:13px;padding:5px 10px}
 </style>
 </head>
 <body>
@@ -64,16 +73,19 @@ const TIPO = { contacto: "Contacto o consulta", privacidad: "Mis datos personale
 const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
 const EST_REP = { pendiente: ["En revisión", ""], aceptado: ["Se tomaron medidas", "ok"], desestimado: ["No infringía las normas", ""], mala_fe: ["Revisado como de mala fe", ""] };
 const NOMBRE_DOC = { terminos: "Términos de uso", privacidad: "Política de privacidad", normas: "Normas de la comunidad" };
-let SES;
+let SES, PREFS, TIENE_PREFS = false;
 
 conSesion($("app"), async (ses) => {
   SES = ses;
-  const [pl, ms, rp, ac] = await Promise.all([
+  const [pl, ms, rp, ac, pf, sg] = await Promise.all([
     plan(),
     sb.from("mensajes").select("id,tipo,texto,estado,respuesta,creado_en,respondido_en").order("creado_en", { ascending: false }).limit(30),
     sb.from("reportes").select("id,motivo,estado,creado_en,revisado_en").order("creado_en", { ascending: false }).limit(30),
     sb.from("aceptaciones").select("documento,version,aceptado_en").order("aceptado_en", { ascending: false }),
+    sb.from("correo_prefs").select("boletin,funciones,vitrinas,boletin_desde").maybeSingle(),
+    sb.rpc("mis_seguidas"),
   ]);
+  PREFS = pf.data || { boletin: false, funciones: true, vitrinas: true }; TIENE_PREFS = !!pf.data;
   const creada = ses.user.created_at ? fecha(ses.user.created_at) : "";
   $("app").innerHTML =
     '<header><h1>Mi cuenta</h1><p class="lead">Tus avisos, tus mensajes con el equipo de Forja y el control de tus datos.</p></header>' +
@@ -86,6 +98,12 @@ conSesion($("app"), async (ses) => {
     '<div class="acc"><button class="fx-primary" type="submit">Enviar</button><small class="vacio">Para apelar la suspensión de una vitrina, usa el botón "Apelar" en su editor.</small></div></form>' +
     '<div id="mensajes">' + ((ms.data || []).map((m) => '<div class="msj"><div class="fila"><b>' + TIPO[m.tipo] + '</b><span class="est' + (m.respuesta ? " ok" : "") + '">' + (m.respuesta ? "Respondido" : "Esperando respuesta") + "</span></div><small>" + hace(m.creado_en) + "</small><p>" + esc(m.texto) + "</p>" +
       (m.respuesta ? '<p class="resp"><b>Forja:</b> ' + esc(m.respuesta) + "</p>" : "") + "</div>").join("")) + "</div></section>" +
+    '<section class="blq" id="correos"><h2>Correos de Forja</h2><p>Solo te escribimos sobre lo que elijas aquí. Los correos para entrar a tu cuenta siempre llegan.</p><div class="prefs">' +
+      [["boletin", "Boletín de Forja", "Una vez al mes, como mucho: herramientas nuevas, oportunidades que abren o cierran pronto y proyectos de la comunidad."],
+       ["funciones", "Herramientas que pediste", "Un aviso cuando esté lista una herramienta en la que tocaste «Avísame»."],
+       ["vitrinas", "Proyectos que sigues", "Las novedades que envían los proyectos que sigues (cada uno puede escribir como mucho una vez por semana)."]]
+        .map(([k, t, d]) => '<label class="pref"><input type="checkbox" data-pref="' + k + '"' + (PREFS[k] ? " checked" : "") + "><span><b>" + t + "</b><small>" + d + "</small></span></label>").join("") + "</div>" +
+      '<h3 class="sub">Proyectos que sigues</h3>' + ((sg.data || []).length ? '<div class="seguidas">' + sg.data.map((x) => '<div class="seguida">' + (x.visible ? '<a href="../vitrina/?v=' + esc(x.slug) + '">' + esc(x.titulo || x.slug) + "</a>" : "<span>" + esc(x.titulo || x.slug) + " <small>(no publicada)</small></span>") + '<button type="button" class="btn" data-dejar="' + esc(x.slug) + '">Dejar de seguir</button></div>').join("") + "</div>" : '<p class="vacio">Aún no sigues ningún proyecto. En cada vitrina que tenga el botón, puedes seguirla para recibir sus novedades.</p>') + "</section>" +
     '<section class="blq"><h2>Mis reportes</h2>' + ((rp.data || []).length ? (rp.data.map((r) => { const e = EST_REP[r.estado] || [r.estado, ""]; return '<div class="msj"><div class="fila"><b>' + esc(MOTIVOS[r.motivo] || r.motivo) + '</b><span class="est ' + e[1] + '">' + e[0] + "</span></div><small>Enviado " + hace(r.creado_en) + "</small></div>"; }).join("")) : '<p class="vacio">No has reportado ninguna vitrina. Si ves algo que rompe las <a href="../normas/">normas</a>, usa "Reportar esta vitrina" al final de esa página.</p>') + "</section>" +
     '<section class="blq"><h2>Documentos que aceptaste</h2><div class="docs">' + ["terminos", "privacidad", "normas"].map((d) => { const a = (ac.data || []).find((x) => x.documento === d); return '<a href="../' + d + '/"><b>' + NOMBRE_DOC[d] + "</b><small>" + (a ? "Versión del " + (a.version === DOCS.version ? DOCS.fecha : a.version) + (a.aceptado_en ? ", aceptada el " + fecha(a.aceptado_en) : "") : "Sin aceptar") + "</small></a>"; }).join("") + "</div></section>" +
     '<section class="blq"><h2>Tus datos</h2><p>Todo lo que guardaste en Forja en un archivo JSON: proyectos, escritura, referentes, pizarras, bitácora, cotizaciones, vitrinas, mensajes y reportes. Para tus proyectos, la <b>biblia</b> de cada uno es una copia más legible.</p><div class="acc"><button class="btn" type="button" id="descargar">Descargar mis datos</button></div></section>' +
@@ -105,6 +123,19 @@ conSesion($("app"), async (ses) => {
     toast("Mensaje enviado. Te responderemos aquí."); setTimeout(() => location.reload(), 900);
   };
   $("descargar").onclick = descargar;
+  $("app").querySelectorAll("[data-pref]").forEach((c) => c.onchange = async () => {
+    const k = c.dataset.pref; PREFS[k] = c.checked;
+    const fila = { boletin: !!PREFS.boletin, funciones: !!PREFS.funciones, vitrinas: !!PREFS.vitrinas };
+    const { error } = TIENE_PREFS ? await sb.from("correo_prefs").update(fila).not("boletin", "is", null) : await sb.from("correo_prefs").insert(fila);
+    if (error) { c.checked = !c.checked; PREFS[k] = c.checked; toast("No se pudo guardar."); return; }
+    TIENE_PREFS = true;
+    toast(k === "boletin" ? (c.checked ? "Listo: te llegará el boletín de Forja." : "Ya no te llegará el boletín.") : "Preferencia guardada.");
+  });
+  $("app").querySelectorAll("[data-dejar]").forEach((b) => b.onclick = async () => {
+    const { error } = await sb.rpc("seguir_vitrina", { slug: b.dataset.dejar, seguir: false });
+    if (error) { toast("No se pudo."); return; }
+    b.closest(".seguida").remove(); toast("Dejaste de seguir ese proyecto.");
+  });
   $("b-conf").oninput = (e) => { $("b-si").disabled = e.target.value.trim() !== "BORRAR"; };
   $("f-borrar").onsubmit = async (e) => {
     e.preventDefault(); $("b-si").disabled = true;
@@ -122,8 +153,9 @@ async function descargar() {
   const TABLAS = ["proyectos", "secciones", "referentes", "pizarras", "notas", "cotizaciones", "proyecto_oportunidades", "vitrinas"];
   const out = { exportado_en: new Date().toISOString(), cuenta: { correo: SES.user.email, creada_en: SES.user.created_at } };
   const { data: e } = await sb.from("espacios").select("*").eq("id", esp).maybeSingle(); out.espacio = e;
+  { const { data } = await sb.rpc("mis_seguidas"); out.proyectos_que_sigues = data || []; }
   for (const t of TABLAS) { const { data, error } = await sb.from(t).select("*").eq("espacio_id", esp); out[t] = error ? { error: error.message } : data; }
-  for (const [t, c] of [["mensajes", "id,tipo,texto,estado,respuesta,creado_en,respondido_en"], ["reportes", "motivo,detalle,estado,creado_en,revisado_en"], ["avisos", "tipo,titulo,texto,leido,creado_en"], ["aceptaciones", "documento,version,aceptado_en"], ["interes_funciones", "funcion"]]) {
+  for (const [t, c] of [["mensajes", "id,tipo,texto,estado,respuesta,creado_en,respondido_en"], ["reportes", "motivo,detalle,estado,creado_en,revisado_en"], ["avisos", "tipo,titulo,texto,leido,creado_en"], ["aceptaciones", "documento,version,aceptado_en"], ["interes_funciones", "funcion,creado_en,avisado_en"], ["correo_prefs", "boletin,funciones,vitrinas,boletin_desde"]]) {
     const { data } = await sb.from(t).select(c); out[t] = data || [];
   }
   const a = document.createElement("a");

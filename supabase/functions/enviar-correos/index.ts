@@ -1,0 +1,112 @@
+// Forja · enviar-correos
+// Vacía la cola privado.correos (avisos de herramientas, boletín, novedades de vitrinas seguidas)
+// por SMTP del buzón novedades@digitalmonster.cl (Titan). La llama pg_cron cada 10 minutos (privado.despachar)
+// solo si hay correos pendientes. Los límites del buzón (50/h y 100/día hacia otros dominios) los cuida
+// public.cola_tomar, que entrega como máximo 40 por hora y 90 por día.
+// Secreto obligatorio (Supabase → Edge Functions → Secrets): SMTP_PASS, la contraseña de novedades@.
+// Opcionales: SMTP_USER, SMTP_HOST, SMTP_PORT, SMTP_FROM, SITIO. SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY los pone Supabase.
+// Solo responde a pg_cron: el encabezado x-forja-clave debe coincidir con privado.config('cola_clave'),
+// una clave aleatoria creada dentro de la base que nadie escribe a mano.
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+
+const env = (k: string, d = "") => Deno.env.get(k) ?? d;
+const SITIO = env("SITIO", "https://forja.digitalmonster.cl").replace(/\/$/, "");
+const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+const parrafos = (t: unknown) => esc(t).split(/\n{2,}/).map((p) => '<p style="margin:0 0 14px;font-size:16px;line-height:1.55">' + p.replace(/\n/g, "<br>") + "</p>").join("");
+const okUrl = (u: unknown) => /^https:\/\/[^\s"'<>]+$/i.test(String(u ?? ""));
+
+type Fila = { id: number; email: string; token: string; tipo: string; datos: Record<string, any> };
+type Correo = { asunto: string; html: string; texto: string; baja: string };
+
+function boton(href: string, txt: string) {
+  return '<p style="margin:22px 0"><a href="' + esc(href) + '" style="background:#2a3fd1;color:#ffffff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:bold;display:inline-block">' + esc(txt) + "</a></p>";
+}
+function marco(cuerpo: string, pie: string, aviso = "") {
+  return '<!doctype html><html><body style="margin:0;background:#f4f3ee"><div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;padding:28px 22px;color:#1a1d29;background:#ffffff">' +
+    (aviso ? '<p style="background:#fff3cd;border-radius:8px;padding:8px 12px;font-size:13px;margin:0 0 16px">' + aviso + "</p>" : "") +
+    '<p style="font-size:22px;font-weight:bold;margin:0 0 18px">Forja</p>' + cuerpo +
+    '<hr style="border:0;border-top:1px solid #e3e1da;margin:26px 0 14px"><div style="font-size:12.5px;color:#6b7080;line-height:1.55">' + pie +
+    "<br>Forja · Digital Monster, Chile · " + '<a href="' + SITIO + '/" style="color:#6b7080">forja.digitalmonster.cl</a></div></div></body></html>';
+}
+const enlaceBaja = (t: string, q: string, slug = "") => SITIO + "/correo/?t=" + t + "&q=" + q + (slug ? "&v=" + encodeURIComponent(slug) : "");
+
+function armar(f: Fila): Correo {
+  const prueba = f.tipo === "prueba", tipo = prueba ? String(f.datos.de || "boletin") : f.tipo, d = f.datos;
+  const aviso = prueba ? "Esto es una prueba: solo te llegó a ti." : "";
+  if (tipo === "funcion") {
+    const baja = enlaceBaja(f.token, "funciones"), ir = okUrl(d.enlace) ? d.enlace : SITIO + "/proyectos/";
+    return {
+      asunto: "Ya está en Forja: " + d.titulo, baja,
+      html: marco('<p style="font-size:14px;color:#6b7080;margin:0 0 6px">Pediste que te avisáramos y ya está lista</p><h1 style="font-size:24px;margin:0 0 14px">' + esc(d.titulo) + "</h1>" + parrafos(d.texto) + boton(ir, "Probarla en Forja"),
+        'Te llegó porque tocaste "Avísame" en esta herramienta. <a href="' + esc(baja) + '" style="color:#6b7080">No quiero avisos de herramientas</a>.', aviso),
+      texto: "Ya está en Forja: " + d.titulo + "\n\n" + d.texto + "\n\nProbarla: " + ir + "\n\nNo quiero avisos de herramientas: " + baja,
+    };
+  }
+  if (tipo === "vitrina") {
+    const baja = enlaceBaja(f.token, "seguir", d.slug), todas = enlaceBaja(f.token, "vitrinas"), ver = SITIO + "/vitrina/?v=" + encodeURIComponent(d.slug);
+    return {
+      asunto: d.vitrina + ": " + d.titulo, baja,
+      html: marco('<p style="font-size:14px;color:#6b7080;margin:0 0 6px">Novedades de <b style="color:#1a1d29">' + esc(d.vitrina) + "</b>, un proyecto que sigues</p>" +
+        '<h1 style="font-size:24px;margin:0 0 14px">' + esc(d.titulo) + "</h1>" + parrafos(d.texto) + boton(ver, "Ver la vitrina") +
+        '<p style="font-size:13px;color:#6b7080;margin:0">Este mensaje lo escribió quien crea el proyecto. Forja no revisa su contenido antes de enviarlo; si algo está mal, <a href="' + esc(ver) + '#reportar" style="color:#6b7080">repórtalo</a>.</p>',
+        'Te llegó porque sigues este proyecto en Forja. <a href="' + esc(baja) + '" style="color:#6b7080">Dejar de seguirlo</a> · <a href="' + esc(todas) + '" style="color:#6b7080">No recibir avisos de ninguna vitrina</a>.', aviso),
+      texto: "Novedades de " + d.vitrina + "\n\n" + d.titulo + "\n\n" + d.texto + "\n\nVer la vitrina: " + ver + "\n\nDejar de seguirlo: " + baja + "\nNo recibir avisos de vitrinas: " + todas,
+    };
+  }
+  // boletín
+  const baja = enlaceBaja(f.token, "boletin");
+  const bloque = (titulo: string, html: string) => '<h2 style="font-size:18px;margin:26px 0 10px;border-top:1px solid #e3e1da;padding-top:18px">' + esc(titulo) + "</h2>" + html;
+  const nov = (d.novedades || []).filter((n: any) => n && n.titulo);
+  const opo = (d.oportunidades || []).filter((o: any) => o && o.nombre);
+  const vit = (d.vitrinas || []).filter((v: any) => v && v.slug);
+  let html = '<h1 style="font-size:24px;margin:0 0 14px">' + esc(d.asunto) + "</h1>" + (d.intro ? parrafos(d.intro) : "");
+  let texto = d.asunto + "\n\n" + (d.intro || "") + "\n";
+  if (nov.length) {
+    html += bloque("Novedades de Forja", nov.map((n: any) => '<p style="margin:0 0 4px;font-weight:bold;font-size:16px">' + esc(n.titulo) + "</p>" + parrafos(n.texto)).join(""));
+    texto += "\nNOVEDADES DE FORJA\n" + nov.map((n: any) => "· " + n.titulo + "\n" + (n.texto || "")).join("\n") + "\n";
+  }
+  if (opo.length) {
+    html += bloque("Oportunidades que se vienen", '<table style="width:100%;border-collapse:collapse;font-size:14.5px">' + opo.map((o: any) =>
+      '<tr><td style="padding:7px 0;border-bottom:1px solid #eeece6">' + (okUrl(o.url) ? '<a href="' + esc(o.url) + '" style="color:#2a3fd1">' + esc(o.nombre) + "</a>" : esc(o.nombre)) + '</td><td style="padding:7px 0 7px 10px;border-bottom:1px solid #eeece6;color:#6b7080;text-align:right;white-space:nowrap">' + esc(o.cuando) + "</td></tr>").join("") + "</table>" +
+      '<p style="font-size:13px;color:#6b7080;margin:8px 0 0">Todas las fechas en <a href="' + SITIO + '/oportunidades/" style="color:#6b7080">el calendario de Forja</a>. Confirma siempre las bases en la fuente oficial.</p>');
+    texto += "\nOPORTUNIDADES QUE SE VIENEN\n" + opo.map((o: any) => "· " + o.nombre + " — " + o.cuando + (o.url ? " " + o.url : "")).join("\n") + "\n";
+  }
+  if (vit.length) {
+    html += bloque("Proyectos para conocer", vit.map((v: any) => '<p style="margin:0 0 12px"><a href="' + SITIO + "/vitrina/?v=" + encodeURIComponent(v.slug) + '" style="color:#2a3fd1;font-weight:bold;font-size:16px">' + esc(v.titulo) + "</a>" + (v.lema ? '<br><span style="color:#4a4f5c">' + esc(v.lema) + "</span>" : "") + "</p>").join(""));
+    texto += "\nPROYECTOS PARA CONOCER\n" + vit.map((v: any) => "· " + v.titulo + " " + SITIO + "/vitrina/?v=" + v.slug).join("\n") + "\n";
+  }
+  if (d.cierre) { html += '<div style="margin-top:22px">' + parrafos(d.cierre) + "</div>"; texto += "\n" + d.cierre + "\n"; }
+  return {
+    asunto: d.asunto, baja,
+    html: marco(html, 'Te llegó porque te suscribiste al boletín de Forja. <a href="' + esc(baja) + '" style="color:#6b7080">Darme de baja</a>.', aviso),
+    texto: texto + "\nDarme de baja: " + baja,
+  };
+}
+
+Deno.serve(async (req) => {
+  const sb = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
+  const { data: clave } = await sb.rpc("cola_clave");
+  if (!clave || req.headers.get("x-forja-clave") !== clave) return new Response("no autorizado", { status: 401 });
+  const usuario = env("SMTP_USER", "novedades@digitalmonster.cl"), pass = env("SMTP_PASS");
+  if (!pass) return Response.json({ error: "Falta el secreto SMTP_PASS" }, { status: 503 });
+  const { data, error } = await sb.rpc("cola_tomar", { limite: 15 });
+  if (error) return Response.json({ error: error.message }, { status: 500 });
+  const lote = (data || []) as Fila[];
+  if (!lote.length) return Response.json({ enviados: 0 });
+  const smtp = new SMTPClient({ connection: { hostname: env("SMTP_HOST", "smtp.titan.email"), port: Number(env("SMTP_PORT", "465")), tls: true, auth: { username: usuario, password: pass } } });
+  const from = env("SMTP_FROM", "Forja <" + usuario + ">");
+  let enviados = 0;
+  for (const f of lote) {
+    try {
+      const c = armar(f);
+      await smtp.send({ from, to: f.email, subject: c.asunto, content: c.texto, html: c.html, headers: { "List-Unsubscribe": "<" + c.baja + ">" } });
+      await sb.rpc("cola_marcar", { id: f.id, ok: true });
+      enviados++;
+    } catch (e) {
+      await sb.rpc("cola_marcar", { id: f.id, ok: false, error: String((e as Error)?.message || e) });
+    }
+  }
+  try { await smtp.close(); } catch (_) { /* nada */ }
+  return Response.json({ enviados, de: lote.length });
+});

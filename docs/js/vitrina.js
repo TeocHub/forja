@@ -39,6 +39,13 @@ export function detectar(v) {
   if (/\.(png|jpe?g|gif|webp|avif)(\?.*)?$/i.test(v) || /^https:\/\/(i\.imgur\.com|images\.unsplash\.com|pbs\.twimg\.com|i\.pinimg\.com)\//i.test(v)) return { tipo: "imagen", valor: v };
   return { tipo: "enlace", valor: v };
 }
+// Enlaces de pago, apoyo o financiamiento (el mismo criterio que privado.es_pago en la base).
+export const PAGO = /^https?:\/\/([a-z0-9-]+\.)*(mpago\.la|mercadopago\.[a-z.]+|paypal\.(me|com)|ko-fi\.com|buymeacoffee\.com|patreon\.com|flow\.cl|khipu\.com|webpay\.cl|transbank\.cl|sumup\.[a-z.]+|stripe\.com|gofundme\.com|kickstarter\.com|gamefound\.com|indiegogo\.com|verkami\.com|idea\.me|crowdfundchile\.cl|gumroad\.com|hotmart\.com|cafecito\.app|apoia\.se)([/?#:]|$)/i;
+export const esPago = (u) => PAGO.test(String(u || "").trim());
+export const LIM = { enlaces: 10, pagos: 2 };
+export const cuentaPagos = (d) => [...arr(d.enlaces).map((e) => e.url), ...arr(d.galeria).map((g) => g.valor)].filter(esPago).length;
+// Botón para seguir el proyecto: la persona elige el texto.
+export const SEGUIR_TEXTOS = { seguir: "Seguir el proyecto", lanzamiento: "Avísame cuando lance", jugar: "Quiero jugarlo", leer: "Quiero leerlo", tener: "Lo quiero" };
 const dominio = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
 
 /* ---------- datos ---------- */
@@ -57,7 +64,8 @@ export function normal(d) {
     galeria: arr(d.galeria).filter((g) => g && g.id && (g.tipo === "color" ? okColor(g.valor) : g.tipo === "cita" ? g.valor : okUrl(g.valor))).map((g) => ({ id: g.id, tipo: g.tipo, valor: g.tipo === "cita" ? corta(g.valor, 2000) : g.valor, titulo: corta(g.titulo, 160), nota: corta(g.nota, 600), ...(g.de ? { de: g.de } : {}) })),
     pizarras: arr(d.pizarras).filter((z) => z && z.id && MODOS[z.modo]).map((z) => ({ id: z.id, nombre: corta(z.nombre, 120), modo: z.modo, soloTitulos: !!z.soloTitulos, ocultas: arr(z.ocultas), datos: z.datos || {}, ...(z.tomada ? { tomada: z.tomada } : {}) })),
     novedades: arr(d.novedades).filter((n) => n && n.id).map((n) => ({ id: n.id, fecha: /^\d{4}-\d{2}-\d{2}$/.test(n.fecha || "") ? n.fecha : "", titulo: corta(n.titulo, 160), texto: corta(n.texto, 8000) })),
-    enlaces: arr(d.enlaces).filter((e) => e && e.id).map((e) => ({ id: e.id, nombre: corta(e.nombre, 60), url: String(e.url || "").trim() })),
+    enlaces: arr(d.enlaces).filter((e) => e && e.id).slice(0, LIM.enlaces).map((e) => ({ id: e.id, nombre: corta(e.nombre, 60), url: String(e.url || "").trim() })),
+    seguir: { activo: !!(d.seguir && d.seguir.activo), texto: d.seguir && SEGUIR_TEXTOS[d.seguir.texto] ? d.seguir.texto : "seguir", contador: !!(d.seguir && d.seguir.contador) },
   };
 }
 // Lo que de verdad se publica: sin tarjetas ocultas, sin notas si se pidió "solo títulos", sin enlaces internos,
@@ -102,7 +110,9 @@ export function pintarVitrina(raiz, datos, opts = {}) {
     '<header class="vt-hero' + (d.portada ? " con-imagen" : "") + '">' + fondoHero +
       '<div class="vt-hero-txt">' + (etiqueta ? '<span class="vt-etq">' + esc(etiqueta) + "</span>" : "") +
       "<h1>" + (d.titulo ? esc(d.titulo) : "<i>Sin título</i>") + "</h1>" + (d.lema ? '<p class="vt-lema">' + esc(d.lema) + "</p>" : "") +
-      (d.firma ? '<p class="vt-firma">por ' + esc(d.firma) + "</p>" : "") + "</div></header>" +
+      (d.firma ? '<p class="vt-firma">por ' + esc(d.firma) + "</p>" : "") +
+      (d.seguir.activo ? '<div class="vt-seguir-caja"><button type="button" class="vt-seguir" data-seguir aria-pressed="false"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 14.2 6.9 13.2C3 9.7.5 7.4.5 4.6.5 2.4 2.2.7 4.4.7c1.2 0 2.4.6 3.1 1.5h1C9.2 1.3 10.4.7 11.6.7c2.2 0 3.9 1.7 3.9 3.9 0 2.8-2.5 5.1-6.4 8.6L8 14.2Z"/></svg><span>' + esc(SEGUIR_TEXTOS[d.seguir.texto]) + '</span></button><span class="vt-seguir-n" hidden></span></div>' : "") +
+      "</div></header>" +
     (partes.length > 1 ? '<nav class="vt-indice" aria-label="Secciones">' + partes.map(([k, n]) => '<a href="#vt-' + k + '" data-ir="' + k + '">' + n + "</a>").join("") + "</nav>" : "") +
     '<main class="vt-cuerpo">' +
     (d.historia.length ? '<section class="vt-sec vt-historia" id="vt-historia"><h2 class="vt-h2">La historia</h2>' + d.historia.map((h, i) =>
@@ -119,7 +129,7 @@ export function pintarVitrina(raiz, datos, opts = {}) {
       '<a href="' + esc(e.url) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + "><b>" + esc(e.nombre || dominio(e.url)) + "</b><small>" + esc(dominio(e.url)) + "</small></a>").join("") + "</div></section>" : "") +
     (!partes.length ? '<p class="vt-vacia">' + (previa ? "Agrega la historia, imágenes o novedades desde el panel y aparecerán aquí." : "Esta vitrina se está preparando.") + "</p>" : "") +
     "</main>" +
-    '<footer class="vt-pie"><span>' + (opts.fecha ? "Actualizada el " + esc(fechaTxt(opts.fecha)) + " · " : "") + 'Vitrina hecha con <a href="' + RAIZ + '"' + (previa ? ' tabindex="-1"' : "") + ">Forja</a>" + (previa ? "" : ' · <a href="' + RAIZ + 'normas/">Normas</a> · <button type="button" class="vt-reportar">Reportar esta vitrina</button>') + "</span></footer>" +
+    '<footer class="vt-pie"><span>' + (opts.fecha ? "Actualizada el " + esc(fechaTxt(opts.fecha)) + " · " : "") + 'Vitrina hecha con <a href="' + RAIZ + '"' + (previa ? ' tabindex="-1"' : "") + ">Forja</a>" + (previa ? "" : ' · <a href="' + RAIZ + 'normas/">Normas</a> · <button type="button" class="vt-reportar" id="reportar">Reportar esta vitrina</button>') + "</span></footer>" +
     '<dialog class="vt-caja"><button type="button" class="vt-cerrar" aria-label="Cerrar">×</button><figure></figure></dialog></div>';
 
   const vt = raiz.querySelector(".vt");
@@ -260,6 +270,13 @@ export const CSS_VITRINA = CSS_PIZARRA + `
 .vt-nov h3{font-size:22px;margin-bottom:8px}
 .vt-mas{font:inherit;font-size:14px;border:0;background:none;color:var(--vt-ac);padding:0;cursor:pointer;font-weight:700}
 @media (max-width:640px){.vt-nov{grid-template-columns:1fr}.vt-nov time{padding:0}}
+.vt-seguir-caja{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+.vt-seguir{font:inherit;font-size:15px;font-weight:700;display:inline-flex;align-items:center;gap:8px;border:2px solid var(--vt-acento);background:var(--vt-acento);color:#fff;border-radius:999px;padding:10px 20px;cursor:pointer;transition:transform .15s,background .15s}
+.vt-seguir:hover{transform:translateY(-1px)}
+.vt-seguir[aria-pressed=true]{background:transparent;color:inherit}
+.vt-seguir[aria-pressed=true] svg{color:var(--vt-acento)}
+.vt-seguir:disabled{opacity:.6;cursor:default;transform:none}
+.vt-seguir-n{font-size:14px;opacity:.85}
 .vt-enlaces{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
 .vt-enlaces a{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:var(--vt-fg);background:var(--vt-card);border:1px solid var(--vt-line);border-radius:14px;padding:16px 18px;transition:border-color .15s,transform .15s}
 .vt-enlaces a:hover{border-color:var(--vt-acento);transform:translateY(-2px)}

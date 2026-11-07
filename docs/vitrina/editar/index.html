@@ -140,6 +140,7 @@ dialog::backdrop{background:rgba(10,12,20,.5)}
 .susp .apelado b{font-family:inherit;font-size:inherit;color:var(--fg)}
 .apelar summary{cursor:pointer;font-weight:700;color:var(--accent)}
 .apelar textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:8px;margin:8px 0}
+.avisar{gap:10px}
 .check.exp{align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;line-height:1.45}
 .check.exp input{margin-top:3px}
 </style>
@@ -152,8 +153,8 @@ dialog::backdrop{background:rgba(10,12,20,.5)}
 <dialog id="dlg-pub"><div class="dlg" id="dlg-pub-c"></div></dialog>
 <dialog id="dlg-comp"><div class="dlg" id="dlg-comp-c"></div></dialog>
 <script type="module">
-import { sb, $, esc, toast, hace, navApp, espacio, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame } from "../../js/forja.js";
-import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA } from "../../js/vitrina.js";
+import { sb, $, esc, toast, hace, navApp, espacio, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame, proximamente } from "../../js/forja.js";
+import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA, SEGUIR_TEXTOS, LIM, esPago, cuentaPagos } from "../../js/vitrina.js";
 import { MODOS } from "../../js/pizarra.js";
 import { pista } from "../../js/ayuda.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
@@ -161,6 +162,7 @@ navApp("proyectos");
 const ID = new URLSearchParams(location.search).get("p");
 const CANDADO = '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M5 7V5a3 3 0 0 1 6 0v2h.5A1.5 1.5 0 0 1 13 8.5v5A1.5 1.5 0 0 1 11.5 15h-7A1.5 1.5 0 0 1 3 13.5v-5A1.5 1.5 0 0 1 4.5 7H5Zm1.5 0h3V5a1.5 1.5 0 0 0-3 0v2Z"/></svg>';
 let EXP = false; // ¿aparece en Explorar?
+let SEG = null; // { total, ultimo_envio, proximo, en_cola } de seguidores_de
 let P, PL, RO, V, B, PUB = null, SECS = [], REFS = [], PIZ = [], NOTAS = [], abiertas = new Set(["portada"]), pendiente = false;
 const hoy = () => new Date().toISOString().slice(0, 10);
 // Comparar contenido sin importar el orden de las claves (la base las reordena).
@@ -193,6 +195,7 @@ else conSesion($("app"), async () => {
   B = normal(Object.keys(V.borrador || {}).length ? V.borrador : nuevaVitrina(P));
   if (V.suspendida) { const r = await sb.from("mensajes").select("id").eq("tipo", "apelacion").eq("vitrina_id", V.id).eq("estado", "abierto").limit(1); APELADA = !!(r.data && r.data.length); }
   if (V.publicada && !V.suspendida) { const r = await sb.from("vitrinas_publicadas").select("datos,publicado_en,en_explorar").eq("slug", V.slug).maybeSingle(); PUB = r.data ? r.data.datos : null; EXP = !!(r.data && r.data.en_explorar); }
+  const sg = await sb.rpc("seguidores_de", { v: V.id }); SEG = sg.data || { total: 0 };
   armar();
 }, "La vitrina se edita en privado: nada se ve hasta que publicas.");
 
@@ -274,6 +277,7 @@ function pintarPanel() {
     sec("mundo", "El mundo", PL.mas ? n(B.pizarras) : '<span class="tag">Forja Más</span>', mundoHTML()) +
     sec("novedades", "Novedades", n(B.novedades), novedadesHTML()) +
     sec("enlaces", "Dónde seguirlo", n(B.enlaces), enlacesHTML()) +
+    sec("seguir", "Seguidores", SEG && SEG.total ? "<small>" + SEG.total + "</small>" : B.seguir.activo ? "" : '<span class="tag">Apagado</span>', seguirHTML()) +
     sec("publicacion", "Dirección y publicación", "", publicacionHTML());
   panel.scrollTop = y;
   enlazar();
@@ -336,9 +340,28 @@ function novedadesHTML() {
     '<div class="selector" id="sel-notas" hidden>' + (NOTAS.length ? NOTAS.map((nt) => '<button type="button" class="op" data-nota="' + nt.id + '"><span>' + esc(String(nt.texto).split("\n")[0].slice(0, 70)) + "</span><small>" + esc(String(nt.creado_en).slice(0, 10).split("-").reverse().join("-")) + "</small></button>").join("") : '<p class="vacio">La bitácora está vacía.</p>') + "</div>";
 }
 function enlacesHTML() {
-  return '<p class="ayuda">Redes, demo, tienda, itch.io… Lo que quieras que la gente visite.</p>' +
+  const pagos = cuentaPagos(B), lleno = B.enlaces.length >= LIM.enlaces;
+  return '<p class="ayuda">Redes, demo, tienda, itch.io… Lo que quieras que la gente visite. Hasta ' + LIM.enlaces + ' enlaces; de ellos, hasta ' + LIM.pagos + ' de pago o apoyo (Mercado Pago, PayPal, Ko-fi, Kickstarter…), contando también los de la galería. Para juntar muchos, usa una página tipo Linktree.</p>' +
     B.enlaces.map((e) => '<div class="bloque"><div class="bloque-cab"><input data-e="nombre" data-id="' + e.id + '" value="' + esc(e.nombre) + '" placeholder="Nombre (ej.: Instagram)" aria-label="Nombre del enlace"><button type="button" class="ico x" data-quitar="enlaces:' + e.id + '" aria-label="Quitar enlace">×</button></div><input data-e="url" data-id="' + e.id + '" type="url" inputmode="url" value="' + esc(e.url) + '" placeholder="https://…" aria-label="Dirección" style="font:inherit;font-size:13px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:8px;padding:6px 8px">' + (e.url && !okUrl(e.url) ? '<span class="origen" style="color:var(--bad)">Debe empezar con https://</span>' : "") + "</div>").join("") +
-    '<div class="fila"><button type="button" class="btn chico" data-nuevo="enlaces">+ Enlace</button></div>';
+    (pagos > LIM.pagos ? '<p class="ayuda" style="color:var(--bad)">Tienes ' + pagos + " enlaces de pago o apoyo y el máximo es " + LIM.pagos + ". Quita alguno para poder publicar.</p>" : "") +
+    '<div class="fila"><button type="button" class="btn chico" data-nuevo="enlaces"' + (lleno ? " disabled" : "") + '>+ Enlace</button><span class="ayuda">' + B.enlaces.length + " de " + LIM.enlaces + (pagos ? " · " + pagos + " de " + LIM.pagos + " de pago" : "") + "</span></div>" +
+    proximamente("apoyo-pagos", "Apoyo y preventas en la vitrina", "Recibir apoyo, reservas o preventas desde tu vitrina con medios de pago chilenos, con metas y recompensas a la vista. Mientras tanto, puedes poner hasta " + LIM.pagos + " enlaces de pago tuyos.", true);
+}
+function seguirHTML() {
+  const t = SEG ? SEG.total || 0 : 0, espera = SEG && SEG.proximo && new Date(SEG.proximo) > new Date();
+  const fechaTxt = (x) => new Date(x).toLocaleDateString("es-CL", { day: "numeric", month: "long" });
+  return '<p class="ayuda">Un botón en la portada para que la gente siga tu proyecto, como una lista de deseos. Para seguirlo hace falta una cuenta gratis de Forja: ves cuántas personas te siguen, nunca sus correos, y cada una puede dejar de seguirte cuando quiera.</p>' +
+    '<label class="check"><input type="checkbox" data-seg="activo"' + (B.seguir.activo ? " checked" : "") + "> Mostrar el botón en la vitrina</label>" +
+    (B.seguir.activo ? '<label class="c"><span>Texto del botón</span><select data-seg="texto">' + Object.entries(SEGUIR_TEXTOS).map(([k, v]) => '<option value="' + k + '"' + (B.seguir.texto === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></label>" +
+      '<label class="check"><input type="checkbox" data-seg="contador"' + (B.seguir.contador ? " checked" : "") + "> Mostrar cuántas personas lo siguen</label>" : "") +
+    '<p class="ayuda">' + (t ? "<b>" + t + (t === 1 ? " persona sigue" : " personas siguen") + "</b> tu proyecto." : "Aún nadie sigue tu proyecto.") + (PUB && !B.seguir.activo && t ? " El botón está apagado, pero quienes ya te siguen siguen recibiendo tus avisos." : "") + (B.seguir.activo && !PUB ? " El botón aparece cuando publiques." : "") + "</p>" +
+    '<div class="bloque avisar"><b style="font-family:var(--f-display)">Avisar a tus seguidores</b>' +
+      (!PUB ? '<p class="ayuda">Publica la vitrina para poder escribirles.</p>'
+      : !t ? '<p class="ayuda">Cuando alguien te siga, desde aquí le puedes enviar un correo con tus novedades.</p>'
+      : espera ? '<p class="ayuda">Ya les escribiste ' + (SEG.ultimo_envio ? "el " + fechaTxt(SEG.ultimo_envio) : "") + ". Puedes volver a avisarles desde el " + fechaTxt(SEG.proximo) + "." + (SEG.en_cola ? " Aún quedan " + SEG.en_cola + " correos por salir: se envían de a poco para que no caigan en spam." : "") + "</p>"
+      : '<p class="ayuda">Un correo a quienes te siguen, una vez cada 7 días. Úsalo para lo importante: una demo, una fecha de lanzamiento, una preventa. Llega firmado como tu proyecto, con un enlace a tu vitrina y la opción de dejar de seguirte.</p>' +
+        '<label class="c"><span>Título</span><input id="av-t" maxlength="120" placeholder="Ej.: Ya puedes jugar la demo"></label><label class="c"><span>Mensaje</span><textarea id="av-x" maxlength="2000" rows="5" placeholder="Qué pasó, qué viene y qué pueden hacer."></textarea></label>' +
+        '<div class="fila"><button type="button" class="btn prim chico" id="av-b">Enviar a ' + t + (t === 1 ? " persona" : " personas") + '</button><span class="ayuda">Revisa bien: no se puede deshacer.</span></div>') + "</div>";
 }
 function publicacionHTML() {
   return '<p class="ayuda">' + (!PUB ? "Aún no está publicada." : EXP ? "<b>Aparece en Explorar</b> y en su enlace." : V.fuera_de_explorar ? "Visible solo por su enlace (la moderación la sacó de Explorar)." : "Visible solo para quien tenga su enlace. Para aparecer en Explorar, márcalo al publicar.") + "</p>" + '<label class="c"><span>Dirección de la vitrina</span><span class="dir"><span>../../vitrina/?v=</span><input id="slug" value="' + esc(V.slug) + '" maxlength="60" spellcheck="false" autocapitalize="off"></span></label>' +
@@ -418,6 +441,18 @@ function enlazar() {
     const { error } = await sb.rpc("despublicar_vitrina", { v: V.id });
     if (error) { toast(limite(error) || "No se pudo despublicar."); return; }
     V.anterior = PUB; PUB = null; V.publicada = false; pintarEstado(); pintarPanel(); toast("Vitrina despublicada. El borrador sigue aquí.");
+  };
+  // seguidores
+  panel.querySelectorAll("[data-seg]").forEach((i) => i.onchange = () => { B.seguir[i.dataset.seg] = i.type === "checkbox" ? i.checked : i.value; cambio(true); });
+  const av = $("av-b"); if (av) av.onclick = async () => {
+    const titulo = $("av-t").value.trim(), texto = $("av-x").value.trim();
+    if (titulo.length < 3 || texto.length < 10) { toast("Escribe un título y un mensaje."); return; }
+    if (av.dataset.seguro !== "1") { av.dataset.seguro = "1"; av.textContent = "¿Enviar ahora? Toca de nuevo"; return; }
+    av.disabled = true;
+    const { data, error } = await sb.rpc("avisar_seguidores", { v: V.id, titulo, texto });
+    if (error) { toast(limite(error) || "No se pudo enviar."); av.disabled = false; av.dataset.seguro = ""; av.textContent = "Enviar"; return; }
+    const sg = await sb.rpc("seguidores_de", { v: V.id }); SEG = sg.data || SEG; pintarPanel();
+    toast(data.destinatarios ? "Listo: el aviso va en camino a " + data.destinatarios + (data.destinatarios === 1 ? " persona." : " personas.") : "Listo. Ninguno de tus seguidores recibe avisos por correo por ahora.");
   };
   activarAvisame(panel);
 }

@@ -46,6 +46,10 @@ h1{font-family:var(--f-display);font-size:clamp(26px,5vw,34px);margin:0}
 .forma label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
 .forma select,.forma textarea{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:7px 9px}
 .forma textarea{min-height:110px;resize:vertical}
+.forma .campo{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:7px 9px}
+.forma b{font-size:14px;margin-top:6px}
+.check-l{flex-direction:row!important;align-items:center;gap:8px!important;color:var(--fg)!important;font-size:14px!important}
+.lead{margin:0;color:var(--muted);font-size:14px}
 .vacio{border:1.5px dashed var(--line);border-radius:16px;padding:28px;text-align:center;color:var(--muted)}
 .texto{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:10px 12px;margin:0}
 .reg{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 12px;font-size:14px}
@@ -66,6 +70,7 @@ dialog.ver::backdrop{background:rgba(10,12,20,.6)}
 <script type="module">
 import { sb, $, esc, toast, navApp, conSesion, limite, hace } from "../js/forja.js";
 import { pintarVitrina, CSS_VITRINA } from "../js/vitrina.js";
+import { FUNCIONES } from "../js/planes.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
 navApp(null);
 const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
@@ -91,13 +96,13 @@ async function cargar() {
   if (error) { $("app").innerHTML = '<div class="vacio">No se pudo cargar el panel: ' + esc(error.message) + "</div>"; return; }
   D = data; pintar();
 }
-const TABS = [["reportes", "Reportes"], ["mensajes", "Mensajes y apelaciones"], ["suspendidas", "Suspendidas"], ["explorar", "En Explorar"], ["registro", "Registro"]];
+const TABS = [["reportes", "Reportes"], ["mensajes", "Mensajes y apelaciones"], ["suspendidas", "Suspendidas"], ["explorar", "En Explorar"], ["correos", "Correos"], ["registro", "Registro"]];
 function pintar() {
   const n = { reportes: D.reportes.length, mensajes: D.mensajes.length };
   $("app").innerHTML = "<h1>Moderación</h1><p class=\"lead\">Cada decisión la toma una persona y queda en el registro. Al suspender, explica siempre el porqué: el dueño lo recibe como aviso y puede apelar.</p>" +
     '<div class="tabs" role="tablist">' + TABS.map(([k, t]) => '<button type="button" role="tab" data-t="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? "<b>" + n[k] + "</b>" : "") + "</button>").join("") + '</div><div id="lista"></div>';
   $("app").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { pest = b.dataset.t; pintar(); });
-  ({ reportes, mensajes, suspendidas, explorar, registro })[pest]();
+  ({ reportes, mensajes, suspendidas, explorar, correos, registro })[pest]();
 }
 const verBtn = (id, t) => '<button type="button" class="btn" data-ver="' + id + '" data-tt="' + esc(t || "") + '">Ver vitrina</button>';
 function enlazarVer() {
@@ -195,8 +200,65 @@ function explorar() {
   enlazarVer();
   $("lista").querySelectorAll("[data-fuera]").forEach((b) => b.onclick = () => formExplorar(b.closest("[data-v]")));
 }
+/* ---------- correos: anunciar herramientas listas y enviar el boletín ---------- */
+const SITIO = new URL("../", location.href).href;
+const fechaLarga = (f) => new Date(f + "T12:00:00").toLocaleDateString("es-CL", { day: "numeric", month: "long" });
+async function correos() {
+  $("lista").innerHTML = '<div class="vacio">Cargando…</div>';
+  const hoy = new Date().toISOString().slice(0, 10), en45 = new Date(Date.now() + 45 * 864e5).toISOString().slice(0, 10), hace30 = new Date(Date.now() - 30 * 864e5).toISOString();
+  const [est, int, op, vi] = await Promise.all([sb.rpc("mod_correos"), sb.rpc("mod_intereses"),
+    sb.from("oportunidades").select("id,nombre,postul_inicio,postul_fin,evento_inicio,fuente").or("and(postul_fin.gte." + hoy + ",postul_fin.lte." + en45 + "),and(postul_inicio.gte." + hoy + ",postul_inicio.lte." + en45 + "),and(evento_inicio.gte." + hoy + ",evento_inicio.lte." + en45 + ")"),
+    sb.from("vitrinas_publicadas").select("slug,titulo,lema,publicado_en").eq("en_explorar", true).gte("publicado_en", hace30).order("publicado_en", { ascending: false }).limit(6)]);
+  if (est.error) { $("lista").innerHTML = '<div class="vacio">' + esc(est.error.message) + "</div>"; return; }
+  const E = est.data, I = int.data || [];
+  const cuando = (o) => o.postul_fin && o.postul_fin >= hoy && o.postul_fin <= en45 ? "Cierra el " + fechaLarga(o.postul_fin) : o.postul_inicio && o.postul_inicio >= hoy && o.postul_inicio <= en45 ? "Abre el " + fechaLarga(o.postul_inicio) : "Evento: " + fechaLarga(o.evento_inicio);
+  const OPS = (op.data || []).map((o) => ({ id: o.id, nombre: o.nombre, cuando: cuando(o), url: o.fuente || "", orden: o.postul_fin || o.postul_inicio || o.evento_inicio })).sort((a, b) => a.orden.localeCompare(b.orden));
+  const VIS = vi.data || [];
+  const fun = FUNCIONES.map((f) => ({ ...f, n: (I.find((x) => x.funcion === f.k) || {}).pendientes || 0 })).sort((a, b) => b.n - a.n);
+  $("lista").innerHTML =
+    '<article class="caso"><div class="caso-cab"><h2>Estado de los envíos</h2></div><p class="texto">' + E.pendientes + " en cola · " + E.hoy + " enviados en 24 h · " + E.fallidos + " fallidos · " + E.boletin + " suscritos al boletín\nSalen desde novedades@ de a poco: hasta 40 por hora y 90 por día, para no pasar el límite del buzón.</p>" +
+      (E.errores.length ? E.errores.map((e) => '<p class="texto" style="color:var(--bad)">' + esc(e.tipo) + " · " + esc(e.error) + "</p>").join("") : "") + "</article>" +
+    '<article class="caso" id="c-fun"><div class="caso-cab"><h2>Anunciar una herramienta lista</h2></div><p class="lead">Le llega solo a quienes tocaron «Avísame» en esa herramienta y no se han dado de baja. Cada persona recibe el aviso una vez.</p><div class="forma">' +
+      '<label>Herramienta<select id="f-k">' + fun.map((f) => '<option value="' + f.k + '">' + esc(f.t) + " · " + f.n + (f.n === 1 ? " persona" : " personas") + "</option>").join("") + "</select></label>" +
+      '<label>Título<input id="f-t" class="campo"></label><label>Texto<textarea id="f-x"></textarea></label><label>Enlace del botón<input id="f-u" class="campo"></label>' +
+      '<div class="acc" style="border:0;padding:0"><button type="button" class="btn" id="f-prueba">Enviarme una prueba</button><button type="button" class="btn prim" id="f-env">Enviar</button></div></div></article>' +
+    '<article class="caso" id="c-bol"><div class="caso-cab"><h2>Boletín</h2><span class="tag">' + E.boletin + " suscritos</span></div><p class=\"lead\">Una vez al mes como mucho. Lo que más sirve: herramientas nuevas, oportunidades que abren o cierran pronto y proyectos de la comunidad. Envíate una prueba antes.</p><div class=\"forma\">" +
+      '<label>Asunto<input id="b-a" class="campo" placeholder="Forja en ' + new Date().toLocaleDateString("es-CL", { month: "long" }) + '"></label><label>Introducción<textarea id="b-i" placeholder="Dos o tres líneas para abrir."></textarea></label>' +
+      '<label>Novedades de Forja (en cada una, la primera línea es el título y el resto el texto; separa una de otra con una línea que diga ---)<textarea id="b-n" style="min-height:140px"></textarea></label>' +
+      "<b>Oportunidades de las próximas 6 semanas</b>" + (OPS.length ? OPS.map((o) => '<label class="check-l"><input type="checkbox" data-op="' + esc(o.id) + '" checked> ' + esc(o.nombre) + " <small>· " + esc(o.cuando) + "</small></label>").join("") : '<p class="lead">No hay fechas en las próximas semanas.</p>') +
+      "<b>Proyectos de Explorar del último mes</b>" + (VIS.length ? VIS.map((v) => '<label class="check-l"><input type="checkbox" data-vi="' + esc(v.slug) + '"> ' + esc(v.titulo || v.slug) + "</label>").join("") : '<p class="lead">Aún no hay vitrinas nuevas en Explorar.</p>') +
+      '<label>Cierre (opcional)<textarea id="b-c" style="min-height:70px"></textarea></label>' +
+      '<div class="acc" style="border:0;padding:0"><button type="button" class="btn" id="b-prueba">Enviarme una prueba</button><button type="button" class="btn prim" id="b-env">Enviar a ' + E.boletin + " suscritos</button></div></div></article>" +
+    '<article class="caso"><div class="caso-cab"><h2>Últimos avisos de vitrinas</h2></div><p class="lead">Lo que los proyectos enviaron a sus seguidores. Si algo rompe las normas, se modera la vitrina como siempre.</p>' +
+      (E.vitrinas.length ? E.vitrinas.map((v) => '<p class="texto"><b>' + esc(v.titulo) + "</b> · " + esc(v.slug) + " · " + v.destinatarios + " · " + hace(v.en) + "\n" + esc(v.texto) + "</p>").join("") : '<p class="lead">Ninguno todavía.</p>') + "</article>";
+  // herramienta
+  const llenar = () => { const f = FUNCIONES.find((x) => x.k === $("f-k").value); $("f-t").value = f.t; $("f-x").value = f.d; $("f-u").value = SITIO + "proyectos/"; };
+  $("f-k").onchange = llenar; llenar();
+  const datosF = () => ({ funcion: $("f-k").value, titulo: $("f-t").value.trim(), texto: $("f-x").value.trim(), enlace: $("f-u").value.trim() });
+  $("f-prueba").onclick = async () => { const { error } = await sb.rpc("mod_probar", { tipo: "funcion", datos: datosF() }); toast(error ? error.message : "Prueba en la cola: te llega en unos minutos."); };
+  $("f-env").onclick = async (e) => {
+    const b = e.target, d = datosF(); if (!d.titulo || !d.texto) { toast("Falta el título o el texto."); return; }
+    if (b.dataset.seguro !== "1") { b.dataset.seguro = "1"; b.textContent = "¿Enviar de verdad? Toca de nuevo"; return; }
+    const { data, error } = await sb.rpc("mod_anunciar_funcion", d); if (error) { toast(error.message); return; }
+    toast(data + (data === 1 ? " aviso en la cola." : " avisos en la cola.")); correos();
+  };
+  // boletín
+  const datosB = () => ({
+    asunto: $("b-a").value.trim(), intro: $("b-i").value.trim(), cierre: $("b-c").value.trim(),
+    novedades: $("b-n").value.split(/\n\s*-{3,}\s*\n/).map((x) => x.trim()).filter(Boolean).map((x) => { const l = x.split("\n"); return { titulo: l[0].trim(), texto: l.slice(1).join("\n").trim() }; }),
+    oportunidades: OPS.filter((o) => $("lista").querySelector('[data-op="' + CSS.escape(o.id) + '"]').checked).map(({ nombre, cuando, url }) => ({ nombre, cuando, url })),
+    vitrinas: VIS.filter((v) => $("lista").querySelector('[data-vi="' + CSS.escape(v.slug) + '"]').checked).map(({ slug, titulo, lema }) => ({ slug, titulo, lema })),
+  });
+  $("b-prueba").onclick = async () => { const d = datosB(); if (!d.asunto) { toast("Escribe el asunto."); return; } const { error } = await sb.rpc("mod_boletin", { datos: d, prueba: true }); toast(error ? error.message : "Prueba en la cola: te llega en unos minutos."); };
+  $("b-env").onclick = async (e) => {
+    const b = e.target, d = datosB(); if (!d.asunto) { toast("Escribe el asunto."); return; }
+    if (b.dataset.seguro !== "1") { b.dataset.seguro = "1"; b.textContent = "¿Enviar a todos? Toca de nuevo"; return; }
+    const { data, error } = await sb.rpc("mod_boletin", { datos: d, prueba: false }); if (error) { toast(error.message); return; }
+    toast(data + " boletines en la cola. Salen de a poco."); correos();
+  };
+}
 function registro() {
-  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje" };
+  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje", anunciar_funcion: "Anunció una herramienta", boletin: "Envió el boletín" };
   $("lista").innerHTML = D.registro.length ? '<div class="caso"><div class="reg">' + D.registro.map((r) => "<span>" + esc(String(r.en).slice(0, 16).replace("T", " ")) + "</span><div><b>" + esc(A[r.accion] || r.accion) + "</b>" + (r.detalle && (r.detalle.mensaje || r.detalle.motivo) ? " · " + esc(MOTIVOS[r.detalle.motivo] || "") + " " + esc((r.detalle.mensaje || "").slice(0, 120)) : "") + "</div>").join("") + "</div></div>" : '<div class="vacio">Aún no hay decisiones registradas.</div>';
 }
 </script>

@@ -42,6 +42,8 @@ html,body{margin:0;background:var(--bg)}
 .rep-no{border:1px solid var(--line);background:var(--card);color:var(--fg)}
 .rep-si{border:1px solid var(--fg);background:var(--fg);color:var(--bg);font-weight:700}
 .rep-si:disabled{opacity:.5}
+.vt-aviso{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#16171c;color:#fff;font:15px/1.4 system-ui,sans-serif;padding:10px 16px;border-radius:12px;transition:.2s;z-index:50;max-width:calc(100vw - 32px)}
+.vt-aviso.ver{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -69,9 +71,49 @@ const nada = (t, x) => { raiz.innerHTML = '<div class="vt-estado"><div><h1>' + t
   document.documentElement.style.background = "transparent";
   pintarVitrina(raiz, d, { fecha: (data.publicado_en || "").slice(0, 10) });
   document.body.style.background = getComputedStyle(raiz.querySelector(".vt")).backgroundColor;
-  if (location.hash) { const s = document.querySelector("#vt-" + location.hash.slice(1)); if (s) s.scrollIntoView(); }
+  if (location.hash && location.hash !== "#reportar") { const s = document.querySelector("#vt-" + location.hash.slice(1)); if (s) s.scrollIntoView(); }
   const rb = raiz.querySelector(".vt-reportar"); if (rb) rb.onclick = reportar;
+  if (location.hash === "#reportar") reportar();
+  if (d.seguir.activo) seguir(d);
 })();
+
+// Seguir el proyecto: con cuenta (así nadie anota correos ajenos ni hay bots). Quien creó la vitrina
+// solo ve cuántas personas la siguen, nunca quiénes; los avisos llegan por correo y se cancelan con un toque.
+async function seguir(d) {
+  const b = raiz.querySelector("[data-seguir]"), n = raiz.querySelector(".vt-seguir-n"), txt = b.querySelector("span"), base = txt.textContent;
+  const pintar = (e) => {
+    if (!e) return;
+    b.setAttribute("aria-pressed", String(!!e.sigo)); txt.textContent = e.sigo ? "Siguiendo" : base;
+    if (e.propia) { b.disabled = true; b.title = "Es tu vitrina: así la ve la gente"; }
+    if (e.total != null && e.total > 0) { n.hidden = false; n.textContent = e.total === 1 ? "1 persona lo sigue" : e.total.toLocaleString("es-CL") + " personas lo siguen"; } else n.hidden = true;
+  };
+  const { data: ses } = await sb.auth.getSession();
+  const est = await sb.rpc("estado_seguir", { slug }); pintar(est.data);
+  const q = new URLSearchParams(location.search);
+  if (ses.session && q.get("seguir") === "1") {
+    q.delete("seguir"); history.replaceState(null, "", location.pathname + "?" + q.toString());
+    if (est.data && !est.data.sigo && !est.data.propia) { const r = await sb.rpc("seguir_vitrina", { slug, seguir: true }); if (!r.error) { pintar(r.data); aviso("Listo: te avisaremos por correo cuando haya novedades."); } }
+  }
+  b.onclick = async () => {
+    if (!ses.session) {
+      let dl = document.getElementById("rep"); if (dl) dl.remove();
+      dl = document.createElement("dialog"); dl.id = "rep"; dl.className = "rep";
+      dl.innerHTML = '<div class="rep-c"><h2>' + esc(base) + '</h2><p>Sigue <b>' + esc(d.titulo || "este proyecto") + '</b> y te llegará un correo cuando su creador publique novedades. Puedes dejar de seguirlo cuando quieras, con un toque.</p><p>Necesitas una cuenta gratis de Forja: solo pide tu correo. Quien creó la vitrina ve cuántas personas la siguen, nunca tu correo.</p><div class="rep-pie"><button type="button" class="rep-no">Ahora no</button><a class="rep-si" href="' + u("entrar/?siguiente=" + encodeURIComponent("vitrina/?v=" + slug + "&seguir=1")) + '">Entrar y seguir</a></div></div>';
+      document.body.appendChild(dl); dl.showModal(); dl.querySelector(".rep-no").onclick = () => dl.close();
+      return;
+    }
+    const sigo = b.getAttribute("aria-pressed") === "true";
+    b.disabled = true;
+    const r = await sb.rpc("seguir_vitrina", { slug, seguir: !sigo });
+    b.disabled = false;
+    if (r.error) { aviso(limite(r.error) || "No se pudo guardar. Intenta de nuevo."); return; }
+    pintar(r.data); aviso(sigo ? "Dejaste de seguir este proyecto." : "Listo: te avisaremos por correo cuando haya novedades.");
+  };
+}
+function aviso(t) {
+  let a = document.getElementById("vt-aviso"); if (!a) { a = document.createElement("div"); a.id = "vt-aviso"; a.className = "vt-aviso"; a.setAttribute("role", "status"); document.body.appendChild(a); }
+  a.textContent = t; a.classList.add("ver"); clearTimeout(a._t); a._t = setTimeout(() => a.classList.remove("ver"), 3800);
+}
 
 // Reportar: solo con cuenta (así se frenan los reportes automáticos). Lo revisa siempre una persona.
 const MOTIVOS = [["estafa", "Estafa o engaño", "Promete algo que no existe, pide pagos falsos o suplanta a alguien."], ["ofensivo", "Odio, acoso o violencia", "Ataca a personas o grupos, amenaza o glorifica violencia real."],

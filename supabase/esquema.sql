@@ -257,3 +257,57 @@ create table privado.registro(             -- cada decisión de moderación, par
 -- obligatorio: FORJA_FALTA_MENSAJE; oculta la publicada, acepta los reportes y avisa a dueños y a quienes reportaron),
 -- mod_restaurar(v, mensaje), mod_explorar(v, mostrar, mensaje), mod_responder(m, respuesta, avisar default true).
 -- public.borrar_mi_cuenta(confirmacion): con 'BORRAR' borra los espacios del usuario (cascada) y su cuenta (FORJA_CONFIRMAR).
+
+
+-- Correos, boletín y seguidores (2026-11-07). Migraciones correos_y_seguidores, vitrina_limite_enlaces,
+-- cola_despacho y mod_anunciar_funcion_fix. Función: supabase/functions/enviar-correos.
+create extension if not exists pg_cron;
+create extension if not exists pg_net with schema extensions;
+-- privado.es_pago(url): enlaces de pago, apoyo o financiamiento (mismo criterio que PAGO en docs/js/vitrina.js).
+-- publicar_vitrina: hasta 10 enlaces (FORJA_VITRINA_ENLACES) y hasta 2 de pago entre enlaces y galería (FORJA_VITRINA_PAGOS).
+
+create table public.correo_prefs(          -- qué correos acepta cada persona (sin fila = valores por defecto)
+  user_id uuid primary key default auth.uid() references auth.users(id) on delete cascade,
+  boletin boolean not null default false,   -- consentimiento explícito; boletin_desde guarda cuándo
+  funciones boolean not null default true,  -- avisos de herramientas en que tocó "Avísame"
+  vitrinas boolean not null default true,   -- avisos de proyectos que sigue
+  boletin_desde timestamptz,
+  token uuid not null default gen_random_uuid() unique,  -- para darse de baja sin entrar; no legible por el usuario
+  actualizado_en timestamptz not null default now()
+);
+-- RLS: ver, crear y cambiar la propia. Permisos: select (sin token ni user_id), insert y update (boletin, funciones, vitrinas).
+-- Trigger privado.t_correo_prefs (fechas). privado.prefs(u) crea la fila si falta.
+
+alter table public.interes_funciones add column avisado_en timestamptz;   -- cuándo se le anunció que estaba lista
+
+create table public.seguidores(            -- quién sigue qué vitrina; sin acceso directo (solo RPC)
+  vitrina_id uuid not null references public.vitrinas(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  creado_en timestamptz not null default now(),
+  primary key (vitrina_id, user_id)
+);
+
+create table privado.correos(              -- la cola
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  tipo text not null check (tipo in ('funcion','boletin','vitrina','prueba')),
+  datos jsonb not null,                     -- el contenido; la dirección se lee de auth.users al enviar
+  creado_en timestamptz not null default now(),
+  tomado_en timestamptz, enviado_en timestamptz,
+  intentos int not null default 0,
+  error text                                -- 'baja' si la persona se dio de baja antes del envío
+);
+create table privado.envios_vitrina(        -- registro de avisos de vitrinas a sus seguidores (moderación)
+  id bigint generated always as identity primary key,
+  vitrina_id uuid not null references public.vitrinas(id) on delete cascade,
+  autor uuid, titulo text, texto text, destinatarios int,
+  en timestamptz not null default now()
+);
+create table privado.config(clave text primary key, valor text not null);   -- 'cola_clave', aleatoria
+
+-- Para todos: estado_seguir(slug) (también sin cuenta), baja_correo(token, que, slug).
+-- Con cuenta: seguir_vitrina(slug, seguir), mis_seguidas(), seguidores_de(v) (dueño), avisar_seguidores(v, titulo, texto)
+--   (cuenta de 3 días, vitrina publicada y visible, una vez cada 7 días: FORJA_AVISO_*).
+-- Moderación: mod_correos(), mod_intereses(), mod_anunciar_funcion(funcion, titulo, texto, enlace), mod_boletin(datos, prueba), mod_probar(tipo, datos).
+-- Solo service_role: cola_tomar(limite) (máx. 40/h y 90/24 h), cola_marcar(id, ok, error), cola_clave().
+-- pg_cron 'forja-correos' */10 * * * * → privado.despachar() → net.http_post a /functions/v1/enviar-correos con x-forja-clave.

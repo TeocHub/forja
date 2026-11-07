@@ -139,6 +139,16 @@ const MSG = {
   FORJA_MENSAJES_LIMITE: "Enviaste varios mensajes hoy. Espera nuestra respuesta o escribe mañana.",
   FORJA_FALTA_MENSAJE: "Escribe el mensaje para la persona.",
   FORJA_CONFIRMAR: "Escribe BORRAR para confirmar.",
+  FORJA_SEGUIR_SIN_CUENTA: "Entra a Forja para seguir proyectos.",
+  FORJA_SEGUIR_CERRADO: "Este proyecto no tiene activado el botón para seguirlo.",
+  FORJA_SEGUIR_PROPIA: "Es tu propia vitrina.",
+  FORJA_SEGUIR_LIMITE: "Seguiste muchos proyectos hoy. Vuelve a intentarlo mañana.",
+  FORJA_AVISO_SIN_PUBLICAR: "Publica la vitrina antes de avisar a tus seguidores.",
+  FORJA_AVISO_CUENTA_NUEVA: "Las cuentas nuevas pueden avisar a sus seguidores desde su tercer día.",
+  FORJA_AVISO_TEXTO: "El título va de 3 a 120 caracteres y el mensaje de 10 a 2.000.",
+  FORJA_AVISO_ESPERA: "Puedes avisar a tus seguidores una vez cada 7 días.",
+  FORJA_VITRINA_ENLACES: "La vitrina admite hasta 10 enlaces en «Dónde seguirlo».",
+  FORJA_VITRINA_PAGOS: "La vitrina admite hasta 2 enlaces de pago o apoyo (Mercado Pago, PayPal, Ko-fi, Kickstarter…).",
 };
 export function limite(error) { const m = error && (error.message || ""); const k = Object.keys(MSG).find((c) => m.includes(c)); return k ? MSG[k] : null; }
 // Tarjeta "Próximamente" de una función de Forja Más, con botón "Avísame" que guarda el interés.
@@ -162,7 +172,7 @@ export async function activarAvisame(root) {
       if (r.error && !String(r.error.message).includes("duplicate")) { toast("No se pudo guardar."); return; }
       on ? intereses.delete(k) : intereses.add(k);
       document.querySelectorAll('[data-avisame="' + k + '"]').forEach(marcar);
-      if (!on) toast("Listo: te avisaremos cuando esté disponible.");
+      if (!on) toast("Listo: te avisaremos por correo cuando esté disponible.");
     };
   });
 }
