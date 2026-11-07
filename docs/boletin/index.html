@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Boletín · Forja</title>
+<meta name="description" content="El boletín de Forja: novedades de la herramienta, oportunidades que se vienen en Chile y proyectos para conocer.">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: boletín — a la izquierda qué es y el botón; a la derecha una carta que muestra cómo llega, con oportunidades reales */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+a{color:var(--accent)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:24px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(a,button):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.b-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(24px,5vw,64px);align-items:start;margin-top:clamp(20px,5vw,56px)}
+@media (max-width:820px){.b-grid{grid-template-columns:1fr}}
+.b-kicker{font-family:var(--f-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ember);margin:0 0 10px}
+.b-texto h1{font-family:var(--f-display);font-size:clamp(34px,6vw,54px);line-height:1.02;margin:0 0 18px;letter-spacing:-.01em}
+.b-texto p{margin:0 0 14px;color:var(--muted);max-width:46ch}
+.b-texto p b{color:var(--fg)}
+.b-accion{margin-top:24px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.b-btn{font:inherit;font-weight:700;font-size:16px;border-radius:14px;padding:13px 22px;cursor:pointer;border:1px solid var(--fg);background:var(--fg);color:var(--bg);text-decoration:none;display:inline-flex;align-items:center;gap:10px}
+.b-btn.fuera{background:transparent;color:var(--fg);border-color:var(--line);font-weight:400}
+.b-btn:disabled{opacity:.55;cursor:default}
+.b-nota{font-size:13.5px;color:var(--muted);max-width:44ch;margin:0}
+.b-estado{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--good);font-weight:700}
+.b-estado::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--good)}
+/* la carta */
+.carta{position:relative;background:#fffdf8;color:#1a1d29;border-radius:6px;padding:30px clamp(20px,4vw,34px) 26px;box-shadow:0 1px 0 #e3e1da,0 18px 40px -18px rgba(22,26,38,.35);transform:rotate(.6deg)}
+.carta::before{content:"";position:absolute;inset:10px;border:1px dashed #e3e1da;border-radius:3px;pointer-events:none}
+.c-sello{position:absolute;top:18px;right:20px;width:62px;height:62px;border-radius:50%;border:2px solid var(--ember);color:var(--ember);display:grid;place-items:center;text-align:center;font-family:var(--f-num);font-size:9.5px;line-height:1.2;letter-spacing:.06em;transform:rotate(-12deg);opacity:.85}
+.c-de{font-family:var(--f-num);font-size:12px;color:#6b7080;margin:0 0 4px}
+.c-marca{font-family:var(--f-display);font-weight:700;font-size:24px;margin:0 0 18px}
+.c-sec{border-top:1px solid #e9e6de;padding-top:14px;margin-top:16px}
+.c-sec h2{font-family:var(--f-display);font-size:16px;margin:0 0 8px}
+.c-sec p{margin:0;font-size:14.5px;color:#4a4f5c}
+.c-fila{display:flex;justify-content:space-between;gap:14px;padding:6px 0;border-bottom:1px solid #f0ede6;font-size:14.5px}
+.c-fila:last-child{border-bottom:0}
+.c-fila span:last-child{color:#6b7080;white-space:nowrap;font-family:var(--f-num);font-size:12.5px;padding-top:2px}
+.c-pie{margin-top:18px;font-size:12px;color:#8a8f9c}
+@media (prefers-reduced-motion:no-preference){.carta{transition:transform .4s ease}.carta:hover{transform:rotate(0)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main class="b-grid">
+    <section class="b-texto">
+      <p class="b-kicker">Boletín de Forja</p>
+      <h1>Lo que se viene, en tu correo.</h1>
+      <p>Te contamos <b>qué hay de nuevo en Forja</b>, qué <b>fondos, ferias y convocatorias</b> abren o cierran en las próximas semanas en Chile y algunos <b>proyectos de la comunidad</b> que vale la pena conocer.</p>
+      <p>Llega cuando hay algo que contar, no todas las semanas. Te das de baja con un toque desde cualquier correo.</p>
+      <div class="b-accion" id="accion"></div>
+    </section>
+    <article class="carta" aria-label="Así se ve el boletín">
+      <div class="c-sello">MUES<br>TRA</div>
+      <p class="c-de">De: Forja &lt;forja@digitalmonster.cl&gt;</p>
+      <p class="c-marca">Forja</p>
+      <div class="c-sec"><h2>Novedades de Forja</h2><p>Las herramientas nuevas y los cambios, contados en corto.</p></div>
+      <div class="c-sec" id="c-opo"><h2>Oportunidades que se vienen</h2><div id="c-filas"><p>Cargando las fechas…</p></div></div>
+      <div class="c-sec" id="c-vit" hidden><h2>Proyectos para conocer</h2><div id="c-vfilas"></div></div>
+      <p class="c-pie">Te llegó porque te suscribiste al boletín de Forja · Darme de baja</p>
+    </article>
+  </main>
+</div>
+<script type="module">
+import { sb, $, esc, nav, navApp } from "../js/forja.js";
+const { data: { session: SES } } = await sb.auth.getSession();
+if (SES) navApp(null); else nav("boletin");
+
+/* ---------- suscripción ---------- */
+// Pide cuenta: así el correo queda confirmado (el enlace de entrada llega a ese buzón) y la baja funciona igual que el resto.
+const qs = new URLSearchParams(location.search);
+let PREFS = null;
+async function pintar(msg) {
+  const a = $("accion");
+  if (!SES) {
+    a.innerHTML = '<a class="b-btn" href="../entrar/?siguiente=boletin/%3Fsuscribir%3D1">Quiero recibirlo</a>' +
+      '<p class="b-nota">Te pediremos entrar con tu correo, así confirmamos que es tuyo. La cuenta de Forja es gratis y te sirve también para tus proyectos.</p>';
+    return;
+  }
+  const si = !!(PREFS && PREFS.boletin);
+  a.innerHTML = (si ? '<span class="b-estado">' + (msg || "Ya estás suscrito") + "</span>" : "") +
+    '<button type="button" class="b-btn' + (si ? " fuera" : "") + '" id="b-tog">' + (si ? "Dejar de recibirlo" : "Quiero recibirlo") + "</button>" +
+    '<p class="b-nota">Llega a <b>' + esc(SES.user.email) + '</b>. Eliges los demás correos en <a href="../cuenta/#correos">Mi cuenta</a>.</p>';
+  $("b-tog").onclick = () => cambiar(!si);
+}
+async function cambiar(valor) {
+  const b = $("b-tog"); if (b) b.disabled = true;
+  const { error } = PREFS ? await sb.from("correo_prefs").update({ boletin: valor }).not("boletin", "is", null) : await sb.from("correo_prefs").insert({ boletin: valor });
+  if (error) { $("accion").insertAdjacentHTML("beforeend", '<p class="b-nota" style="color:var(--bad)">No se pudo guardar. Intenta de nuevo.</p>'); if (b) b.disabled = false; return; }
+  PREFS = { ...(PREFS || {}), boletin: valor };
+  pintar(valor ? "Listo: te llegará el boletín" : "");
+}
+if (SES) {
+  const { data } = await sb.from("correo_prefs").select("boletin").maybeSingle();
+  PREFS = data || null;
+  // Volvió de entrar después de tocar "Quiero recibirlo": se suscribe solo y se limpia la dirección.
+  if (qs.get("suscribir") === "1") { history.replaceState(null, "", location.pathname); if (!(PREFS && PREFS.boletin)) await cambiar(true); else pintar(); }
+  else pintar();
+} else pintar();
+
+/* ---------- la carta, con fechas reales ---------- */
+const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+const hasta = new Date(hoy); hasta.setDate(hasta.getDate() + 45);
+const dia = (s) => { const d = new Date(s + "T12:00:00"); return isNaN(d) ? null : d; };
+const corta = (d) => d.toLocaleDateString("es-CL", { day: "numeric", month: "short" }).replace(".", "");
+const { data: ops } = await sb.from("oportunidades").select("nombre,postul_inicio,postul_fin,evento_inicio");
+const prox = [];
+for (const o of ops || []) {
+  const marcas = [["Abre", o.postul_inicio], ["Cierra", o.postul_fin], ["Evento", o.evento_inicio]].map(([q, s]) => [q, s && dia(s)]).filter(([, d]) => d && d >= hoy && d <= hasta).sort((x, y) => x[1] - y[1]);
+  if (marcas.length) prox.push({ nombre: o.nombre, q: marcas[0][0], d: marcas[0][1] });
+}
+prox.sort((x, y) => x.d - y.d);
+$("c-filas").innerHTML = prox.length ? prox.slice(0, 4).map((o) => '<div class="c-fila"><span>' + esc(o.nombre) + "</span><span>" + o.q + " " + corta(o.d) + "</span></div>").join("") : "<p>Fondos, ferias y convocatorias con sus fechas de apertura, cierre y evento.</p>";
+const { data: vit } = await sb.from("vitrinas_publicadas").select("slug,titulo,lema").eq("en_explorar", true).order("publicado_en", { ascending: false }).limit(2);
+if (vit && vit.length) {
+  $("c-vit").hidden = false;
+  $("c-vfilas").innerHTML = vit.map((v) => '<p style="margin:0 0 8px"><a href="../vitrina/?v=' + encodeURIComponent(v.slug) + '" style="color:#2a3fd1;font-weight:700">' + esc(v.titulo || "Sin título") + "</a>" + (v.lema ? "<br>" + esc(v.lema) : "") + "</p>").join("");
+}
+</script>
+</body>
+</html>

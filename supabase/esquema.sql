@@ -27,6 +27,8 @@ language sql stable security definer set search_path='' as $$
 $$;
 
 -- Al registrarse, trigger en auth.users crea el espacio personal (función public.crear_espacio_personal).
+-- Migración equipo_digital_monster_forja_mas: privado.es_equipo(correo) = correo @digitalmonster.cl; esas cuentas nacen con
+-- plan 'mas' sin vencimiento, y el trigger al_cambiar_correo_equipo (privado.t_equipo_correo) lo da si alguien cambia a ese correo.
 
 create table public.proyectos(
   id uuid primary key default gen_random_uuid(),

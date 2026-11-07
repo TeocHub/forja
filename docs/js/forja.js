@@ -15,6 +15,7 @@ const PUBLICO = [
   { href: u("oportunidades/"), nombre: "Oportunidades", id: "oportunidades" },
   { href: u("planes/"), nombre: "Planes", id: "planes" },
   { href: u("guia/"), nombre: "Guía", id: "guia" },
+  { href: u("boletin/"), nombre: "Boletín", id: "boletin" },
 ];
 // Explorar aparece en el menú solo cuando hay suficientes proyectos para que no se vea vacío.
 export const MIN_EXPLORAR = 6;
@@ -82,7 +83,7 @@ export function navApp(actual) {
     '<details class="fx-cuenta" id="fx-cuenta"><summary aria-label="Mi cuenta"><span class="fx-ini" id="fx-ini">·</span></summary><div class="fx-pop">' +
     '<span class="fx-mail" id="fx-mail2"></span><span class="fx-planb" id="fx-planb">Plan gratis</span>' +
     '<a href="' + u("cuenta/") + '">Mi cuenta <span class="fx-nav-n" id="fx-avisos-n" hidden></span></a><a href="' + u("admin/") + '" id="fx-admin" hidden>Moderación</a>' +
-    '<a href="' + u("guia/") + '">Guía de Forja</a><button type="button" class="fx-link" id="fx-pistas">Volver a ver las pistas</button><a href="' + u() + '">Ver el sitio público</a><a href="' + u("oportunidades/") + '">Calendario de oportunidades</a><span class="fx-legal"><a href="' + u("terminos/") + '">Términos</a> · <a href="' + u("privacidad/") + '">Privacidad</a> · <a href="' + u("normas/") + '">Normas</a></span><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
+    '<a href="' + u("guia/") + '">Guía de Forja</a><a href="' + u("boletin/") + '">Boletín de Forja</a><button type="button" class="fx-link" id="fx-pistas">Volver a ver las pistas</button><a href="' + u() + '">Ver el sitio público</a><a href="' + u("oportunidades/") + '">Calendario de oportunidades</a><span class="fx-legal"><a href="' + u("terminos/") + '">Términos</a> · <a href="' + u("privacidad/") + '">Privacidad</a> · <a href="' + u("normas/") + '">Normas</a></span><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
   document.body.classList.add("fx-con-app");
   sb.auth.getSession().then(async ({ data }) => {
     const ses = data.session; if (!ses) return;
