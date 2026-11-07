@@ -1,4 +1,7 @@
 /* Forja · piezas comunes: colores, navegación, entrada por correo y avisos. Cada módulo agrega su propio estilo. */
+*{box-sizing:border-box}
+html,body{margin:0}
+a{color:var(--accent)}
 :root{
   --bg:#f3f4f7; --card:#ffffff; --fg:#161a26; --muted:#5b6275; --line:#dfe2ea; --field:#f7f8fb;
   --accent:#2a3fd1; --accent-soft:#e6e9fb; --ember:#e0602f; --ember-soft:#fbe6dc;

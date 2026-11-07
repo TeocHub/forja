@@ -1,6 +1,7 @@
 // Forja · Estructura (proyectos.estructura): primero se resume el proyecto en seis momentos y después se prueba en modelos dibujados.
 // estructura = { m: { inicio, conflicto, escalada, climax, desenlace, final }, modelo: "<clave>", comparar: "<clave>", notas: { <modelo>: { <i>: "texto" } } }
 // Los modelos son formas de ordenar conocidas por todos; las descripciones y preguntas están escritas para Forja.
+import { esc } from "./forja.js";
 // Plan gratis: los dos primeros modelos de la categoría. Forja Más: todos, comparar dos lado a lado y pasarlo a la Escaleta.
 
 export const CLAVES = ["inicio", "conflicto", "escalada", "climax", "desenlace", "final"];
@@ -103,18 +104,17 @@ function suave(pts) {
   }
   return d;
 }
-const escT = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 // Dibuja un modelo. `llenos` = índices de pasos con algo escrito; `sel` = paso marcado. Los pasos llevan data-paso para tocarlos.
 export function dibujo(k, { llenos = new Set(), sel = -1, etiquetas = true } = {}) {
   const M = MODELOS[k]; if (!M) return "";
   const pasoSVG = (x, y, i, lx, ly, ancla) =>
-    '<g class="es-p' + (llenos.has(i) ? " lleno" : "") + (i === sel ? " sel" : "") + '" data-paso="' + i + '" tabindex="0" role="button" aria-label="' + escT((i + 1) + ". " + M.p[i].n) + '">' +
+    '<g class="es-p' + (llenos.has(i) ? " lleno" : "") + (i === sel ? " sel" : "") + '" data-paso="' + i + '" tabindex="0" role="button" aria-label="' + esc((i + 1) + ". " + M.p[i].n) + '">' +
     '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="13"/><text class="es-num" x="' + x.toFixed(1) + '" y="' + (y + 4.5).toFixed(1) + '">' + (i + 1) + "</text>" +
-    (etiquetas ? '<text class="es-lbl" x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + ancla + '">' + escT(M.p[i].n) + "</text>" : "") + "</g>";
+    (etiquetas ? '<text class="es-lbl" x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + ancla + '">' + esc(M.p[i].n) + "</text>" : "") + "</g>";
   if (M.forma === "ciclo") {
     const W = 420, H = 340, cx = W / 2, cy = H / 2, R = 118, n = M.p.length;
     const pts = M.p.map((_, i) => { const a = -Math.PI / 2 + (i / n) * Math.PI * 2; return [cx + R * Math.cos(a), cy + R * Math.sin(a), a]; });
-    return '<svg class="es-dib ciclo" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + escT(M.n) + '"><defs><marker id="es-fl-' + k + '" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="es-fl"/></marker></defs>' +
+    return '<svg class="es-dib ciclo" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(M.n) + '"><defs><marker id="es-fl-' + k + '" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="es-fl"/></marker></defs>' +
       '<circle class="es-orbita" cx="' + cx + '" cy="' + cy + '" r="' + R + '"/>' +
       pts.map((p, i) => { const q = pts[(i + 1) % n], a1 = p[2] + 0.19, a2 = q[2] - 0.19 + (i === n - 1 ? Math.PI * 2 : 0); return '<path class="es-arco" d="M' + (cx + R * Math.cos(a1)).toFixed(1) + " " + (cy + R * Math.sin(a1)).toFixed(1) + " A" + R + " " + R + " 0 0 1 " + (cx + R * Math.cos(a2)).toFixed(1) + " " + (cy + R * Math.sin(a2)).toFixed(1) + '" marker-end="url(#es-fl-' + k + ')"/>'; }).join("") +
       pts.map((p, i) => { const c = Math.cos(p[2]), s = Math.sin(p[2]); return pasoSVG(p[0], p[1], i, cx + (R + 24) * c, cy + (R + 24) * s + 4 + (s > .5 ? 6 : s < -.5 ? -4 : 0), Math.abs(c) < .3 ? "middle" : c > 0 ? "start" : "end"); }).join("") + "</svg>";
@@ -122,7 +122,7 @@ export function dibujo(k, { llenos = new Set(), sel = -1, etiquetas = true } = {
   const W = 640, H = 250, x0 = 34, x1 = W - 34, y0 = 200, y1 = 46;
   const pts = M.p.map((p) => [x0 + p.x * (x1 - x0), y0 - p.y * (y0 - y1)]);
   const cerrar = suave(pts);
-  return '<svg class="es-dib curva" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + escT(M.n) + '">' +
+  return '<svg class="es-dib curva" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(M.n) + '">' +
     '<line class="es-eje" x1="' + x0 + '" y1="' + (y0 + 18) + '" x2="' + x1 + '" y2="' + (y0 + 18) + '"/><text class="es-ejet" x="' + x0 + '" y="' + (y0 + 34) + '">comienzo</text><text class="es-ejet" x="' + x1 + '" y="' + (y0 + 34) + '" text-anchor="end">final</text>' +
     '<path class="es-area" d="' + cerrar + " L" + pts[pts.length - 1][0].toFixed(1) + " " + (y0 + 18) + " L" + pts[0][0].toFixed(1) + " " + (y0 + 18) + 'Z"/><path class="es-linea" d="' + cerrar + '"/>' +
     pts.map((p, i) => pasoSVG(p[0], p[1], i, Math.min(x1, Math.max(x0, p[0])), p[1] - 20, i === 0 ? "start" : i === pts.length - 1 ? "end" : "middle")).join("") + "</svg>";

@@ -286,7 +286,6 @@ function pieza(g) {
 }
 
 /* ---------- estilos ---------- */
-export const FUENTES = "https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap";
 export const CSS_VITRINA = CSS_PIZARRA + `
 .vt{--vt-bg:#f5f4ef;--vt-fg:#16171c;--vt-muted:#5e6271;--vt-card:#fff;--vt-line:#e3e1d9;--vt-field:#eeece5;--vt-titulo:var(--f-display,"Familjen Grotesk",system-ui,sans-serif);--vt-texto:var(--f-body,"Atkinson Hyperlegible",system-ui,sans-serif);
   --bg:var(--vt-bg);--fg:var(--vt-fg);--muted:var(--vt-muted);--card:var(--vt-card);--line:var(--vt-line);--field:var(--vt-field);--accent:var(--vt-acento);--accent-soft:color-mix(in srgb,var(--vt-acento) 12%,var(--vt-card));

@@ -13,12 +13,9 @@
 <link rel="stylesheet" href="../css/forja.css">
 <style>
 /* Layout: página de proyecto — cabecera editable y pestañas (Taller, Referentes, Brújula, Costos, Oportunidades, Bitácora); el Taller es índice de secciones + hoja de escritura */
-*{box-sizing:border-box}
-html,body{margin:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
 .wrap{max-width:1120px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0}
-a{color:var(--accent)}
 button,select,input,textarea{font:inherit;color:var(--fg)}
 button{cursor:pointer}
 :where(button,select,input,textarea,a,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -568,7 +565,7 @@ dialog.an-d::backdrop{background:rgba(10,12,20,.5)}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, debounce, fecha, hace, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen } from "../js/forja.js";
+import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen } from "../js/forja.js";
 import { funcion } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
@@ -635,7 +632,6 @@ const guardar = async (cambios, aviso) => {
   return error;
 };
 const tocarProyecto = debounce(() => sb.from("proyectos").update({ nombre: P.nombre }).eq("id", P.id), 4000);
-const palabras = (t) => (t.trim().match(/\S+/g) || []).length;
 
 /* ================= estructura ================= */
 function armar() {

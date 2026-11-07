@@ -377,3 +377,8 @@ create table public.ideas(        -- Semillero: ideas de una frase, por espacio 
 -- Analizar una obra (web en docs/js/obras.js): ficha = {clase libro|capitulo|videojuego|juegomesa|pelicula|cancion|web, autores, anio, titulo,
 --   edicion, editorial, editores, libro, paginas, album, sitio, fecha, url, formato}; valor = la cita APA en texto; titulo = ficha.titulo.
 --   analisis = {ve, armada, trata, aprendi[], en}; una cita (tipo 'cita') puede apuntar a una obra con ficha = {obra: id, pagina}.
+
+-- Limpieza (2026-11-07, migraciones limpieza_funcion_vieja_y_historial_cron y mis_espacios_con_vencimiento) -----------------
+-- Se borró privado.edita_en(p, e): las políticas usan privado.edita_area_en desde los permisos por área.
+-- pg_cron 'forja-limpieza' '17 4 * * 0': delete from cron.job_run_details where end_time < now() - interval '14 days'.
+-- mis_espacios() devuelve también 'hasta' (plan_hasta si el espacio tiene Forja Más): la web ya no consulta espacios para saber el plan.

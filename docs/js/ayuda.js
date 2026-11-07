@@ -32,7 +32,7 @@ export const icono = (k, tam = 22) => '<svg viewBox="0 0 24 24" width="' + tam +
 
 // ctx = { p: id del último proyecto abierto (o null) }
 // Direcciones absolutas desde la raíz del sitio (la ayuda se abre desde páginas en distintas carpetas).
-const RAIZ = new URL("../", import.meta.url).href, u = (r = "") => RAIZ + r;
+import { RAIZ, u, esc } from "./forja.js";
 const enProyecto = (pest) => (ctx) => (ctx && ctx.p ? u("proyecto/?p=" + ctx.p + "#" + pest) : u("proyectos/"));
 
 export const TEMAS = [
@@ -206,7 +206,6 @@ export function buscar(q) {
 }
 
 const estilos = () => { if (!document.getElementById("ay-css")) document.head.insertAdjacentHTML("beforeend", '<style id="ay-css">' + CSS_AYUDA + "</style>"); };
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 // El cuerpo de un tema (lo usan la guía y el cajón).
 export function temaHTML(t, ctx = contexto(), { conIr = true } = {}) {

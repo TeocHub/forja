@@ -117,14 +117,10 @@ export function navApp(actual) {
 /* --- plan y límites (los mismos que aplica la base de datos en privado.limite) --- */
 export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30, pizarras: 1, tarjetas: 20, ideas: 50, analisis: 3 };
 export const palabras = (t) => ((t || "").trim().match(/\S+/g) || []).length;
-let planCache = null;
+// El plan del espacio elegido sale de mis_espacios (ya cargado para el menú): no hace falta otra consulta.
 export async function plan() {
-  if (planCache) return planCache;
-  const e = await espacio(); if (!e) return { mas: false };
-  const { data } = await sb.from("espacios").select("plan,plan_hasta").eq("id", e).maybeSingle();
-  const mas = !!data && data.plan === "mas" && (!data.plan_hasta || new Date(data.plan_hasta) > new Date());
-  planCache = { mas, hasta: data && data.plan_hasta };
-  return planCache;
+  const e = await espacioActual();
+  return { mas: !!(e && e.mas), hasta: (e && e.hasta) || null };
 }
 // Puede editarse si el plan es Más, o si no está archivado y no hay más proyectos en curso que el límite.
 export const editable = (p, activos, pl) => pl.mas || (p.estado !== "archivado" && activos <= LIMITES.proyectos);
@@ -256,11 +252,17 @@ export async function conSesion(caja, listo) {
 /* --- documentos: términos, privacidad y normas --- */
 // Al cambiar un documento de forma importante, subir la versión: todos lo vuelven a aceptar al entrar.
 export const DOCS = { version: "2026-11-06", fecha: "6 de noviembre de 2026" };
+// Se recuerda en este navegador cuando la versión vigente ya está aceptada, para no consultarlo en cada página.
 async function aceptado() {
+  const { data: { session } } = await sb.auth.getSession();
+  const llave = "forja-acepta-" + (session ? session.user.id : "") + "-" + DOCS.version;
+  try { if (localStorage.getItem(llave) === "1") return true; } catch (e) {}
   const { data, error } = await sb.from("aceptaciones").select("documento").eq("version", DOCS.version);
   if (error) return true; // si falla la consulta no se bloquea el uso; se vuelve a pedir en la próxima visita
   const d = new Set((data || []).map((x) => x.documento));
-  return ["terminos", "privacidad", "normas"].every((k) => d.has(k));
+  const ok = ["terminos", "privacidad", "normas"].every((k) => d.has(k));
+  if (ok) try { localStorage.setItem(llave, "1"); } catch (e) {}
+  return ok;
 }
 function pedirAceptacion() {
   return new Promise((listo) => {

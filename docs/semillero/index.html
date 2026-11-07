@@ -15,14 +15,11 @@
 <style>
 /* Layout: semillero — arriba se anota una idea (con un detonante al lado); abajo, la bandeja: cada idea en su alvéolo,
    con una semilla que crece cada vez que la persona vuelve y le sigue dando vueltas. Al tocar una, se abre en su lugar. */
-*{box-sizing:border-box}
-html,body{margin:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
 .wrap{max-width:1040px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0}
 h2{font-family:var(--f-display);font-size:19px;margin:0}
 .lead{margin:6px 0 0;color:var(--muted);max-width:62ch}
-a{color:var(--accent)}
 button,input,select{font:inherit;color:var(--fg)}
 button{cursor:pointer}
 :where(button,input,select,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px}

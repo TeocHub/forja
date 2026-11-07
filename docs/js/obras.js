@@ -1,5 +1,6 @@
 // Forja · Analizar una obra: la ficha de una obra (libro, juego, película…), su cita y las preguntas del análisis.
 // Un solo archivo para la pestaña Referentes, la biblia y la ayuda.
+import { esc } from "./forja.js";
 // referentes.tipo = "obra"; referentes.ficha = { clase, autores, anio, titulo, edicion, editorial, editores, libro, paginas, album, sitio, fecha, url, formato };
 // referentes.analisis = { ve, armada, trata, aprendi: [texto…], en: "YYYY-MM-DD" } ({} = sin analizar; el plan gratis permite 3 por proyecto).
 // Una cita de Referentes puede apuntar a una obra: referentes.ficha = { obra: <id>, pagina: "45" } → (Apellido, año, p. 45).
@@ -150,14 +151,13 @@ function chicago(f, it) {
   return out.filter(Boolean).join(" ");
 }
 export const ESTILOS = { apa: "APA 7", mla: "MLA 9", chicago: "Chicago" };
-const escH = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 // La referencia completa. html: true devuelve HTML seguro con cursivas; si no, texto plano.
 export function cita(ficha, estilo = "apa", html = false) {
   const f = normalFicha(ficha), fn = ({ apa, mla, chicago })[estilo] || apa;
   if (!html) return fn(f, (t) => t);
   // Se arma con marcadores y después se escapa todo menos las cursivas.
   const A = "\u0001", B = "\u0002";
-  return escH(fn(f, (t) => A + t + B)).replace(/\u0001/g, "<i>").replace(/\u0002/g, "</i>");
+  return esc(fn(f, (t) => A + t + B)).replace(/\u0001/g, "<i>").replace(/\u0002/g, "</i>");
 }
 // La cita corta dentro del texto: (Apellido, 2019, p. 45).
 export function citaCorta(ficha, pagina) {
