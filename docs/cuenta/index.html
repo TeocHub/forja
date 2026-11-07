@@ -86,7 +86,7 @@ conSesion($("app"), async (ses) => {
   const creada = ses.user.created_at ? fecha(ses.user.created_at) : "";
   $("app").innerHTML =
     '<header><h1>Mi cuenta</h1><p class="lead">Tus avisos, tus mensajes con el equipo de Forja y el control de tus datos.</p></header>' +
-    '<section class="blq"><div class="fila"><h2>' + esc(ses.user.email) + '</h2><span class="plan">' + (pl.mas ? "Forja Más" + (pl.hasta ? " hasta el " + fecha(pl.hasta) : "") : "Plan gratis") + "</span></div>" +
+    '<section class="blq"><div class="fila"><h2>' + esc(ses.user.email) + '</h2><span class="plan">' + (pl.mas ? pl.nombre + (pl.hasta ? " hasta el " + fecha(pl.hasta) : "") : "Plan gratis") + "</span></div>" +
     "<p>" + (creada ? "Cuenta creada el " + creada + ". " : "") + 'Entras con un enlace a tu correo, sin contraseña. <a href="../planes/">Ver los planes</a></p></section>' +
     '<section class="blq" id="b-avisos"><h2>Avisos</h2><div id="avisos"></div><p class="vacio" id="sin-avisos" hidden>No tienes avisos nuevos. Aquí te contamos si revisamos algo tuyo o respondemos un mensaje.</p></section>' +
     '<section class="blq" id="escribenos"><h2>Escríbenos</h2><p>Para dudas, problemas, solicitudes sobre tus datos personales o para apelar una decisión. Te respondemos aquí mismo, como aviso. También puedes escribir a forja@digitalmonster.cl.</p>' +
@@ -154,7 +154,7 @@ async function descargar() {
   { const { data } = await sb.rpc("mis_seguidas"); out.proyectos_que_sigues = data || []; }
   { const { data } = await sb.rpc("mis_anotadas"); out.recompensas_en_que_te_anotaste = data || []; }
   for (const t of TABLAS) { const { data, error } = await sb.from(t).select("*").eq("espacio_id", esp); out[t] = error ? { error: error.message } : data; }
-  for (const [t, c] of [["mensajes", "id,tipo,texto,estado,respuesta,creado_en,respondido_en"], ["reportes", "motivo,detalle,estado,creado_en,revisado_en"], ["avisos", "tipo,titulo,texto,leido,creado_en"], ["aceptaciones", "documento,version,aceptado_en"], ["interes_funciones", "funcion,creado_en,avisado_en"], ["correo_prefs", "boletin,funciones,vitrinas,boletin_desde"]]) {
+  for (const [t, c] of [["mensajes", "id,tipo,texto,estado,respuesta,creado_en,respondido_en"], ["reportes", "motivo,detalle,estado,creado_en,revisado_en"], ["avisos", "tipo,titulo,texto,leido,creado_en"], ["aceptaciones", "documento,version,aceptado_en"], ["interes_funciones", "funcion,creado_en,avisado_en"], ["sugerencias", "area,texto,estado,respuesta,creado_en,revisado_en"], ["correo_prefs", "boletin,funciones,vitrinas,boletin_desde"]]) {
     const { data } = await sb.from(t).select(c); out[t] = data || [];
   }
   const a = document.createElement("a");

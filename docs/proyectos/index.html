@@ -48,7 +48,7 @@ button{cursor:pointer}
 .cupo.lleno{--ec:var(--e-semilla);border-color:color-mix(in srgb,var(--e-semilla) 45%,var(--line))}
 .cupo.pasado{--ec:var(--e-pausa);border-color:var(--e-pausa);background:color-mix(in srgb,var(--e-pausa) 7%,var(--card))}
 .cupo.mas{flex-direction:row;gap:10px;align-items:baseline;border-color:var(--ember)}
-.cupo.mas b{color:var(--ember)}
+.cupo.mas b,.cupo.de-mas .cupo-top b{color:var(--ember)}
 .candado{vertical-align:-1px;color:var(--e-pausa)}
 .semilla input:disabled{cursor:not-allowed}
 .como{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;border-top:1px dashed var(--line);padding-top:10px}
@@ -107,7 +107,7 @@ button{cursor:pointer}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, hace, navApp, espacio, espacioActual, conSesion, avisos, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
+import { sb, $, esc, toast, hace, navApp, espacio, espacioActual, conSesion, avisos, plan, LIMITES, tope, limite, editable, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
 import { TIPOS, ESTADOS, tc, avance } from "../js/guias.js";
 import { sendero } from "../js/ayuda.js";
 import { FORMATOS } from "../js/brujula.js";
@@ -165,17 +165,17 @@ const EQUIPO = () => EA && EA.tipo === "equipo";
 const activos = () => PROYS.filter((p) => p.estado !== "archivado").length;
 function cupo() {
   if (EQUIPO()) return "";
-  if (PL.mas) return '<div class="cupo mas"><b>Forja Más</b><span>Proyectos, palabras y referentes sin límite.</span></div>';
-  const n = activos(), max = LIMITES.proyectos, lleno = n >= max, pasado = n > max;
-  return '<div class="cupo' + (lleno ? " lleno" : "") + (pasado ? " pasado" : "") + '"><div class="cupo-top"><b>Plan gratis</b><span>' + n + " de " + max + " proyectos en curso</span></div>" +
+  const n = activos(), max = tope(PL, "proyectos"), lleno = max !== null && n >= max, pasado = max !== null && n > max;
+  if (max === null) return '<div class="cupo mas"><b>' + PL.nombre + "</b><span>Proyectos, palabras y referentes sin límite.</span></div>";
+  return '<div class="cupo' + (PL.mas ? " de-mas" : "") + (lleno ? " lleno" : "") + (pasado ? " pasado" : "") + '"><div class="cupo-top"><b>' + PL.nombre + "</b><span>" + n + " de " + max + " proyectos en curso</span></div>" +
     '<div class="fx-avance"><i style="width:' + Math.min(100, (n / max) * 100) + '%"></i></div>' +
-    (pasado ? '<p>Tienes ' + n + " proyectos en curso y el plan gratis permite " + max + ": quedaron en <b>solo lectura</b>. Archiva " + (n - max) + (n - max === 1 ? " proyecto" : " proyectos") + " para seguir editando. Nada se borra.</p>"
-      : lleno ? "<p>Llegaste al máximo. Para plantar otra idea, archiva un proyecto (queda guardado y se puede ver). " + MAS_PRONTO + MAS_LINK + "</p>"
+    (pasado ? '<p>Tienes ' + n + " proyectos en curso y tu plan permite " + max + ": quedaron en <b>solo lectura</b>. Archiva " + (n - max) + (n - max === 1 ? " proyecto" : " proyectos") + " para seguir editando. Nada se borra.</p>"
+      : lleno ? "<p>Llegaste al máximo. Para plantar otra idea, archiva un proyecto (queda guardado y se puede ver)." + (PL.mas ? ' Forja Estudio no tiene límite de proyectos. <a href="../planes/">Ver planes</a>' : " " + MAS_PRONTO + MAS_LINK) + "</p>"
       : '<p class="hint">Archivar un proyecto libera su cupo; lo archivado se puede ver y exportar siempre. <a href="../planes/">Ver planes</a></p>') + "</div>";
 }
 let creadorNuevo = (() => { try { const c = localStorage.getItem("forja-creador"); return CREADORES[c] ? c : CREADOR_INICIAL; } catch (e) { return CREADOR_INICIAL; } })();
 function proyectos() {
-  const sinCupo = !PL.mas && activos() >= LIMITES.proyectos, lector = EQUIPO() && EA.rol === "lector";
+  const sinCupo = tope(PL, "proyectos") !== null && activos() >= tope(PL, "proyectos"), lector = EQUIPO() && EA.rol === "lector";
   $("panel").innerHTML = cupo() + (lector ? '<div id="semilla" hidden></div>' :
     '<form class="semilla" id="semilla"><div class="line"><label class="fx-sr" for="s-nombre">Nombre de la idea</label>' +
     '<input type="text" id="s-nombre" maxlength="160" placeholder="' + (sinCupo ? "Archiva un proyecto para plantar otra idea" : "¿Qué idea traes hoy?") + '" autocomplete="off"' + (sinCupo ? " disabled" : "") + '><button class="plantar" type="submit"' + (sinCupo ? " disabled" : "") + '>Plantar</button></div>' +

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Forja · Planes</title>
-<meta name="description" content="Forja es gratis para empezar. Forja Más llega pronto, con proyectos y palabras sin límite y herramientas nuevas.">
+<meta name="description" content="Forja es gratis para empezar. Forja Más y Forja Estudio llegan pronto, con más proyectos, más personas por proyecto y todas las herramientas.">
 <meta name="theme-color" content="#2a3fd1">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icon.svg" type="image/svg+xml">
@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="../css/forja.css">
 <style>
-/* Layout: planes — dos tarjetas lado a lado, una comparación corta, un explorador por áreas de lo que trae Forja Más y preguntas */
+/* Layout: planes — tres tarjetas lado a lado, una comparación, un explorador por áreas de las herramientas, la casilla de sugerencias y preguntas */
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
 .wrap{max-width:1040px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
@@ -22,25 +22,31 @@ h1{font-size:clamp(32px,6vw,48px);line-height:1.05;margin-top:8px}
 section{margin-top:44px}
 :where(button,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-.planes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;margin-top:28px;align-items:stretch}
-@media (max-width:760px){.planes{grid-template-columns:minmax(0,1fr)}}
+.planes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:28px;align-items:stretch}
+@media (max-width:900px){.planes{grid-template-columns:minmax(0,1fr)}}
 .plan{position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px}
 .plan h2{font-size:24px}
+.plan .para{margin:-8px 0 0;font-size:14px;color:var(--muted)}
 .plan .precio{font-family:var(--f-num);font-size:34px;font-weight:700;line-height:1}
 .plan .precio small{font-family:var(--f-body);font-size:14px;color:var(--muted);font-weight:400}
-.plan .anual{font-size:14px;color:var(--muted)}
+.plan .anual{font-size:14px;color:var(--muted);margin-top:-6px}
 .plan.mas{border:2px solid var(--ember);background:radial-gradient(circle at 100% 0,var(--ember-soft),var(--card) 55%)}
+.plan.estudio{border:2px solid var(--fg)}
 .cinta{position:absolute;top:-12px;right:18px;background:var(--ember);color:#fff;font-family:var(--f-num);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:4px 12px}
+.plan.estudio .cinta{background:var(--fg);color:var(--bg)}
 .actual{align-self:flex-start;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--good);border:1px solid var(--good);border-radius:999px;padding:2px 10px}
 .medidas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.medida{background:var(--field);border-radius:12px;padding:10px;text-align:center}
+.medida{background:var(--field);border-radius:12px;padding:10px 6px;text-align:center}
 .medida b{display:block;font-family:var(--f-num);font-size:22px;line-height:1.1}
 .medida span{font-size:12px;color:var(--muted)}
 .plan.mas .medida b{color:var(--ember)}
 .incluye{font-size:14px;color:var(--muted);margin:0}
+.plan .pie-plan{margin-top:auto}
 .boton{align-self:flex-start;font:inherit;font-weight:700;border-radius:12px;padding:10px 16px;text-decoration:none;border:1.5px solid var(--accent);color:var(--accent);background:transparent;cursor:pointer}
-.boton.lleno{background:var(--ember);border-color:var(--ember);color:#fff}
 .plan .fx-avisame{font-size:15px;padding:9px 16px;border-radius:12px}
+.lanzamiento{position:relative;margin:16px 0 0;padding-left:18px;font-size:14px;color:var(--muted);max-width:78ch}
+.lanzamiento::before{content:"";position:absolute;left:2px;top:7px;width:7px;height:7px;border-radius:2px;background:var(--ember);transform:rotate(45deg)}
+.lanzamiento a{color:inherit}
 
 .explorador{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;margin-top:18px;align-items:start}
 @media (max-width:760px){.explorador{grid-template-columns:minmax(0,1fr)}}
@@ -52,13 +58,50 @@ section{margin-top:44px}
 .areas button[aria-selected="true"]{background:var(--card);border-color:var(--ember)}
 @media (max-width:760px){.areas button{flex:none;border-color:var(--line);background:var(--card)}.areas button small{display:none}}
 .funciones{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
-.comparar{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:15px;margin-top:16px}
+.tabla-w{overflow-x:auto;margin-top:16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.comparar{width:100%;min-width:560px;border-collapse:collapse;font-size:15px}
 .comparar th,.comparar td{padding:11px 14px;border-bottom:1px solid var(--line);text-align:left}
 .comparar thead th{font-family:var(--f-display);font-size:16px;background:var(--field)}
-.comparar td:nth-child(2),.comparar td:nth-child(3),.comparar th:nth-child(2),.comparar th:nth-child(3){text-align:center;width:24%}
+.comparar td:not(:first-child),.comparar thead th:not(:first-child){text-align:center;width:20%}
 .comparar td:nth-child(3){color:var(--ember);font-weight:700}
-.comparar tr:last-child td{border-bottom:0}
+.comparar td:nth-child(4){font-weight:700}
+.comparar tbody th{font-weight:400;text-align:left}
+.comparar tr:last-child td,.comparar tr:last-child th{border-bottom:0}
 .comparar .n{font-family:var(--f-num)}
+.comparar .pronto{display:inline-block;margin-left:6px;font-family:var(--f-num);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ember);white-space:nowrap}
+.comparar .sep th{padding-top:16px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:transparent}
+@media (max-width:620px){.comparar{font-size:14px}.comparar th,.comparar td{padding:10px 10px}.comparar tbody th{position:sticky;left:0;background:var(--card);z-index:1}}
+
+/* casilla de sugerencias: una ranura donde se echa una papeleta; las enviadas quedan como papeletas con su timbre */
+.casilla{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;margin-top:16px;align-items:start}
+@media (max-width:820px){.casilla{grid-template-columns:minmax(0,1fr)}}
+.buzon{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.ranura{height:10px;border-radius:999px;background:var(--fg);opacity:.85;margin:2px 18% 4px;box-shadow:inset 0 3px 4px rgba(0,0,0,.5)}
+.buzon textarea{font:inherit;font-size:16px;line-height:1.5;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:12px;padding:12px 14px;min-height:118px;resize:vertical;width:100%}
+.buzon textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+.sobre{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sobre .k{font-size:13px;color:var(--muted);margin-right:2px}
+.sobre button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:4px 11px;cursor:pointer}
+.sobre button[aria-pressed="true"]{border-color:var(--ember);background:var(--ember-soft)}
+.enviar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.enviar small{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.enviar small.cerca{color:var(--ember)}
+.echar{font:inherit;font-weight:700;border:0;border-radius:12px;padding:10px 18px;background:var(--fg);color:var(--bg);cursor:pointer}
+.echar:disabled{opacity:.45;cursor:default}
+.buzon .nota{margin:0;font-size:13px;color:var(--muted)}
+.papeletas{display:flex;flex-direction:column;gap:10px}
+.papeletas h3{font-size:16px}
+.papeleta{position:relative;background:var(--card);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:12px 14px 12px 16px;display:flex;flex-direction:column;gap:6px}
+.papeleta::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--line)}
+.papeleta p{margin:0;font-size:15px;white-space:pre-wrap}
+.papeleta .meta{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12.5px;color:var(--muted)}
+.timbre{font-family:var(--f-num);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;border:1.5px solid currentColor;border-radius:6px;padding:1px 7px;transform:rotate(-2deg)}
+.papeleta.anotada::before{background:var(--good)}.papeleta.anotada .timbre{color:var(--good)}
+.papeleta.leida::before{background:var(--accent)}.papeleta.leida .timbre{color:var(--accent)}
+.papeleta.descartada{opacity:.75}
+.papeleta .resp{border-top:1px dashed var(--line);padding-top:6px;font-size:14px}
+.papeleta .resp b{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);display:block}
+.vacia{border:1.5px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);font-size:14px;margin:0}
 .dudas{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:16px}
 .dudas details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
 .dudas summary{cursor:pointer;font-family:var(--f-display);font-weight:700}
@@ -74,56 +117,76 @@ section{margin-top:44px}
   <header><nav data-forja-nav></nav></header>
   <main>
     <h1>Empieza gratis.<br>Crece cuando lo necesites.</h1>
-    <p class="lead">El plan gratis alcanza para un cuento, un juego chico o un producto. Forja Más, que llega pronto, quita los límites y suma herramientas para proyectos grandes.</p>
+    <p class="lead">El plan gratis alcanza para un cuento, un juego chico o un producto. Forja Más suma todas las herramientas; Forja Estudio es para quien lleva muchos proyectos a la vez o trabaja con un equipo grande.</p>
 
     <div class="planes">
       <article class="plan" aria-labelledby="p-libre">
         <span class="actual" id="actual-libre" hidden>Tu plan</span>
         <h2 id="p-libre">Gratis</h2>
+        <p class="para">Para empezar y probar con calma.</p>
         <div class="precio">$0</div>
-        <div class="medidas"><div class="medida"><b>3</b><span>proyectos en curso</span></div><div class="medida"><b>20 mil</b><span>palabras por proyecto</span></div><div class="medida"><b>30</b><span>referentes por proyecto</span></div></div>
-        <p class="incluye">Taller con preguntas guía, brújula de formatos, cotizador completo con precio de venta, biblia en PDF, oportunidades sugeridas, bitácora y precios de la comunidad.</p>
-        <a class="boton" id="b-libre" href="../entrar/?siguiente=../proyectos/">Empezar gratis</a>
+        <div class="medidas"><div class="medida"><b>3</b><span>proyectos en curso</span></div><div class="medida"><b>1</b><span>persona invitada por proyecto</span></div><div class="medida"><b>50</b><span>ideas en el Semillero</span></div></div>
+        <p class="incluye">Las herramientas esenciales: Taller con preguntas guía, brújula de formatos, cotizador completo con precio de venta, una pizarra libre, vitrina, biblia en PDF, oportunidades sugeridas, bitácora y precios de la comunidad.</p>
+        <div class="pie-plan"><a class="boton" id="b-libre" href="../entrar/?siguiente=proyectos/">Empezar gratis</a></div>
       </article>
       <article class="plan mas" aria-labelledby="p-mas">
         <span class="cinta">Próximamente</span>
         <span class="actual" id="actual-mas" hidden>Tu plan</span>
         <h2 id="p-mas">Forja Más</h2>
+        <p class="para">Para crear en serio, solo o con un grupo chico.</p>
         <div class="precio" id="precio-mas"></div>
-        <div class="anual" id="precio-anual"></div>
-        <div class="medidas"><div class="medida"><b>∞</b><span>proyectos</span></div><div class="medida"><b>∞</b><span>palabras</span></div><div class="medida"><b>∞</b><span>referentes</span></div></div>
-        <p class="incluye">Todo lo del plan gratis, sin límites, más <span id="n-func"></span> herramientas de escritura, impresión, pizarras, equipo y más (<span id="n-listas"></span> ya funcionan). Si dejas de pagar, nada se borra.</p>
-        <button type="button" class="fx-avisame" data-avisame="plan-mas">Avísame</button>
+        <div class="anual" id="anual-mas"></div>
+        <div class="medidas"><div class="medida"><b>15</b><span>proyectos en curso</span></div><div class="medida"><b>5</b><span>personas invitadas por proyecto</span></div><div class="medida"><b>500</b><span>ideas en el Semillero</span></div></div>
+        <p class="incluye">Todas las herramientas, palabras y referentes sin límite: <span id="n-func"></span> herramientas de escritura, impresión, pizarras, equipo y más (<span id="n-listas"></span> ya funcionan). Si dejas de pagar, nada se borra.</p>
+        <div class="pie-plan"><button type="button" class="fx-avisame" data-avisame="plan-mas">Avísame</button></div>
+      </article>
+      <article class="plan estudio" aria-labelledby="p-estudio">
+        <span class="cinta">Próximamente</span>
+        <span class="actual" id="actual-estudio" hidden>Tu plan</span>
+        <h2 id="p-estudio">Forja Estudio</h2>
+        <p class="para">Para estudios, colectivos y cursos con mucho en marcha.</p>
+        <div class="precio" id="precio-estudio"></div>
+        <div class="anual" id="anual-estudio"></div>
+        <div class="medidas"><div class="medida"><b>∞</b><span>proyectos en curso</span></div><div class="medida"><b>15</b><span>personas invitadas por proyecto</span></div><div class="medida"><b>∞</b><span>ideas en el Semillero</span></div></div>
+        <p class="incluye">Todo lo de Forja Más, sin tope de proyectos ni de ideas, con más personas en cada proyecto y rondas de lectores beta más grandes. Quienes colaboran entran gratis.</p>
+        <div class="pie-plan"><button type="button" class="fx-avisame" data-avisame="plan-estudio">Avísame</button></div>
       </article>
     </div>
+    <p class="lanzamiento" id="lanzamiento">Los precios son de lanzamiento y pueden cambiar, igual que lo que trae cada plan. Si cambian cuando ya tengas un plan pagado, te avisaremos antes de tu siguiente pago. <a href="../terminos/#planes">Planes y precios en los Términos</a></p>
 
     <section aria-labelledby="t-comp">
       <h2 id="t-comp">Lado a lado</h2>
+      <div class="tabla-w">
       <table class="comparar">
-        <thead><tr><th>En cada proyecto</th><th>Gratis</th><th>Forja Más</th></tr></thead>
+        <thead><tr><th scope="col">En tu forja</th><th scope="col">Gratis</th><th scope="col">Forja Más</th><th scope="col">Forja Estudio</th></tr></thead>
         <tbody>
-          <tr><td>Proyectos en curso al mismo tiempo</td><td class="n">3</td><td>Sin límite</td></tr>
-          <tr><td>Palabras en el Taller</td><td class="n">20.000</td><td>Sin límite</td></tr>
-          <tr><td>Referentes</td><td class="n">30</td><td>Sin límite</td></tr>
-          <tr><td>Obras analizadas</td><td>3, con cita APA</td><td>Sin límite, más MLA, Chicago y bibliografía</td></tr>
-          <tr><td>Estructuras</td><td>Mapa completo y 2 modelos</td><td>Todos, comparar y pasar a la Escaleta</td></tr>
-          <tr><td>Ideas en el Semillero</td><td class="n">50</td><td>Sin límite</td></tr>
-          <tr><td>Pizarras</td><td>1 libre, con 20 tarjetas</td><td>Sin límite, más relaciones, escaleta y mapa del mundo</td></tr>
-          <tr><td>Vitrina pública</td><td>Portada, historia, galería, novedades y enlaces</td><td>Todo eso, más tus pizarras para explorar</td></tr>
-          <tr><td>Biblia del proyecto</td><td>PDF con la marca de Forja</td><td>Con diseño, sin marca, Word y EPUB</td></tr>
-          <tr><td>Trabajar con otras personas</td><td>—</td><td>Sí, ellas no pagan</td></tr>
-          <tr><td>Oportunidades</td><td>Calendario y sugeridas</td><td>+ alertas por correo</td></tr>
+          <tr><th scope="row">Proyectos en curso</th><td class="n">3</td><td class="n">15</td><td>Sin límite</td></tr>
+          <tr><th scope="row">Personas invitadas por proyecto</th><td class="n">1</td><td class="n">5</td><td class="n">15</td></tr>
+          <tr><th scope="row">Lectores beta por ronda<span class="pronto">Llega pronto</span></th><td class="n">3</td><td class="n">15</td><td class="n">40</td></tr>
+          <tr><th scope="row">Ideas en el Semillero</th><td class="n">50</td><td class="n">500</td><td>Sin límite</td></tr>
+          <tr><th scope="row">Pizarras</th><td>1 libre</td><td>Todas</td><td>Todas</td></tr>
+          <tr><th scope="row">Herramientas</th><td>Esenciales</td><td>Todas</td><td>Todas</td></tr>
+          <tr class="sep"><th scope="rowgroup" colspan="4">En cada proyecto</th></tr>
+          <tr><th scope="row">Palabras en el Taller</th><td class="n">20.000</td><td>Sin límite</td><td>Sin límite</td></tr>
+          <tr><th scope="row">Referentes</th><td class="n">30</td><td>Sin límite</td><td>Sin límite</td></tr>
         </tbody>
       </table>
+      </div>
     </section>
 
     <section aria-labelledby="t-func">
-      <h2 id="t-func">Lo que trae Forja Más</h2>
-      <p class="lead" style="font-size:16px">Todo está en construcción. Marca "Avísame" en lo que más te sirva: así sabemos qué hacer primero.</p>
+      <h2 id="t-func">Las herramientas</h2>
+      <p class="lead" style="font-size:16px">Forja Más y Forja Estudio traen todas. Lo que ya funciona dice qué parte trae el plan gratis; en lo que falta, marca «Avísame» en lo que más te sirva: así sabemos qué hacer primero.</p>
       <div class="explorador">
         <div class="areas" role="tablist" aria-label="Áreas" id="areas"></div>
         <div class="funciones" role="tabpanel" id="funciones" aria-live="polite"></div>
       </div>
+    </section>
+
+    <section id="sugerir" aria-labelledby="t-sug">
+      <h2 id="t-sug">¿Qué le falta a Forja?</h2>
+      <p class="lead" style="font-size:16px">Una herramienta, un cambio, algo que te estorba. Cada sugerencia la lee una persona del equipo, y si la anotamos o tenemos algo que contarte, te llega la respuesta en tus avisos.</p>
+      <div class="casilla" id="casilla"><div class="buzon"><p class="nota">Cargando…</p></div></div>
     </section>
 
     <section class="mecenas" aria-labelledby="t-mec">
@@ -134,28 +197,33 @@ section{margin-top:44px}
     <section aria-labelledby="t-dudas">
       <h2 id="t-dudas">Preguntas</h2>
       <div class="dudas">
-        <details><summary>¿Qué pasa si llego al límite?</summary><p>Lo que escribiste queda guardado. Para seguir, archiva un proyecto (queda visible y se puede exportar) o recorta texto. Cuando salga Forja Más, podrás quitar los límites.</p></details>
-        <details><summary>¿Y si después dejo de pagar Forja Más?</summary><p>Nada se borra ni se esconde. Sigues editando lo que esté dentro de los límites gratis; lo que los pase queda en solo lectura hasta que vuelvas o lo reduzcas.</p></details>
-        <details><summary>¿Las personas que invite tienen que pagar?</summary><p>No. Paga quien crea el proyecto; quienes colaboran entran gratis y el proyecto no les ocupa cupo. En el plan gratis puedes invitar a 1 persona por proyecto; con Forja Más, hasta 5.</p></details>
+        <details><summary>¿Qué pasa si llego al límite?</summary><p>Lo que escribiste queda guardado. Para seguir, archiva un proyecto (queda visible y se puede exportar) o recorta texto. Cuando salgan Forja Más y Forja Estudio, podrás subir los límites.</p></details>
+        <details><summary>¿Y si después dejo de pagar?</summary><p>Nada se borra ni se esconde. Sigues editando lo que esté dentro de los límites gratis; lo que los pase queda en solo lectura hasta que vuelvas o lo reduzcas.</p></details>
+        <details><summary>¿Las personas que invite tienen que pagar?</summary><p>No. Paga quien crea el proyecto; quienes colaboran entran gratis y el proyecto no les ocupa cupo. En el plan gratis puedes invitar a 1 persona por proyecto; con Forja Más, hasta 5, y con Forja Estudio, hasta 15.</p></details>
+        <details><summary>¿Los precios van a cambiar?</summary><p>Pueden cambiar: son precios de lanzamiento. Si cambian cuando ya tengas un plan pagado, te avisaremos antes de que se aplique a tu siguiente pago.</p></details>
+        <details><summary>¿Qué pasa si paso de Forja Estudio a Forja Más?</summary><p>No se borra nada. Si tienes más de 15 proyectos en curso, quedan en solo lectura hasta que archives los que sobran.</p></details>
         <details><summary>¿Mis proyectos son privados?</summary><p>Sí. Solo los ves tú (y quien invites). Forja no tiene publicidad ni vende datos.</p></details>
       </div>
     </section>
   </main>
 </div>
 <script type="module">
-import { sb, $, esc, nav, navApp, plan, proximamente, activarAvisame } from "../js/forja.js";
-import { PRECIO, AREAS, FUNCIONES } from "../js/planes.js";
+import { sb, $, esc, toast, hace, limite, nav, navApp, plan, proximamente, activarAvisame, u } from "../js/forja.js";
+import { PRECIOS, AREAS, AREAS_SUGERENCIA, FUNCIONES } from "../js/planes.js";
 const { data } = await sb.auth.getSession();
-if (data.session) {
+const SES = data.session;
+if (SES) {
   navApp("plan");
   const pl = await plan();
-  $(pl.mas ? "actual-mas" : "actual-libre").hidden = false;
-  $("b-libre").href = "../proyectos/"; $("b-libre").textContent = pl.mas ? "Ir a mis proyectos" : "Ir a mis proyectos";
+  $("actual-" + pl.plan).hidden = false;
+  $("b-libre").href = "../proyectos/"; $("b-libre").textContent = "Ir a mis proyectos";
 } else nav("planes");
 
 const $$ = (n) => "$" + n.toLocaleString("es-CL");
-$("precio-mas").innerHTML = $$(PRECIO.mes) + " <small>al mes</small>";
-$("precio-anual").textContent = "o " + $$(PRECIO.anio) + " al año: dos meses gratis";
+for (const k of ["mas", "estudio"]) {
+  $("precio-" + k).innerHTML = $$(PRECIOS[k].mes) + " <small>al mes</small>";
+  $("anual-" + k).textContent = "o " + $$(PRECIOS[k].anio) + " al año: dos meses gratis";
+}
 $("n-func").textContent = FUNCIONES.length;
 $("n-listas").textContent = FUNCIONES.filter((f) => f.listo).length;
 // Las herramientas que ya existen se muestran como disponibles, con lo que trae el plan gratis.
@@ -171,6 +239,61 @@ function pintar() {
 pintar();
 activarAvisame(document.querySelector(".planes"));
 activarAvisame(document.querySelector(".mecenas"));
+
+/* ---------- casilla de sugerencias (public.sugerencias, rpc sugerir; la moderación las ve en admin/) ---------- */
+const MAX_SUG = 800, MIN_SUG = 10;
+const TEMAS = { ...Object.fromEntries(AREAS.map((a) => [a.k, a.n])), ...AREAS_SUGERENCIA };
+const TIMBRE = { nueva: "Recibida", leida: "Leída", anotada: "La anotamos", descartada: "Por ahora no" };
+let tema = "otra", MIAS = [];
+const borrador = () => { try { return localStorage.getItem("forja-sugerencia") || ""; } catch (e) { return ""; } };
+const guardarBorrador = (v) => { try { v ? localStorage.setItem("forja-sugerencia", v) : localStorage.removeItem("forja-sugerencia"); } catch (e) {} };
+
+async function casilla() {
+  if (!SES) {
+    $("casilla").innerHTML = '<div class="buzon"><div class="ranura" aria-hidden="true"></div><p style="margin:0">Para dejar una sugerencia necesitas una cuenta (así podemos responderte y evitamos mensajes automáticos).</p>' +
+      '<a class="boton" href="../entrar/?siguiente=' + encodeURIComponent("planes/#sugerir") + '">Entrar para sugerir</a></div>';
+    return;
+  }
+  const { data: s } = await sb.from("sugerencias").select("id,area,texto,estado,respuesta,creado_en").order("creado_en", { ascending: false }).limit(20);
+  MIAS = s || [];
+  const val = borrador();
+  $("casilla").innerHTML =
+    '<form class="buzon" id="f-sug" autocomplete="off"><div class="ranura" aria-hidden="true"></div>' +
+    '<label class="fx-sr" for="sug-t">Tu sugerencia</label><textarea id="sug-t" maxlength="' + MAX_SUG + '" placeholder="Ej.: me serviría poder marcar qué capítulos ya revisé en el Taller.">' + esc(val) + "</textarea>" +
+    '<div class="sobre" role="group" aria-label="Sobre qué parte de Forja"><span class="k">Sobre</span>' +
+    Object.entries(TEMAS).map(([k, n]) => '<button type="button" data-tema="' + k + '" aria-pressed="' + (k === tema) + '">' + esc(n) + "</button>").join("") + "</div>" +
+    '<div class="enviar"><small id="sug-n"></small><button type="submit" class="echar" id="sug-ok">Echar a la casilla</button></div>' +
+    '<p class="nota">No pongas datos personales ni de otras personas. Para un problema con tu cuenta o tus datos, usa <a href="../cuenta/#escribenos">Escríbenos</a>.</p></form>' +
+    '<div class="papeletas" aria-live="polite"><h3>Tus sugerencias</h3>' + papeletas() + "</div>";
+  const ta = $("sug-t"), cuenta = () => {
+    const n = ta.value.trim().length;
+    $("sug-n").textContent = n < MIN_SUG ? (n ? "Cuéntanos un poco más" : "") : n + " de " + MAX_SUG;
+    $("sug-n").classList.toggle("cerca", n > MAX_SUG * 0.9);
+    $("sug-ok").disabled = n < MIN_SUG;
+  };
+  ta.oninput = () => { cuenta(); guardarBorrador(ta.value); };
+  cuenta();
+  $("casilla").querySelectorAll("[data-tema]").forEach((b) => b.onclick = () => {
+    tema = b.dataset.tema; $("casilla").querySelectorAll("[data-tema]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  });
+  $("f-sug").onsubmit = async (e) => {
+    e.preventDefault();
+    const texto = ta.value.trim(); if (texto.length < MIN_SUG) return;
+    const ok = $("sug-ok"); ok.disabled = true; ok.textContent = "Echando…";
+    const { error } = await sb.rpc("sugerir", { texto, area: tema });
+    if (error) { toast(limite(error) || "No se pudo enviar. Intenta de nuevo."); ok.textContent = "Echar a la casilla"; cuenta(); return; }
+    guardarBorrador(""); tema = "otra";
+    toast("Gracias. Tu sugerencia ya está en la casilla.");
+    await casilla();
+  };
+}
+function papeletas() {
+  if (!MIAS.length) return '<p class="vacia">Aún no has dejado sugerencias. Lo que eches a la casilla aparece aquí, con lo que hicimos con ella.</p>';
+  return MIAS.map((x) => '<article class="papeleta ' + x.estado + '"><div class="meta"><span>' + esc(TEMAS[x.area] || "Otra cosa") + " · " + hace(x.creado_en) + '</span><span class="timbre">' + TIMBRE[x.estado] + "</span></div>" +
+    "<p>" + esc(x.texto) + "</p>" + (x.respuesta ? '<div class="resp"><b>Respuesta de Forja</b>' + esc(x.respuesta) + "</div>" : "") + "</article>").join("");
+}
+await casilla();
+if (location.hash === "#sugerir") $("sugerir").scrollIntoView({ block: "start" });
 </script>
 </body>
 </html>

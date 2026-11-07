@@ -100,7 +100,7 @@ export function navApp(actual) {
       if (act.tipo === "equipo") { $("fx-esp").hidden = false; $("fx-esp").textContent = act.nombre; }
     }
     const pl = await plan();
-    $("fx-planb").textContent = pl.mas ? "Forja Más" : "Plan gratis";
+    $("fx-planb").textContent = pl.nombre;
     $("fx-planb").classList.toggle("mas", pl.mas);
     // avisos sin leer (la moderación explica sus decisiones aquí) y acceso a moderación
     const [{ count }, adm] = await Promise.all([sb.from("avisos").select("id", { count: "exact", head: true }).eq("leido", false), sb.rpc("soy_admin")]);
@@ -114,23 +114,33 @@ export function navApp(actual) {
   document.addEventListener("click", (e) => { const c = $("fx-cuenta"); if (c && c.open && !c.contains(e.target)) c.open = false; });
 }
 
-/* --- plan y límites (los mismos que aplica la base de datos en privado.limite) --- */
+/* --- plan y límites (los mismos que aplica la base de datos en privado.limite y privado.tope) --- */
 export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30, pizarras: 1, tarjetas: 20, ideas: 50, analisis: 3 };
+// Topes que cambian por plan (privado.tope): null = sin límite. Los lectores beta llegan con su herramienta.
+export const TOPES = {
+  libre: { proyectos: 3, invitados: 1, lectores: 3, ideas: 50 },
+  mas: { proyectos: 15, invitados: 5, lectores: 15, ideas: 500 },
+  estudio: { proyectos: null, invitados: 15, lectores: 40, ideas: null },
+};
+export const NOMBRE_PLAN = { libre: "Plan gratis", mas: "Forja Más", estudio: "Forja Estudio" };
+// tope({plan} o {mas}, "proyectos") → número, o null si no hay límite.
+export const tope = (pl, clave) => { const k = (pl && pl.plan) || (pl && pl.mas ? "mas" : "libre"); return (TOPES[k] || TOPES.libre)[clave] ?? null; };
 export const palabras = (t) => ((t || "").trim().match(/\S+/g) || []).length;
 // El plan del espacio elegido sale de mis_espacios (ya cargado para el menú): no hace falta otra consulta.
 export async function plan() {
   const e = await espacioActual();
-  return { mas: !!(e && e.mas), hasta: (e && e.hasta) || null };
+  const k = e && (e.plan || (e.mas ? "mas" : "libre")) || "libre";
+  return { mas: k !== "libre", plan: k, nombre: NOMBRE_PLAN[k], hasta: (e && e.hasta) || null };
 }
-// Puede editarse si el plan es Más, o si no está archivado y no hay más proyectos en curso que el límite.
-export const editable = (p, activos, pl) => pl.mas || (p.estado !== "archivado" && activos <= LIMITES.proyectos);
+// Puede editarse si no hay más proyectos en curso que el tope del plan; en el plan gratis, además, si no está archivado.
+export const editable = (p, activos, pl) => { const t = tope(pl, "proyectos"); return t === null || (activos <= t && (pl.mas || p.estado !== "archivado")); };
 const MSG = {
-  FORJA_LIMITE_PROYECTOS: "El plan gratis permite 3 proyectos en curso. Archiva uno para plantar o reactivar otro.",
+  FORJA_LIMITE_PROYECTOS: "Llegaste al máximo de proyectos en curso de tu plan (3 gratis, 15 con Forja Más). Archiva uno para plantar o reactivar otro.",
   FORJA_LIMITE_PALABRAS: "Llegaste al límite de 20.000 palabras por proyecto del plan gratis. Lo que escribiste antes está guardado.",
-  FORJA_LIMITE_IDEAS: "El plan gratis guarda hasta 50 ideas en el Semillero. Planta o borra alguna para anotar otra.",
+  FORJA_LIMITE_IDEAS: "Llegaste al máximo de ideas en el Semillero de tu plan (50 gratis, 500 con Forja Más). Planta o borra alguna para anotar otra.",
   FORJA_LIMITE_ANALISIS: "El plan gratis permite analizar 3 obras por proyecto. Con Forja Más no hay límite.",
   FORJA_LIMITE_REFERENTES: "El plan gratis permite 30 referentes por proyecto. Quita uno para agregar otro.",
-  FORJA_SOLO_LECTURA: "Este proyecto está en solo lectura en el plan gratis.",
+  FORJA_SOLO_LECTURA: "Este proyecto está en solo lectura: hay más proyectos en curso que los que permite tu plan, o está archivado en el plan gratis.",
   FORJA_LIMITE_PIZARRAS: "El plan gratis incluye una pizarra por proyecto.",
   FORJA_LIMITE_TARJETAS: "El plan gratis permite 20 tarjetas por pizarra. Quita una para agregar otra.",
   FORJA_SOLO_MAS: "Esta pizarra es de Forja Más: puedes verla o borrarla.",
@@ -159,7 +169,7 @@ const MSG = {
   FORJA_INVITAR_PROPIO: "Ese es tu propio correo.",
   FORJA_INVITAR_YA_ESTA: "Esa persona ya tiene acceso a este proyecto.",
   FORJA_INVITAR_PENDIENTE: "Ya hay una invitación pendiente para ese correo.",
-  FORJA_INVITAR_LIMITE: "Llegaste al máximo de personas para este proyecto (1 en el plan gratis, 5 con Forja Más). Anula una invitación o quita a alguien para invitar a otra persona.",
+  FORJA_INVITAR_LIMITE: "Llegaste al máximo de personas para este proyecto (1 en el plan gratis, 5 con Forja Más, 15 con Forja Estudio). Anula una invitación o quita a alguien para invitar a otra persona.",
   FORJA_INVITAR_MUCHAS: "Enviaste muchas invitaciones hoy. Intenta mañana.",
   FORJA_INVITACION_NO: "Esta invitación ya no está disponible.",
   FORJA_INVITACION_VENCIDA: "Esta invitación venció. Pídele a quien te invitó que te envíe otra.",
@@ -173,6 +183,10 @@ const MSG = {
   FORJA_AVISO_ESPERA: "Puedes avisar a tus seguidores una vez cada 7 días.",
   FORJA_VITRINA_ENLACES: "La vitrina admite hasta 10 enlaces en «Dónde seguirlo».",
   FORJA_VITRINA_PAGO_TIER: "Un enlace de pago de una recompensa no es de un medio de pago conocido (Mercado Pago, PayPal, Flow, Ko-fi, Webpay…).",
+  FORJA_SUGERIR_SIN_CUENTA: "Para dejar una sugerencia entra con tu cuenta y confirma tu correo.",
+  FORJA_SUGERIR_TEXTO: "La sugerencia va de 10 a 800 caracteres.",
+  FORJA_SUGERIR_LIMITE: "Ya dejaste 5 sugerencias hoy. ¡Gracias! Puedes dejar más mañana.",
+  FORJA_SUGERIR_REPETIDA: "Ya nos dejaste esa misma sugerencia. La estamos leyendo.",
   FORJA_VITRINA_PAGOS: "La vitrina admite hasta 2 enlaces de pago o apoyo (Mercado Pago, PayPal, Ko-fi, Kickstarter…).",
 };
 export function limite(error) { const m = error && (error.message || ""); const k = Object.keys(MSG).find((c) => m.includes(c)); return k ? MSG[k] : null; }
@@ -201,7 +215,7 @@ export async function activarAvisame(root) {
     };
   });
 }
-export const MAS_PRONTO = "Forja Más llega pronto, con proyectos, palabras y pizarras sin límite.";
+export const MAS_PRONTO = "Forja Más llega pronto, con más proyectos, palabras y pizarras sin límite y todas las herramientas.";
 export const MAS_LINK = ' <a href="' + u("planes/") + '">Ver Forja Más</a>';
 
 /* --- sesión --- */

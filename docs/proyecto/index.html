@@ -565,7 +565,7 @@ dialog.an-d::backdrop{background:rgba(10,12,20,.5)}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen } from "../js/forja.js";
+import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, tope, NOMBRE_PLAN, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen } from "../js/forja.js";
 import { funcion } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
@@ -594,7 +594,7 @@ else conSesion($("app"), async (ses) => {
   // El proyecto manda: su espacio, su plan y lo que la persona puede hacer en él (personal o equipo).
   ACC = await accesoProyecto(ID);
   if (!ACC) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no tienes acceso a él.</div>'; return; }
-  ESP = ACC.espacio; PL = { mas: !!ACC.mas }; VER = ACC.acceso !== "editar";
+  ESP = ACC.espacio; PL = { mas: !!ACC.mas, plan: ACC.plan || (ACC.mas ? "mas" : "libre") }; VER = ACC.acceso !== "editar";
   EQS = ACC.invitado ? [] : (await espacios()).filter((x) => x.tipo === "equipo" && x.rol !== "lector");
   PERS = (await sb.rpc("proyecto_personas", { p: ID })).data || null;
   if (ACC.tipo === "equipo") try { localStorage.setItem("forja-espacio", ESP); } catch (e) {}
@@ -649,8 +649,8 @@ function armar() {
     '<label class="fx-sr" for="f-resumen">Resumen</label><textarea class="resumen" id="f-resumen" maxlength="4000" placeholder="¿De qué se trata, en pocas líneas? Se puede reescribir cuando la idea cambie.">' + esc(P.resumen || "") + "</textarea></section>" +
     equipoFila() +
     (RO ? '<div class="lectura" role="status"><b>Solo lectura</b><span>' + (nivelDe(pest) !== "editar" ? (ACC.invitado ? "En esta parte del proyecto puedes mirar, pero no editar. Si necesitas cambiar algo, pídeselo a quien te invitó." : "Puedes ver este proyecto del equipo, pero no editarlo. Si necesitas editarlo, pídele permiso a quien administra el equipo.") : P.estado === "archivado"
-      ? "Este proyecto está archivado. Puedes verlo y exportarlo; para editarlo cámbialo a otro estado (usa uno de tus " + LIMITES.proyectos + " cupos del plan gratis)."
-      : "Tienes " + ACT + " proyectos en curso y el plan gratis permite " + LIMITES.proyectos + ". Archiva " + (ACT - LIMITES.proyectos) + " (este u otro, desde Mi forja) para seguir editando. Nada se borra.") + "</span></div>" : "") +
+      ? "Este proyecto está archivado. Puedes verlo y exportarlo; para editarlo cámbialo a otro estado (usa uno de tus " + tope(PL, "proyectos") + " cupos del plan gratis)."
+      : "Hay " + ACT + " proyectos en curso y " + (PL.mas ? NOMBRE_PLAN[PL.plan] : "el plan gratis") + " permite " + tope(PL, "proyectos") + ". Archiva " + (ACT - tope(PL, "proyectos")) + " (este u otro, desde Mi forja) para seguir editando. Nada se borra.") + "</span></div>" : "") +
     '<div id="sigue"></div><div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
     '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="../biblia/?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar">' + (ACC.rol === "dueno" ? '<button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button>' : "") + "</span></div>";
 

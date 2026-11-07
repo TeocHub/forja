@@ -149,7 +149,7 @@ dialog.pl::backdrop{background:rgba(10,12,20,.45)}
   <main id="app"><div class="fx-empty">Cargando…</div></main>
 </div>
 <script type="module">
-import { sb, $, esc, toast, navApp, conSesion, espacios, espacioActual, limite, hace, LIMITES, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
+import { sb, $, esc, toast, navApp, conSesion, espacios, espacioActual, limite, hace, LIMITES, tope, NOMBRE_PLAN, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
 import { TIPOS, tc } from "../js/guias.js";
 import { CREADORES, CREADOR_INICIAL } from "../js/ruta.js";
 import { MAX_IDEA, PARA, detonante, plantarProyecto } from "../js/semillero.js";
@@ -186,7 +186,7 @@ async function cargar() {
 
 const enSemillero = () => IDEAS.filter((i) => !i.proyecto_id);
 function pintar() {
-  const ed = escribe(E), n = enSemillero().length, libre = !E.mas, max = LIMITES.ideas, lleno = libre && n >= max;
+  const ed = escribe(E), n = enSemillero().length, max = tope(E, "ideas"), libre = max !== null, lleno = libre && n >= max;
   $("app").innerHTML =
     '<header><h1>Semillero</h1><p class="lead">' + (E.tipo === "equipo" ? "Las ideas sueltas de " + esc(E.nombre) + ". Cualquiera del equipo con permiso para editar puede anotar y plantar." : "Ideas de una frase. No son proyectos ni gastan cupo: las plantas cuando una te siga dando vueltas.") + "</p></header>" +
     (ESPS.length > 1 ? '<div class="bandejas" role="group" aria-label="Qué semillero ver">' + ESPS.map((x) => '<button type="button" data-bandeja="' + x.id + '" aria-pressed="' + (x.id === E.id) + '">' + esc(nombreEsp(x)) + (x.tipo === "equipo" ? "<small>equipo</small>" : "") + "</button>").join("") + "</div>" : "") +
@@ -195,8 +195,8 @@ function pintar() {
       '<svg class="anillo" id="anillo" viewBox="0 0 30 30" aria-hidden="true"><circle class="f" cx="15" cy="15" r="12"/><circle class="v" cx="15" cy="15" r="12" stroke-dasharray="75.4" stroke-dashoffset="75.4"/><text x="15" y="15.5" id="anillo-n"></text></svg>' +
       '<button class="sembrar" type="submit" id="b-sembrar" disabled>Anotar</button></div>' +
       '<div class="pie"><span>Una frase de hasta ' + MAX_IDEA + " caracteres. Sin juzgarla: eso viene después.</span>" +
-      (libre ? '<span class="tope"><span>' + n + " de " + max + '</span><span class="fx-avance"><i style="width:' + Math.min(100, (n / max) * 100) + '%"></i></span></span>' : "<span>Forja Más · sin límite</span>") + "</div>" +
-      (lleno ? '<p class="hint" style="margin:0">Llegaste a las ' + max + " ideas del plan gratis. Las que plantes dejan de contar. " + MAS_PRONTO + MAS_LINK + "</p>" : "") + "</form>" +
+      (libre ? '<span class="tope"><span>' + n + " de " + max + '</span><span class="fx-avance"><i style="width:' + Math.min(100, (n / max) * 100) + '%"></i></span></span>' : "<span>" + NOMBRE_PLAN[E.plan || "estudio"] + " · sin límite</span>") + "</div>" +
+      (lleno ? '<p class="hint" style="margin:0">Llegaste a las ' + max + " ideas de tu plan. Las que plantes dejan de contar. " + (E.mas ? 'Forja Estudio no tiene límite de ideas. <a href="../planes/">Ver planes</a>' : MAS_PRONTO + MAS_LINK) + "</p>" : "") + "</form>" +
       '<aside class="detona" aria-live="polite" id="detona"></aside></div>'
       : '<p class="hint">Puedes ver el semillero del equipo. Para anotar o plantar ideas, pídele permiso de edición a quien administra el equipo.</p>') +
     '<section style="display:flex;flex-direction:column;gap:10px"><div class="cab"><h2>La bandeja <span class="hint" style="font-family:var(--f-body);font-weight:400">· ' + (n === 1 ? "1 idea" : n + " ideas") + "</span></h2>" +
@@ -335,9 +335,9 @@ async function dialogoPlantar(i) {
   const d = document.createElement("dialog"); d.className = "pl"; d.setAttribute("aria-label", "Plantar la idea");
   document.body.appendChild(d);
   const cupo = async () => {
-    if (destino.mas) return null;
+    const max = tope(destino, "proyectos"); if (max === null) return null;
     const { count } = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", destino.id).neq("estado", "archivado");
-    return (count || 0) >= LIMITES.proyectos ? count : null;
+    return (count || 0) >= max ? count : null;
   };
   const pintarD = async () => {
     const lleno = await cupo();
@@ -347,7 +347,7 @@ async function dialogoPlantar(i) {
       '<div><span class="hint">¿Qué es?</span><div class="tipos" role="group" aria-label="Categoría">' + Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipo) + '">' + n + "</button>").join("") + "</div></div>" +
       '<div><span class="hint">¿Cómo trabajas en este proyecto?</span><div class="como" role="radiogroup" aria-label="Cómo trabajas">' + Object.entries(CREADORES).map(([k, c]) => '<button type="button" role="radio" data-cr="' + k + '" aria-checked="' + (k === creador) + '">' + c.n + "</button>").join("") + '</div><p class="como-d">' + esc(CREADORES[creador].d) + "</p></div>" +
       (destinos.length > 1 ? '<label><span>Plantarlo en</span><select id="p-dest">' + destinos.map((x) => '<option value="' + x.id + '"' + (x.id === destino.id ? " selected" : "") + ">" + esc(x.tipo === "personal" ? "Mi forja" : x.nombre) + "</option>").join("") + "</select></label>" : "") +
-      (lleno !== null ? '<p class="aviso">' + (destino.tipo === "personal" ? "Tienes " : "El equipo tiene ") + lleno + " proyectos en curso y el plan gratis permite " + LIMITES.proyectos + ". Archiva uno en Proyectos para plantar esta idea; mientras, sigue guardada aquí.</p>" : "") +
+      (lleno !== null ? '<p class="aviso">' + (destino.tipo === "personal" ? "Tienes " : "El equipo tiene ") + lleno + " proyectos en curso y su plan permite " + tope(destino, "proyectos") + ". Archiva uno en Proyectos para plantar esta idea; mientras, sigue guardada aquí.</p>" : "") +
       '<div class="acc"><button type="button" class="btn" data-x>Ahora no</button><button type="submit" class="btn prim" id="p-ok"' + (lleno !== null ? " disabled" : "") + ">Plantar y abrir</button></div></form>";
     d.querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { tipo = b.dataset.t; d.querySelectorAll("[data-t]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
     d.querySelectorAll("[data-cr]").forEach((b) => b.onclick = () => { creador = b.dataset.cr; try { localStorage.setItem("forja-creador", creador); } catch (e) {} d.querySelectorAll("[data-cr]").forEach((x) => x.setAttribute("aria-checked", String(x === b))); d.querySelector(".como-d").textContent = CREADORES[creador].d; });

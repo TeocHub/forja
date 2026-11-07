@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap">
 <link rel="stylesheet" href="../css/forja.css">
 <style>
-/* Layout: moderación — pestañas (reportes, mensajes, suspendidas, Explorar, registro); cada caso es una tarjeta con sus pruebas y sus decisiones */
+/* Layout: moderación — pestañas (reportes, mensajes, sugerencias, suspendidas, Explorar, correos, registro); cada caso es una tarjeta con sus pruebas y sus decisiones */
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
 .wrap{max-width:1040px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 :where(button,a,select,textarea):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -67,7 +67,7 @@ dialog.ver::backdrop{background:rgba(10,12,20,.6)}
 <script type="module">
 import { sb, $, esc, toast, navApp, conSesion, limite, hace } from "../js/forja.js";
 import { pintarVitrina, CSS_VITRINA } from "../js/vitrina.js";
-import { FUNCIONES } from "../js/planes.js";
+import { FUNCIONES, AREAS, AREAS_SUGERENCIA } from "../js/planes.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
 navApp(null);
 const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
@@ -93,13 +93,13 @@ async function cargar() {
   if (error) { $("app").innerHTML = '<div class="vacio">No se pudo cargar el panel: ' + esc(error.message) + "</div>"; return; }
   D = data; pintar();
 }
-const TABS = [["reportes", "Reportes"], ["mensajes", "Mensajes y apelaciones"], ["suspendidas", "Suspendidas"], ["explorar", "En Explorar"], ["correos", "Correos"], ["registro", "Registro"]];
+const TABS = [["reportes", "Reportes"], ["mensajes", "Mensajes y apelaciones"], ["sugerencias", "Sugerencias"], ["suspendidas", "Suspendidas"], ["explorar", "En Explorar"], ["correos", "Correos"], ["registro", "Registro"]];
 function pintar() {
-  const n = { reportes: D.reportes.length, mensajes: D.mensajes.length };
+  const n = { reportes: D.reportes.length, mensajes: D.mensajes.length, sugerencias: (D.sugerencias || []).length };
   $("app").innerHTML = "<h1>Moderación</h1><p class=\"lead\">Cada decisión la toma una persona y queda en el registro. Al suspender, explica siempre el porqué: el dueño lo recibe como aviso y puede apelar.</p>" +
     '<div class="tabs" role="tablist">' + TABS.map(([k, t]) => '<button type="button" role="tab" data-t="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? "<b>" + n[k] + "</b>" : "") + "</button>").join("") + '</div><div id="lista"></div>';
   $("app").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { pest = b.dataset.t; pintar(); });
-  ({ reportes, mensajes, suspendidas, explorar, correos, registro })[pest]();
+  ({ reportes, mensajes, sugerencias, suspendidas, explorar, correos, registro })[pest]();
 }
 const verBtn = (id, t) => '<button type="button" class="btn" data-ver="' + id + '" data-tt="' + esc(t || "") + '">Ver vitrina</button>';
 function enlazarVer() {
@@ -180,6 +180,27 @@ function mensajes() {
     toast("Respuesta enviada."); await cargar();
   });
 }
+/* ---------- sugerencias de la comunidad (casilla de planes/) ---------- */
+const TEMA_SUG = { ...Object.fromEntries(AREAS.map((a) => [a.k, a.n])), ...AREAS_SUGERENCIA };
+const EST_SUG = { leida: "Leída", anotada: "Anotada", descartada: "Por ahora no" };
+function sugerencias() {
+  const S = D.sugerencias || [], V = D.sugerencias_vistas || [], A = D.sugerencias_areas || {};
+  const resumen = Object.keys(A).length ? '<p class="lead" style="margin:0 0 12px">Sin contar las descartadas: ' + Object.entries(A).sort((x, y) => y[1] - x[1]).map(([k, c]) => esc(TEMA_SUG[k] || k) + " <b>" + c + "</b>").join(" · ") + "</p>" : "";
+  $("lista").innerHTML = resumen + (S.length ? S.map((s) => '<article class="caso" data-s="' + s.id + '"><div class="caso-cab"><h2>' + esc(TEMA_SUG[s.area] || s.area) + "<small>cuenta " + esc(s.autor) + "… de " + (s.cuenta_dias ?? "?") + (s.cuenta_dias === 1 ? " día · " : " días · ") + s.del_autor + (s.del_autor === 1 ? " sugerencia" : " sugerencias") + " · " + hace(s.creado_en) + "</small></h2></div>" +
+    '<p class="texto">' + esc(s.texto) + "</p>" +
+    '<div class="forma"><label>Respuesta (opcional; le llega como aviso)<textarea class="r-t" style="min-height:70px" placeholder="Ej.: La anotamos para el Taller. ¡Gracias por escribir!"></textarea></label>' +
+    '<div class="acc" style="border:0;padding:0"><button type="button" class="btn prim" data-est="anotada">La anotamos</button><button type="button" class="btn" data-est="leida">Leída</button><button type="button" class="btn" data-est="descartada">Por ahora no</button></div></div></article>').join("")
+    : '<div class="vacio">No hay sugerencias nuevas.</div>') +
+    (V.length ? '<h2 style="font-family:var(--f-display);font-size:18px;margin:22px 0 10px">Revisadas hace poco</h2>' + V.map((s) => '<article class="caso"><div class="caso-cab"><h2>' + esc(TEMA_SUG[s.area] || s.area) + "<small>" + hace(s.revisado_en) + '</small></h2><span class="tag">' + EST_SUG[s.estado] + "</span></div>" +
+      '<p class="texto">' + esc(s.texto) + "</p>" + (s.respuesta ? '<p class="lead" style="margin:0"><b>Respondimos:</b> ' + esc(s.respuesta) + "</p>" : "") + "</article>").join("") : "");
+  $("lista").querySelectorAll("[data-est]").forEach((b) => b.onclick = async () => {
+    const c = b.closest("[data-s]"), respuesta = c.querySelector(".r-t").value.trim();
+    c.querySelectorAll("button").forEach((x) => (x.disabled = true));
+    const { error } = await sb.rpc("mod_sugerencia", { s: c.dataset.s, estado: b.dataset.est, respuesta: respuesta || null });
+    if (error) { toast(limite(error) || error.message); c.querySelectorAll("button").forEach((x) => (x.disabled = false)); return; }
+    toast(respuesta ? "Listo. Se le avisó a quien la escribió." : "Listo."); await cargar();
+  });
+}
 function suspendidas() {
   if (!D.suspendidas.length) { $("lista").innerHTML = '<div class="vacio">No hay vitrinas suspendidas.</div>'; return; }
   $("lista").innerHTML = D.suspendidas.map((s) => '<article class="caso" data-v="' + s.vitrina_id + '"><div class="caso-cab"><h2>' + esc(s.titulo || s.slug) + "<small>" + esc(s.slug) + '</small></h2><span class="tag mal">' + esc(MOTIVOS[(s.suspension || {}).motivo] || "") + "</span></div>" +
@@ -255,7 +276,7 @@ async function correos() {
   };
 }
 function registro() {
-  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje", anunciar_funcion: "Anunció una herramienta", boletin: "Envió el boletín" };
+  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje", sugerencia: "Revisó una sugerencia", anunciar_funcion: "Anunció una herramienta", boletin: "Envió el boletín" };
   $("lista").innerHTML = D.registro.length ? '<div class="caso"><div class="reg">' + D.registro.map((r) => "<span>" + esc(String(r.en).slice(0, 16).replace("T", " ")) + "</span><div><b>" + esc(A[r.accion] || r.accion) + "</b>" + (r.detalle && (r.detalle.mensaje || r.detalle.motivo) ? " · " + esc(MOTIVOS[r.detalle.motivo] || "") + " " + esc((r.detalle.mensaje || "").slice(0, 120)) : "") + "</div>").join("") + "</div></div>" : '<div class="vacio">Aún no hay decisiones registradas.</div>';
 }
 </script>

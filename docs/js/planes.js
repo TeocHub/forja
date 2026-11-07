@@ -2,7 +2,11 @@
 // y para medir con "Avísame" qué conviene construir primero (tabla public.interes_funciones).
 // Las que tienen `listo` ya funcionan; `libre` dice qué parte trae el plan gratis.
 
-export const PRECIO = { mes: 2990, anio: 29900 };
+// Precios de lanzamiento (pueden cambiar: lo dicen planes/ y terminos/#planes).
+export const PRECIOS = { mas: { mes: 2990, anio: 29900 }, estudio: { mes: 5990, anio: 59900 } };
+export const PRECIO = PRECIOS.mas;
+// Áreas que se pueden elegir al dejar una sugerencia (las de AREAS más estas dos); igual que el check de public.sugerencias.
+export const AREAS_SUGERENCIA = { planes: "Planes y precios", otra: "Otra cosa" };
 
 export const AREAS = [
   { k: "escritura", n: "Escritura", d: "Para quien escribe mucho y quiere ver su obra como libro." },

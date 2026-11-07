@@ -196,7 +196,7 @@ else conSesion($("app"), async () => {
   ACC = await accesoProyecto(ID);
   if (!ACC || (ACC.areas || {}).vitrina !== "editar") { $("app").innerHTML = '<a class="vol" href="../../proyecto/?p=' + ID + '">← Volver al proyecto</a><div class="fx-empty">' + (ACC ? "Puedes ver este proyecto, pero no editar su vitrina." : "Este proyecto no existe o no tienes acceso a él.") + "</div>"; return; }
   const ESP = ACC.espacio;
-  PL = { mas: !!ACC.mas };
+  PL = { mas: !!ACC.mas, plan: ACC.plan || (ACC.mas ? "mas" : "libre") };
   const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
   const [pr, se, re, pz, no, vi] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),

@@ -122,11 +122,12 @@ create table public.precios_comunidad(
 -- RLS: cualquier usuario con cuenta lee; insertar y borrar solo el autor.
 -- La columna autor no se puede leer (permiso de select por columnas, sin autor).
 
--- Planes: espacios.plan ('libre' | 'mas') y espacios.plan_hasta; los usuarios solo pueden actualizar espacios.nombre.
+-- Planes: espacios.plan ('libre' | 'mas' | 'estudio') y espacios.plan_hasta; los usuarios solo pueden actualizar espacios.nombre.
+-- (Topes por plan en privado.tope: ver «Forja Estudio» al final.)
 -- Límites del plan libre (privado.limite): 3 proyectos en curso, 20.000 palabras por proyecto, 30 referentes por proyecto.
 -- Triggers before insert/update: proyectos (privado.t_proyectos), secciones (t_secciones), referentes (t_referentes),
 -- notas y cotizaciones (t_lectura). Errores: FORJA_LIMITE_PROYECTOS, FORJA_LIMITE_PALABRAS, FORJA_LIMITE_REFERENTES, FORJA_SOLO_LECTURA.
--- Un proyecto es editable si el espacio es Más, o si no está archivado y el espacio no supera los proyectos en curso.
+-- Un proyecto es editable si el espacio no supera el tope de proyectos en curso de su plan y, en el plan gratis, si no está archivado.
 
 -- "Avísame" de las funciones de Forja Más: interes_funciones(user_id, funcion, creado_en), PK (user_id, funcion).
 -- RLS: cada usuario ve, crea y borra solo sus filas.
@@ -382,3 +383,31 @@ create table public.ideas(        -- Semillero: ideas de una frase, por espacio 
 -- Se borró privado.edita_en(p, e): las políticas usan privado.edita_area_en desde los permisos por área.
 -- pg_cron 'forja-limpieza' '17 4 * * 0': delete from cron.job_run_details where end_time < now() - interval '14 days'.
 -- mis_espacios() devuelve también 'hasta' (plan_hasta si el espacio tiene Forja Más): la web ya no consulta espacios para saber el plan.
+
+-- Forja Estudio (2026-11-07, migraciones plan_estudio y plan_estudio_mover_y_acceso) ----------------------------------------
+-- espacios.plan admite 'estudio'. privado.plan_de(e) = 'libre' | 'mas' | 'estudio' (vencido = 'libre');
+-- privado.es_mas(e) = plan_de in ('mas','estudio') (las herramientas de pago son las mismas en ambos).
+-- privado.tope(e, clave) (null = sin límite; sin execute para authenticated, se usa dentro de funciones security definer):
+--   proyectos 3 · 15 · null; invitados 1 · 5 · 15; ideas 50 · 500 · null; lectores (beta, herramienta aún no construida) 3 · 15 · 40;
+--   el resto cae en privado.limite en el plan gratis. privado.max_invitados(p) = tope(espacio del proyecto, 'invitados').
+-- privado.editable(p): tope null → sí; Más/Estudio → activos <= tope (un archivado sigue editable); gratis → no archivado y activos <= tope.
+-- t_proyectos, t_ideas y mover_proyecto usan el tope del plan; t_secciones, t_referentes, t_pizarras y t_lectura revisan editable
+--   también con Más/Estudio (al pasar de Estudio a Más con más de 15 en curso todo queda en solo lectura, salvo archivar y recortar).
+-- mis_espacios() y acceso_proyecto(p) traen 'plan'.
+
+-- Sugerencias de la comunidad (2026-11-07, migraciones sugerencias_comunidad y mod_panel_sugerencias) -----------------------
+create table public.sugerencias (
+  id uuid primary key default gen_random_uuid(),
+  autor uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  area text not null default 'otra' check (area in ('escritura','impresion','pizarras','organizacion','venta','presentacion','equipo','planes','otra')),
+  texto text not null check (char_length(texto) between 10 and 800),
+  estado text not null default 'nueva' check (estado in ('nueva','leida','anotada','descartada')),
+  respuesta text check (respuesta is null or char_length(respuesta) <= 1500),
+  creado_en timestamptz not null default now(),
+  revisado_en timestamptz
+);
+-- RLS: cada persona solo ve las suyas (select); no hay insert/update/delete directo.
+-- sugerir(texto, area): correo confirmado, 10–800 caracteres, 5 por día, no la misma frase dos veces
+--   (FORJA_SUGERIR_SIN_CUENTA, FORJA_SUGERIR_TEXTO, FORJA_SUGERIR_LIMITE, FORJA_SUGERIR_REPETIDA); un área desconocida queda 'otra'.
+-- mod_sugerencia(s, estado leida|anotada|descartada, respuesta?) (admin): la respuesta llega en public.avisos con enlace planes/#sugerir; queda en privado.registro ('sugerencia').
+-- mod_panel() trae 'sugerencias' (nuevas), 'sugerencias_vistas' (30 últimas revisadas) y 'sugerencias_areas' (cuántas por área, sin descartadas).
