@@ -216,7 +216,7 @@ async function correos() {
   const VIS = vi.data || [];
   const fun = FUNCIONES.map((f) => ({ ...f, n: (I.find((x) => x.funcion === f.k) || {}).pendientes || 0 })).sort((a, b) => b.n - a.n);
   $("lista").innerHTML =
-    '<article class="caso"><div class="caso-cab"><h2>Estado de los envíos</h2></div><p class="texto">' + E.pendientes + " en cola · " + E.hoy + " enviados en 24 h · " + E.fallidos + " fallidos · " + E.boletin + " suscritos al boletín\nSalen desde novedades@ de a poco: hasta 40 por hora y 90 por día, para no pasar el límite del buzón.</p>" +
+    '<article class="caso"><div class="caso-cab"><h2>Estado de los envíos</h2></div><p class="texto">' + E.pendientes + " en cola · " + E.hoy + " enviados en 24 h · " + E.fallidos + " fallidos · " + E.boletin + " suscritos al boletín\nSalen desde forja@ por Resend, de a poco: hasta 40 por hora y 90 por día, bajo el límite del plan gratis (100 al día).</p>" +
       (E.errores.length ? E.errores.map((e) => '<p class="texto" style="color:var(--bad)">' + esc(e.tipo) + " · " + esc(e.error) + "</p>").join("") : "") + "</article>" +
     '<article class="caso" id="c-fun"><div class="caso-cab"><h2>Anunciar una herramienta lista</h2></div><p class="lead">Le llega solo a quienes tocaron «Avísame» en esa herramienta y no se han dado de baja. Cada persona recibe el aviso una vez.</p><div class="forma">' +
       '<label>Herramienta<select id="f-k">' + fun.map((f) => '<option value="' + f.k + '">' + esc(f.t) + " · " + f.n + (f.n === 1 ? " persona" : " personas") + "</option>").join("") + "</select></label>" +
