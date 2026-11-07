@@ -352,3 +352,21 @@ create table privado.config(clave text primary key, valor text not null);   -- '
 --   (con cuenta; tier debe existir en lo publicado; no la propia; interés activo y campaña no cerrada; 40 por día; sigue la vitrina si seguir.activo),
 --   recompensas_de(v) (privado.ve del proyecto: conteo por recompensa y personas), mis_anotadas().
 -- La campaña en sí vive en cotizaciones.datos.campana (sin cambios de esquema).
+
+-- Ruta del proyecto (2026-11-07, migración ruta_cimientos) -------------------------------
+-- proyectos.ruta jsonb  {creador: 'plano'|'rumbo'|'explora', etapa: 1..7, hechos: {tecnica: fecha}, abrir: 'ruta'|'taller'|'ultima', oculta: bool}
+-- proyectos.esquema jsonb (Mapa de la idea) y proyectos.estructura jsonb (Estructura): ver docs/js/ruta.js. Se editan con el permiso del área Taller.
+-- Tamaños: ruta < 20.000 bytes, esquema < 40.000, estructura < 60.000.
+-- referentes.tipo admite 'obra'; referentes.ficha jsonb (datos tipo APA: clase, autores, anio, titulo, edicion, editorial, paginas…)
+-- y referentes.analisis jsonb (Analizar una obra). Plan gratis: 3 obras analizadas por proyecto (FORJA_LIMITE_ANALISIS, privado.limite('analisis')).
+-- privado.limite: proyectos 3, palabras 20000, referentes 30, pizarras 1, tarjetas 20, ideas 50, analisis 3.
+create table public.ideas(        -- Semillero: ideas de una frase, por espacio (personal o equipo); no gastan cupo de proyectos
+  id uuid primary key default gen_random_uuid(),
+  espacio_id uuid not null references public.espacios(id) on delete cascade,
+  texto text not null check (char_length(btrim(texto)) between 1 and 80),
+  creado_por uuid default auth.uid() references auth.users(id) on delete set null,
+  proyecto_id uuid references public.proyectos(id) on delete set null,   -- el proyecto que nació de la idea
+  creado_en timestamptz not null default now()
+);
+-- RLS: ver = miembro del espacio (privado.rol_en); crear, editar y borrar = privado.escribe_en.
+-- Trigger privado.t_ideas: espacio fijo, plan gratis 50 ideas por espacio (FORJA_LIMITE_IDEAS).

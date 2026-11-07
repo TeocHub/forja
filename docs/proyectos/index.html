@@ -50,6 +50,11 @@ button{cursor:pointer}
 .cupo.mas b{color:var(--ember)}
 .candado{vertical-align:-1px;color:var(--e-pausa)}
 .semilla input:disabled{cursor:not-allowed}
+.como{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;border-top:1px dashed var(--line);padding-top:10px}
+.como-t{font-size:13px;color:var(--muted);margin-right:2px}
+.como button{font:inherit;font-size:13px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:3px 11px;cursor:pointer}
+.como button[aria-checked="true"]{border-color:var(--accent);color:var(--fg);background:var(--accent-soft);font-weight:700}
+.como-d{flex-basis:100%;font-size:12.5px;color:var(--muted)}
 .buscador{display:flex;flex-direction:column;gap:10px;margin-top:20px}
 .b-fila{display:flex;gap:8px;flex-wrap:wrap}
 .b-fila input{flex:1 1 220px;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;font-size:15px}
@@ -109,6 +114,7 @@ import { sb, $, esc, toast, hace, navApp, espacio, espacioActual, conSesion, avi
 import { TIPOS, ESTADOS, tc, PLANTILLA, SECCIONES, pesoDe, avance } from "../js/guias.js";
 import { sendero } from "../js/ayuda.js";
 import { FORMATOS } from "../js/brujula.js";
+import { CREADORES, CREADOR_INICIAL } from "../js/ruta.js";
 navApp("proyectos");
 if (location.hash === "#cotizaciones") location.replace("../cotizaciones/");
 
@@ -169,6 +175,7 @@ function cupo() {
       : lleno ? "<p>Llegaste al máximo. Para plantar otra idea, archiva un proyecto (queda guardado y se puede ver). " + MAS_PRONTO + MAS_LINK + "</p>"
       : '<p class="hint">Archivar un proyecto libera su cupo; lo archivado se puede ver y exportar siempre. <a href="../planes/">Ver planes</a></p>') + "</div>";
 }
+let creadorNuevo = (() => { try { const c = localStorage.getItem("forja-creador"); return CREADORES[c] ? c : CREADOR_INICIAL; } catch (e) { return CREADOR_INICIAL; } })();
 function proyectos() {
   const sinCupo = !PL.mas && activos() >= LIMITES.proyectos, lector = EQUIPO() && EA.rol === "lector";
   $("panel").innerHTML = cupo() + (lector ? '<div id="semilla" hidden></div>' :
@@ -176,16 +183,23 @@ function proyectos() {
     '<input type="text" id="s-nombre" maxlength="160" placeholder="' + (sinCupo ? "Archiva un proyecto para plantar otra idea" : "¿Qué idea traes hoy?") + '" autocomplete="off"' + (sinCupo ? " disabled" : "") + '><button class="plantar" type="submit"' + (sinCupo ? " disabled" : "") + '>Plantar</button></div>' +
     '<div class="tipos" role="group" aria-label="Tipo de proyecto">' +
     Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipoNuevo) + '">' + n + "</button>").join("") +
-    '</div></form>') + '<div class="buscador" id="buscador"></div><div id="mosaico" style="margin-top:12px"></div>';
+    '</div><div class="como" role="radiogroup" aria-label="Cómo trabajas en este proyecto"><span class="como-t">¿Cómo trabajas?</span>' +
+    Object.entries(CREADORES).map(([k, c]) => '<button type="button" role="radio" data-cr="' + k + '" aria-checked="' + (k === creadorNuevo) + '" title="' + esc(c.d) + '">' + c.n + "</button>").join("") +
+    '<span class="como-d" id="como-d">' + esc(CREADORES[creadorNuevo].d) + '</span></div></form>') + '<div class="buscador" id="buscador"></div><div id="mosaico" style="margin-top:12px"></div>';
   if (!lector) $("semilla").querySelectorAll(".tipo").forEach((b) => b.onclick = () => {
     tipoNuevo = b.dataset.t; $("semilla").querySelectorAll(".tipo").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  });
+  if (!lector) $("semilla").querySelectorAll("[data-cr]").forEach((b) => b.onclick = () => {
+    creadorNuevo = b.dataset.cr; try { localStorage.setItem("forja-creador", creadorNuevo); } catch (e) {}
+    $("semilla").querySelectorAll("[data-cr]").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+    $("como-d").textContent = CREADORES[creadorNuevo].d;
   });
   if (!lector) $("semilla").onsubmit = async (e) => {
     e.preventDefault();
     const nombre = $("s-nombre").value.trim();
     if (!nombre) { $("s-nombre").focus(); return; }
     const btn = e.target.querySelector(".plantar"); btn.disabled = true;
-    const { data, error } = await sb.from("proyectos").insert({ espacio_id: ESP, nombre, tipo: tipoNuevo }).select("id").single();
+    const { data, error } = await sb.from("proyectos").insert({ espacio_id: ESP, nombre, tipo: tipoNuevo, ruta: { creador: creadorNuevo, abrir: "ruta" } }).select("id").single();
     if (error) { btn.disabled = false; toast(limite(error) || "No se pudo guardar. Revisa tu conexión."); return; }
     // Nace con las secciones que suele necesitar su tipo.
     await sb.from("secciones").insert(PLANTILLA[tipoNuevo].map((g, i) => ({ espacio_id: ESP, proyecto_id: data.id, titulo: SECCIONES[g].t, guia: g, orden: i, peso: pesoDe(g) })));

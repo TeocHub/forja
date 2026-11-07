@@ -6,6 +6,7 @@
 
 const ICO = {
   plantar: '<path d="M12 21v-8"/><path d="M12 13c0-4 3-7 7-7 0 4-3 7-7 7Z"/><path d="M12 15c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5Z"/>',
+  ruta: '<circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M7 18h6a4 4 0 0 0 0-8h-2a4 4 0 0 1 0-8"/>',
   taller: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/>',
   referentes: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
   brujula: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/>',
@@ -38,6 +39,13 @@ export const TEMAS = [
     consejo: "No esperes a tener la idea completa. Una semilla con nombre y una frase ya sirve: Forja te va haciendo las preguntas.",
     plan: ["3 proyectos en curso (los archivados no cuentan)", "Proyectos sin límite"],
     ir: () => u("proyectos/#semilla"), claves: "crear nuevo proyecto empezar categoría formato estado archivar semilla cupo" },
+  { id: "ruta", n: "La ruta del proyecto", donde: "Pestaña Ruta de cada proyecto",
+    corto: "Las etapas de cualquier proyecto, de la inspiración a la vitrina, con técnicas para cada una. Te orienta, no te obliga.",
+    para: "Todo proyecto pasa por etapas parecidas: inspirarse, sembrar ideas, dibujar el mapa de la idea, darle estructura, hacer una primera versión, revisarla y mostrarla. La ruta te dice en qué etapa vas y qué podrías hacer ahora, con técnicas que te llevan a la herramienta indicada. Tú decides el ritmo: puedes saltar etapas, volver atrás o cerrar las sugerencias.",
+    pasos: ["Al plantar, elige cómo trabajas: «Lo planifico todo», «Sé a dónde voy» o «Lo descubro haciendo». Cambia cuánta guía ves.", "En la pestaña Ruta toca una etapa para ver sus técnicas y marca «Estoy aquí» en la que vas.", "Cada técnica trae pasos cortos y un botón que abre la herramienta. Márcala como hecha cuando quieras.", "Bajo la cabecera, «Lo que sigue» te sugiere un paso. Ciérrala si no la quieres; vuelve desde la Ruta."],
+    consejo: "Forja nota cuando hay señales de avance (por ejemplo, el resumen escrito o varias secciones en revisión) y te pregunta si pasas a la siguiente etapa, pero nunca la cambia sola.",
+    plan: ["Toda la ruta y las técnicas esenciales", "Todas las técnicas de cada etapa"],
+    ir: enProyecto("ruta"), claves: "ruta etapas camino qué sigue lo que sigue guía método planificar inspirarse sembrar estructura borrador prototipo revisar pulir tipo de creador" },
   { id: "taller", linea: true, n: "El Taller", donde: "Pestaña Taller de cada proyecto",
     corto: "Escribes tu proyecto por secciones, con preguntas que te guían. Cada sección tiene su avance y el proyecto suma todo.",
     para: "El Taller ordena la escritura en secciones (premisa, personajes, mecánicas, reglas…) según lo que estés creando. Cada una trae preguntas guía para no partir de la hoja en blanco, y tu avance se calcula solo.",

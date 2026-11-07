@@ -113,7 +113,7 @@ export function navApp(actual) {
 }
 
 /* --- plan y límites (los mismos que aplica la base de datos en privado.limite) --- */
-export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30, pizarras: 1, tarjetas: 20 };
+export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30, pizarras: 1, tarjetas: 20, ideas: 50, analisis: 3 };
 export const palabras = (t) => ((t || "").trim().match(/\S+/g) || []).length;
 let planCache = null;
 export async function plan() {
@@ -129,6 +129,8 @@ export const editable = (p, activos, pl) => pl.mas || (p.estado !== "archivado" 
 const MSG = {
   FORJA_LIMITE_PROYECTOS: "El plan gratis permite 3 proyectos en curso. Archiva uno para plantar o reactivar otro.",
   FORJA_LIMITE_PALABRAS: "Llegaste al límite de 20.000 palabras por proyecto del plan gratis. Lo que escribiste antes está guardado.",
+  FORJA_LIMITE_IDEAS: "El plan gratis guarda hasta 50 ideas en el Semillero. Planta o borra alguna para anotar otra.",
+  FORJA_LIMITE_ANALISIS: "El plan gratis permite analizar 3 obras por proyecto. Con Forja Más no hay límite.",
   FORJA_LIMITE_REFERENTES: "El plan gratis permite 30 referentes por proyecto. Quita uno para agregar otro.",
   FORJA_SOLO_LECTURA: "Este proyecto está en solo lectura en el plan gratis.",
   FORJA_LIMITE_PIZARRAS: "El plan gratis incluye una pizarra por proyecto.",

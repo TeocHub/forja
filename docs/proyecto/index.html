@@ -95,6 +95,69 @@ button.ar-chip{cursor:pointer}
 .pronto-cab b{font-family:var(--f-display);font-size:15px}
 .pronto-cab a{font-size:13px}
 .pronto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+/* ruta */
+.sigue{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:10px 12px 10px 14px}
+.sg-izq{display:flex;flex-direction:column;gap:4px;min-width:150px}
+.sg-k{font-family:var(--f-num);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.sg-via{display:flex;gap:4px}
+.sg-via i{width:14px;height:5px;border-radius:3px;background:var(--line)}
+.sg-via i.ya{background:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.sg-via i.aqui{background:var(--accent);width:22px}
+.sg-n{font-size:12.5px;color:var(--muted)}
+.sg-txt{flex:1 1 260px;margin:0;font-size:14px;color:var(--muted)}
+.sg-txt b{color:var(--fg)}
+.sg-acc{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sg-x{border:0;background:none;color:var(--muted);font-size:20px;line-height:1;padding:2px 6px;border-radius:6px}
+.sg-x:hover{color:var(--fg);background:var(--field)}
+.ruta{margin-top:14px;display:flex;flex-direction:column;gap:14px}
+.rt-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 18px}
+.rt-cab p{margin:4px 0 0}
+.rt-ajustes{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.rt-como{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:999px;background:var(--card);overflow:hidden}
+.rt-como button{border:0;background:transparent;color:var(--muted);font-size:13px;padding:5px 12px}
+.rt-como button[aria-checked="true"]{background:var(--fg);color:var(--bg);font-weight:700}
+.rt-abrir{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.rt-abrir select{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 10px;font-size:13px}
+.rt-como-d{margin:-6px 0 0;font-size:13px;color:var(--muted)}
+.rt-via{display:grid;grid-template-columns:repeat(7,minmax(104px,1fr));overflow-x:auto;scrollbar-width:thin;position:relative;padding:4px 2px 2px}
+.rt-via button{position:relative;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 4px 8px;text-align:center;color:var(--muted)}
+.rt-via button::before{content:"";position:absolute;top:19px;left:0;right:0;height:2px;background:var(--line);z-index:0}
+.rt-via button:first-child::before{left:50%}.rt-via button:last-child::before{right:50%}
+.rt-via button.con::before{background:color-mix(in srgb,var(--tc) 40%,var(--line))}
+.rt-num{position:relative;z-index:1;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-num);font-size:13px;font-weight:700;background:var(--card);border:2px solid var(--line);color:var(--muted)}
+.rt-via button.con .rt-num{border-color:color-mix(in srgb,var(--tc) 55%,var(--line));color:var(--fg)}
+.rt-via button.aqui .rt-num{background:var(--tc);border-color:var(--tc);color:#fff}
+.rt-via button[aria-selected="true"] .rt-num{box-shadow:0 0 0 4px color-mix(in srgb,var(--tc) 22%,transparent)}
+.rt-nom{font-size:13px;line-height:1.25;text-wrap:balance}
+.rt-via button[aria-selected="true"] .rt-nom{color:var(--fg);font-weight:700}
+.rt-via small{font-size:11px;color:var(--tc);min-height:14px}
+.rt-etapa{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.rt-et-cab{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.rt-et-cab>div{flex:1 1 260px}
+.rt-et-cab h3{margin:0;font-family:var(--f-display);font-size:22px;line-height:1.15}
+.rt-et-cab p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.rt-big{font-family:var(--f-display);font-size:44px;line-height:.9;font-weight:700;color:color-mix(in srgb,var(--tc) 70%,var(--fg))}
+.rt-aqui{font-size:12.5px;font-weight:700;color:var(--tc);border:1.5px solid var(--tc);border-radius:999px;padding:3px 10px}
+.rt-explora{margin:0}
+.rt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.rt-tec{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.rt-tec h4{margin:0;font-family:var(--f-display);font-size:16.5px;line-height:1.2}
+.rt-tec p{margin:0;font-size:13.5px;color:var(--muted)}
+.rt-tec.hecha{border-color:color-mix(in srgb,var(--good) 45%,var(--line));background:color-mix(in srgb,var(--good) 5%,var(--bg))}
+.rt-tec.bloq{opacity:.75}
+.rt-tec-top{display:flex;justify-content:space-between;align-items:center;gap:6px;min-height:20px}
+.rt-min{font-family:var(--f-num);font-size:11.5px;color:var(--muted)}
+.rt-pronto,.rt-mas,.rt-ok{font-size:11px;font-weight:700;letter-spacing:.03em;border-radius:999px;padding:1px 8px}
+.rt-pronto{color:var(--warn);background:var(--warn-soft)}
+.rt-mas{color:var(--ember);background:var(--ember-soft);text-decoration:none}
+.rt-ok{color:var(--good);background:var(--good-soft)}
+.rt-pasos{display:flex;flex-direction:column;gap:5px;border-top:1px dashed var(--line);padding-top:8px}
+.rt-pasos span{display:flex;gap:8px;font-size:13px;line-height:1.4}
+.rt-pasos i{flex:none;font-style:normal;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-num);font-size:10.5px;background:color-mix(in srgb,var(--tc) 14%,var(--card));color:var(--fg)}
+.rt-tec-acc{margin-top:auto;display:flex;gap:6px;flex-wrap:wrap;padding-top:4px}
+.rt-todas{align-self:flex-start;border:0;background:none;color:var(--accent);font-size:14px;padding:0;text-decoration:underline;text-underline-offset:3px}
+.rt-nav{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+@media (max-width:640px){.rt-via{grid-template-columns:repeat(7,92px)}.rt-etapa{padding:14px}.rt-big{font-size:34px}.sigue .sg-acc{width:100%}}
 /* vitrina */
 .vit-vivo{font-size:13px;font-weight:700;color:var(--good)}
 .vit-hero{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:20px;align-items:center}
@@ -315,13 +378,14 @@ import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FO
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
 import { montar, MODOS, cuentaTarjetas, normal as normalPiz, CSS_PIZARRA } from "../js/pizarra.js";
 import { pista } from "../js/ayuda.js";
+import * as R from "../js/ruta.js";
 navApp("proyectos");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + "</style>");
 
 const ID = new URLSearchParams(location.search).get("p");
-const PESTANAS = [["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
+const PESTANAS = [["ruta", "Ruta"], ["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
 // Cada pestaña pertenece a un área; las personas invitadas pueden editar, ver o no ver cada área.
-const AREA_DE = { taller: "taller", referentes: "referentes", brujula: "taller", pizarra: "pizarra", costos: "costos", oportunidades: "oportunidades", bitacora: "bitacora", vitrina: "vitrina" };
+const AREA_DE = { ruta: "taller", taller: "taller", referentes: "referentes", brujula: "taller", pizarra: "pizarra", costos: "costos", oportunidades: "oportunidades", bitacora: "bitacora", vitrina: "vitrina" };
 const AREAS = [["taller", "Taller y ficha"], ["referentes", "Referentes"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
 const nivelDe = (k) => (ACC && ACC.areas ? ACC.areas[AREA_DE[k]] : "editar");
 const visibles = () => PESTANAS.filter(([k]) => nivelDe(k));
@@ -354,7 +418,14 @@ else conSesion($("app"), async (ses) => {
   if (P) try { localStorage.setItem("forja-ultimo-proyecto", P.id); } catch (e) {}
   if (!P) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
   SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || []; PIZ = pz.data || [];
-  const h = location.hash.slice(1); if (PESTANAS.some(([k]) => k === h) && nivelDe(h)) pest = h;
+  const h = location.hash.slice(1);
+  if (PESTANAS.some(([k]) => k === h) && nivelDe(h)) pest = h;
+  else {
+    // Dónde abre el proyecto: lo elige cada persona en la Ruta (los proyectos de antes siguen abriendo en el Taller).
+    const ab = R.estado(P.ruta).abrir; let k = ab === "ruta" ? "ruta" : "taller";
+    if (ab === "ultima") try { k = localStorage.getItem("forja-pest-" + P.id) || "taller"; } catch (e) {}
+    if (PESTANAS.some(([x]) => x === k) && nivelDe(k)) pest = k;
+  }
   armar();
 }, "Tus proyectos son privados: solo los ves tú.");
 
@@ -385,7 +456,7 @@ function armar() {
     (RO ? '<div class="lectura" role="status"><b>Solo lectura</b><span>' + (nivelDe(pest) !== "editar" ? (ACC.invitado ? "En esta parte del proyecto puedes mirar, pero no editar. Si necesitas cambiar algo, pídeselo a quien te invitó." : "Puedes ver este proyecto del equipo, pero no editarlo. Si necesitas editarlo, pídele permiso a quien administra el equipo.") : P.estado === "archivado"
       ? "Este proyecto está archivado. Puedes verlo y exportarlo; para editarlo cámbialo a otro estado (usa uno de tus " + LIMITES.proyectos + " cupos del plan gratis)."
       : "Tienes " + ACT + " proyectos en curso y el plan gratis permite " + LIMITES.proyectos + ". Archiva " + (ACT - LIMITES.proyectos) + " (este u otro, desde Mi forja) para seguir editando. Nada se borra.") + "</span></div>" : "") +
-    '<div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
+    '<div id="sigue"></div><div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
     '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="../biblia/?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar">' + (ACC.rol === "dueno" ? '<button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button>' : "") + "</span></div>";
 
   $("f-nombre").onchange = (e) => { const v = e.target.value.trim(); if (!v) { e.target.value = P.nombre; return; } guardar({ nombre: v }); document.title = "Forja · " + v; };
@@ -400,7 +471,7 @@ function armar() {
     toast("Proyecto: " + ESTADOS[nuevo].toLowerCase());
     armar();
   });
-  $("f-resumen").onchange = (e) => guardar({ resumen: e.target.value.trim() || null });
+  $("f-resumen").onchange = async (e) => { await guardar({ resumen: e.target.value.trim() || null }); pintarSigue(); };
   activarEquipo();
   if ($("b-borrar")) $("b-borrar").onclick = () => {
     $("zona-borrar").innerHTML = '<span class="hint">Se borran su escritura, referentes, pizarras, bitácora y cotización.</span> <button class="btn peligro" id="b-si">Sí, borrar</button> <button class="btn" id="b-no">Cancelar</button>';
@@ -412,10 +483,115 @@ function armar() {
       location.href = "../proyectos/";
     };
   };
-  pintarFormatos(); pintarAvance(); pintarTabs(); pintarPestana();
+  pintarFormatos(); pintarAvance(); pintarTabs(); pintarPestana(); pintarSigue();
   aplicarSoloLectura();
   // La ficha (nombre, categoría, estado, resumen) es parte del Taller: sin permiso ahí, queda para leer.
   if (nivelDe("taller") !== "editar") $("cabeza").querySelectorAll("input, textarea, select, button").forEach((el) => { el.disabled = true; if ("readOnly" in el) el.readOnly = true; });
+}
+
+/* ================= RUTA ================= */
+// Las etapas del proyecto y lo que sigue (docs/js/ruta.js). Orienta y nunca bloquea; se guarda en proyectos.ruta (área Taller).
+const ctxRuta = () => ({ tipo: P.tipo, resumen: P.resumen, secs: SECS, refs: REFS, pizarras: PIZ, vitrina: VIT, hechos: R.estado(P.ruta).hechos, esquema: P.esquema, estructura: P.estructura });
+const puedeRuta = () => nivelDe("ruta") === "editar" && editable(P, ACT, PL);
+async function guardarRuta(c, aviso) {
+  if (!puedeRuta()) { toast("Solo puedes mirar la ruta de este proyecto."); return; }
+  P.ruta = { ...(P.ruta || {}), ...c };
+  await guardar({ ruta: P.ruta }, aviso);
+}
+const DESTINO = { referentes: "Abrir Referentes", brujula: "Abrir la Brújula", pizarra: "Abrir la Pizarra", bitacora: "Abrir la Bitácora", taller: "Abrir el Taller", vitrina: "Ir a la Vitrina", biblia: "Abrir la biblia", oportunidades: "Ver oportunidades", costos: "Abrir Costos", resumen: "Escribir el resumen" };
+async function irTecnica(id) {
+  const x = Object.values(R.TECNICAS).flat().find((t) => t.id === id); if (!x || !x.ir || !R.disponible(x)) return;
+  const [dest, dato] = x.ir.split(":");
+  if (dest === "resumen") { const t = $("f-resumen"); t.scrollIntoView({ behavior: "smooth", block: "center" }); t.focus({ preventScroll: true }); return; }
+  if (dest === "biblia") { window.open("../biblia/?p=" + P.id, "_blank", "noopener"); return; }
+  if (!nivelDe(dest)) { toast("No tienes acceso a esa parte del proyecto."); return; }
+  if (dest === "taller" && dato) {
+    const gs = dato.split(",");
+    let sec = SECS.find((z) => gs.includes(z.guia));
+    if (!sec && nivelDe("taller") === "editar" && editable(P, ACT, PL)) {
+      const g = gs.find((y) => sugeridas(P.tipo, P.formato).includes(y)) || gs.find((y) => (PLANTILLA[P.tipo] || []).includes(y)) || gs[0];
+      [sec] = await crearSecciones([{ guia: g, titulo: SECCIONES[g].t }]);
+      if (sec) toast("Agregué la sección «" + sec.titulo + "» al Taller.");
+    }
+    if (sec) secActual = sec.id;
+  }
+  if (dest === "pizarra" && dato) { const z = PIZ.find((y) => y.modo === dato); if (z) { pizSel = z.id; recordarPiz(z.id); } }
+  irA(dest);
+  window.scrollTo({ top: $("tabs").getBoundingClientRect().top + scrollY - 12, behavior: "smooth" });
+}
+function pintarSigue() {
+  const w = $("sigue"); if (!w) return;
+  const E = R.estado(P.ruta);
+  if (pest === "ruta" || E.oculta || E.creador === "explora" || !nivelDe("ruta")) { w.innerHTML = ""; return; }
+  const sen = R.senales(ctxRuta()), k = R.etapaActual(P.ruta, sen), i = R.etapaIndice(k), s = R.loQueSigue(P.ruta, sen, P.tipo, PL.mas);
+  const nom = (e) => esc(R.etapaNombre(e, P.tipo));
+  let txt = "", acc = "";
+  if (s && s.tipo === "avanzar") {
+    txt = "Parece que ya avanzaste en <b>" + nom(s.etapa) + "</b>. ¿Pasas a <b>" + nom(s.siguiente) + "</b>?";
+    acc = '<button type="button" class="btn chico prim" data-sg-et="' + s.siguiente + '">Sí, pasar</button>';
+  } else if (s) {
+    txt = "<b>" + esc(s.tecnica.t) + ".</b> " + esc(s.tecnica.d);
+    acc = s.tecnica.ir ? '<button type="button" class="btn chico prim" data-sg-ir="' + s.tecnica.id + '">' + (DESTINO[s.tecnica.ir.split(":")[0]] || "Hacerlo") + "</button>" : "";
+  } else txt = "Llegaste a la última etapa. Cuando quieras, revisa la ruta completa.";
+  w.innerHTML = '<aside class="sigue" aria-label="Lo que sigue"><div class="sg-izq"><span class="sg-k">Lo que sigue</span>' +
+    '<span class="sg-via" aria-hidden="true">' + R.ETAPAS.map((e, j) => "<i" + (j < i ? ' class="ya"' : j === i ? ' class="aqui"' : "") + "></i>").join("") + "</span>" +
+    '<span class="sg-n">' + (i + 1) + " de " + R.ETAPAS.length + " · " + nom(k) + "</span></div>" +
+    '<p class="sg-txt">' + txt + '</p><div class="sg-acc">' + acc + '<button type="button" class="btn chico" data-sg-ver>Ver la ruta</button>' +
+    (puedeRuta() ? '<button type="button" class="sg-x" data-sg-x aria-label="Ocultar «Lo que sigue»" title="Ocultar">×</button>' : "") + "</div></aside>";
+  const b = (q) => w.querySelector(q);
+  if (b("[data-sg-et]")) b("[data-sg-et]").onclick = async () => { await guardarRuta({ etapa: b("[data-sg-et]").dataset.sgEt }, "Etapa: " + R.etapaNombre(b("[data-sg-et]").dataset.sgEt, P.tipo)); etapaVista = null; pintarSigue(); };
+  if (b("[data-sg-ir]")) b("[data-sg-ir]").onclick = () => irTecnica(b("[data-sg-ir]").dataset.sgIr);
+  b("[data-sg-ver]").onclick = () => { etapaVista = null; irA("ruta"); };
+  if (b("[data-sg-x]")) b("[data-sg-x]").onclick = async () => { await guardarRuta({ oculta: true }); pintarSigue(); toast("Listo. La vuelves a mostrar desde la pestaña Ruta."); };
+}
+let etapaVista = null, verTodas = false;
+function ruta() {
+  const E = R.estado(P.ruta), sen = R.senales(ctxRuta()), k = R.etapaActual(P.ruta, sen), ed = puedeRuta();
+  if (!R.ETAPAS.some((e) => e.k === etapaVista)) etapaVista = k;
+  const v = R.ETAPAS.find((e) => e.k === etapaVista), iv = R.etapaIndice(v.k), ik = R.etapaIndice(k);
+  const nom = (e) => esc(R.etapaNombre(e, P.tipo));
+  const base = R.tecnicasDe(v.k, P.tipo, E.creador === "plano" ? "plano" : "rumbo"), todas = R.todasDe(v.k, P.tipo);
+  const lista = verTodas || E.creador === "plano" ? todas : base, extra = todas.length - base.length;
+  const tarjeta = (x) => {
+    const hecho = !!E.hechos[x.id], bloq = x.mas && !PL.mas, pronto = !R.disponible(x), dest = x.ir ? x.ir.split(":")[0] : null;
+    return '<article class="rt-tec' + (hecho ? " hecha" : "") + (bloq ? " bloq" : "") + '">' +
+      '<div class="rt-tec-top">' + (x.min ? '<span class="rt-min">' + x.min + " min</span>" : '<span class="rt-min">sin apuro</span>') +
+      (bloq ? '<a class="rt-mas" href="../planes/">Forja Más</a>' : pronto ? '<span class="rt-pronto">Llega pronto</span>' : hecho ? '<span class="rt-ok">Hecho</span>' : "") + "</div>" +
+      "<h4>" + esc(x.t) + "</h4><p>" + esc(x.d) + "</p>" +
+      '<div class="rt-pasos">' + x.pasos.map((p, j) => '<span><i>' + (j + 1) + "</i>" + esc(p) + "</span>").join("") + "</div>" +
+      '<div class="rt-tec-acc">' + (dest && !pronto && !bloq ? '<button type="button" class="btn chico prim" data-rt-ir="' + x.id + '">' + (DESTINO[dest] || "Abrir") + "</button>" : "") +
+      (ed && !bloq ? '<button type="button" class="btn chico" data-rt-hecho="' + x.id + '" aria-pressed="' + hecho + '">' + (hecho ? "Desmarcar" : "Ya lo hice") + "</button>" : "") + "</div></article>";
+  };
+  $("panel").innerHTML = '<section class="ruta" style="--tc:' + tc(P.tipo) + '">' +
+    '<div class="rt-cab"><div><h2>Ruta del proyecto</h2><p class="hint">Te orienta, no te obliga: salta etapas o vuelve atrás cuando quieras.</p></div>' +
+    '<div class="rt-ajustes"><div class="rt-como" role="radiogroup" aria-label="Cómo trabajas en este proyecto">' + Object.entries(R.CREADORES).map(([c, o]) => '<button type="button" role="radio" data-rt-cr="' + c + '" aria-checked="' + (E.creador === c) + '" title="' + esc(o.d) + '"' + (ed ? "" : " disabled") + ">" + o.n + "</button>").join("") + "</div>" +
+    '<label class="rt-abrir"><span>Abrir el proyecto en</span><select id="rt-abrir"' + (ed ? "" : " disabled") + '><option value="taller"' + ((E.abrir || "taller") === "taller" ? " selected" : "") + '>el Taller</option><option value="ruta"' + (E.abrir === "ruta" ? " selected" : "") + '>la Ruta</option><option value="ultima"' + (E.abrir === "ultima" ? " selected" : "") + ">donde lo dejé</option></select></label>" +
+    (E.oculta && ed && E.creador !== "explora" ? '<button type="button" class="btn chico" id="rt-mostrar">Mostrar «Lo que sigue»</button>' : "") + "</div></div>" +
+    '<p class="rt-como-d">' + esc(R.CREADORES[E.creador].d) + "</p>" +
+    '<div class="rt-via" role="tablist" aria-label="Etapas">' + R.ETAPAS.map((e, j) => '<button type="button" role="tab" data-rt-et="' + e.k + '" aria-selected="' + (e.k === v.k) + '" class="' + (e.k === k ? "aqui" : "") + (sen[e.k] ? " con" : "") + '">' +
+      '<span class="rt-num">' + (j + 1) + '</span><span class="rt-nom">' + nom(e.k) + "</span>" + (e.k === k ? "<small>Estás aquí</small>" : sen[e.k] ? "<small>Con avance</small>" : "<small>&nbsp;</small>") + "</button>").join("") + "</div>" +
+    '<div class="rt-etapa"><div class="rt-et-cab"><span class="rt-big" aria-hidden="true">' + (iv + 1) + "</span><div><h3>" + nom(v.k) + "</h3><p>" + esc(v.que) + "</p></div>" +
+      (v.k === k ? '<span class="rt-aqui">Estás aquí</span>' : ed ? '<button type="button" class="btn chico" id="rt-aqui">Estoy en esta etapa</button>' : "") + "</div>" +
+      (E.creador === "explora" ? '<p class="hint rt-explora">Elegiste «Lo descubro haciendo»: no verás sugerencias en el proyecto. La ruta queda aquí por si la necesitas.</p>' : "") +
+      '<div class="rt-grid">' + lista.map(tarjeta).join("") + "</div>" +
+      (extra > 0 && E.creador !== "plano" ? '<button type="button" class="rt-todas" id="rt-todas">' + (verTodas ? "Ver solo lo esencial" : "Ver " + extra + (extra === 1 ? " técnica más" : " técnicas más") + " de esta etapa") + "</button>" : "") +
+      '<div class="rt-nav">' + (iv > 0 ? '<button type="button" class="btn chico" data-rt-et="' + R.ETAPAS[iv - 1].k + '">← ' + nom(R.ETAPAS[iv - 1].k) + "</button>" : "<span></span>") +
+      (iv < R.ETAPAS.length - 1 ? '<button type="button" class="btn chico" data-rt-et="' + R.ETAPAS[iv + 1].k + '">' + nom(R.ETAPAS[iv + 1].k) + " →</button>" : "") + "</div></div></section>";
+  const pnl = $("panel");
+  const via = pnl.querySelector(".rt-via"), sel = via.querySelector('[aria-selected="true"]');
+  if (via.scrollWidth > via.clientWidth) via.scrollLeft = sel.offsetLeft - (via.clientWidth - sel.offsetWidth) / 2;
+  pnl.querySelectorAll("[data-rt-et]").forEach((b) => b.onclick = () => { etapaVista = b.dataset.rtEt; ruta(); });
+  pnl.querySelectorAll("[data-rt-cr]").forEach((b) => b.onclick = async () => { if (b.dataset.rtCr === E.creador) return; await guardarRuta({ creador: b.dataset.rtCr }); try { localStorage.setItem("forja-creador", b.dataset.rtCr); } catch (e) {} ruta(); });
+  pnl.querySelectorAll("[data-rt-ir]").forEach((b) => b.onclick = () => irTecnica(b.dataset.rtIr));
+  pnl.querySelectorAll("[data-rt-hecho]").forEach((b) => b.onclick = async () => {
+    const id = b.dataset.rtHecho, h = { ...R.estado(P.ruta).hechos };
+    if (h[id]) delete h[id]; else h[id] = new Date().toISOString().slice(0, 10);
+    await guardarRuta({ hechos: h }); ruta();
+  });
+  if ($("rt-aqui")) $("rt-aqui").onclick = async () => { await guardarRuta({ etapa: v.k }, "Etapa: " + R.etapaNombre(v.k, P.tipo)); ruta(); };
+  if ($("rt-todas")) $("rt-todas").onclick = () => { verTodas = !verTodas; ruta(); };
+  if ($("rt-mostrar")) $("rt-mostrar").onclick = async () => { await guardarRuta({ oculta: false }, "«Lo que sigue» vuelve a aparecer en las otras pestañas."); ruta(); };
+  $("rt-abrir").onchange = (e) => guardarRuta({ abrir: e.target.value }, "Listo: el proyecto se abrirá en " + e.target.selectedOptions[0].textContent + ".");
 }
 /* ================= equipo: acceso, mover y quién está ================= */
 // Franja bajo la cabecera: de qué espacio es, quién lo ve, moverlo y quién más está mirando ahora.
@@ -610,7 +786,7 @@ let obs = null;
 function aplicarSoloLectura() {
   if (obs) { obs.disconnect(); obs = null; }
   if (!RO) return;
-  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fx-tabs, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom") || el.id === "h-foco";
+  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fx-tabs, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir]") || el.id === "h-foco";
   const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
   aplicar();
   obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });
@@ -670,14 +846,15 @@ function pintarTabs() {
 function irA(k) {
   if (!nivelDe(k)) return;
   const antes = RO; pest = k; history.replaceState(null, "", "#" + k);
+  try { localStorage.setItem("forja-pest-" + P.id, k); } catch (e) {}
   // Cada área puede tener su propio permiso: si cambia, se vuelve a armar la página con el nuevo modo.
   if (calcRO() !== antes) { armar(); return; }
-  pintarTabs(); pintarPestana();
+  pintarTabs(); pintarPestana(); pintarSigue();
 }
 function calcRO() { return nivelDe(pest) !== "editar" || !editable(P, ACT, PL); }
 function pintarPestana() {
   if (EDITOR) { EDITOR.destruir(); EDITOR = null; }
-  ({ taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest](); activarAvisame($("panel"));
+  ({ ruta, taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest](); activarAvisame($("panel"));
   pista($("panel"), pest); // la primera vez en cada herramienta, una nota corta
 }
 // Tarjetas "Próximamente" de Forja Más, por clave de planes.js.
