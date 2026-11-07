@@ -36,7 +36,7 @@ export const FUNCIONES = [
   { k: "pagina-publica", a: "presentacion", t: "Vitrina del proyecto", d: "Una página pública para ferias, fondos o editoriales, con lo que elijas mostrar, enlace propio y QR. Con Forja Más, tus pizarras se publican para explorarlas.", listo: true, libre: "Gratis: vitrina con portada, historia, galería, novedades y enlaces." },
   { k: "apoyo-pagos", a: "presentacion", t: "Apoyo y preventas en la vitrina", d: "Recibe apoyo, reservas o preventas desde tu vitrina con métodos de pago chilenos, con metas y recompensas visibles." },
   { k: "kit-prensa", a: "presentacion", t: "Kit de prensa", d: "Un paquete descargable con logo, capturas, ficha y contacto para medios y festivales." },
-  { k: "colaboradores", a: "equipo", t: "Colaboradores", d: "Invita a otras personas a un proyecto; ellas no necesitan pagar." },
+  { k: "colaboradores", a: "equipo", t: "Colaboradores", d: "Invita hasta 5 personas a un proyecto y decide qué puede hacer cada una en cada parte; ellas no necesitan pagar.", listo: true, libre: "Gratis: 1 persona por proyecto." },
   { k: "alertas", a: "equipo", t: "Alertas de oportunidades", d: "Un correo cuando abre o está por cerrar una convocatoria que calza con tus proyectos." },
 ];
 export const funcion = (k) => FUNCIONES.find((f) => f.k === k);

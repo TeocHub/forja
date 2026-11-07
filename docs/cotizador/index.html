@@ -248,7 +248,7 @@ a{color:var(--accent)}
 </div>
 
 <script type="module">
-import { sb, espacio, conSesion, navApp, debounce, plan, editable, limite, LIMITES } from "../js/forja.js";
+import { sb, espacio, accesoProyecto, conSesion, navApp, debounce, plan, editable, limite, LIMITES } from "../js/forja.js";
 navApp("cotizaciones");
 (function(){
   var KEY="forja-cotizador-v1";
@@ -292,16 +292,18 @@ navApp("cotizaciones");
     return {nombre:"",cantidades:[10,100,500],dolar:null,dolarInfo:"",sinIva:false,
       componentes:t.map(function(k){return {id:uid(),tipo:k,nombre:TIPOS[k].nombre,specs:{}};}),cotizaciones:[]};
   }
-  var S=defaults(),ESP=null,HOJA=null,LISTA=[],PROYS=[],PLAN={mas:false},obsRO=null;
+  var S=defaults(),ESP=null,HOJA=null,LISTA=[],PROYS=[],PLAN={mas:false},PLAN_ESP={mas:false},ACCH=null,obsRO=null;
   // Si el proyecto está en solo lectura (plan gratis), la cotización se puede ver pero no cambiar.
   function soloLectura(){
     if(obsRO){obsRO.disconnect();obsRO=null;}
     var old=$("ro-aviso");if(old)old.remove();
     var p=PROYS.filter(function(x){return HOJA&&x.id===HOJA.proyecto_id;})[0];if(!p)return;
-    var act=PROYS.filter(function(x){return x.estado!=="archivado";}).length;
-    if(editable(p,act,PLAN))return;
+    var act=PROYS.filter(function(x){return x.estado!=="archivado"&&x.espacio_id===p.espacio_id;}).length;
+    // Proyecto compartido o de un equipo: manda el permiso de la persona en Costos.
+    var sinPermiso=ACCH&&(ACCH.areas||{}).costos!=="editar";
+    if(!sinPermiso&&(ACCH?ACCH.mas||editable(p,act,PLAN):editable(p,act,PLAN)))return;
     var av=document.createElement("div");av.id="ro-aviso";av.className="ro-aviso";av.setAttribute("role","status");
-    av.innerHTML='<b>Solo lectura</b> '+(p.estado==="archivado"?"El proyecto está archivado; cámbialo a otro estado para editar su cotización.":"Tienes "+act+" proyectos en curso y el plan gratis permite "+LIMITES.proyectos+". Archiva alguno para seguir editando.");
+    av.innerHTML='<b>Solo lectura</b> '+(sinPermiso?"Puedes ver los costos de este proyecto, pero no cambiarlos. Pídeselo a quien lo creó o administra.":p.estado==="archivado"?"El proyecto está archivado; cámbialo a otro estado para editar su cotización.":"Tienes "+act+" proyectos en curso y el plan gratis permite "+LIMITES.proyectos+". Archiva alguno para seguir editando.");
     $("contenido").insertBefore(av,$("contenido").firstChild);
     var aplicar=function(){$("contenido").querySelectorAll("input,select,textarea,button").forEach(function(el){if(!el.closest(".fx-tabs, .pasos"))el.disabled=true;});};
     aplicar();obsRO=new MutationObserver(aplicar);obsRO.observe($("contenido"),{childList:true,subtree:true});
@@ -751,13 +753,21 @@ navApp("cotizaciones");
   function abrir(id){
     return sb.from("cotizaciones").select("id,nombre,proyecto_id,datos").eq("id",id).maybeSingle().then(function(r){
       if(r.error||!r.data){if(LISTA.length&&id!==LISTA[0].id)return abrir(LISTA[0].id);toast("No se encontró esa cotización.");return;}
-      HOJA=r.data;
+      HOJA=r.data;ACCH=null;PLAN=PLAN_ESP;
+      var pr=PROYS.filter(function(x){return x.id===HOJA.proyecto_id;})[0];
+      // Cotización de un proyecto de otro espacio (compartido contigo o del equipo): se trae ese proyecto y su permiso.
+      if(HOJA.proyecto_id&&!pr)return Promise.all([accesoProyecto(HOJA.proyecto_id),sb.from("proyectos").select("id,nombre,tipo,formato,estado,espacio_id").eq("id",HOJA.proyecto_id).maybeSingle()]).then(function(x){
+        ACCH=x[0];if(x[1].data)PROYS.push(x[1].data);if(ACCH)PLAN={mas:!!ACCH.mas};return seguir();});
+      if(pr)return accesoProyecto(pr.id).then(function(a){ACCH=a;if(a)PLAN={mas:!!a.mas};return seguir();});
+      return seguir();
+    });
+  }
+  function seguir(){
       var pr=PROYS.filter(function(x){return x.id===HOJA.proyecto_id;})[0];
       if(valida(HOJA.datos))S=HOJA.datos;else{S=defaults(pr&&pr.tipo,pr&&pr.formato);S.nombre=pr?pr.nombre:(HOJA.nombre!=="Sin nombre"?HOJA.nombre:"");save();}
       history.replaceState(null,"","?c="+HOJA.id+location.hash);
       $("h-estado").textContent="";pintarHoja();renderAll();cargarComunidad();soloLectura();
       verTab(location.hash==="#venta"?"venta":"prod");
-    });
   }
   function nueva(datos,proyecto){
     var fila={espacio_id:ESP,nombre:(datos.nombre||"").trim()||"Sin nombre",datos:datos,proyecto_id:proyecto||null};
@@ -772,12 +782,12 @@ navApp("cotizaciones");
       return Promise.all([
         sb.from("cotizaciones").select("id,nombre,proyecto_id,actualizado_en").eq("espacio_id",ESP).order("actualizado_en",{ascending:false}),
         sb.from("cotizaciones").select("id,proyecto_id").eq("espacio_id",ESP).limit(1),
-        sb.from("proyectos").select("id,nombre,tipo,formato,estado").eq("espacio_id",ESP).order("nombre"),
+        sb.from("proyectos").select("id,nombre,tipo,formato,estado,espacio_id").eq("espacio_id",ESP).order("nombre"),
         plan()
       ]);
     }).then(function(res){
       if(res[0].error)throw res[0].error;
-      LISTA=res[0].data||[];PROYS=res[2].data||[];PLAN=res[3]||{mas:false};
+      LISTA=res[0].data||[];PROYS=res[2].data||[];PLAN=PLAN_ESP=res[3]||{mas:false};
       $("contenido").hidden=false;
       // Cotización que estaba guardada solo en este navegador: se sube una vez a la cuenta.
       var viejo=null;try{viejo=JSON.parse(localStorage.getItem(KEY)||"null");}catch(err){}

@@ -91,6 +91,9 @@ button{cursor:pointer}
 @keyframes sk{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.skeleton{animation:none}.tile{transition:none}}
 .en-vitrina{align-self:flex-start;font-size:11.5px;font-weight:700;color:var(--good);letter-spacing:.02em}
+.compartidos{margin-top:32px}.compartidos h2{font-family:var(--f-display);font-size:20px;margin:0 0 2px}
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:12px}
+.tile .de{font-size:12.5px;color:var(--muted)}
 .reservado{align-self:flex-start;font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:1px 8px;letter-spacing:.02em}
 .eq-k{margin:0 0 2px;font-family:var(--f-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ember)}
 </style>
@@ -113,13 +116,14 @@ if (location.hash === "#cotizaciones") location.replace("../cotizaciones/");
 const viejo = location.hash.match(/^#p=([0-9a-f-]{36})/);
 if (viejo) location.replace("../proyecto/?p=" + viejo[1]);
 
-let ESP = null, EA = null, PL = { mas: false }, PROYS = [], COTS = [], AV = {}, vista = location.hash === "#cotizaciones" ? "cot" : "proy", tipoNuevo = "historia";
+let ESP = null, EA = null, COMP = [], PL = { mas: false }, PROYS = [], COTS = [], AV = {}, vista = location.hash === "#cotizaciones" ? "cot" : "proy", tipoNuevo = "historia";
 let F = { tipo: "", estado: "", q: "", orden: "recientes" };
 try { Object.assign(F, JSON.parse(localStorage.getItem("forja-filtros") || "{}")); F.q = ""; } catch (e) {}
 const guardarF = () => { try { localStorage.setItem("forja-filtros", JSON.stringify(F)); } catch (e) {} };
 
 conSesion($("app"), async () => {
   ESP = await espacio(); EA = await espacioActual();
+  if (EA && EA.tipo === "personal") COMP = (await sb.rpc("mis_compartidos")).data || [];
   if (!ESP) throw new Error("sin espacio");
   PL = await plan();
   const [p, se, vi, tx, rf, pz] = await Promise.all([
@@ -145,7 +149,9 @@ function pintar() {
   $("app").innerHTML =
     (EQUIPO() ? '<header><p class="eq-k">Equipo</p><h1>' + esc(EA.nombre) + '</h1><p class="lead">' + ({ dueno: "Los proyectos del equipo. Administras quién entra y qué ve cada persona.", editor: "Los proyectos del equipo. Puedes plantar ideas y editar los que están abiertos al equipo.", lector: "Los proyectos del equipo. Por ahora puedes verlos; quien administra el equipo puede darte permiso para editar." })[EA.rol] + ' <a href="../equipo/">Personas del equipo</a></p></header>'
       : '<header><h1>Proyectos</h1><p class="lead">Todo lo que estás creando. Cada proyecto se abre en su propia página.</p></header>') +
-    '<div id="avisos"></div><div id="sendero"></div><div id="panel"></div>';
+    '<div id="avisos"></div><div id="sendero"></div><div id="panel"></div>' +
+    (COMP.length ? '<section class="compartidos"><h2>Compartidos contigo</h2><p class="hint">Proyectos de otras personas en los que te invitaron. No ocupan tu cupo.</p><div class="comp-grid">' +
+      COMP.map((p) => '<a class="tile e-' + p.estado + '" href="../proyecto/?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')"><span class="arriba"><span class="k">' + esc(TIPOS[p.tipo]) + '</span><span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span><h3>" + esc(p.nombre) + '</h3><span class="de">De ' + esc(p.de || "otra persona") + (p.edita ? "" : " · puedes mirar") + "</span>" + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") + '<span class="pie"><span></span><span>' + hace(p.actualizado_en) + "</span></span></a>").join("") + "</div></section>" : "");
   avisos($("avisos"));
   proyectos();
   if (!EQUIPO()) sendero($("sendero"), HECHO, PROYS[0] ? PROYS[0].id : null);

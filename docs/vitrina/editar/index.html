@@ -176,7 +176,7 @@ if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../../proyectos/");
 else conSesion($("app"), async () => {
   // En un equipo: quien edita prepara el borrador; publicar hacia afuera es de quien administra.
   ACC = await accesoProyecto(ID);
-  if (!ACC || ACC.acceso !== "editar") { $("app").innerHTML = '<a class="vol" href="../../proyecto/?p=' + ID + '">← Volver al proyecto</a><div class="fx-empty">' + (ACC ? "Puedes ver este proyecto, pero no editar su vitrina." : "Este proyecto no existe o no tienes acceso a él.") + "</div>"; return; }
+  if (!ACC || (ACC.areas || {}).vitrina !== "editar") { $("app").innerHTML = '<a class="vol" href="../../proyecto/?p=' + ID + '">← Volver al proyecto</a><div class="fx-empty">' + (ACC ? "Puedes ver este proyecto, pero no editar su vitrina." : "Este proyecto no existe o no tienes acceso a él.") + "</div>"; return; }
   const ESP = ACC.espacio;
   PL = { mas: !!ACC.mas };
   const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
@@ -238,7 +238,7 @@ function armar() {
     '<div class="cab"><h1>Vitrina<small>La página pública de tu proyecto</small></h1><span id="estado"></span>' +
     '<div class="acc"><span class="guardado" id="guardado" aria-live="polite">Borrador guardado</span><button type="button" class="btn" id="b-comp">Compartir</button><button type="button" class="btn prim" id="b-pub">Publicar</button></div></div>' +
     (V.suspendida ? suspensionHTML() : "") +
-    (!ACC.publica ? '<div class="aviso" style="margin-bottom:12px">En un equipo, publica quien lo administra. Prepara el borrador aquí y avísale cuando esté listo para revisarlo.</div>' : "") +
+    (!ACC.publica ? '<div class="aviso" style="margin-bottom:12px">' + (ACC.invitado ? "Publica quien creó el proyecto." : "En un equipo, publica quien lo administra.") + " Prepara el borrador aquí y avísale cuando esté listo para revisarlo.</div>" : "") +
     (RO ? '<div class="aviso" style="margin-bottom:12px">' + CANDADO + " Este proyecto está en solo lectura en el plan gratis: puedes preparar el borrador y despublicar, pero no publicar cambios.</div>" : "") +
     '<div class="modo" role="group" aria-label="Vista"><button type="button" data-vista="editar" aria-pressed="true">Editar</button><button type="button" data-vista="previa" aria-pressed="false">Vista previa</button></div>' +
     '<div class="grid"><div class="panel" id="panel"></div><div class="previa"><div class="previa-barra"><i></i><i></i><i></i><span id="previa-url"></span></div><div id="previa"></div></div></div>';

@@ -332,3 +332,15 @@ create table privado.config(clave text primary key, valor text not null);   -- '
 -- publicar_vitrina y avisar_seguidores exigen privado.publica; despublicar_vitrina, privado.edita; seguidores_de, privado.ve; avisar_duenos avisa solo a dueños;
 -- borrar_mi_cuenta no deja un equipo sin dueño (FORJA_ULTIMO_DUENO).
 -- Equipo creado: 'Digital Monster' (tipo equipo, dominio digitalmonster.cl, plan mas).
+
+-- ===== Personas invitadas a un proyecto (migraciones invitaciones_y_acceso_por_area, correos_tipo_invitacion, persona_quitar_nombres, aceptar_invitacion_usada) =====
+-- proyecto_accesos: + areas jsonb {taller|referentes|pizarra|costos|oportunidades|bitacora|vitrina: editar|ver|no}, + invitado_por.
+-- privado.acceso_area(p, area) decide el nivel (dueño del espacio: editar; invitado: sus áreas o su rol, y sin Forja Más solo la primera persona invitada edita;
+--   miembros del equipo según rol si el proyecto está abierto). privado.acceso(p) = área taller; privado.ve(p) = ve_fila; privado.publica(p) = es_dueno del espacio;
+--   privado.edita_area_en(p, area, e); privado.max_invitados(p) = 5 con Más, 1 sin; privado.limpiar_areas(jsonb).
+-- Políticas hijas por área: secciones→taller, referentes, pizarras→pizarra, vitrinas→vitrina, notas→bitacora, proyecto_oportunidades→oportunidades, cotizaciones→costos (sin proyecto: por espacio).
+-- public.invitaciones(id, proyecto_id, correo, rol, areas, token, invitado_por, creado_en, expira_en +14 días, aceptada_en, aceptada_por, anulada_en); índice único de pendientes por (proyecto, correo); RLS sin políticas (solo RPC).
+-- privado.referidos(user_id pk, invitado_por, proyecto_id, cuenta_nueva, en).
+-- privado.correos: user_id ahora nullable, + email; tipo admite 'invitacion'; check user_id o email. cola_tomar devuelve coalesce(email, correo de la cuenta), token solo si hay cuenta, salta invitaciones anuladas o aceptadas.
+-- RPCs: proyecto_personas, invitar, anular_invitacion, ver_invitacion (anon y authenticated), aceptar_invitacion, rechazar_invitacion, persona_cambiar, persona_quitar, mis_compartidos.
+-- despublicar_vitrina exige editar el área vitrina; proyecto_acceso (equipo) solo toca accesos de miembros del equipo.

@@ -1,5 +1,5 @@
 // Forja · enviar-correos
-// Vacía la cola privado.correos (avisos de herramientas, boletín, novedades de vitrinas seguidas).
+// Vacía la cola privado.correos (avisos de herramientas, boletín, novedades de vitrinas seguidas, invitaciones a proyectos).
 // Envía con la API de Resend (plan gratis: 100 por día, 3.000 al mes) como "Forja <forja@digitalmonster.cl>".
 // La llama pg_cron cada 10 minutos (privado.despachar) solo si hay correos pendientes; public.cola_tomar
 // entrega como máximo 40 por hora y 90 por día, bajo el límite del plan.
@@ -16,7 +16,7 @@ const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "
 const parrafos = (t: unknown) => esc(t).split(/\n{2,}/).map((p) => '<p style="margin:0 0 14px;font-size:16px;line-height:1.55">' + p.replace(/\n/g, "<br>") + "</p>").join("");
 const okUrl = (u: unknown) => /^https:\/\/[^\s"'<>]+$/i.test(String(u ?? ""));
 
-type Fila = { id: number; email: string; token: string; tipo: string; datos: Record<string, any> };
+type Fila = { id: number; email: string; token: string | null; tipo: string; datos: Record<string, any> };
 type Correo = { asunto: string; html: string; texto: string; baja: string };
 
 function boton(href: string, txt: string) {
@@ -29,11 +29,23 @@ function marco(cuerpo: string, pie: string, aviso = "") {
     '<hr style="border:0;border-top:1px solid #e3e1da;margin:26px 0 14px"><div style="font-size:12.5px;color:#6b7080;line-height:1.55">' + pie +
     "<br>Forja · Digital Monster, Chile · " + '<a href="' + SITIO + '/" style="color:#6b7080">forja.digitalmonster.cl</a></div></div></body></html>';
 }
-const enlaceBaja = (t: string, q: string, slug = "") => SITIO + "/correo/?t=" + t + "&q=" + q + (slug ? "&v=" + encodeURIComponent(slug) : "");
+const enlaceBaja = (t: string | null, q: string, slug = "") => SITIO + "/correo/?t=" + t + "&q=" + q + (slug ? "&v=" + encodeURIComponent(slug) : "");
 
 function armar(f: Fila): Correo {
   const prueba = f.tipo === "prueba", tipo = prueba ? String(f.datos.de || "boletin") : f.tipo, d = f.datos;
   const aviso = prueba ? "Esto es una prueba: solo te llegó a ti." : "";
+  if (tipo === "invitacion") {
+    // Invitación a un proyecto: va a personas que quizá aún no tienen cuenta (sin enlace de baja: es un correo único que pidió alguien que la conoce).
+    const ir = SITIO + "/invitacion/?t=" + encodeURIComponent(d.token), hasta = new Date(d.expira).toLocaleDateString("es-CL", { day: "numeric", month: "long" });
+    return {
+      asunto: d.de.split("@")[0] + " te invitó a trabajar en «" + d.proyecto + "»", baja: "",
+      html: marco('<p style="font-size:14px;color:#6b7080;margin:0 0 6px">Una invitación para trabajar juntos</p><h1 style="font-size:24px;margin:0 0 14px">' + esc(d.proyecto) + "</h1>" +
+        parrafos(d.de + " te invitó a " + (d.rol === "lector" ? "ver" : "trabajar en") + " su proyecto en Forja, un lugar para dar forma a historias, juegos y productos. Para entrar necesitas una cuenta gratis con este mismo correo.") +
+        boton(ir, "Ver la invitación") + '<p style="font-size:13px;color:#6b7080;margin:0">La invitación vence el ' + esc(hasta) + ". Solo funciona con este correo.</p>",
+        "Si no conoces a quien te invitó, ignora este correo: no se creó ninguna cuenta y no volverás a recibir nada.", aviso),
+      texto: d.de + " te invitó a " + (d.rol === "lector" ? "ver" : "trabajar en") + " «" + d.proyecto + "» en Forja.\n\nVer la invitación: " + ir + "\n\nVence el " + hasta + " y solo funciona con este correo. Si no conoces a quien te invitó, ignora este correo.",
+    };
+  }
   if (tipo === "funcion") {
     const baja = enlaceBaja(f.token, "funciones"), ir = okUrl(d.enlace) ? d.enlace : SITIO + "/proyectos/";
     return {
@@ -102,7 +114,7 @@ Deno.serve(async (req) => {
         method: "POST",
         // La clave de idempotencia evita duplicados si un envío se reintenta.
         headers: { Authorization: "Bearer " + resend, "Content-Type": "application/json", "Idempotency-Key": "forja-correo-" + f.id },
-        body: JSON.stringify({ from, to: [f.email], subject: c.asunto, html: c.html, text: c.texto, headers: { "List-Unsubscribe": "<" + c.baja + ">" }, ...(responder ? { reply_to: responder } : {}) }),
+        body: JSON.stringify({ from, to: [f.email], subject: c.asunto, html: c.html, text: c.texto, ...(c.baja ? { headers: { "List-Unsubscribe": "<" + c.baja + ">" } } : {}), ...(responder ? { reply_to: responder } : {}) }),
       });
       if (!r.ok) throw new Error("Resend " + r.status + ": " + (await r.text()).slice(0, 300));
       await new Promise((ok) => setTimeout(ok, 600)); // Resend acepta pocas solicitudes por segundo
@@ -111,7 +123,7 @@ Deno.serve(async (req) => {
     const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
     const usuario = env("SMTP_USER", "forja@digitalmonster.cl");
     const smtp = new SMTPClient({ connection: { hostname: env("SMTP_HOST", "smtp.titan.email"), port: Number(env("SMTP_PORT", "465")), tls: true, auth: { username: usuario, password: pass } } });
-    enviar = (f, c) => smtp.send({ from, to: f.email, subject: c.asunto, content: c.texto, html: c.html, headers: { "List-Unsubscribe": "<" + c.baja + ">" } });
+    enviar = (f, c) => smtp.send({ from, to: f.email, subject: c.asunto, content: c.texto, html: c.html, ...(c.baja ? { headers: { "List-Unsubscribe": "<" + c.baja + ">" } } : {}) });
     cerrar = async () => { try { await smtp.close(); } catch (_) { /* nada */ } };
   }
   let enviados = 0;

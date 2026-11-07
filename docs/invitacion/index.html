@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Invitación · Forja</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: invitación — una tarjeta tipo boleto con el proyecto, quién invita y una sola acción */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+a{color:var(--accent)}
+.wrap{max-width:680px;margin:0 auto;padding-block:24px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(a,button):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.boleto{margin-top:clamp(24px,7vw,64px);display:grid;grid-template-columns:1fr auto;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.b-cuerpo{padding:clamp(20px,5vw,34px);display:flex;flex-direction:column;gap:12px;min-width:0}
+.b-talon{width:clamp(56px,12vw,86px);border-left:2px dashed var(--line);background:var(--accent-soft);display:grid;place-items:center;position:relative}
+.b-talon span{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--f-num);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.b-talon::before,.b-talon::after{content:"";position:absolute;left:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg)}
+.b-talon::before{top:-10px}.b-talon::after{bottom:-10px}
+.k{margin:0;font-family:var(--f-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ember)}
+h1{font-family:var(--f-display);font-size:clamp(28px,6vw,42px);line-height:1.05;margin:0;overflow-wrap:anywhere}
+.b-cuerpo p{margin:0;color:var(--muted)}
+.b-cuerpo p b{color:var(--fg)}
+.acc{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.acc button,.acc a{font:inherit;font-size:15px;border-radius:12px;padding:11px 18px;cursor:pointer;text-decoration:none;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.acc .si{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
+.acc button:disabled{opacity:.5}
+.nota{font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="c"><p>Cargando…</p></main>
+</div>
+<script type="module">
+import { sb, $, esc, nav, limite, u } from "../js/forja.js";
+nav(null);
+const t = new URLSearchParams(location.search).get("t") || "";
+const c = $("c");
+const boleto = (cuerpo, talon = "Invitación") => '<div class="boleto"><div class="b-cuerpo">' + cuerpo + '</div><div class="b-talon" aria-hidden="true"><span>' + talon + "</span></div></div>";
+if (!/^[0-9a-f-]{36}$/i.test(t)) c.innerHTML = boleto('<h1>Este enlace no está completo</h1><p>Revisa que hayas copiado el enlace entero del correo.</p>');
+else {
+  const { data: { session } } = await sb.auth.getSession();
+  const { data: I } = await sb.rpc("ver_invitacion", { t });
+  if (!I) c.innerHTML = boleto("<h1>No encontramos esta invitación</h1><p>Puede que la hayan anulado. Pídele a quien te invitó que te envíe otra.</p>");
+  else if (I.estado === "aceptada") c.innerHTML = boleto("<h1>Esta invitación ya se usó</h1>" + (I.proyecto_id ? '<div class="acc"><a class="si" href="../proyecto/?p=' + I.proyecto_id + '">Ir a «' + esc(I.proyecto) + "»</a></div>" : "<p>Si era para ti y ya no ves el proyecto, pídele a quien te invitó que te envíe otra.</p>"), "Usada");
+  else if (I.estado !== "vigente") c.innerHTML = boleto("<h1>Esta invitación " + (I.estado === "vencida" ? "venció" : "fue anulada") + "</h1><p>Pídele a <b>" + esc(I.de || "quien te invitó") + "</b> que te envíe una nueva.</p>", I.estado === "vencida" ? "Vencida" : "Anulada");
+  else {
+    const arriba = '<p class="k">Te invitaron a un proyecto</p><h1>' + esc(I.proyecto) + "</h1><p><b>" + esc(I.de || "Alguien") + "</b> quiere trabajar contigo en Forja. Lo que puedas hacer en el proyecto lo decide quien lo creó; podrás salirte cuando quieras.</p>";
+    if (!session) {
+      const vuelta = encodeURIComponent("invitacion/?t=" + t);
+      c.innerHTML = boleto(arriba + "<p>Esta invitación es para <b>" + esc(I.para) + "</b>. Entra con ese correo (si aún no tienes cuenta, se crea gratis al entrar).</p>" +
+        '<div class="acc"><a class="si" href="../entrar/?siguiente=' + vuelta + '">Entrar para aceptar</a></div><p class="nota">Si no conoces a quien te invitó, puedes ignorar esto.</p>');
+    } else if (!I.mia) {
+      c.innerHTML = boleto(arriba + "<p>Entraste como <b>" + esc(session.user.email) + "</b>, pero esta invitación es para <b>" + esc(I.para) + "</b>. Solo funciona con ese correo.</p>" +
+        '<div class="acc"><button type="button" class="si" id="cambiar">Entrar con el otro correo</button></div>');
+      $("cambiar").onclick = async () => { await sb.auth.signOut(); location.href = u("entrar/?siguiente=" + encodeURIComponent("invitacion/?t=" + t)); };
+    } else {
+      c.innerHTML = boleto(arriba + '<div class="acc"><button type="button" class="si" id="si">Aceptar e ir al proyecto</button><button type="button" id="no">No, gracias</button></div><p class="nota" id="msg"></p>');
+      $("si").onclick = async () => {
+        $("si").disabled = $("no").disabled = true;
+        const { data, error } = await sb.rpc("aceptar_invitacion", { t });
+        if (error) { $("msg").textContent = limite(error) || "No se pudo aceptar. Intenta de nuevo."; $("si").disabled = $("no").disabled = false; return; }
+        location.href = u("proyecto/?p=" + data);
+      };
+      $("no").onclick = async () => {
+        if ($("no").dataset.seguro !== "1") { $("no").dataset.seguro = "1"; $("no").textContent = "Sí, rechazarla"; return; }
+        await sb.rpc("rechazar_invitacion", { t });
+        c.innerHTML = boleto("<h1>Rechazaste la invitación</h1><p>No tendrás acceso a «" + esc(I.proyecto) + "». Si fue un error, pide que te inviten de nuevo.</p>", "Rechazada");
+      };
+    }
+  }
+}
+</script>
+</body>
+</html>

@@ -59,6 +59,29 @@ button{cursor:pointer}
 .eq-personas{display:flex;flex-direction:column;gap:6px}
 .eq-personas label{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:5px 0;overflow-wrap:anywhere}
 .eq-personas select{font:inherit;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:4px 6px;background:var(--field);color:var(--fg)}
+.per-intro{color:var(--muted);font-size:14px}
+.per{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.per-cab{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;overflow-wrap:anywhere}
+.per-extra{font-size:12px;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:1px 8px}
+.per-quitar{margin-left:auto;font:inherit;font-size:13px;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer}
+.per-quitar[data-seguro="1"]{color:var(--bad);font-weight:700}
+.per-guardar[hidden]{display:none}
+.ar-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ar-chip{font:inherit;display:inline-flex;flex-direction:column;align-items:flex-start;gap:0;padding:5px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--fg);font-size:12.5px;line-height:1.25;min-width:96px;text-align:left}
+button.ar-chip{cursor:pointer}
+.ar-chip span{font-size:11.5px;font-weight:700;letter-spacing:.02em}
+.ar-chip.v-editar{border-color:var(--good);background:var(--good-soft)}.ar-chip.v-editar span{color:var(--good)}
+.ar-chip.v-ver{border-color:var(--line)}.ar-chip.v-ver span{color:var(--muted)}
+.ar-chip.v-no{border-style:dashed;opacity:.65}.ar-chip.v-no b{text-decoration:line-through}
+.per-pend{display:flex;flex-direction:column;gap:4px;font-size:14px;border-top:1px solid var(--line);padding-top:10px}
+.per-pend small{color:var(--muted)}
+.per-pend button{font:inherit;font-size:13px;background:none;border:0;color:var(--accent);cursor:pointer;text-decoration:underline}
+.per-nueva{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.per-fila{display:flex;gap:8px;flex-wrap:wrap}
+.per-fila input{flex:1 1 220px;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--field);color:var(--fg)}
+.per-presets{display:flex;flex-wrap:wrap;gap:6px}
+.per-presets button{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:3px 11px;background:transparent;color:var(--muted);cursor:pointer}
+.per-presets button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .eq-aviso{margin:0 0 8px;border-left:3px solid var(--good);background:var(--good-soft);border-radius:8px;padding:8px 12px;font-size:14px}
 .lectura{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border:1.5px solid var(--e-pausa);background:color-mix(in srgb,var(--e-pausa) 8%,var(--card));border-radius:12px;padding:10px 14px;font-size:14px}
 .lectura b{color:var(--e-pausa)}
@@ -297,8 +320,13 @@ document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZA
 
 const ID = new URLSearchParams(location.search).get("p");
 const PESTANAS = [["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
+// Cada pestaña pertenece a un área; las personas invitadas pueden editar, ver o no ver cada área.
+const AREA_DE = { taller: "taller", referentes: "referentes", brujula: "taller", pizarra: "pizarra", costos: "costos", oportunidades: "oportunidades", bitacora: "bitacora", vitrina: "vitrina" };
+const AREAS = [["taller", "Taller y ficha"], ["referentes", "Referentes"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
+const nivelDe = (k) => (ACC && ACC.areas ? ACC.areas[AREA_DE[k]] : "editar");
+const visibles = () => PESTANAS.filter(([k]) => nivelDe(k));
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-let ESP, P, ACC = null, VER = false, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
+let ESP, P, ACC = null, VER = false, PERS = null, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../proyectos/");
 else conSesion($("app"), async (ses) => {
@@ -307,7 +335,8 @@ else conSesion($("app"), async (ses) => {
   ACC = await accesoProyecto(ID);
   if (!ACC) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no tienes acceso a él.</div>'; return; }
   ESP = ACC.espacio; PL = { mas: !!ACC.mas }; VER = ACC.acceso !== "editar";
-  EQS = (await espacios()).filter((x) => x.tipo === "equipo" && x.rol !== "lector");
+  EQS = ACC.invitado ? [] : (await espacios()).filter((x) => x.tipo === "equipo" && x.rol !== "lector");
+  PERS = (await sb.rpc("proyecto_personas", { p: ID })).data || null;
   if (ACC.tipo === "equipo") try { localStorage.setItem("forja-espacio", ESP); } catch (e) {}
   const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
   ACT = ac.count || 0;
@@ -325,7 +354,7 @@ else conSesion($("app"), async (ses) => {
   if (P) try { localStorage.setItem("forja-ultimo-proyecto", P.id); } catch (e) {}
   if (!P) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
   SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || []; PIZ = pz.data || [];
-  const h = location.hash.slice(1); if (PESTANAS.some(([k]) => k === h)) pest = h;
+  const h = location.hash.slice(1); if (PESTANAS.some(([k]) => k === h) && nivelDe(h)) pest = h;
   armar();
 }, "Tus proyectos son privados: solo los ves tú.");
 
@@ -341,7 +370,8 @@ const palabras = (t) => (t.trim().match(/\S+/g) || []).length;
 /* ================= estructura ================= */
 function armar() {
   document.title = "Forja · " + P.nombre;
-  RO = VER || !editable(P, ACT, PL);
+  if (!nivelDe(pest)) pest = (visibles()[0] || ["taller"])[0];
+  RO = calcRO();
   $("app").innerHTML =
     '<a class="vol" href="../proyectos/">← Proyectos</a>' +
     '<section class="cabeza" id="cabeza" style="--tc:' + tc(P.tipo) + ";--ec:var(--e-" + P.estado + ')">' +
@@ -352,7 +382,7 @@ function armar() {
     '<div class="avance-w" id="avance-w"></div></div>' +
     '<label class="fx-sr" for="f-resumen">Resumen</label><textarea class="resumen" id="f-resumen" maxlength="4000" placeholder="¿De qué se trata, en pocas líneas? Se puede reescribir cuando la idea cambie.">' + esc(P.resumen || "") + "</textarea></section>" +
     equipoFila() +
-    (RO ? '<div class="lectura" role="status"><b>Solo lectura</b><span>' + (VER ? "Puedes ver este proyecto del equipo, pero no editarlo. Si necesitas editarlo, pídele permiso a quien administra el equipo." : P.estado === "archivado"
+    (RO ? '<div class="lectura" role="status"><b>Solo lectura</b><span>' + (nivelDe(pest) !== "editar" ? (ACC.invitado ? "En esta parte del proyecto puedes mirar, pero no editar. Si necesitas cambiar algo, pídeselo a quien te invitó." : "Puedes ver este proyecto del equipo, pero no editarlo. Si necesitas editarlo, pídele permiso a quien administra el equipo.") : P.estado === "archivado"
       ? "Este proyecto está archivado. Puedes verlo y exportarlo; para editarlo cámbialo a otro estado (usa uno de tus " + LIMITES.proyectos + " cupos del plan gratis)."
       : "Tienes " + ACT + " proyectos en curso y el plan gratis permite " + LIMITES.proyectos + ". Archiva " + (ACT - LIMITES.proyectos) + " (este u otro, desde Mi forja) para seguir editando. Nada se borra.") + "</span></div>" : "") +
     '<div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
@@ -384,16 +414,21 @@ function armar() {
   };
   pintarFormatos(); pintarAvance(); pintarTabs(); pintarPestana();
   aplicarSoloLectura();
+  // La ficha (nombre, categoría, estado, resumen) es parte del Taller: sin permiso ahí, queda para leer.
+  if (nivelDe("taller") !== "editar") $("cabeza").querySelectorAll("input, textarea, select, button").forEach((el) => { el.disabled = true; if ("readOnly" in el) el.readOnly = true; });
 }
 /* ================= equipo: acceso, mover y quién está ================= */
 // Franja bajo la cabecera: de qué espacio es, quién lo ve, moverlo y quién más está mirando ahora.
 function equipoFila() {
   const enEquipo = ACC.tipo === "equipo", dueno = ACC.rol === "dueno";
-  const destinos = enEquipo ? [] : EQS;
-  if (!enEquipo && !destinos.length) return "";
-  return '<div class="eq-fila" id="eq-fila">' +
-    (enEquipo ? '<span class="eq-que"><b>' + esc(ACC.nombre) + "</b> · " + (P.acceso === "reservado" ? "Reservado: lo ven solo las personas elegidas" : "Abierto a todo el equipo") + "</span>" : '<span class="eq-que">Proyecto personal</span>') +
+  const destinos = enEquipo ? [] : EQS, n = PERS ? PERS.personas.length : 0;
+  const que = ACC.invitado ? '<span class="eq-que">Proyecto de <b>' + esc(PERS ? PERS.duenos.map((c) => c.split("@")[0]).join(", ") : "otra persona") + "</b> · compartido contigo</span>"
+    : enEquipo ? '<span class="eq-que"><b>' + esc(ACC.nombre) + "</b> · " + (P.acceso === "reservado" ? "Reservado: lo ven solo las personas elegidas" : "Abierto a todo el equipo") + "</span>"
+    : '<span class="eq-que">' + (n ? "Trabajas con " + n + (n === 1 ? " persona más" : " personas más") : "Proyecto personal") + "</span>";
+  return '<div class="eq-fila" id="eq-fila">' + que +
     '<span class="eq-presencia" id="eq-presencia"></span><span class="eq-acc">' +
+    (ACC.publica || n || ACC.invitado ? '<button type="button" class="btn" id="eq-personas">' + (ACC.publica && !n && !enEquipo ? "Invitar personas" : "Personas") + "</button>" : "") +
+    (ACC.invitado ? '<button type="button" class="btn" id="eq-salir">Salir del proyecto</button>' : "") +
     (enEquipo && dueno ? '<button type="button" class="btn" id="eq-quien">Quién lo ve</button><button type="button" class="btn" id="eq-mover" data-a="">Mover a mi forja</button>' : "") +
     destinos.map((d) => '<button type="button" class="btn" data-mover="' + d.id + '">Mover a ' + esc(d.nombre) + "</button>").join("") +
     '</span><div class="eq-conf" id="eq-conf" hidden></div></div>';
@@ -421,7 +456,107 @@ async function activarEquipo() {
   $("eq-fila").querySelectorAll("[data-mover]").forEach((b) => b.onclick = () => mover(b.dataset.mover, b.textContent.replace(/^Mover a /, "")));
   if ($("eq-mover")) $("eq-mover").onclick = () => mover(null, "");
   if ($("eq-quien")) $("eq-quien").onclick = quienLoVe;
+  if ($("eq-personas")) $("eq-personas").onclick = personas;
+  if ($("eq-salir")) $("eq-salir").onclick = () => {
+    conf.hidden = false;
+    conf.innerHTML = "<p>Dejarás de ver «" + esc(P.nombre) + "». Lo que escribiste queda en el proyecto. Para volver, tendrían que invitarte de nuevo.</p>" +
+      '<div class="eq-botones"><button type="button" class="btn primario" id="eq-si">Sí, salir</button><button type="button" class="btn" id="eq-no">Cancelar</button></div>';
+    $("eq-no").onclick = () => { conf.hidden = true; };
+    $("eq-si").onclick = async () => {
+      $("eq-si").disabled = true;
+      const { error } = await sb.rpc("persona_quitar", { p: P.id, u: YO.id });
+      if (error) { $("eq-si").disabled = false; toast("No se pudo salir."); return; }
+      location.href = "../proyectos/";
+    };
+  };
   presencia();
+}
+/* ---- personas invitadas: qué puede hacer cada una, por área ---- */
+const NIVEL = { editar: "Edita", ver: "Ve", no: "No ve" }, CICLO = { editar: "ver", ver: "no", no: "editar" };
+const PRESETS = [
+  ["todo", "Todo", () => ({})],
+  ["creativo", "Lo creativo", () => ({ taller: "editar", referentes: "editar", pizarra: "editar", costos: "ver", oportunidades: "ver", bitacora: "editar", vitrina: "ver" })],
+  ["costos", "Costos", () => ({ taller: "ver", referentes: "ver", pizarra: "ver", costos: "editar", oportunidades: "editar", bitacora: "editar", vitrina: "ver" })],
+  ["vitrina", "La vitrina", () => ({ taller: "ver", referentes: "ver", pizarra: "ver", costos: "no", oportunidades: "ver", bitacora: "editar", vitrina: "editar" })],
+  ["mirar", "Solo mirar", () => ({ taller: "ver", referentes: "ver", pizarra: "ver", costos: "ver", oportunidades: "ver", bitacora: "ver", vitrina: "ver" })],
+];
+// Nivel de un área para una persona: lo de sus áreas, o lo de su rol.
+const nivelP = (x, a) => (x.areas && x.areas[a]) || (x.rol === "lector" ? "ver" : "editar");
+const chips = (x, editable, id) => '<div class="ar-chips"' + (id ? ' data-chips="' + id + '"' : "") + ">" + AREAS.map(([a, n]) => {
+  const v = nivelP(x, a);
+  return editable ? '<button type="button" class="ar-chip v-' + v + '" data-a="' + a + '" data-v="' + v + '" title="Toca para cambiar"><b>' + n + "</b><span>" + NIVEL[v] + "</span></button>"
+    : '<span class="ar-chip v-' + v + '"><b>' + n + "</b><span>" + NIVEL[v] + "</span></span>";
+}).join("") + "</div>";
+const leerChips = (el) => { const o = {}; el.querySelectorAll("[data-a]").forEach((b) => { o[b.dataset.a] = b.dataset.v; }); return o; };
+const ciclar = (el, alCambiar) => el.querySelectorAll("[data-a]").forEach((b) => b.onclick = () => {
+  const v = CICLO[b.dataset.v]; b.dataset.v = v; b.className = "ar-chip v-" + v; b.querySelector("span").textContent = NIVEL[v]; if (alCambiar) alCambiar();
+});
+async function personas() {
+  const conf = $("eq-conf"); conf.hidden = false; conf.innerHTML = '<p class="hint">Cargando…</p>';
+  const { data: D, error } = await sb.rpc("proyecto_personas", { p: P.id });
+  if (error) { conf.innerHTML = '<p class="hint">No se pudo cargar.</p>'; return; }
+  PERS = D;
+  const yoDueno = D.dueno, usados = D.personas.length + (D.pendientes ? D.pendientes.length : 0), lleno = usados >= D.max;
+  conf.innerHTML =
+    '<p class="per-intro">' + (yoDueno ? "Cada área se toca para cambiar entre <b>edita</b>, <b>ve</b> y <b>no ve</b>. Publicar la vitrina, borrar, mover e invitar es solo tuyo." : "Esto es lo que puede hacer cada persona en el proyecto. Lo decide quien lo creó.") +
+    " " + (D.tipo === "equipo" ? "" : "Lo crea <b>" + esc(D.duenos.join(", ")) + "</b>.") + "</p>" +
+    (D.personas.length ? D.personas.map((x) => '<div class="per"><div class="per-cab"><b>' + esc(x.correo) + (x.user_id === D.yo ? " (tú)" : "") + "</b>" +
+      (x.extra ? '<span class="per-extra">Solo lectura mientras el proyecto no tenga Forja Más</span>' : "") +
+      (yoDueno ? '<button type="button" class="per-quitar" data-quitar="' + x.user_id + '">Quitar</button>' : "") + "</div>" + chips(x, yoDueno, x.user_id) +
+      (yoDueno ? '<div class="per-guardar" data-guardar="' + x.user_id + '" hidden><button type="button" class="btn primario">Guardar cambios</button></div>' : "") + "</div>").join("")
+      : (D.pendientes && D.pendientes.length ? "" : '<p class="hint">' + (yoDueno ? "Aún no invitas a nadie." : "Nadie más por ahora.") + "</p>")) +
+    (yoDueno && D.pendientes && D.pendientes.length ? '<div class="per-pend"><b>Esperando respuesta</b>' + D.pendientes.map((i) => '<span>' + esc(i.correo) + ' <small>vence en ' + Math.max(1, Math.ceil((new Date(i.expira_en) - Date.now()) / 864e5)) + ' días</small> <button type="button" data-anular="' + i.id + '">Anular</button></span>').join("") + "</div>" : "") +
+    (yoDueno ? (lleno
+      ? '<p class="hint">' + (D.mas ? "Llegaste a las " + D.max + " personas de este proyecto." : "En el plan gratis puedes trabajar con 1 persona por proyecto. Con Forja Más, hasta 5." + MAS_LINK) + "</p>"
+      : '<form class="per-nueva" id="per-nueva"><b>Invitar a alguien</b><div class="per-fila"><label class="fx-sr" for="per-correo">Correo</label><input type="email" id="per-correo" placeholder="correo@ejemplo.com" autocomplete="off" required>' +
+        '<button type="submit" class="btn primario">Enviar invitación</button></div><div class="per-presets" role="group" aria-label="Empezar desde">' + PRESETS.map(([k, n], i) => '<button type="button" data-preset="' + k + '" aria-pressed="' + (i === 0) + '">' + n + "</button>").join("") + "</div>" +
+        chips({ rol: "editor", areas: {} }, true, "nueva") + '<p class="hint">Le llega un correo con un enlace que solo funciona con esa dirección y vence en 14 días. Si no tiene cuenta, la crea gratis al entrar; este proyecto no le ocupa cupo. ' +
+        (D.mas ? "Te quedan " + (D.max - usados) + " de " + D.max + "." : "En el plan gratis, 1 persona por proyecto.") + "</p></form>") : "") +
+    '<div class="eq-botones"><button type="button" class="btn" id="eq-no">Cerrar</button></div>';
+  $("eq-no").onclick = () => { conf.hidden = true; };
+  conf.querySelectorAll("[data-chips]").forEach((el) => {
+    const id = el.dataset.chips; if (id === "nueva") return;
+    ciclar(el, () => { conf.querySelector('[data-guardar="' + id + '"]').hidden = false; });
+  });
+  conf.querySelectorAll("[data-guardar]").forEach((g) => g.querySelector("button").onclick = async () => {
+    const areas = leerChips(conf.querySelector('[data-chips="' + g.dataset.guardar + '"]'));
+    const { error } = await sb.rpc("persona_cambiar", { p: P.id, u: g.dataset.guardar, rol: "editor", areas });
+    if (error) { toast("No se pudo guardar."); return; }
+    g.hidden = true; toast("Listo: ya puede hacer solo eso.");
+  });
+  conf.querySelectorAll("[data-quitar]").forEach((b) => b.onclick = async () => {
+    if (b.dataset.seguro !== "1") { b.dataset.seguro = "1"; b.textContent = "Sí, quitarle el acceso"; return; }
+    const { error } = await sb.rpc("persona_quitar", { p: P.id, u: b.dataset.quitar });
+    if (error) { toast("No se pudo quitar."); return; }
+    toast("Listo: ya no tiene acceso."); PERS = null; armar(); personas();
+  });
+  conf.querySelectorAll("[data-anular]").forEach((b) => b.onclick = async () => {
+    const { error } = await sb.rpc("anular_invitacion", { i: b.dataset.anular });
+    if (error) { toast("No se pudo anular."); return; }
+    toast("Invitación anulada."); personas();
+  });
+  const f = $("per-nueva");
+  if (f) {
+    const ch = conf.querySelector('[data-chips="nueva"]');
+    ciclar(ch, () => f.querySelectorAll("[data-preset]").forEach((x) => x.setAttribute("aria-pressed", "false")));
+    f.querySelectorAll("[data-preset]").forEach((b) => b.onclick = () => {
+      const o = PRESETS.find((x) => x[0] === b.dataset.preset)[2]();
+      ch.outerHTML = chips({ rol: "editor", areas: o }, true, "nueva");
+      const nuevo = conf.querySelector('[data-chips="nueva"]');
+      ciclar(nuevo, () => f.querySelectorAll("[data-preset]").forEach((x) => x.setAttribute("aria-pressed", "false")));
+      f.querySelectorAll("[data-preset]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    });
+    f.onsubmit = async (e) => {
+      e.preventDefault();
+      const correo = $("per-correo").value.trim(), btn = f.querySelector("[type=submit]");
+      const areas = leerChips(conf.querySelector('[data-chips="nueva"]'));
+      btn.disabled = true;
+      const { error } = await sb.rpc("invitar", { p: P.id, correo, rol: Object.values(areas).includes("editar") ? "editor" : "lector", areas });
+      if (error) { btn.disabled = false; toast(limite(error) || "No se pudo enviar la invitación."); return; }
+      toast("Invitación enviada a " + correo + ".");
+      personas();
+    };
+  }
 }
 // Abierto al equipo o reservado a personas elegidas (quien administra siempre lo ve).
 async function quienLoVe() {
@@ -452,7 +587,7 @@ async function quienLoVe() {
 }
 // Quién más está en el proyecto ahora (solo en equipos). Se comparte el nombre del correo, la pestaña y la sección.
 function presencia() {
-  if (ACC.tipo !== "equipo" || CANAL || !YO) return;
+  if ((ACC.tipo !== "equipo" && !(PERS && PERS.personas.length)) || CANAL || !YO) return;
   const nombre = (YO.email || "").split("@")[0];
   let enviado = "";
   let listo = false;
@@ -475,7 +610,7 @@ let obs = null;
 function aplicarSoloLectura() {
   if (obs) { obs.disconnect(); obs = null; }
   if (!RO) return;
-  const libre = (el) => (!VER && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fx-tabs, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom") || el.id === "h-foco";
+  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fx-tabs, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom") || el.id === "h-foco";
   const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
   aplicar();
   obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });
@@ -529,10 +664,17 @@ function avisarSecciones(silencio) { const n = faltantes().length + sobrantes().
 function pintarTabs() {
   const n = { taller: SECS.length ? avance(SECS) + "%" : "", referentes: REFS.length, pizarra: PIZ.length, bitacora: NOTAS.length, oportunidades: SEGS.length, vitrina: VIT && VIT.publicada ? "●" : "" };
   const nuevas = faltantes().length + sobrantes().length;
-  $("tabs").innerHTML = PESTANAS.map(([k, t]) => '<button role="tab" data-p="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? '<span class="n">' + n[k] + "</span>" : "") + (k === "taller" && nuevas ? '<span class="punto" title="Secciones sugeridas nuevas"></span>' : "") + "</button>").join("");
+  $("tabs").innerHTML = visibles().map(([k, t]) => '<button role="tab" data-p="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? '<span class="n">' + n[k] + "</span>" : "") + (k === "taller" && nuevas ? '<span class="punto" title="Secciones sugeridas nuevas"></span>' : "") + "</button>").join("");
   $("tabs").querySelectorAll("[data-p]").forEach((b) => b.onclick = () => irA(b.dataset.p));
 }
-function irA(k) { pest = k; history.replaceState(null, "", "#" + k); pintarTabs(); pintarPestana(); }
+function irA(k) {
+  if (!nivelDe(k)) return;
+  const antes = RO; pest = k; history.replaceState(null, "", "#" + k);
+  // Cada área puede tener su propio permiso: si cambia, se vuelve a armar la página con el nuevo modo.
+  if (calcRO() !== antes) { armar(); return; }
+  pintarTabs(); pintarPestana();
+}
+function calcRO() { return nivelDe(pest) !== "editar" || !editable(P, ACT, PL); }
 function pintarPestana() {
   if (EDITOR) { EDITOR.destruir(); EDITOR = null; }
   ({ taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest](); activarAvisame($("panel"));
