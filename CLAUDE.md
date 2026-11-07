@@ -31,7 +31,7 @@ Reglas de datos:
 
 ## Cuentas y datos privados
 - Base común en `docs/js/forja.js` (cliente Supabase, sesión, navegación) y `docs/css/forja.css` (colores y piezas compartidas). Todo módulo nuevo usa `nav()` y `conSesion()`.
-- Entrada sin contraseña: enlace al correo (Supabase Auth, magic link; plantilla por defecto en inglés porque editarla exige SMTP propio). El campo de código queda como opción secundaria. Al registrarse, un trigger crea el espacio personal del usuario.
+- Entrada sin contraseña: enlace al correo (Supabase Auth, magic link, enviado desde forja@digitalmonster.cl con plantillas en español). El campo de código queda como opción secundaria. Al registrarse, un trigger crea el espacio personal del usuario.
 - Tabla compartida: `precios_comunidad` (ver Cotizador).
 - Tabla pública de solo lectura: `vitrinas_publicadas` (ver Vitrina) (solo las filas `visible`).
 - Tablas propias de cada persona, por `user_id`/`autor`: `aceptaciones`, `avisos`, `mensajes`, `reportes` (ver Documentos, moderación y Explorar).
@@ -54,7 +54,7 @@ Dos zonas con menú distinto (`forja.js`):
 - `cotizaciones/`: una tarjeta por cotización y, para los proyectos en curso sin cotización, un botón para crearla.
 
 ## Documentos, moderación y Explorar
-- Documentos: `terminos/`, `privacidad/`, `normas/`. Fuente en HTML simple dentro de cada página (resumen "En simple" + secciones con índice). Siguen la Ley 19.628 y adoptan los estándares de la Ley 21.719 (derechos ARCO+, 30 días corridos, bloqueo en 2 días hábiles); Forja es para mayores de 14 años. No se inventan correos ni datos de contacto: todo pasa por Mi cuenta → Escríbenos.
+- Documentos: `terminos/`, `privacidad/`, `normas/`. Fuente en HTML simple dentro de cada página (resumen "En simple" + secciones con índice). Siguen la Ley 19.628 y adoptan los estándares de la Ley 21.719 (derechos ARCO+, 30 días corridos, bloqueo en 2 días hábiles); Forja es para mayores de 14 años. Contacto: Mi cuenta → Escríbenos o forja@digitalmonster.cl; no se inventan otros correos ni datos de contacto.
 - Aceptación: `DOCS.version` en `forja.js`. `conSesion()` pide aceptar (casilla sin marcar, "Tengo 14 años o más…") si falta alguna fila de `public.aceptaciones` con esa versión. Al cambiar un documento de forma importante: avisar con 15 días, subir `DOCS.version` y la fecha en las tres páginas.
 - Reportes: "Reportar esta vitrina" al pie de cada vitrina pública → `rpc reportar_vitrina` (cuenta de 1 día, 5 por día, uno por vitrina, bloqueado con 2 de mala fe, no la propia). **Nada se oculta automáticamente**: siempre decide una persona.
 - Moderación (`admin/`): solo correos en `privado.admin_correos` (se agregan con el conector; nunca en el repo). Pestañas Reportes, Mensajes y apelaciones, Suspendidas, En Explorar y Registro, con `mod_panel`, `mod_vitrina`, `mod_resolver`, `mod_suspender` (mensaje obligatorio, con plantillas por motivo), `mod_restaurar`, `mod_explorar` y `mod_responder`. Toda decisión avisa al dueño en `public.avisos` y queda en `privado.registro`. Suspender una cuenta completa se hace en el panel de Supabase (Authentication → ban).
