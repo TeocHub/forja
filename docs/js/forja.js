@@ -172,6 +172,7 @@ const MSG = {
   FORJA_AVISO_TEXTO: "El título va de 3 a 120 caracteres y el mensaje de 10 a 2.000.",
   FORJA_AVISO_ESPERA: "Puedes avisar a tus seguidores una vez cada 7 días.",
   FORJA_VITRINA_ENLACES: "La vitrina admite hasta 10 enlaces en «Dónde seguirlo».",
+  FORJA_VITRINA_PAGO_TIER: "Un enlace de pago de una recompensa no es de un medio de pago conocido (Mercado Pago, PayPal, Flow, Ko-fi, Webpay…).",
   FORJA_VITRINA_PAGOS: "La vitrina admite hasta 2 enlaces de pago o apoyo (Mercado Pago, PayPal, Ko-fi, Kickstarter…).",
 };
 export function limite(error) { const m = error && (error.message || ""); const k = Object.keys(MSG).find((c) => m.includes(c)); return k ? MSG[k] : null; }
@@ -332,3 +333,31 @@ export function pintarEntrada(caja, texto) {
 }
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register(u("sw.js"), { scope: RAIZ }).catch(() => {}); // uno solo, en la raíz, para todas las carpetas
+
+/* ---------- imágenes por enlace ----------
+   Forja no guarda archivos: las imágenes van por enlace directo. Como no todo el mundo sabe dónde subirlas,
+   ayudaImagenes() muestra tres servicios gratis y qué enlace copiar, y probarImagen() revisa que el enlace sea de verdad una imagen. */
+export function ayudaImagenes(abierta = false) {
+  return '<details class="fx-ayimg"' + (abierta ? " open" : "") + '><summary>¿Dónde subo mis imágenes?</summary>' +
+    '<p>Forja no guarda archivos: necesitas el <b>enlace directo</b> de la imagen, el que se abre solo con la imagen. Puedes subirla gratis a uno de estos sitios:</p>' +
+    '<div class="fx-ayimg-g">' +
+      '<a href="https://imgbb.com/" target="_blank" rel="noopener noreferrer"><b>ImgBB</b><span>No pide cuenta. Al subirla, en «Códigos de inserción» elige «Enlaces directos» y copia el que empieza con <code>i.ibb.co</code>.</span></a>' +
+      '<a href="https://postimages.org/" target="_blank" rel="noopener noreferrer"><b>Postimages</b><span>No pide cuenta. Copia el «Enlace directo», el que empieza con <code>i.postimg.cc</code>.</span></a>' +
+      '<a href="https://imgur.com/upload" target="_blank" rel="noopener noreferrer"><b>Imgur</b><span>Ábrela ya subida, mantén presionada la imagen (o clic derecho) y elige «Copiar dirección de la imagen» (<code>i.imgur.com</code>).</span></a>' +
+    '</div><p class="fx-ayimg-no">No sirven los enlaces de Google Drive, Instagram, Pinterest o Facebook (son páginas, no imágenes) ni los de Discord (vencen). Sube solo imágenes tuyas o que puedas usar.</p></details>';
+}
+// Revisa un enlace de imagen y escribe el resultado en `salida` (un elemento). Devuelve una promesa con true/false.
+export function probarImagen(url, salida) {
+  return new Promise((ok) => {
+    if (!salida) salida = document.createElement("span");
+    url = String(url || "").trim();
+    if (!url) { salida.textContent = ""; salida.className = "fx-imgprueba"; return ok(false); }
+    if (!/^https:\/\//i.test(url)) { salida.textContent = "El enlace debe empezar con https://"; salida.className = "fx-imgprueba mal"; return ok(false); }
+    salida.textContent = "Revisando la imagen…"; salida.className = "fx-imgprueba";
+    const im = new Image(), t = setTimeout(() => fin(false), 9000);
+    const fin = (bien) => { clearTimeout(t); im.onload = im.onerror = null;
+      salida.textContent = bien ? "✓ La imagen carga bien." : /drive\.google|instagram\.com|pinterest\.|facebook\.com|discord/i.test(url) ? "Ese enlace es de una página, no de la imagen. Mira «¿Dónde subo mis imágenes?»." : "No pudimos abrir la imagen. ¿Es el enlace directo? Mira «¿Dónde subo mis imágenes?».";
+      salida.className = "fx-imgprueba " + (bien ? "bien" : "mal"); ok(bien); };
+    im.referrerPolicy = "no-referrer"; im.onload = () => fin(im.naturalWidth > 0); im.onerror = () => fin(false); im.src = url;
+  });
+}

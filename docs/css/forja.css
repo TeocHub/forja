@@ -151,3 +151,15 @@
 .fx-esp-b small{color:var(--muted);font-size:12px}
 .fx-esp-b[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .fx-esp-b:hover{border-color:var(--accent)}
+/* ayuda para subir imágenes */
+.fx-ayimg{font-size:13.5px;color:var(--muted);border:1px dashed var(--line);border-radius:12px;padding:8px 12px}
+.fx-ayimg summary{cursor:pointer;color:var(--accent);font-weight:700}
+.fx-ayimg p{margin:8px 0}
+.fx-ayimg-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.fx-ayimg-g a{display:flex;flex-direction:column;gap:3px;text-decoration:none;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.fx-ayimg-g a:hover{border-color:var(--accent)}
+.fx-ayimg-g b{color:var(--fg)}
+.fx-ayimg code{font-family:var(--f-num);font-size:12px;color:var(--fg)}
+.fx-ayimg-no{font-size:12.5px}
+.fx-imgprueba{display:block;font-size:12.5px;color:var(--muted);min-height:1em}
+.fx-imgprueba.bien{color:var(--good)}.fx-imgprueba.mal{color:var(--bad)}

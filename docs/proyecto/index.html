@@ -309,7 +309,7 @@ textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, debounce, fecha, hace, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame } from "../js/forja.js";
+import { sb, $, esc, toast, debounce, fecha, hace, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen } from "../js/forja.js";
 import { funcion } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
@@ -938,12 +938,13 @@ function referentes() {
     '<label class="fx-sr" for="r-nota">Qué tomas de aquí</label><input id="r-nota" maxlength="4000" placeholder="¿Qué te sirve de este referente? Ej.: la paleta, el ritmo, cómo presenta al villano">' +
     '<label class="fx-sr" for="r-tipo">Tipo</label><select id="r-tipo">' + Object.entries(TREF).map(([k, n]) => '<option value="' + k + '">' + n + "</option>").join("") + "</select></div>" +
     (PL.mas ? "" : '<p class="hint" style="grid-column:1/-1;margin:0"><b style="color:var(--fg)">' + REFS.length + " de " + LIMITES.referentes + "</b> referentes del plan gratis en este proyecto.</p>") +
-    '<p class="hint" style="grid-column:1/-1;margin:0">Forja no guarda archivos: solo el enlace. Si la página original borra la imagen o el video, aquí también desaparece.</p></form>' +
+    '<p class="hint" style="grid-column:1/-1;margin:0">Forja no guarda archivos: solo el enlace. Si la página original borra la imagen o el video, aquí también desaparece.</p><div style="grid-column:1/-1">' + ayudaImagenes() + '</div><span class="fx-imgprueba" id="r-prueba" style="grid-column:1/-1"></span></form>' +
     '<div class="filtro" id="r-filtro"></div><div id="muro"></div></div>';
   let det = null;
   $("r-val").oninput = () => {
     det = detectar($("r-val").value);
     $("r-extra").hidden = !det;
+    if (det && det.tipo === "imagen") probarImagen($("r-val").value, $("r-prueba")); else $("r-prueba").textContent = "";
     if (det) { $("r-tipo").value = det.tipo; $("r-det").textContent = "Se guardará como " + TREF[det.tipo].toLowerCase() + (det.tipo === "enlace" ? ". Si es una imagen, cambia el tipo a Imagen." : "."); }
     else $("r-det").textContent = "";
   };

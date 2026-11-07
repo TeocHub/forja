@@ -267,6 +267,7 @@ create extension if not exists pg_cron;
 create extension if not exists pg_net with schema extensions;
 -- privado.es_pago(url): enlaces de pago, apoyo o financiamiento (mismo criterio que PAGO en docs/js/vitrina.js).
 -- publicar_vitrina: hasta 10 enlaces (FORJA_VITRINA_ENLACES) y hasta 2 de pago entre enlaces y galería (FORJA_VITRINA_PAGOS).
+--   Además, el enlace de pago de cada recompensa (datos.recompensas.tiers[].pago) debe pasar privado.es_pago (FORJA_VITRINA_PAGO_TIER); no cuenta en el límite de 2 (migración vitrina_pago_por_recompensa).
 
 create table public.correo_prefs(          -- qué correos acepta cada persona (sin fila = valores por defecto)
   user_id uuid primary key default auth.uid() references auth.users(id) on delete cascade,

@@ -155,6 +155,19 @@ a{color:var(--accent)}
 :root[data-theme="dark"]{--c-prod:#8c9bff;--c-extra:#6d7fa3;--c-time:#c49be6;--c-fee:#59626f;--c-reinv:#3cc2ac;--c-gain:#f2b937}
 .guardado{font-size:12px;color:var(--muted);font-family:var(--f-num);margin-left:auto}
 /* campaña */
+.c-precio{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.c-costo{font-size:13.5px;color:var(--muted)}.c-costo b{color:var(--fg);font-family:var(--f-num);font-weight:500}
+.c-pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:520px){.c-pgrid{grid-template-columns:1fr}}
+.c-pcol{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:var(--card)}
+.c-pcol.activo{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.c-plab{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.c-pval{font-family:var(--f-num);font-size:22px;font-weight:700}
+.c-pcol input{font-family:var(--f-num);font-size:20px;font-weight:700;padding:4px 8px;width:100%}
+.c-pgan{font-size:13px;color:var(--muted)}.c-pgan .bien{color:var(--good)}.c-pgan .poco{color:var(--warn)}.c-pgan .mal{color:var(--bad)}
+.c-pusar{align-self:flex-start;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:3px 12px;background:transparent;color:var(--fg);cursor:pointer}
+.c-pnota{font-size:12.5px;color:var(--muted)}
+
 .c-prods,.c-tiers{display:flex;flex-direction:column;gap:12px}
 .c-prod,.c-tier{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--field)}
 .c-prod .name,.c-tier .name{font:inherit;font-family:var(--f-display);font-weight:700;font-size:16px;border:0;border-bottom:1px dashed var(--line);background:transparent;color:var(--fg);padding:2px 0;flex:1 1 160px;min-width:0}
@@ -944,10 +957,8 @@ navApp("cotizaciones");
         '<div class="fields">'+
           '<label class="f">Apoyos esperados<input type="number" min="0" step="1" data-tn="apoyos" value="'+(t.apoyos!=null?t.apoyos:"")+'">'+(an!=null?'<span class="hint">'+an+(an===1?' persona anotada':' personas anotadas')+' en la vitrina</span>':'')+'</label>'+
           '<label class="f">Cupo <span class="hint">(vacío: sin límite)</span><input type="number" min="0" step="1" data-tn="limite" value="'+(t.limite||"")+'"></label>'+
-          '<label class="f">Entrega estimada<input type="month" data-tf="entrega" value="'+esc(t.entrega||"")+'"></label>'+
-          '<label class="f">Precio final<input type="number" min="0" step="100" data-tn="precio" value="'+(num(t.precio)>0?t.precio:"")+'" placeholder="'+(r?r.sug:"")+'"></label></div>'+
-        (r?'<div class="c-tbol"><span>Costo <b>'+clp(r.cImp)+'</b>'+(r.fis?' <small>con empaque'+(R.incl?' y envío':'')+'</small>':' <small>digital</small>')+'</span><span>Sugerido <b>'+(r.sug?clp(r.sug):"elige tú")+'</b></span><span'+(r.neto<0?' class="mal"':'')+'>Deja por apoyo <b>'+clp(r.neto)+'</b></span>'+(!r.sug&&!(num(t.precio)>0)?'<span class="pill warn">No cuesta producirla: ponle el precio que quieras (por ejemplo, el mínimo para apoyar).</span>':'')+''+
-          (num(t.precio)>0?'<button type="button" class="link" data-tsug>Usar sugerido</button>':'')+(r.falta?'<span class="pill warn">faltan precios</span>':'')+'</div>':'')+'</article>';
+          '<label class="f">Entrega estimada<input type="month" data-tf="entrega" value="'+esc(t.entrega||"")+'"></label></div>'+
+        (r?cPrecioHTML(t,r,R):'')+'</article>';
     }).join("")||'<div class="empty">Sin recompensas aún.</div>';
     var box=$("c-tiers");
     box.querySelectorAll("[data-t]").forEach(function(card){
@@ -959,9 +970,24 @@ navApp("cotizaciones");
       card.querySelectorAll("[data-itdel]").forEach(function(b){b.onclick=function(){t.items.splice(+b.dataset.itdel,1);cGuardar();pintarCTiers();pintarCProds();};});
       card.querySelector("[data-itadd]").onclick=function(){var p=c.productos.filter(function(x){return !t.items.some(function(it){return it.p===x.id;});})[0]||c.productos[0];if(!p)return;t.items.push({p:p.id,n:1});cGuardar();pintarCTiers();pintarCProds();};
       var sg=card.querySelector("[data-tsug]");if(sg)sg.onclick=function(){t.precio=null;cGuardar();pintarCTiers();};
+      var tp=card.querySelector("[data-tprecio]");if(tp){
+        tp.addEventListener("input",function(){var R=calcCamp(),rr=R.rows.filter(function(x){return x.t===t;})[0],v=num(tp.value);if(rr)card.querySelector("[data-tgan]").innerHTML=v>0?gananciaTxt(v,rr,R):'<small>Escríbelo si quieres cobrar otra cosa</small>';});
+        tp.addEventListener("change",function(){t.precio=num(tp.value)>0?Math.round(num(tp.value)):null;cGuardar();pintarCTiers();});
+      }
       var up=card.querySelector("[data-tsub]");if(up)up.onclick=function(){var i=c.tiers.indexOf(t);c.tiers.splice(i,1);c.tiers.splice(i-1,0,t);cGuardar();pintarCTiers();};
       var del=card.querySelector("[data-tdel]");del.onclick=function(){if(del.dataset.seguro!=="1"){del.dataset.seguro="1";del.textContent="¿Quitarla?";return;}c.tiers=c.tiers.filter(function(x){return x!==t;});cGuardar();pintarCTiers();pintarCProds();};
     });
+  }
+  // Precio de una recompensa: a la izquierda lo que sugiere Forja (con tu margen), a la derecha el que tú decides, y cuánto deja cada uno.
+  function gananciaTxt(P,r,R){
+    var neto=P*(1-R.com)-r.cImp,pct=P>0?neto/P*100:0;
+    return '<b class="'+(neto<0?"mal":neto<P*0.1?"poco":"bien")+'">'+(neto<0?"Pierdes "+clp(-neto):"Ganas "+clp(neto))+'</b> por apoyo'+(P>0?' <small>('+Math.round(pct)+'% del precio)</small>':'');
+  }
+  function cPrecioHTML(t,r,R){
+    var propio=num(t.precio)>0;
+    return '<div class="c-precio"><div class="c-costo">Producirla te cuesta <b>'+clp(r.cImp)+'</b>'+(r.fis?' <small>(productos, empaque'+(R.incl?', envío':'')+' e imprevistos)</small>':' <small>(es digital)</small>')+(r.falta?' <span class="pill warn">faltan precios de algunas piezas</span>':'')+'</div>'+
+      '<div class="c-pgrid"><div class="c-pcol'+(propio?'':' activo')+'"><span class="c-plab">Precio sugerido</span>'+(r.sug?'<span class="c-pval">'+clp(r.sug)+'</span><span class="c-pgan">'+gananciaTxt(r.sug,r,R)+'</span>'+(propio?'<button type="button" class="c-pusar" data-tsug>Usar este precio</button>':'<span class="c-pnota">Es el que se usa mientras no pongas el tuyo</span>'):'<span class="c-pnota">No cuesta producirla: elige tú cuánto pedir (por ejemplo, el mínimo para apoyar).</span>')+'</div>'+
+      '<div class="c-pcol'+(propio?' activo':'')+'"><label class="c-plab" for="tp-'+t.id+'">Tu precio</label><input type="number" min="0" step="100" inputmode="numeric" id="tp-'+t.id+'" data-tprecio value="'+(propio?t.precio:"")+'" placeholder="'+(r.sug||"Escribe un precio")+'"><span class="c-pgan" data-tgan>'+(propio?gananciaTxt(num(t.precio),r,R):'<small>Escríbelo si quieres cobrar otra cosa</small>')+'</span></div></div></div>';
   }
   function pintarCZonas(){
     var z=Cm().envio.zonas;

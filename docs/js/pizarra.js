@@ -1,3 +1,4 @@
+import { ayudaImagenes } from "./forja.js";
 // Forja · Pizarra. Un tablero dentro de cada proyecto, en cuatro modos:
 //   libre      tarjetas, colores y flechas para ordenar ideas (plan gratis: una por proyecto, 20 tarjetas)
 //   relaciones personajes o facciones unidos por lazos con nombre          (Forja Más)
@@ -322,7 +323,7 @@ export function montar(raiz, o) {
     const r = lienzo.getBoundingClientRect();
     if (!cajas.length || !r.width) { V = { x: r.width / 2 - 100, y: r.height / 2 - 60, z: 1 }; aplicarVista(); return; }
     const x0 = Math.min(...cajas.map((c) => c.x)), y0 = Math.min(...cajas.map((c) => c.y)), x1 = Math.max(...cajas.map((c) => c.x + c.w)), y1 = Math.max(...cajas.map((c) => c.y + c.h));
-    const z = clamp(Math.min((r.width - 60) / (x1 - x0 || 1), (r.height - 60) / (y1 - y0 || 1)), 0.25, 1.2);
+    const z = clamp(Math.min((r.width - 60) / (x1 - x0 || 1), (r.height - 60) / (y1 - y0 || 1)), o.publico ? 0.06 : 0.25, 1.2);
     V = { z, x: (r.width - (x1 - x0) * z) / 2 - x0 * z, y: (r.height - (y1 - y0) * z) / 2 - y0 * z };
     aplicarVista();
   }
@@ -522,7 +523,7 @@ export function montar(raiz, o) {
       '<label class="pz-c"><span>Imagen del mapa (enlace)</span><input data-g="fondo" type="url" inputmode="url" placeholder="https://…" value="' + esc(D.fondo ? D.fondo.url : "") + '"' + (ed ? "" : " disabled") + "></label>" +
       (D.fondo ? '<label class="pz-c"><span>Tamaño de la imagen</span><input data-g="ancho" type="range" min="400" max="6000" step="100" value="' + D.fondo.w + '"' + (ed ? "" : " disabled") + "></label>" : "") +
       (D.fondo && fondoMal ? '<p class="pz-tip pz-mal" role="alert">No se pudo cargar esa imagen. Revisa que el enlace lleve directo a la imagen (al abrirlo debe verse solo la imagen) y que sea pública.</p>' : "") +
-      '<p class="pz-tip">Pega el enlace directo de una imagen (que termine en .jpg, .png o .webp, o de un servicio como Imgur). Forja no guarda archivos: solo el enlace.</p>' + ayuda();
+      '<p class="pz-tip">Pega el enlace directo de una imagen (que termine en .jpg, .png o .webp). Forja no guarda archivos: solo el enlace.</p>' + ayudaImagenes() + ayuda();
     if (ES) { const m = D.tarjetas.reduce((s, t) => s + num(t.min, 0), 0); return '<div class="pz-i-cab"><span>Escaleta</span></div><p class="pz-resumen"><b>' + n + "</b> " + (n === 1 ? "escena" : "escenas") + " en <b>" + D.actos.length + "</b> " + (D.actos.length === 1 ? "acto" : "actos") + (m ? " · <b>" + minTxt(m) + "</b>" : "") + "</p>" + ayuda(); }
     return '<div class="pz-i-cab"><span>' + MODOS[modo].n + "</span></div>" + ayuda();
   }
@@ -686,7 +687,9 @@ export function montar(raiz, o) {
   }
   const alSalir = () => { if (pendiente) guardarYa(); };
   window.addEventListener("pagehide", alSalir);
-  const ro2 = lienzo && "ResizeObserver" in window ? new ResizeObserver(() => aplicarVista()) : null; if (ro2) ro2.observe(lienzo);
+  // En una vitrina, mientras nadie mueva la vista, se vuelve a encuadrar todo si cambia el tamaño (girar el teléfono, abrir la pestaña).
+  let tocada = false; if (o.publico && lienzo) ["pointerdown", "wheel"].forEach((ev) => lienzo.addEventListener(ev, () => { tocada = true; }, { once: true, passive: true }));
+  const ro2 = lienzo && "ResizeObserver" in window ? new ResizeObserver(() => { if (o.publico && !tocada) verTodo(); else aplicarVista(); }) : null; if (ro2) ro2.observe(lienzo);
   return {
     destruir() { alSalir(); vivo = false; window.removeEventListener("pagehide", alSalir); if (ro2) ro2.disconnect(); document.documentElement.classList.remove("pz-sin-scroll"); },
     hayCambios: () => pendiente,
@@ -707,22 +710,25 @@ export function estatica(piz, o = {}) {
       return '<section><h4>' + esc(a.n || "Acto") + (m ? " <small>" + minTxt(m) + "</small>" : "") + "</h4>" + ts.map((t) => '<div class="pz-st-e"' + (okColor(t.color) ? ' style="border-left-color:' + t.color + '"' : "") + "><b>" + ++n + ". " + esc(t.titulo || "Escena") + "</b>" + (t.sub ? "<small>" + esc(t.sub) + "</small>" : "") + (t.texto ? "<p>" + esc(t.texto) + "</p>" : "") + (enlace(t) ? "<small>" + esc(enlace(t)) + (num(t.min, 0) ? " · " + minTxt(num(t.min, 0)) : "") + "</small>" : num(t.min, 0) ? "<small>" + minTxt(num(t.min, 0)) + "</small>" : "") + "</div>").join("") + "</section>"; }).join("") + "</div>";
   }
   const W = ANCHO[modo], LH = 15;
-  const partir = (s, cpl, maxL) => { const out = []; let l = ""; String(s || "").split(/\s+/).forEach((w) => { if ((l + " " + w).trim().length > cpl) { if (l) out.push(l); l = w; } else l = (l + " " + w).trim(); }); if (l) out.push(l); if (out.length > maxL) { out.length = maxL; out[maxL - 1] += "…"; } return out; };
+  const partir = (s, cpl, maxL) => { const out = []; let l = ""; String(s || "").split(/\s+/).flatMap((w) => w.length > cpl ? w.match(new RegExp(".{1," + cpl + "}", "g")) : [w]).forEach((w) => { if ((l + " " + w).trim().length > cpl) { if (l) out.push(l); l = w; } else l = (l + " " + w).trim(); }); if (l) out.push(l); if (out.length > maxL) { out.length = maxL; out[maxL - 1] += "…"; } return out; };
   const caja = new Map();
   const bloques = D.tarjetas.map((t) => {
     const tit = partir(t.titulo || (modo === "mapa" ? "Lugar" : "—"), modo === "mapa" ? 18 : Math.floor(W / 7.6), 2), sub = t.sub ? partir(t.sub, Math.floor(W / 6.6), 1) : [];
     const tx = modo === "libre" && t.texto ? partir(t.texto, Math.floor(W / 6.6), 5) : [], en = modo === "libre" ? enlace(t) : "";
     const top = modo === "relaciones" ? 56 : 14;
     const h = top + tit.length * 17 + sub.length * LH + (tx.length ? 6 + tx.length * LH : 0) + (en ? 20 : 0) + 12;
-    caja.set(t.id, { x: t.x, y: t.y, w: W, h }); return { t, tit, sub, tx, en, top, h };
+    // en el mapa el nombre va al lado del pin: la caja debe cubrir el texto entero (si no, se corta en el PDF)
+    const wTxt = modo === "mapa" ? 30 + Math.max(...tit.map((l) => l.length * 7.4), ...sub.map((l) => l.length * 6.2), 0) : W;
+    caja.set(t.id, { x: t.x, y: t.y, w: Math.max(W, wTxt), h }); return { t, tit, sub, tx, en, top, h };
   });
   const cv = curvas(D.flechas);
   let lineas = "", etiq = "";
+  const extra = []; // curvas y etiquetas de las flechas también cuentan para el encuadre
   D.flechas.forEach((f) => {
     const a = caja.get(f.de), b = caja.get(f.a); if (!a || !b) return;
-    const tr = trazo(a, b, cv[f.id] || 0), st = estiloFlecha(f, modo), c = st.color || "#5b6275", dir = f.dir || dirDef(modo);
+    const tr = trazo(a, b, cv[f.id] || 0); extra.push({ x: tr.c[0], y: tr.c[1], w: 1, h: 1 }); const st = estiloFlecha(f, modo), c = st.color || "#5b6275", dir = f.dir || dirDef(modo);
     lineas += '<path d="' + tr.d + '" fill="none" stroke="' + c + '" stroke-width="1.8"' + (st.dash ? ' stroke-dasharray="' + st.dash + '"' : "") + "/>" + (dir !== "nada" ? '<path d="' + punta(tr.c, tr.p2) + '" fill="' + c + '"/>' : "") + (dir === "ambas" ? '<path d="' + punta(tr.c, tr.p0) + '" fill="' + c + '"/>' : "");
-    if (st.texto) { const w = Math.min(180, st.texto.length * 6.4 + 14); etiq += '<rect x="' + (tr.k[0] - w / 2) + '" y="' + (tr.k[1] - 10) + '" width="' + w + '" height="20" rx="10" fill="#fff" stroke="' + c + '"/><text x="' + tr.k[0] + '" y="' + (tr.k[1] + 4) + '" text-anchor="middle" font-size="11" fill="' + c + '">' + esc(st.texto.length > 28 ? st.texto.slice(0, 27) + "…" : st.texto) + "</text>"; }
+    if (st.texto) { const w = Math.min(180, st.texto.length * 6.4 + 14); extra.push({ x: tr.k[0] - w / 2, y: tr.k[1] - 10, w, h: 20 }); etiq += '<rect x="' + (tr.k[0] - w / 2) + '" y="' + (tr.k[1] - 10) + '" width="' + w + '" height="20" rx="10" fill="#fff" stroke="' + c + '"/><text x="' + tr.k[0] + '" y="' + (tr.k[1] + 4) + '" text-anchor="middle" font-size="11" fill="' + c + '">' + esc(st.texto.length > 28 ? st.texto.slice(0, 27) + "…" : st.texto) + "</text>"; }
   });
   const regs = D.regiones.map((r) => { const c = okColor(r.color) || "#5b6275"; return '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="18" fill="' + c + '" fill-opacity=".1" stroke="' + c + '" stroke-dasharray="6 5"/><text x="' + (r.x + 14) + '" y="' + (r.y + 22) + '" font-size="12" letter-spacing="1.5" fill="' + c + '" font-weight="700">' + esc((r.nombre || "Región").toUpperCase()) + "</text>"; }).join("");
   const tarjs = bloques.map(({ t, tit, sub, tx, en, top, h }) => {
@@ -745,7 +751,7 @@ export function estatica(piz, o = {}) {
     }
     return s;
   }).join("");
-  const todas = [...caja.values(), ...D.regiones];
+  const todas = [...caja.values(), ...D.regiones, ...extra];
   if (!todas.length) todas.push({ x: 0, y: 0, w: 1, h: 1 });
   let x0 = Math.min(...todas.map((c) => c.x)) - 30, y0 = Math.min(...todas.map((c) => c.y)) - 30, x1 = Math.max(...todas.map((c) => c.x + c.w)) + 30, y1 = Math.max(...todas.map((c) => c.y + c.h)) + 30;
   let fondo = "";

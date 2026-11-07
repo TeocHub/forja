@@ -53,38 +53,87 @@ const dominio = (u) => { try { return new URL(u).hostname.replace(/^www\./, "");
 export const ESTADOS_CAMP = { pronto: "Abre pronto", abierta: "Campaña abierta", cerrada: "Campaña cerrada" };
 export const ENVIOS = { aparte: "Envío aparte", incluido: "Envío incluido", digital: "Digital: sin envío" };
 export const MAX_TIERS = 12;
+// Bloques de la página de la campaña (como en Kickstarter o Gamefound): se arma con texto e imágenes.
+export const BLOQUES = { titulo: "Título", texto: "Texto", imagen: "Imagen", video: "Video", cita: "Cita destacada" };
+// Diseño de la vitrina: una columna (como siempre) o paneles de distintos tamaños, en el orden que elijas.
+export const SECCIONES_VT = [["recompensas", "Campaña y recompensas"], ["historia", "La historia"], ["galeria", "Galería"], ["mundo", "El mundo"], ["novedades", "Novedades"], ["enlaces", "Dónde seguirlo"]];
+export const TAMANOS = { completo: "Completo", dos: "2/3", medio: "Mitad", tercio: "1/3" };
+export function normalDiseno(x) {
+  x = x && typeof x === "object" ? x : {};
+  const claves = SECCIONES_VT.map(([k]) => k), orden = arr(x.orden).filter((k) => claves.includes(k));
+  claves.forEach((k) => { if (!orden.includes(k)) orden.push(k); });
+  const tam = {}; claves.forEach((k) => { tam[k] = TAMANOS[(x.tam || {})[k]] ? x.tam[k] : k === "novedades" || k === "enlaces" ? "medio" : "completo"; });
+  return { estilo: x.estilo === "paneles" ? "paneles" : "columna", orden, tam };
+}
+// Nombre del medio de pago según el dominio del enlace.
+export function medioPago(url) {
+  const d = (dominio(url) || "").toLowerCase();
+  return /mercadopago|mpago/.test(d) ? "Mercado Pago" : /paypal/.test(d) ? "PayPal" : /ko-fi/.test(d) ? "Ko-fi" : /flow\.cl/.test(d) ? "Flow" : /webpay|transbank/.test(d) ? "Webpay" : /kickstarter/.test(d) ? "Kickstarter" : /gamefound/.test(d) ? "Gamefound" : /patreon/.test(d) ? "Patreon" : /buymeacoffee/.test(d) ? "Buy Me a Coffee" : "el enlace de pago";
+}
 export function normalRecompensas(x) {
   x = x && typeof x === "object" ? x : {};
   return {
     activo: !!x.activo, plataforma: corta(x.plataforma, 60), enlace: okUrl(x.enlace), estado: ESTADOS_CAMP[x.estado] ? x.estado : "pronto",
     abre: /^\d{4}-\d{2}-\d{2}$/.test(x.abre || "") ? x.abre : "", meta: Math.max(0, Math.round(+x.meta || 0)), verMeta: !!x.verMeta,
-    interes: x.interes !== false, contador: !!x.contador, ...(x.tomada ? { tomada: String(x.tomada).slice(0, 30) } : {}),
+    interes: x.interes !== false, contador: !!x.contador,
+    recaudado: Math.max(0, Math.round(+x.recaudado || 0)), apoyos: Math.max(0, Math.round(+x.apoyos || 0)), cierra: /^\d{4}-\d{2}-\d{2}$/.test(x.cierra || "") ? x.cierra : "",
+    bloques: arr(x.bloques).filter((b) => b && b.id && BLOQUES[b.tipo]).slice(0, 40).map((b) => ({ id: String(b.id).slice(0, 20), tipo: b.tipo, texto: corta(b.texto, b.tipo === "texto" ? 4000 : 300), url: b.tipo === "imagen" || b.tipo === "video" ? okUrl(b.url) : "", pie: corta(b.pie, 200) })),
+    metas: arr(x.metas).filter((m) => m && m.id).slice(0, 20).map((m) => ({ id: String(m.id).slice(0, 20), monto: Math.max(0, Math.round(+m.monto || 0)), titulo: corta(m.titulo, 100), desc: corta(m.desc, 400), imagen: okUrl(m.imagen) })).sort((a, b) => a.monto - b.monto), ...(x.tomada ? { tomada: String(x.tomada).slice(0, 30) } : {}),
     tiers: arr(x.tiers).filter((t) => t && t.id).slice(0, MAX_TIERS).map((t) => ({ id: String(t.id).slice(0, 20), nombre: corta(t.nombre, 80), precio: Math.max(0, Math.round(+t.precio || 0)),
       desc: corta(t.desc, 600), incluye: arr(t.incluye).map((i) => corta(i, 80)).filter(Boolean).slice(0, 12), envio: ENVIOS[t.envio] ? t.envio : "aparte",
-      limite: Math.max(0, Math.round(+t.limite || 0)) || null, entrega: /^\d{4}-\d{2}$/.test(t.entrega || "") ? t.entrega : "" })),
+      limite: Math.max(0, Math.round(+t.limite || 0)) || null, pago: esPago(okUrl(t.pago)) ? okUrl(t.pago) : "", entrega: /^\d{4}-\d{2}$/.test(t.entrega || "") ? t.entrega : "" })),
   };
 }
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const mesTxt = (s) => { const m = /^(\d{4})-(\d{2})/.exec(s || ""); return m ? MESES[+m[2] - 1] + " de " + m[1] : ""; };
 const pesos = (n) => "$" + Math.round(n).toLocaleString("es-CL");
+function bloqueHTML(b, previa) {
+  if (b.tipo === "titulo") return '<h3 class="vt-cb-t">' + esc(b.texto) + "</h3>";
+  if (b.tipo === "texto") return '<div class="vt-cb-x">' + parrafos(b.texto) + "</div>";
+  if (b.tipo === "cita") return '<blockquote class="vt-cb-q">' + esc(b.texto) + "</blockquote>";
+  if (b.tipo === "imagen") return '<figure class="vt-cb-i"><img src="' + esc(b.url) + '" alt="' + esc(b.pie || "") + '" loading="lazy" referrerpolicy="no-referrer">' + (b.pie ? "<figcaption>" + esc(b.pie) + "</figcaption>" : "") + "</figure>";
+  if (b.tipo === "video") { const id = videoDe(b.url); return id ? '<div class="vt-cb-v"><button type="button" class="vt-play" data-video="' + esc(b.url) + '"' + (previa ? " disabled" : "") + '><span>▶ Ver video</span></button>' + (b.pie ? '<p class="vt-cb-pie">' + esc(b.pie) + "</p>" : "") + "</div>" : ""; }
+  return "";
+}
+const videoDe = (u) => yt(u) || vimeo(u);
+function dias(fecha) { if (!fecha) return null; const d = Math.ceil((new Date(fecha + "T23:59:59") - Date.now()) / 864e5); return d; }
 function recompensasHTML(R, previa) {
   const plat = R.plataforma || "la campaña", abierta = R.estado === "abierta" && R.enlace;
+  const tope = Math.max(R.meta || 0, ...R.metas.map((m) => m.monto), R.recaudado, 1);
+  const pct = R.meta ? Math.round(R.recaudado / R.meta * 100) : null;
+  const dCierra = R.estado === "abierta" ? dias(R.cierra) : null, dAbre = R.estado === "pronto" ? dias(R.abre) : null;
+  const proxima = R.metas.find((m) => m.monto > R.recaudado);
   const cab = R.estado === "abierta" ? "La campaña está abierta" + (R.plataforma ? " en " + esc(R.plataforma) : "") + "."
     : R.estado === "cerrada" ? "La campaña ya cerró. Gracias a quienes apoyaron."
     : "La campaña abre " + (R.abre ? "el " + esc(fechaTxt(R.abre)) : "pronto") + (R.plataforma ? " en " + esc(R.plataforma) : "") + "." + (R.interes ? " Anótate en lo que te interese y te avisamos." : "");
-  return '<section class="vt-sec" id="vt-recompensas"><h2 class="vt-h2">Recompensas</h2><p class="vt-guia vt-camp-cab">' + cab +
-    (R.verMeta && R.meta ? ' Meta: <b>' + pesos(R.meta) + "</b>." : "") + "</p>" +
-    (abierta ? '<p><a class="vt-camp-ir" href="' + esc(R.enlace) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + ">Ir a la campaña en " + esc(plat) + " ↗</a></p>" : "") +
-    '<div class="vt-tiers">' + R.tiers.map((t, i) =>
-      '<article class="vt-tier" data-tier="' + esc(t.id) + '"><div class="vt-tier-top"><span class="vt-tier-n">' + String(i + 1).padStart(2, "0") + "</span>" + (t.limite ? '<span class="vt-tier-cupo">' + t.limite + " cupos</span>" : "") + "</div>" +
+  // Avance: lo recaudado (lo actualiza quien crea la vitrina), la meta y las metas extra marcadas en la barra.
+  const avance = (R.recaudado || (R.verMeta && R.meta) || R.apoyos || dCierra != null || dAbre != null) ? '<div class="vt-camp-av">' +
+    ((R.verMeta && R.meta) || R.recaudado ? '<div class="vt-camp-barra" role="img" aria-label="' + (R.recaudado ? pesos(R.recaudado) + " recaudados" : "") + (R.verMeta && R.meta ? " de " + pesos(R.meta) : "") + '"><i style="width:' + Math.min(100, R.recaudado / tope * 100) + '%"></i>' +
+      (R.verMeta && R.meta ? '<b class="vt-camp-mk meta" style="left:' + (R.meta / tope * 100) + '%" title="Meta"></b>' : "") +
+      R.metas.map((m) => '<b class="vt-camp-mk' + (R.recaudado >= m.monto ? " ok" : "") + '" style="left:' + (m.monto / tope * 100) + '%" title="' + esc(m.titulo) + '"></b>').join("") + "</div>" : "") +
+    '<div class="vt-camp-nums">' +
+      (R.recaudado ? "<span><b>" + pesos(R.recaudado) + "</b>recaudados" + (R.verMeta && pct != null ? " · " + pct + "% de la meta" : "") + "</span>" : R.verMeta && R.meta ? "<span><b>" + pesos(R.meta) + "</b>meta</span>" : "") +
+      (R.apoyos ? "<span><b>" + R.apoyos.toLocaleString("es-CL") + "</b>" + (R.apoyos === 1 ? "persona apoya" : "personas apoyan") + "</span>" : "") +
+      (dCierra != null && dCierra >= 0 ? "<span><b>" + dCierra + "</b>" + (dCierra === 1 ? "día para cerrar" : "días para cerrar") + "</span>" : "") +
+      (dAbre != null && dAbre >= 0 ? "<span><b>" + dAbre + "</b>" + (dAbre === 1 ? "día para abrir" : "días para abrir") + "</span>" : "") + "</div></div>" : "";
+  const tiers = R.tiers.map((t, i) => {
+    const boton = R.estado === "cerrada" ? ""
+      : t.pago ? '<a class="vt-tier-b pagar" href="' + esc(t.pago) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + ">Apoyar con " + esc(medioPago(t.pago)) + " ↗</a>"
+      : abierta ? '<a class="vt-tier-b" href="' + esc(R.enlace) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + ">Apoyar en " + esc(plat) + " ↗</a>"
+      : R.interes ? '<button type="button" class="vt-tier-b" data-anotar="' + esc(t.id) + '" aria-pressed="false"' + (previa ? " disabled" : "") + '><span>Me interesa</span></button><span class="vt-tier-cuenta" hidden></span>' : "";
+    return '<article class="vt-tier" data-tier="' + esc(t.id) + '"><div class="vt-tier-top"><span class="vt-tier-n">' + String(i + 1).padStart(2, "0") + "</span>" + (t.limite ? '<span class="vt-tier-cupo">' + t.limite + " cupos</span>" : "") + "</div>" +
       "<h3>" + esc(t.nombre || "Recompensa") + '</h3><p class="vt-tier-precio">' + (t.precio ? pesos(t.precio) : "Lo que quieras") + "</p>" +
       (t.desc ? '<p class="vt-tier-desc">' + esc(t.desc) + "</p>" : "") +
       (t.incluye.length ? '<ul class="vt-tier-inc">' + t.incluye.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") +
-      '<p class="vt-tier-pie">' + ENVIOS[t.envio] + (t.entrega ? " · Entrega estimada: " + esc(mesTxt(t.entrega)) : "") + "</p>" +
-      (R.estado === "cerrada" ? "" : abierta ? '<a class="vt-tier-b" href="' + esc(R.enlace) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + ">Apoyar en " + esc(plat) + "</a>"
-        : R.interes ? '<button type="button" class="vt-tier-b" data-anotar="' + esc(t.id) + '" aria-pressed="false"' + (previa ? " disabled" : "") + '><span>Me interesa</span></button><span class="vt-tier-cuenta" hidden></span>' : "") +
-      "</article>").join("") + "</div>" +
-    '<p class="vt-camp-nota">' + (abierta ? "El apoyo y el pago se hacen en " + esc(plat) + ", no en Forja." : "Anotarte no es un pago ni un compromiso: sirve para que el proyecto sepa qué quiere la gente y te avise cuando abra.") + "</p></section>";
+      '<p class="vt-tier-pie">' + ENVIOS[t.envio] + (t.entrega ? " · Entrega estimada: " + esc(mesTxt(t.entrega)) : "") + "</p>" + boton + "</article>";
+  }).join("");
+  const metas = R.metas.length ? '<div class="vt-metas"><h3 class="vt-cb-t">Metas desbloqueables</h3>' + (proxima && R.recaudado ? '<p class="vt-guia">Próxima meta: faltan <b>' + pesos(proxima.monto - R.recaudado) + "</b> para «" + esc(proxima.titulo) + "».</p>" : "") +
+    '<ol class="vt-metas-l">' + R.metas.map((m) => '<li class="' + (R.recaudado >= m.monto ? "ok" : m === proxima ? "prox" : "") + '"><span class="vt-meta-m">' + pesos(m.monto) + "</span><div><b>" + esc(m.titulo) + (R.recaudado >= m.monto ? ' <i class="vt-meta-ok">Desbloqueada</i>' : "") + "</b>" + (m.desc ? "<p>" + esc(m.desc) + "</p>" : "") + "</div>" + (m.imagen ? '<img src="' + esc(m.imagen) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : "") + "</li>").join("") + "</ol></div>" : "";
+  const historia = R.bloques.length ? '<div class="vt-camp-historia">' + R.bloques.map((b) => bloqueHTML(b, previa)).join("") + "</div>" : "";
+  return '<p class="vt-guia vt-camp-cab">' + cab + "</p>" + avance +
+    (abierta ? '<p><a class="vt-camp-ir" href="' + esc(R.enlace) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + ">Ir a la campaña en " + esc(plat) + " ↗</a></p>" : "") +
+    '<div class="vt-camp' + (historia || metas ? " con-historia" : "") + '"><div class="vt-camp-izq">' + historia + metas + '</div><aside class="vt-camp-der" aria-label="Recompensas"><div class="vt-tiers">' + tiers + "</div></aside></div>" +
+    '<p class="vt-camp-nota">' + (R.tiers.some((t) => t.pago) || abierta ? "El apoyo y el pago se hacen fuera de Forja, en " + (abierta ? esc(plat) : "el medio de pago de cada recompensa") + "." : "Anotarte no es un pago ni un compromiso: sirve para que el proyecto sepa qué quiere la gente y te avise cuando abra.") + "</p>";
 }
 
 /* ---------- datos ---------- */
@@ -105,6 +154,7 @@ export function normal(d) {
     novedades: arr(d.novedades).filter((n) => n && n.id).map((n) => ({ id: n.id, fecha: /^\d{4}-\d{2}-\d{2}$/.test(n.fecha || "") ? n.fecha : "", titulo: corta(n.titulo, 160), texto: corta(n.texto, 8000) })),
     enlaces: arr(d.enlaces).filter((e) => e && e.id).slice(0, LIM.enlaces).map((e) => ({ id: e.id, nombre: corta(e.nombre, 60), url: String(e.url || "").trim() })),
     recompensas: normalRecompensas(d.recompensas),
+    diseno: normalDiseno(d.diseno),
     seguir: { activo: !!(d.seguir && d.seguir.activo), texto: d.seguir && SEGUIR_TEXTOS[d.seguir.texto] ? d.seguir.texto : "seguir", contador: !!(d.seguir && d.seguir.contador) },
   };
 }
@@ -117,6 +167,8 @@ export function paraPublicar(b, { mas }) {
   d.novedades = d.novedades.filter((n) => n.titulo.trim() || n.texto.trim()).sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
   d.enlaces = d.enlaces.filter((e) => okUrl(e.url)).map((e) => ({ ...e, nombre: e.nombre.trim() || dominio(e.url) }));
   d.recompensas.tiers = d.recompensas.tiers.filter((t) => t.nombre.trim());
+  d.recompensas.bloques = d.recompensas.bloques.filter((b) => (b.tipo === "imagen" || b.tipo === "video" ? b.url : b.texto.trim()));
+  d.recompensas.metas = d.recompensas.metas.filter((m) => m.titulo.trim() && m.monto > 0);
   if (!d.recompensas.activo || !d.recompensas.tiers.length) delete d.recompensas;
   else delete d.recompensas.tomada;
   d.pizarras = !mas ? [] : d.pizarras.map((z) => {
@@ -137,14 +189,25 @@ export function pintarVitrina(raiz, datos, opts = {}) {
   const etiqueta = [TIPOS[d.tipo], formato && formato.n !== TIPOS[d.tipo] ? formato.n : ""].filter(Boolean).join(" · ");
   const colores = d.galeria.filter((g) => g.tipo === "color").map((g) => g.valor);
   const piezas = d.galeria.filter((g) => g.tipo !== "color");
-  const partes = [
-    d.historia.length && ["historia", "La historia"],
-    (piezas.length || colores.length) && ["galeria", "Galería"],
-    d.pizarras.length && ["mundo", "El mundo"],
-    d.recompensas && d.recompensas.activo && d.recompensas.tiers.length && ["recompensas", "Recompensas"],
-    d.novedades.length && ["novedades", "Novedades"],
-    d.enlaces.length && ["enlaces", "Dónde seguirlo"],
-  ].filter(Boolean);
+  // Cada sección se arma aparte; el diseño decide el orden y, en "paneles", el tamaño de cada una.
+  const R = d.recompensas, hayCamp = R && R.activo && R.tiers.length;
+  const SEC = {
+    recompensas: hayCamp && ["Recompensas", recompensasHTML(R, previa)],
+    historia: d.historia.length && ["La historia", d.historia.map((h, i) =>
+      '<article class="vt-cap"><span class="vt-num" aria-hidden="true">' + String(i + 1).padStart(2, "0") + "</span><div>" + (h.titulo ? "<h3>" + esc(h.titulo) + "</h3>" : "") + parrafos(h.texto) + "</div></article>").join("")],
+    galeria: (piezas.length || colores.length) && ["Galería",
+      (colores.length ? '<div class="vt-paleta" role="img" aria-label="Paleta de colores: ' + colores.join(", ") + '">' + colores.map((c) => '<span style="background:' + c + '"><i>' + c.toUpperCase() + "</i></span>").join("") + "</div>" : "") +
+      (piezas.length ? '<div class="vt-galeria">' + piezas.map(pieza).join("") + "</div>" : "")],
+    mundo: d.pizarras.length && ["El mundo", '<p class="vt-guia">Explóralo: arrastra para moverte, acerca con la rueda o pellizcando, y toca una tarjeta para leerla.</p>' +
+      (d.pizarras.length > 1 ? '<div class="vt-tabs" role="tablist">' + d.pizarras.map((z, i) => '<button type="button" role="tab" aria-selected="' + !i + '" data-pz="' + i + '">' + esc(z.nombre) + "<small>" + MODOS[z.modo].corto + "</small></button>").join("") + "</div>" : "") +
+      '<div class="vt-pizarra"></div>'],
+    novedades: d.novedades.length && ["Novedades", '<div class="vt-linea">' + d.novedades.map((n) =>
+      '<article class="vt-nov"><time datetime="' + esc(n.fecha) + '">' + esc(fechaTxt(n.fecha)) + "</time><div>" + (n.titulo ? "<h3>" + esc(n.titulo) + "</h3>" : "") + parrafos(n.texto, 600) + "</div></article>").join("") + "</div>"],
+    enlaces: d.enlaces.length && ["Dónde seguirlo", '<div class="vt-enlaces">' + d.enlaces.map((e) =>
+      '<a href="' + esc(e.url) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + "><b>" + esc(e.nombre || dominio(e.url)) + "</b><small>" + esc(dominio(e.url)) + "</small></a>").join("") + "</div>"],
+  };
+  const partes = d.diseno.orden.filter((k) => SEC[k]).map((k) => [k, SEC[k][0]]);
+  const paneles = d.diseno.estilo === "paneles";
   const fondoHero = d.portada
     ? '<img class="vt-portada" src="' + esc(d.portada.url) + '" alt="" referrerpolicy="no-referrer" style="object-position:50% ' + d.portada.foco + '%">'
     : '<div class="vt-generativa" aria-hidden="true" style="--c2:' + (colores[0] || "var(--vt-acento)") + ";--c3:" + (colores[1] || colores[0] || "var(--vt-acento)") + '"><span>' + esc((d.titulo || "?").trim()[0] || "?") + "</span></div>";
@@ -158,20 +221,8 @@ export function pintarVitrina(raiz, datos, opts = {}) {
       (d.seguir.activo ? '<div class="vt-seguir-caja"><button type="button" class="vt-seguir" data-seguir aria-pressed="false"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 14.2 6.9 13.2C3 9.7.5 7.4.5 4.6.5 2.4 2.2.7 4.4.7c1.2 0 2.4.6 3.1 1.5h1C9.2 1.3 10.4.7 11.6.7c2.2 0 3.9 1.7 3.9 3.9 0 2.8-2.5 5.1-6.4 8.6L8 14.2Z"/></svg><span>' + esc(SEGUIR_TEXTOS[d.seguir.texto]) + '</span></button><span class="vt-seguir-n" hidden></span></div>' : "") +
       "</div></header>" +
     (partes.length > 1 ? '<nav class="vt-indice" aria-label="Secciones">' + partes.map(([k, n]) => '<a href="#vt-' + k + '" data-ir="' + k + '">' + n + "</a>").join("") + "</nav>" : "") +
-    '<main class="vt-cuerpo">' +
-    (d.historia.length ? '<section class="vt-sec vt-historia" id="vt-historia"><h2 class="vt-h2">La historia</h2>' + d.historia.map((h, i) =>
-      '<article class="vt-cap"><span class="vt-num" aria-hidden="true">' + String(i + 1).padStart(2, "0") + "</span><div>" + (h.titulo ? "<h3>" + esc(h.titulo) + "</h3>" : "") + parrafos(h.texto) + "</div></article>").join("") + "</section>" : "") +
-    (piezas.length || colores.length ? '<section class="vt-sec" id="vt-galeria"><h2 class="vt-h2">Galería</h2>' +
-      (colores.length ? '<div class="vt-paleta" role="img" aria-label="Paleta de colores: ' + colores.join(", ") + '">' + colores.map((c) => '<span style="background:' + c + '"><i>' + c.toUpperCase() + "</i></span>").join("") + "</div>" : "") +
-      (piezas.length ? '<div class="vt-galeria">' + piezas.map(pieza).join("") + "</div>" : "") + "</section>" : "") +
-    (d.pizarras.length ? '<section class="vt-sec" id="vt-mundo"><h2 class="vt-h2">El mundo</h2><p class="vt-guia">Explóralo: arrastra para moverte, acerca con la rueda o pellizcando, y toca una tarjeta para leerla.</p>' +
-      (d.pizarras.length > 1 ? '<div class="vt-tabs" role="tablist">' + d.pizarras.map((z, i) => '<button type="button" role="tab" aria-selected="' + !i + '" data-pz="' + i + '">' + esc(z.nombre) + "<small>" + MODOS[z.modo].corto + "</small></button>").join("") + "</div>" : "") +
-      '<div class="vt-pizarra"></div></section>' : "") +
-    (d.recompensas && d.recompensas.activo && d.recompensas.tiers.length ? recompensasHTML(d.recompensas, previa) : "") +
-    (d.novedades.length ? '<section class="vt-sec" id="vt-novedades"><h2 class="vt-h2">Novedades</h2><div class="vt-linea">' + d.novedades.map((n) =>
-      '<article class="vt-nov"><time datetime="' + esc(n.fecha) + '">' + esc(fechaTxt(n.fecha)) + "</time><div>" + (n.titulo ? "<h3>" + esc(n.titulo) + "</h3>" : "") + parrafos(n.texto, 600) + "</div></article>").join("") + "</div></section>" : "") +
-    (d.enlaces.length ? '<section class="vt-sec" id="vt-enlaces"><h2 class="vt-h2">Dónde seguirlo</h2><div class="vt-enlaces">' + d.enlaces.map((e) =>
-      '<a href="' + esc(e.url) + '" target="_blank" rel="noopener noreferrer"' + (previa ? ' tabindex="-1"' : "") + "><b>" + esc(e.nombre || dominio(e.url)) + "</b><small>" + esc(dominio(e.url)) + "</small></a>").join("") + "</div></section>" : "") +
+    '<main class="vt-cuerpo' + (paneles ? " vt-paneles" : "") + '">' +
+    partes.map(([k]) => '<section class="vt-sec vt-s-' + k + (k === "historia" ? " vt-historia" : "") + (paneles ? " vt-t-" + d.diseno.tam[k] : "") + '" id="vt-' + k + '"><h2 class="vt-h2">' + SEC[k][0] + "</h2>" + SEC[k][1] + "</section>").join("") +
     (!partes.length ? '<p class="vt-vacia">' + (previa ? "Agrega la historia, imágenes o novedades desde el panel y aparecerán aquí." : "Esta vitrina se está preparando.") + "</p>" : "") +
     "</main>" +
     '<footer class="vt-pie"><span>' + (opts.fecha ? "Actualizada el " + esc(fechaTxt(opts.fecha)) + " · " : "") + 'Vitrina hecha con <a href="' + RAIZ + '"' + (previa ? ' tabindex="-1"' : "") + ">Forja</a>" + (previa ? "" : ' · <a href="' + RAIZ + 'normas/">Normas</a> · <button type="button" class="vt-reportar" id="reportar">Reportar esta vitrina</button>') + "</span></footer>" +
@@ -322,6 +373,48 @@ export const CSS_VITRINA = CSS_PIZARRA + `
 .vt-seguir[aria-pressed=true] svg{color:var(--vt-acento)}
 .vt-seguir:disabled{opacity:.6;cursor:default;transform:none}
 .vt-seguir-n{font-size:14px;opacity:.85}
+/* paneles: secciones en una grilla de 12 columnas, cada una con su tamaño; en el teléfono, una debajo de otra */
+.vt-paneles{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:clamp(14px,2vw,22px);padding-top:clamp(28px,5vw,56px)}
+.vt-paneles > .vt-sec{grid-column:span 12;padding:clamp(20px,3vw,32px);background:var(--vt-card);border:1px solid var(--vt-line);border-radius:22px;min-width:0;container-type:inline-size}
+.vt-paneles > .vt-t-dos{grid-column:span 8}.vt-paneles > .vt-t-medio{grid-column:span 6}.vt-paneles > .vt-t-tercio{grid-column:span 4}
+.vt-paneles .vt-h2{margin-bottom:18px}
+@media (max-width:820px){.vt-paneles > .vt-sec{grid-column:span 12 !important}}
+.vt-sec{container-type:inline-size;min-width:0}
+.vt-pizarra{max-width:100%}
+/* campaña */
+.vt-camp-av{margin:0 0 20px;display:flex;flex-direction:column;gap:10px}
+.vt-camp-barra{position:relative;height:14px;border-radius:999px;background:color-mix(in srgb,var(--vt-acento) 14%,transparent)}
+.vt-camp-barra i{position:absolute;inset:0 auto 0 0;border-radius:999px;background:var(--vt-acento)}
+.vt-camp-mk{position:absolute;top:-4px;width:4px;height:22px;margin-left:-2px;border-radius:2px;background:var(--vt-muted);opacity:.7}
+.vt-camp-mk.meta{background:var(--vt-fg,#111);opacity:1;width:3px}
+.vt-camp-mk.ok{background:var(--vt-acento);opacity:1}
+.vt-camp-nums{display:flex;flex-wrap:wrap;gap:8px 28px}
+.vt-camp-nums span{display:flex;flex-direction:column;font-size:13px;color:var(--vt-muted)}
+.vt-camp-nums b{font-family:"JetBrains Mono",monospace;font-size:clamp(20px,3vw,28px);color:var(--vt-acento)}
+.vt-camp{display:block}
+@container (min-width:760px){.vt-camp.con-historia{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,1fr);gap:clamp(20px,3vw,40px);align-items:start}.vt-camp.con-historia .vt-camp-der{position:sticky;top:64px}.vt-camp.con-historia .vt-tiers{grid-template-columns:1fr}}
+.vt-camp.con-historia .vt-camp-der{margin-top:18px}
+@container (min-width:760px){.vt-camp.con-historia .vt-camp-der{margin-top:0}}
+.vt-camp-historia{display:flex;flex-direction:column;gap:18px}
+.vt-cb-t{font-family:var(--vt-titulo);font-size:clamp(22px,3vw,30px);line-height:1.15;margin:12px 0 0}
+.vt-cb-x p{margin:0 0 1em;max-width:66ch;text-wrap:pretty}
+.vt-cb-q{margin:0;font-family:var(--vt-titulo);font-size:clamp(20px,2.6vw,26px);line-height:1.35;border-left:4px solid var(--vt-acento);padding:4px 0 4px 18px}
+.vt-cb-i{margin:0}.vt-cb-i img{display:block;width:100%;height:auto;border-radius:14px}
+.vt-cb-i figcaption,.vt-cb-pie{font-size:13px;color:var(--vt-muted);margin-top:6px}
+.vt-play{width:100%;aspect-ratio:16/9;border:0;border-radius:14px;background:color-mix(in srgb,var(--vt-acento) 18%,#000);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.vt-metas{margin-top:26px}
+.vt-metas .vt-guia{margin:8px 0 14px}
+.vt-metas-l{list-style:none;margin:12px 0 0;padding:0 0 0 18px;border-left:2px dashed var(--vt-line);display:flex;flex-direction:column;gap:14px}
+.vt-metas-l li{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start}
+.vt-metas-l li::before{content:"";position:absolute;left:-26px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--vt-card);border:2px solid var(--vt-line)}
+.vt-metas-l li.ok::before{background:var(--vt-acento);border-color:var(--vt-acento)}
+.vt-metas-l li.prox::before{border-color:var(--vt-acento)}
+.vt-meta-m{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--vt-acento);white-space:nowrap}
+.vt-metas-l p{margin:2px 0 0;color:var(--vt-muted);font-size:14px}
+.vt-metas-l img{width:72px;height:72px;object-fit:cover;border-radius:10px}
+.vt-meta-ok{font-style:normal;font-size:11px;font-weight:700;color:var(--vt-acento);border:1px solid var(--vt-acento);border-radius:999px;padding:0 7px;margin-left:6px;vertical-align:2px}
+@media (max-width:520px){.vt-metas-l li{grid-template-columns:1fr}.vt-metas-l img{width:100%;height:auto;max-height:160px}}
+.vt-tier-b.pagar{background:var(--vt-acento);color:#fff}
 .vt-camp-cab{margin-top:-6px}
 .vt-camp-ir{display:inline-block;background:var(--vt-acento);color:#fff;text-decoration:none;font-weight:700;border-radius:999px;padding:10px 20px}
 .vt-tiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:8px}

@@ -141,6 +141,26 @@ dialog::backdrop{background:rgba(10,12,20,.5)}
 .apelar summary{cursor:pointer;font-weight:700;color:var(--accent)}
 .apelar textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:8px;margin:8px 0}
 .avisar{gap:10px}
+
+.sub-t{font-family:var(--f-display);font-size:14px}
+.cb{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
+.cb-cab{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.cb textarea,.cb input{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:8px;padding:7px 9px;width:100%}
+.dz-est{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.dz-est button{font:inherit;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:10px;cursor:pointer;background:var(--card);color:var(--fg);display:flex;align-items:center}
+.dz-est button[aria-pressed=true]{border-color:var(--fg);box-shadow:0 0 0 1px var(--fg)}
+.dz-lista{display:flex;flex-direction:column;gap:6px}
+.dz-fila{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;border:1px solid var(--line);border-radius:10px;padding:6px 8px;background:var(--bg)}
+.dz-fila.vacia{opacity:.6}
+.dz-n{flex:1 1 120px;font-size:13.5px}
+.dz-tams{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.dz-tams button{font:inherit;font-size:12px;border:0;border-right:1px solid var(--line);background:transparent;color:var(--muted);padding:3px 8px;cursor:pointer}
+.dz-tams button:last-child{border-right:0}
+.dz-tams button[aria-pressed="true"]{background:var(--accent-soft);color:var(--fg);font-weight:700}
+.dz-ico{display:inline-block;width:26px;height:18px;border:1.5px solid currentColor;border-radius:4px;margin-right:6px;vertical-align:-4px;position:relative}
+.dz-ico.col::after{content:"";position:absolute;inset:3px 7px;background:currentColor;opacity:.35;border-radius:2px}
+.dz-ico.pan::before,.dz-ico.pan::after{content:"";position:absolute;top:3px;bottom:3px;background:currentColor;opacity:.35;border-radius:2px}
+.dz-ico.pan::before{left:3px;width:9px}.dz-ico.pan::after{right:3px;width:7px}
 .dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:420px){.dos{grid-template-columns:1fr}}
 .check.exp{align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;line-height:1.45}
 .check.exp input{margin-top:3px}
@@ -154,8 +174,8 @@ dialog::backdrop{background:rgba(10,12,20,.5)}
 <dialog id="dlg-pub"><div class="dlg" id="dlg-pub-c"></div></dialog>
 <dialog id="dlg-comp"><div class="dlg" id="dlg-comp-c"></div></dialog>
 <script type="module">
-import { sb, $, esc, toast, hace, navApp, espacio, accesoProyecto, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame, proximamente } from "../../js/forja.js";
-import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA, SEGUIR_TEXTOS, LIM, esPago, cuentaPagos, normalRecompensas, ENVIOS, MAX_TIERS } from "../../js/vitrina.js";
+import { sb, $, esc, toast, hace, navApp, espacio, accesoProyecto, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame, proximamente, ayudaImagenes, probarImagen } from "../../js/forja.js";
+import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA, SEGUIR_TEXTOS, LIM, esPago, cuentaPagos, normalRecompensas, ENVIOS, MAX_TIERS, BLOQUES, SECCIONES_VT, TAMANOS } from "../../js/vitrina.js";
 import { MODOS } from "../../js/pizarra.js";
 import { pista } from "../../js/ayuda.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
@@ -286,8 +306,9 @@ function pintarPanel() {
     sec("mundo", "El mundo", PL.mas ? n(B.pizarras) : '<span class="tag">Forja Más</span>', mundoHTML()) +
     sec("novedades", "Novedades", n(B.novedades), novedadesHTML()) +
     sec("enlaces", "Dónde seguirlo", n(B.enlaces), enlacesHTML()) +
-    sec("recompensas", "Recompensas", B.recompensas.activo ? n(B.recompensas.tiers) : '<span class="tag">Apagado</span>', recompensasHTML()) +
+    sec("recompensas", "Campaña y recompensas", B.recompensas.activo ? n(B.recompensas.tiers) : '<span class="tag">Apagado</span>', recompensasHTML()) +
     sec("seguir", "Seguidores", SEG && SEG.total ? "<small>" + SEG.total + "</small>" : B.seguir.activo ? "" : '<span class="tag">Apagado</span>', seguirHTML()) +
+    sec("diseno", "Diseño", B.diseno.estilo === "paneles" ? '<span class="tag">Paneles</span>' : "", disenoHTML()) +
     sec("publicacion", "Dirección y publicación", "", publicacionHTML());
   panel.scrollTop = y;
   enlazar();
@@ -299,7 +320,7 @@ function portadaHTML() {
   return '<label class="c"><span>Título</span><input data-f="titulo" maxlength="160" value="' + esc(B.titulo) + '"></label>' +
     '<label class="c"><span>Una frase que lo presente</span><textarea data-f="lema" maxlength="240" rows="2" style="min-height:58px" placeholder="Ej.: Un faro apagado, una ciudad bajo el agua y la capitana que bajará a buscarla.">' + esc(B.lema) + "</textarea></label>" +
     '<label class="c"><span>Firma (cómo quieres aparecer)</span><input data-f="firma" maxlength="80" value="' + esc(B.firma) + '" placeholder="Tu nombre, tu estudio o tu colectivo"></label>' +
-    '<div class="c"><span>Imagen de portada (enlace)</span><input data-portada="url" type="url" inputmode="url" placeholder="https://… (enlace directo a la imagen)" value="' + esc(B.portada ? B.portada.url : "") + '"></div>' +
+    '<div class="c"><span>Imagen de portada (enlace)</span><input data-portada="url" type="url" inputmode="url" placeholder="https://… (enlace directo a la imagen)" value="' + esc(B.portada ? B.portada.url : "") + '"><span class="fx-imgprueba" id="pp-prueba"></span></div>' + ayudaImagenes() +
     (imgs.length ? '<div class="c"><span>O elige una de tus referentes</span><div class="mini-imgs">' + imgs.map((r) => '<button type="button" data-portada-ref="' + esc(r.valor) + '" aria-pressed="' + (B.portada && B.portada.url === r.valor) + '" title="' + esc(r.titulo || "") + '"><img src="' + esc(r.valor) + '" alt="' + esc(r.titulo || "Referente") + '" loading="lazy" referrerpolicy="no-referrer"></button>').join("") + "</div></div>" : "") +
     (B.portada ? '<label class="c"><span>Encuadre vertical de la portada</span><input data-portada="foco" type="range" min="0" max="100" value="' + B.portada.foco + '"></label><div><button type="button" class="btn chico" data-portada="quitar">Quitar la imagen</button></div>' : '<p class="ayuda">Sin imagen, la portada se dibuja con tus colores.</p>') +
     '<div class="c"><span>Tono</span><div class="tonos">' + Object.entries(TONOS).map(([k, t]) => '<button type="button" data-tono="' + k + '" aria-pressed="' + (B.tono === k) + '" title="' + esc(t.d) + '"><span style="background:' + (k === "claro" ? "linear-gradient(90deg,#f5f4ef 60%,#16171c 60% 64%,#f5f4ef 64%)" : k === "noche" ? "linear-gradient(90deg,#111218 60%,#ecebe6 60% 64%,#111218 64%)" : "linear-gradient(90deg,#efe7d8 60%,#2a2219 60% 64%,#efe7d8 64%)") + '"></span><b>' + t.n + "</b></button>").join("") + "</div></div>" +
@@ -328,7 +349,7 @@ function galeriaHTML() {
       '</div><div class="botones"><button type="button" class="ico" data-mover="galeria:' + g.id + ':-1" aria-label="Subir"' + (i ? "" : " disabled") + '>↑</button><button type="button" class="ico x" data-quitar="galeria:' + g.id + '" aria-label="Quitar">×</button></div></div>').join("") +
     '<div class="fila"><button type="button" class="btn chico" data-abrir="sel-refs" aria-expanded="false">Traer de tus referentes</button></div>' +
     '<div class="selector" id="sel-refs" hidden>' + (REFS.length ? REFS.map((r) => { const ya = B.galeria.some((g) => g.de === r.id); return '<label><input type="checkbox" data-ref="' + r.id + '"' + (ya ? " checked disabled" : "") + ">" + (r.tipo === "imagen" && okUrl(r.valor) ? '<img src="' + esc(r.valor) + '" alt="" referrerpolicy="no-referrer">' : "") + "<span>" + esc(r.titulo || (r.tipo === "cita" ? String(r.valor).slice(0, 40) : String(r.valor).replace(/^https?:\/\/(www\.)?/, "").slice(0, 40))) + "</span><small" + (ya ? ' class="ya"' : "") + ">" + (ya ? "✓ ya está" : r.tipo) + "</small></label>"; }).join("") + '<div style="padding:8px"><button type="button" class="btn chico prim" id="b-traer-refs">Agregar las marcadas</button></div>' : '<p class="vacio">Este proyecto aún no tiene referentes.</p>') + "</div>" +
-    '<label class="c"><span>O pega un enlace (imagen, YouTube, Vimeo, Spotify, SoundCloud) o un color #hex</span><span class="fila"><input id="g-nuevo" placeholder="https://…" style="flex:1;min-width:0;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:8px;padding:7px 9px"><button type="button" class="btn chico" id="b-g-nuevo">Agregar</button></span></label>';
+    '<label class="c"><span>O pega un enlace (imagen, YouTube, Vimeo, Spotify, SoundCloud) o un color #hex</span><span class="fila"><input id="g-nuevo" placeholder="https://…" style="flex:1;min-width:0;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:8px;padding:7px 9px"><button type="button" class="btn chico" id="b-g-nuevo">Agregar</button></span></label>' + ayudaImagenes();
 }
 function mundoHTML() {
   if (!PL.mas) return '<div class="mas-bloq"><b>Muestra tu mundo para explorarlo</b><span>Con Forja Más, tus pizarras (relaciones, mapa del mundo, escaleta) se publican interactivas en la vitrina: quien la visita puede moverse por ellas y leer cada tarjeta. ' + esc(MAS_PRONTO) + '</span><span class="fila"><button type="button" class="fx-avisame" data-avisame="plan-mas">Avísame</button><a href="../../planes/">Ver Forja Más</a></span></div>' +
@@ -370,14 +391,27 @@ function recompensasHTML() {
       '<label class="check"><input type="checkbox" data-rc="verMeta"' + (R.verMeta ? " checked" : "") + "> Mostrar la meta" + (R.meta ? " (" + "$" + R.meta.toLocaleString("es-CL") + ")" : "") + "</label>" +
       '<label class="check"><input type="checkbox" data-rc="interes"' + (R.interes ? " checked" : "") + '> Botón «Me interesa» mientras no abre</label>' +
       (R.interes ? '<label class="check"><input type="checkbox" data-rc="contador"' + (R.contador ? " checked" : "") + "> Mostrar cuántas personas se anotaron</label>" : "") +
+      (R.estado !== "pronto" ? '<div class="bloque"><b class="sub-t">Cómo va</b><p class="ayuda">Actualízalo cuando quieras: se muestra como una barra con tu meta y tus metas desbloqueables.</p><div class="dos"><label class="c"><span>Recaudado (CLP)</span><input type="number" min="0" step="1000" data-rc="recaudado" value="' + (R.recaudado || "") + '"></label><label class="c"><span>Personas que apoyan</span><input type="number" min="0" step="1" data-rc="apoyos" value="' + (R.apoyos || "") + '"></label></div>' +
+        (R.estado === "abierta" ? '<label class="c"><span>Cierra el</span><input type="date" data-rc="cierra" value="' + esc(R.cierra) + '"></label>' : "") + "</div>" : "") +
+      '<div class="bloque"><b class="sub-t">La página de la campaña</b><p class="ayuda">Cuenta la campaña como en Kickstarter o Gamefound: títulos, texto, imágenes, videos y citas, en el orden que quieras. Aparece al lado de las recompensas.</p>' +
+        R.bloques.map((b, i) => '<div class="cb"><div class="cb-cab"><span class="tag">' + BLOQUES[b.tipo] + '</span><span><button type="button" class="ico" data-cbmov="' + b.id + ':-1" aria-label="Subir"' + (i ? "" : " disabled") + '>↑</button><button type="button" class="ico" data-cbmov="' + b.id + ':1" aria-label="Bajar"' + (i < R.bloques.length - 1 ? "" : " disabled") + '>↓</button><button type="button" class="ico x" data-cbdel="' + b.id + '" aria-label="Quitar">×</button></span></div>' +
+          (b.tipo === "texto" ? '<textarea data-cb="texto" data-id="' + b.id + '" rows="4" maxlength="4000" placeholder="Qué es, por qué existe, qué lo hace especial…">' + esc(b.texto) + "</textarea>"
+          : b.tipo === "imagen" || b.tipo === "video" ? '<input type="url" data-cb="url" data-id="' + b.id + '" value="' + esc(b.url) + '" placeholder="' + (b.tipo === "imagen" ? "https://… (enlace directo a la imagen)" : "https://youtube.com/… o https://vimeo.com/…") + '">' + (b.tipo === "imagen" ? '<span class="fx-imgprueba" data-cbp="' + b.id + '"></span>' : "") + '<input data-cb="pie" data-id="' + b.id + '" value="' + esc(b.pie) + '" maxlength="200" placeholder="Pie (opcional)">'
+          : '<input data-cb="texto" data-id="' + b.id + '" value="' + esc(b.texto) + '" maxlength="300" placeholder="' + (b.tipo === "titulo" ? "Ej.: Cómo se juega" : "Una frase que quieras destacar") + '">') + "</div>").join("") +
+        '<div class="fila">' + Object.entries(BLOQUES).map(([k, n]) => '<button type="button" class="btn chico" data-cbadd="' + k + '"' + (R.bloques.length >= 40 ? " disabled" : "") + ">+ " + n + "</button>").join("") + "</div>" + (R.bloques.some((b) => b.tipo === "imagen") ? ayudaImagenes() : "") + "</div>" +
+      '<div class="bloque"><b class="sub-t">Metas desbloqueables</b><p class="ayuda">Lo que se agrega si la campaña supera su meta (una carta extra, un mapa, una versión en inglés…). Se marcan solas cuando lo recaudado llega a su monto.' + (R.meta ? " Tu meta es $" + R.meta.toLocaleString("es-CL") + ": pon las desbloqueables por encima." : "") + "</p>" +
+        R.metas.map((m) => '<div class="cb"><div class="cb-cab"><input type="number" min="0" step="10000" data-mt="monto" data-id="' + m.id + '" value="' + (m.monto || "") + '" placeholder="Monto (CLP)" aria-label="Monto" style="max-width:150px"><button type="button" class="ico x" data-mtdel="' + m.id + '" aria-label="Quitar meta">×</button></div>' +
+          '<input data-mt="titulo" data-id="' + m.id + '" value="' + esc(m.titulo) + '" maxlength="100" placeholder="Qué se desbloquea"><textarea data-mt="desc" data-id="' + m.id + '" rows="2" maxlength="400" placeholder="Detalle (opcional)">' + esc(m.desc) + '</textarea><input type="url" data-mt="imagen" data-id="' + m.id + '" value="' + esc(m.imagen) + '" placeholder="Imagen (enlace, opcional)"></div>').join("") +
+        '<div class="fila"><button type="button" class="btn chico" id="mt-nueva"' + (R.metas.length >= 20 ? " disabled" : "") + ">+ Meta</button></div></div>" +
       R.tiers.map((t, i) => '<div class="bloque"><div class="bloque-cab"><b class="ayuda">' + (i + 1) + '</b><input data-rt="nombre" data-id="' + t.id + '" value="' + esc(t.nombre) + '" maxlength="80" placeholder="Nombre de la recompensa" aria-label="Nombre"><button type="button" class="ico x" data-rtq="' + t.id + '" aria-label="Quitar recompensa">×</button></div>' +
         '<div class="dos"><label class="c"><span>Precio (CLP)</span><input type="number" min="0" step="100" data-rt="precio" data-id="' + t.id + '" value="' + (t.precio || "") + '"></label><label class="c"><span>Envío</span><select data-rt="envio" data-id="' + t.id + '">' + Object.entries(ENVIOS).map(([k, v]) => '<option value="' + k + '"' + (t.envio === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></label></div>" +
         '<label class="c"><span>Qué dice</span><textarea data-rt="desc" data-id="' + t.id + '" rows="2" maxlength="600">' + esc(t.desc) + "</textarea></label>" +
+        '<label class="c"><span>Enlace de pago (opcional)</span><input type="url" data-rt="pago" data-id="' + t.id + '" value="' + esc(t.pago) + '" placeholder="Mercado Pago, PayPal, Flow, Ko-fi…"></label>' +
         '<label class="c"><span>Qué incluye (separado por comas)</span><input data-rt="incluye" data-id="' + t.id + '" value="' + esc(t.incluye.join(", ")) + '" placeholder="Ej.: El juego, 1 llavero, Tu nombre en los créditos"></label>' +
         '<div class="dos"><label class="c"><span>Cupos</span><input type="number" min="0" step="1" data-rt="limite" data-id="' + t.id + '" value="' + (t.limite || "") + '" placeholder="Sin límite"></label><label class="c"><span>Entrega estimada</span><input type="month" data-rt="entrega" data-id="' + t.id + '" value="' + esc(t.entrega) + '"></label></div>' +
         (an[t.id] ? '<p class="ayuda"><b>' + an[t.id] + (an[t.id] === 1 ? " persona anotada" : " personas anotadas") + "</b>.</p>" : "") + "</div>").join("") +
       '<div class="fila"><button type="button" class="btn chico" id="rc-nueva"' + (R.tiers.length >= MAX_TIERS ? " disabled" : "") + '>+ Recompensa</button>' + (ANOT && ANOT.personas ? '<span class="ayuda">' + ANOT.personas + (ANOT.personas === 1 ? " persona anotada" : " personas anotadas") + " en total</span>" : "") + "</div>" +
-      '<p class="ayuda">Pagar dentro de Forja llegará más adelante. Por ahora, cuando la campaña abra, cambia el estado a «Campaña abierta» y pon su enlace: los botones llevarán ahí.</p>' : "");
+      '<p class="ayuda">Si vendes o recibes apoyo tú mismo (preventa propia), pon en cada recompensa su enlace de pago: crea un «link de pago» en Mercado Pago o un enlace de PayPal con el monto, y el botón dirá «Apoyar con Mercado Pago». Si la campaña es en Kickstarter o Gamefound, deja eso vacío, cambia el estado a «Campaña abierta» y pon el enlace de la campaña. Pagar dentro de Forja llegará más adelante.</p>' : "");
 }
 // Copia las recompensas de la campaña (se conservan los ids: así lo anotado sigue contando en la misma recompensa).
 function traerCampana() {
@@ -387,6 +421,17 @@ function traerCampana() {
     tiers: (c.tiers || []).map((t) => ({ id: t.id, nombre: t.nombre, desc: t.desc || "", precio: t.vista ? t.vista.precio : t.precio, incluye: t.vista ? t.vista.incluye : [], envio: t.vista ? t.vista.envio : "aparte", limite: t.limite, entrega: t.entrega || (viejo.get(t.id) || {}).entrega || "" })) });
   B.recompensas.tomada = new Date().toISOString();
   cambio(true); toast("Recompensas copiadas desde la campaña: revísalas antes de publicar.");
+}
+// Diseño: una columna o paneles de distintos tamaños; el orden vale para los dos.
+function disenoHTML() {
+  const D = B.diseno, hay = { recompensas: B.recompensas.activo && B.recompensas.tiers.length, historia: B.historia.length, galeria: B.galeria.length, mundo: B.pizarras.length && PL.mas, novedades: B.novedades.length, enlaces: B.enlaces.length };
+  const nom = Object.fromEntries(SECCIONES_VT);
+  return '<p class="ayuda">Elige cómo se ordena la vitrina. En <b>paneles</b>, cada sección es una tarjeta y puedes ponerlas lado a lado (en el teléfono siempre van una debajo de otra).</p>' +
+    '<div class="dz-est" role="group" aria-label="Estilo"><button type="button" data-dz-estilo="columna" aria-pressed="' + (D.estilo === "columna") + '"><span class="dz-ico col"></span>Una columna</button><button type="button" data-dz-estilo="paneles" aria-pressed="' + (D.estilo === "paneles") + '"><span class="dz-ico pan"></span>Paneles</button></div>' +
+    '<div class="dz-lista">' + D.orden.map((k, i) => '<div class="dz-fila' + (hay[k] ? "" : " vacia") + '"><span class="dz-n">' + nom[k] + (hay[k] ? "" : " <small>(vacía)</small>") + "</span>" +
+      (D.estilo === "paneles" ? '<span class="dz-tams">' + Object.entries(TAMANOS).map(([t, n]) => '<button type="button" data-dz-tam="' + k + ":" + t + '" aria-pressed="' + (D.tam[k] === t) + '">' + n + "</button>").join("") + "</span>" : "") +
+      '<span><button type="button" class="ico" data-dz-mov="' + k + ':-1" aria-label="Subir"' + (i ? "" : " disabled") + '>↑</button><button type="button" class="ico" data-dz-mov="' + k + ':1" aria-label="Bajar"' + (i < D.orden.length - 1 ? "" : " disabled") + ">↓</button></span></div>").join("") + "</div>" +
+    (D.estilo === "paneles" ? '<p class="ayuda">Consejo: dos paneles de «Mitad» o uno de «2/3» con uno de «1/3» llenan una fila. La campaña y las pizarras lucen mejor en «Completo».</p>' : "");
 }
 function seguirHTML() {
   const t = SEG ? SEG.total || 0 : 0, espera = SEG && SEG.proximo && new Date(SEG.proximo) > new Date();
@@ -415,18 +460,36 @@ function publicacionHTML() {
 const lista = (k) => B[k];
 function enlazar() {
   const panel = $("panel");
+  // diseño
+  panel.querySelectorAll("[data-dz-estilo]").forEach((b) => b.onclick = () => { B.diseno.estilo = b.dataset.dzEstilo; cambio(true); });
+  panel.querySelectorAll("[data-dz-tam]").forEach((b) => b.onclick = () => { const [k, t] = b.dataset.dzTam.split(":"); B.diseno.tam[k] = t; cambio(true); });
+  panel.querySelectorAll("[data-dz-mov]").forEach((b) => b.onclick = () => { const [k, d] = b.dataset.dzMov.split(":"), o = B.diseno.orden, i = o.indexOf(k), j = i + +d; if (j < 0 || j >= o.length) return; [o[i], o[j]] = [o[j], o[i]]; cambio(true); });
+  // página de la campaña y metas
+  const Rb = B.recompensas;
+  panel.querySelectorAll("[data-cb]").forEach((i) => i.oninput = () => { const b = Rb.bloques.find((x) => x.id === i.dataset.id); if (!b) return; b[i.dataset.cb] = i.value; cambio(); });
+  panel.querySelectorAll('[data-cb="url"]').forEach((i) => i.onchange = () => { const b = Rb.bloques.find((x) => x.id === i.dataset.id); if (b && b.tipo === "imagen") probarImagen(i.value, panel.querySelector('[data-cbp="' + b.id + '"]')); });
+  panel.querySelectorAll("[data-cbadd]").forEach((b) => b.onclick = () => { Rb.bloques.push({ id: uid(), tipo: b.dataset.cbadd, texto: "", url: "", pie: "" }); cambio(true); });
+  panel.querySelectorAll("[data-cbdel]").forEach((b) => b.onclick = () => { Rb.bloques = Rb.bloques.filter((x) => x.id !== b.dataset.cbdel); cambio(true); });
+  panel.querySelectorAll("[data-cbmov]").forEach((b) => b.onclick = () => { const [id, d] = b.dataset.cbmov.split(":"), o = Rb.bloques, i = o.findIndex((x) => x.id === id), j = i + +d; if (i < 0 || j < 0 || j >= o.length) return; [o[i], o[j]] = [o[j], o[i]]; cambio(true); });
+  panel.querySelectorAll("[data-mt]").forEach((i) => i.oninput = () => { const m = Rb.metas.find((x) => x.id === i.dataset.id); if (!m) return; m[i.dataset.mt] = i.dataset.mt === "monto" ? Math.max(0, Math.round(+i.value || 0)) : i.value; cambio(); });
+  panel.querySelectorAll('[data-mt="monto"]').forEach((i) => i.onchange = () => { Rb.metas.sort((a, b) => a.monto - b.monto); cambio(true); });
+  panel.querySelectorAll("[data-mtdel]").forEach((b) => b.onclick = () => { Rb.metas = Rb.metas.filter((x) => x.id !== b.dataset.mtdel); cambio(true); });
+  const mtN = panel.querySelector("#mt-nueva"); if (mtN) mtN.onclick = () => { const ult = Rb.metas[Rb.metas.length - 1]; Rb.metas.push({ id: uid(), monto: ult ? ult.monto + 500000 : (Rb.meta ? Math.round(Rb.meta * 1.25 / 10000) * 10000 : 0), titulo: "", desc: "", imagen: "" }); cambio(true); };
   // recompensas
   panel.querySelectorAll("[data-rc]").forEach((i) => i.onchange = () => {
     const k = i.dataset.rc, R = B.recompensas;
-    R[k] = i.type === "checkbox" ? i.checked : i.value.trim();
+    R[k] = i.type === "checkbox" ? i.checked : i.type === "number" ? Math.max(0, Math.round(+i.value || 0)) : i.value.trim();
     if (k === "enlace" && R.enlace && !okUrl(R.enlace)) { toast("El enlace debe empezar con https://"); R.enlace = ""; }
     if (k === "activo" && R.activo && !R.tiers.length && CAMP && CAMP.c && (CAMP.c.tiers || []).length) { traerCampana(); return; }
     cambio(i.type === "checkbox" || k === "estado");
   });
   panel.querySelectorAll("[data-rt]").forEach((i) => i.oninput = () => {
     const t = B.recompensas.tiers.find((x) => x.id === i.dataset.id); if (!t) return; const k = i.dataset.rt;
-    t[k] = k === "precio" || k === "limite" ? Math.max(0, Math.round(+i.value || 0)) || (k === "limite" ? null : 0) : k === "incluye" ? i.value.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 12) : i.value;
+    t[k] = k === "precio" || k === "limite" ? Math.max(0, Math.round(+i.value || 0)) || (k === "limite" ? null : 0) : k === "incluye" ? i.value.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 12) : k === "pago" ? i.value.trim() : i.value;
     cambio();
+  });
+  panel.querySelectorAll('[data-rt="pago"]').forEach((i) => i.onchange = () => {
+    const v = i.value.trim(); if (v && !esPago(v)) { toast("Ese enlace no parece de un medio de pago (Mercado Pago, PayPal, Flow, Ko-fi, Webpay…). No se publicará."); }
   });
   panel.querySelectorAll("[data-rtq]").forEach((b) => b.onclick = () => { B.recompensas.tiers = B.recompensas.tiers.filter((t) => t.id !== b.dataset.rtq); cambio(true); });
   const rcN = panel.querySelector("#rc-nueva"); if (rcN) rcN.onclick = () => { B.recompensas.tiers.push({ id: uid(), nombre: "", precio: 0, desc: "", incluye: [], envio: "aparte", limite: null, entrega: "" }); cambio(true); };
@@ -434,7 +497,7 @@ function enlazar() {
   panel.querySelectorAll("details.sec").forEach((d) => d.addEventListener("toggle", () => { d.open ? abiertas.add(d.dataset.sec) : abiertas.delete(d.dataset.sec); try { localStorage.setItem("forja-vt-abiertas", JSON.stringify([...abiertas])); } catch (e) {} }));
   panel.querySelectorAll("[data-f]").forEach((i) => i.oninput = () => { B[i.dataset.f] = i.value; cambio(); });
   const pu = panel.querySelector('[data-portada="url"]');
-  if (pu) pu.onchange = () => { const u = pu.value.trim(); if (u && !okUrl(u)) { toast("La imagen debe ser un enlace que empiece con https://"); return; } B.portada = u ? { url: u, foco: B.portada ? B.portada.foco : 50 } : null; cambio(true); };
+  if (pu) pu.onchange = () => { const u = pu.value.trim(); if (u) probarImagen(u, $("pp-prueba")); if (u && !okUrl(u)) { toast("La imagen debe ser un enlace que empiece con https://"); return; } B.portada = u ? { url: u, foco: B.portada ? B.portada.foco : 50 } : null; cambio(true); };
   panel.querySelectorAll("[data-portada-ref]").forEach((b) => b.onclick = () => { B.portada = { url: b.dataset.portadaRef, foco: B.portada ? B.portada.foco : 50 }; cambio(true); });
   const foco = panel.querySelector('[data-portada="foco"]'); if (foco) foco.oninput = () => { B.portada.foco = +foco.value; cambio(); };
   const qp = panel.querySelector('[data-portada="quitar"]'); if (qp) qp.onclick = () => { B.portada = null; cambio(true); };
