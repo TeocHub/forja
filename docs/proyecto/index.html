@@ -40,6 +40,26 @@ button{cursor:pointer}
 .estados{display:inline-flex;max-width:100%;overflow-x:auto;scrollbar-width:none;border:1px solid var(--line);border-radius:999px;background:var(--card)}
 .estados button{white-space:nowrap;flex:none;border:0;background:transparent;padding:4px 11px;font-size:13px;color:var(--muted)}
 .estados button[aria-pressed="true"]{background:var(--fg);color:var(--bg);font-weight:700}
+.eq-fila{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;border:1px dashed var(--line);border-radius:12px;padding:8px 12px;font-size:14px}
+.eq-que{color:var(--muted)}.eq-que b{color:var(--fg)}
+.eq-presencia{display:inline-flex;align-items:center;gap:6px;color:var(--good);font-size:13.5px}
+.eq-presencia i{width:8px;height:8px;border-radius:50%;background:var(--good);animation:eqlat 2s ease-in-out infinite}
+@keyframes eqlat{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.eq-presencia i{animation:none}}
+.eq-acc{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.eq-conf{flex-basis:100%;display:flex;flex-direction:column;gap:10px;padding-top:6px}
+.eq-conf[hidden]{display:none}
+.eq-conf p{margin:0}
+.eq-botones{display:flex;gap:8px;flex-wrap:wrap}
+.btn.primario{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
+.eq-modos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.eq-modos button{font:inherit;text-align:left;cursor:pointer;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;color:var(--fg)}
+.eq-modos button small{color:var(--muted);font-size:13px}
+.eq-modos button[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.eq-personas{display:flex;flex-direction:column;gap:6px}
+.eq-personas label{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:5px 0;overflow-wrap:anywhere}
+.eq-personas select{font:inherit;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:4px 6px;background:var(--field);color:var(--fg)}
+.eq-aviso{margin:0 0 8px;border-left:3px solid var(--good);background:var(--good-soft);border-radius:8px;padding:8px 12px;font-size:14px}
 .lectura{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border:1.5px solid var(--e-pausa);background:color-mix(in srgb,var(--e-pausa) 8%,var(--card));border-radius:12px;padding:10px 14px;font-size:14px}
 .lectura b{color:var(--e-pausa)}
 :disabled{cursor:not-allowed}
@@ -266,7 +286,7 @@ textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, debounce, fecha, hace, navApp, espacio, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame } from "../js/forja.js";
+import { sb, $, esc, toast, debounce, fecha, hace, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame } from "../js/forja.js";
 import { funcion } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
@@ -278,12 +298,17 @@ document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZA
 const ID = new URLSearchParams(location.search).get("p");
 const PESTANAS = [["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-let ESP, P, PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
+let ESP, P, ACC = null, VER = false, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../proyectos/");
-else conSesion($("app"), async () => {
-  ESP = await espacio();
-  PL = await plan();
+else conSesion($("app"), async (ses) => {
+  YO = ses.user;
+  // El proyecto manda: su espacio, su plan y lo que la persona puede hacer en él (personal o equipo).
+  ACC = await accesoProyecto(ID);
+  if (!ACC) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no tienes acceso a él.</div>'; return; }
+  ESP = ACC.espacio; PL = { mas: !!ACC.mas }; VER = ACC.acceso !== "editar";
+  EQS = (await espacios()).filter((x) => x.tipo === "equipo" && x.rol !== "lector");
+  if (ACC.tipo === "equipo") try { localStorage.setItem("forja-espacio", ESP); } catch (e) {}
   const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
   ACT = ac.count || 0;
   const [pr, se, re, no, co, po, pz, vi] = await Promise.all([
@@ -316,7 +341,7 @@ const palabras = (t) => (t.trim().match(/\S+/g) || []).length;
 /* ================= estructura ================= */
 function armar() {
   document.title = "Forja · " + P.nombre;
-  RO = !editable(P, ACT, PL);
+  RO = VER || !editable(P, ACT, PL);
   $("app").innerHTML =
     '<a class="vol" href="../proyectos/">← Proyectos</a>' +
     '<section class="cabeza" id="cabeza" style="--tc:' + tc(P.tipo) + ";--ec:var(--e-" + P.estado + ')">' +
@@ -326,11 +351,12 @@ function armar() {
     '<div class="estado-w"><div class="estados" role="radiogroup" aria-label="Estado del proyecto">' + Object.entries(ESTADOS).map(([k, n]) => '<button type="button" role="radio" data-est="' + k + '" style="--ec:var(--e-' + k + ')" aria-checked="' + (k === P.estado) + '">' + n + "</button>").join("") + "</div>" +
     '<div class="avance-w" id="avance-w"></div></div>' +
     '<label class="fx-sr" for="f-resumen">Resumen</label><textarea class="resumen" id="f-resumen" maxlength="4000" placeholder="¿De qué se trata, en pocas líneas? Se puede reescribir cuando la idea cambie.">' + esc(P.resumen || "") + "</textarea></section>" +
-    (RO ? '<div class="lectura" role="status"><b>Solo lectura</b><span>' + (P.estado === "archivado"
+    equipoFila() +
+    (RO ? '<div class="lectura" role="status"><b>Solo lectura</b><span>' + (VER ? "Puedes ver este proyecto del equipo, pero no editarlo. Si necesitas editarlo, pídele permiso a quien administra el equipo." : P.estado === "archivado"
       ? "Este proyecto está archivado. Puedes verlo y exportarlo; para editarlo cámbialo a otro estado (usa uno de tus " + LIMITES.proyectos + " cupos del plan gratis)."
       : "Tienes " + ACT + " proyectos en curso y el plan gratis permite " + LIMITES.proyectos + ". Archiva " + (ACT - LIMITES.proyectos) + " (este u otro, desde Mi forja) para seguir editando. Nada se borra.") + "</span></div>" : "") +
     '<div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
-    '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="../biblia/?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar"><button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button></span></div>';
+    '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="../biblia/?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar">' + (ACC.rol === "dueno" ? '<button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button>' : "") + "</span></div>";
 
   $("f-nombre").onchange = (e) => { const v = e.target.value.trim(); if (!v) { e.target.value = P.nombre; return; } guardar({ nombre: v }); document.title = "Forja · " + v; };
   $("f-tipo").onchange = (e) => cambiarTipo(e.target.value);
@@ -345,7 +371,8 @@ function armar() {
     armar();
   });
   $("f-resumen").onchange = (e) => guardar({ resumen: e.target.value.trim() || null });
-  $("b-borrar").onclick = () => {
+  activarEquipo();
+  if ($("b-borrar")) $("b-borrar").onclick = () => {
     $("zona-borrar").innerHTML = '<span class="hint">Se borran su escritura, referentes, pizarras, bitácora y cotización.</span> <button class="btn peligro" id="b-si">Sí, borrar</button> <button class="btn" id="b-no">Cancelar</button>';
     $("b-no").onclick = () => { $("zona-borrar").innerHTML = '<button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button>'; $("b-borrar").onclick = armar; };
     $("b-si").onclick = async () => {
@@ -358,12 +385,97 @@ function armar() {
   pintarFormatos(); pintarAvance(); pintarTabs(); pintarPestana();
   aplicarSoloLectura();
 }
+/* ================= equipo: acceso, mover y quién está ================= */
+// Franja bajo la cabecera: de qué espacio es, quién lo ve, moverlo y quién más está mirando ahora.
+function equipoFila() {
+  const enEquipo = ACC.tipo === "equipo", dueno = ACC.rol === "dueno";
+  const destinos = enEquipo ? [] : EQS;
+  if (!enEquipo && !destinos.length) return "";
+  return '<div class="eq-fila" id="eq-fila">' +
+    (enEquipo ? '<span class="eq-que"><b>' + esc(ACC.nombre) + "</b> · " + (P.acceso === "reservado" ? "Reservado: lo ven solo las personas elegidas" : "Abierto a todo el equipo") + "</span>" : '<span class="eq-que">Proyecto personal</span>') +
+    '<span class="eq-presencia" id="eq-presencia"></span><span class="eq-acc">' +
+    (enEquipo && dueno ? '<button type="button" class="btn" id="eq-quien">Quién lo ve</button><button type="button" class="btn" id="eq-mover" data-a="">Mover a mi forja</button>' : "") +
+    destinos.map((d) => '<button type="button" class="btn" data-mover="' + d.id + '">Mover a ' + esc(d.nombre) + "</button>").join("") +
+    '</span><div class="eq-conf" id="eq-conf" hidden></div></div>';
+}
+async function activarEquipo() {
+  if (!$("eq-fila")) return;
+  const conf = $("eq-conf");
+  const mover = async (destino, nombre) => {
+    conf.hidden = false;
+    conf.innerHTML = "<p>" + (ACC.tipo === "equipo"
+      ? "El proyecto sale del equipo y pasa a tu forja personal, con todo lo que tiene. Las demás personas dejan de verlo."
+      : "El proyecto pasa a <b>" + esc(nombre) + "</b> con todo lo que tiene (escritura, referentes, pizarras, bitácora, vitrina y cotización). Lo verán las personas del equipo según sus roles; si es delicado, después márcalo como reservado.") +
+      '</p><div class="eq-botones"><button type="button" class="btn primario" id="eq-si">Sí, moverlo</button><button type="button" class="btn" id="eq-no">Cancelar</button></div>';
+    $("eq-no").onclick = () => { conf.hidden = true; };
+    $("eq-si").onclick = async () => {
+      $("eq-si").disabled = true;
+      let dest = destino;
+      if (!dest) { const lista = await espacios(); const p = lista.find((x) => x.tipo === "personal"); dest = p && p.id; }
+      const { error } = await sb.rpc("mover_proyecto", { p: P.id, destino: dest });
+      if (error) { $("eq-si").disabled = false; toast(limite(error) || "No se pudo mover el proyecto."); return; }
+      try { localStorage.setItem("forja-espacio", dest); } catch (e) {}
+      location.reload();
+    };
+  };
+  $("eq-fila").querySelectorAll("[data-mover]").forEach((b) => b.onclick = () => mover(b.dataset.mover, b.textContent.replace(/^Mover a /, "")));
+  if ($("eq-mover")) $("eq-mover").onclick = () => mover(null, "");
+  if ($("eq-quien")) $("eq-quien").onclick = quienLoVe;
+  presencia();
+}
+// Abierto al equipo o reservado a personas elegidas (quien administra siempre lo ve).
+async function quienLoVe() {
+  const conf = $("eq-conf"); conf.hidden = false; conf.innerHTML = '<p class="hint">Cargando el equipo…</p>';
+  const { data, error } = await sb.rpc("equipo_panel", { e: ESP });
+  if (error) { conf.innerHTML = '<p class="hint">No se pudo cargar el equipo.</p>'; return; }
+  const ya = {}; ((data.reservados || []).find((x) => x.id === P.id) || { personas: [] }).personas.forEach((x) => { ya[x.user_id] = x.rol; });
+  const otros = data.miembros.filter((m) => m.rol !== "dueno");
+  let modo = P.acceso;
+  const pintar = () => {
+    conf.innerHTML = '<div class="eq-modos" role="radiogroup" aria-label="Quién ve este proyecto">' +
+      '<button type="button" role="radio" data-m="equipo" aria-checked="' + (modo === "equipo") + '"><b>Todo el equipo</b><small>Cada persona según su rol: quien edita, edita; quien lee, lee.</small></button>' +
+      '<button type="button" role="radio" data-m="reservado" aria-checked="' + (modo === "reservado") + '"><b>Reservado</b><small>Solo quienes administran y las personas que elijas. Para lo que aún no debe circular.</small></button></div>' +
+      (modo === "reservado" ? (otros.length ? '<div class="eq-personas">' + otros.map((m) => '<label><span>' + esc(m.correo) + '</span><select data-u="' + m.user_id + '"><option value="">No lo ve</option><option value="lector"' + (ya[m.user_id] === "lector" ? " selected" : "") + '>Puede verlo</option><option value="editor"' + (ya[m.user_id] === "editor" ? " selected" : "") + ">Puede editarlo</option></select></label>").join("") + "</div>"
+        : '<p class="hint">Por ahora solo lo verán quienes administran el equipo.</p>') : "") +
+      '<div class="eq-botones"><button type="button" class="btn primario" id="eq-guardar">Guardar</button><button type="button" class="btn" id="eq-no">Cancelar</button></div>';
+    conf.querySelectorAll("[data-m]").forEach((b) => b.onclick = () => { conf.querySelectorAll("select[data-u]").forEach((x) => { ya[x.dataset.u] = x.value; }); modo = b.dataset.m; pintar(); });
+    $("eq-no").onclick = () => { conf.hidden = true; };
+    $("eq-guardar").onclick = async () => {
+      const personas = [...conf.querySelectorAll("select[data-u]")].filter((x) => x.value).map((x) => ({ user_id: x.dataset.u, rol: x.value }));
+      $("eq-guardar").disabled = true;
+      const { error } = await sb.rpc("proyecto_acceso", { p: P.id, acceso: modo, personas });
+      if (error) { $("eq-guardar").disabled = false; toast("No se pudo guardar."); return; }
+      P.acceso = modo; toast(modo === "reservado" ? "Listo: el proyecto quedó reservado." : "Listo: el proyecto está abierto al equipo."); armar();
+    };
+  };
+  pintar();
+}
+// Quién más está en el proyecto ahora (solo en equipos). Se comparte el nombre del correo, la pestaña y la sección.
+function presencia() {
+  if (ACC.tipo !== "equipo" || CANAL || !YO) return;
+  const nombre = (YO.email || "").split("@")[0];
+  let enviado = "";
+  let listo = false;
+  const avisar = () => { if (!listo) return; const ahora = pest + "|" + (pest === "taller" ? secActual : ""); if (ahora !== enviado) { enviado = ahora; CANAL.track({ nombre, pest, seccion: pest === "taller" ? secActual : null }); } pintarPresencia(); };
+  CANAL = sb.channel("forja-proyecto-" + P.id, { config: { presence: { key: YO.id } } });
+  CANAL.on("presence", { event: "sync" }, () => {
+    OTROS = Object.entries(CANAL.presenceState()).filter(([k]) => k !== YO.id).map(([, v]) => v[v.length - 1]);
+    pintarPresencia();
+  }).subscribe((st) => { if (st === "SUBSCRIBED") { listo = true; avisar(); } });
+  setInterval(avisar, 2500);
+}
+function pintarPresencia() {
+  if ($("eq-presencia")) $("eq-presencia").innerHTML = OTROS.length ? '<i></i>' + OTROS.map((o) => esc(o.nombre)).join(", ") + (OTROS.length === 1 ? " también está aquí" : " también están aquí") : "";
+  const viejo = document.querySelector(".eq-aviso"); if (viejo) viejo.remove();
+  const aqui = OTROS.filter((o) => pest === "taller" && o.seccion && o.seccion === secActual);
+  if (aqui.length && $("h-txt")) $("h-txt").insertAdjacentHTML("beforebegin", '<p class="eq-aviso" role="status"><b>' + aqui.map((o) => esc(o.nombre)).join(", ") + "</b> " + (aqui.length === 1 ? "está" : "están") + " en esta sección ahora. Se guarda lo último que se escribe: pónganse de acuerdo o escriban en secciones distintas para no pisarse.</p>");
+}
 // En solo lectura se puede mirar, navegar, exportar y cambiar el estado; nada más.
 let obs = null;
 function aplicarSoloLectura() {
   if (obs) { obs.disconnect(); obs = null; }
   if (!RO) return;
-  const libre = (el) => el.closest(".fx-tabs, .estados, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom") || el.id === "h-foco";
+  const libre = (el) => (!VER && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fx-tabs, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom") || el.id === "h-foco";
   const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
   aplicar();
   obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Equipo · Forja</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2a3fd1">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../css/forja.css">
+<style>
+/* Layout: equipo — cabecera con el nombre, las personas como fichas con su rol, los reservados y la bitácora del equipo */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+a{color:var(--accent)}
+.wrap{max-width:960px;margin:0 auto;padding-block:24px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:where(a,button,select):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.k{margin:0 0 2px;font-family:var(--f-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ember)}
+h1{font-family:var(--f-display);font-size:clamp(30px,5vw,44px);line-height:1.05;margin:0 0 10px}
+.lead{margin:0;color:var(--muted);max-width:62ch}
+h2{font-family:var(--f-display);font-size:20px;margin:36px 0 12px}
+.personas{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.ficha{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.quien{display:flex;gap:10px;align-items:center;min-width:0}
+.ini{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;color:#fff;background:var(--c,var(--accent))}
+.quien b{display:block;overflow-wrap:anywhere;font-size:15px}
+.quien small{color:var(--muted);font-size:12.5px}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.roles button{font:inherit;font-size:13px;padding:6px 4px;border:0;border-right:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.roles button:last-child{border-right:0}
+.roles button[aria-pressed="true"]{background:var(--accent-soft);color:var(--fg);font-weight:700}
+.roles button:disabled{cursor:default}
+.rol-solo{align-self:flex-start;font-size:12.5px;font-weight:700;border-radius:999px;padding:2px 10px;background:var(--accent-soft);color:var(--accent)}
+.quitar{align-self:flex-start;font:inherit;font-size:13px;background:none;border:0;padding:0;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.quitar.seguro{color:var(--bad);font-weight:700}
+.nota{margin:0;font-size:13px;color:var(--muted)}
+.roles-expl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px}
+.roles-expl div{border-top:3px solid var(--c);padding-top:8px;font-size:14px;color:var(--muted)}
+.roles-expl b{display:block;color:var(--fg);font-family:var(--f-display);font-size:15px}
+.reservados{display:flex;flex-wrap:wrap;gap:8px}
+.reservados a{display:inline-flex;gap:8px;align-items:center;text-decoration:none;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px}
+.reservados a span{color:var(--muted);font-size:12.5px}
+.linea{position:relative;margin:0;padding:0 0 0 18px;border-left:2px solid var(--line);display:flex;flex-direction:column;gap:12px}
+.linea div{position:relative;font-size:14px}
+.linea div::before{content:"";position:absolute;left:-24px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--card);border:2px solid var(--accent)}
+.linea time{display:block;font-family:var(--f-num);font-size:11.5px;color:var(--muted)}
+.vacio{color:var(--muted);font-size:14.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><nav data-forja-nav></nav></header>
+  <main id="app"><p>Cargando…</p></main>
+</div>
+<script type="module">
+import { sb, $, esc, toast, hace, navApp, conSesion, espacios, espacioActual, limite } from "../js/forja.js";
+navApp(null);
+const ROL = { dueno: "Administra", editor: "Edita", lector: "Lee" };
+const PUEDE = { dueno: "administrar", editor: "editar", lector: "solo leer" };
+const COLORES = ["#2a3fd1", "#c2366b", "#0f7a4f", "#a86200", "#7a3fc4", "#e0602f"];
+const color = (t) => COLORES[[...t].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORES.length];
+const ACCION = {
+  creado: () => "Se creó el equipo",
+  entro: (d) => "<b>" + esc(d.correo) + "</b> entró con su correo del equipo, como lector",
+  rol: (d) => "<b>" + esc(d.correo) + "</b> ahora puede " + (PUEDE[d.ahora] || d.ahora) + " (antes: " + (PUEDE[d.antes] || d.antes) + ")",
+  quitado: (d) => "<b>" + esc(d.correo) + "</b> salió del equipo",
+  acceso: (d) => "«" + esc(d.proyecto) + "» quedó " + (d.acceso === "reservado" ? "reservado" + (d.personas ? " a " + d.personas + (d.personas === 1 ? " persona" : " personas") : " a quienes administran") : "abierto al equipo"),
+  llego: (d) => "«" + esc(d.proyecto) + "» llegó al equipo",
+  salio: (d) => "«" + esc(d.proyecto) + "» salió del equipo",
+};
+let E = null, D = null;
+
+conSesion($("app"), async () => {
+  const act = await espacioActual();
+  E = act && act.tipo === "equipo" ? act : (await espacios()).find((x) => x.tipo === "equipo");
+  if (!E) { $("app").innerHTML = '<div class="fx-empty">No eres parte de ningún equipo.</div>'; return; }
+  await cargar();
+});
+async function cargar() {
+  const { data, error } = await sb.rpc("equipo_panel", { e: E.id });
+  if (error) throw error;
+  D = data; pintar();
+}
+function pintar() {
+  const dueno = D.dueno, dom = D.espacio.dominio;
+  $("app").innerHTML =
+    '<p class="k">Equipo</p><h1>' + esc(D.espacio.nombre) + "</h1>" +
+    '<p class="lead">' + (dom ? "Toda cuenta con correo <b>@" + esc(dom) + "</b> entra sola al confirmar su correo, como lectora: ve los proyectos abiertos al equipo, pero no edita ni ve los reservados hasta que " + (dueno ? "tú le des" : "quien administra le dé") + " otro rol. " : "") +
+    'Quien sale del equipo pierde el acceso en ese momento. <a href="../proyectos/">Ver los proyectos del equipo</a></p>' +
+    '<div class="roles-expl"><div style="--c:var(--ember)"><b>Administra</b>Ve todo, publica vitrinas, reserva proyectos y decide los roles.</div>' +
+    '<div style="--c:var(--accent)"><b>Edita</b>Planta ideas y edita los proyectos abiertos al equipo. Prepara vitrinas sin publicarlas.</div>' +
+    '<div style="--c:var(--good)"><b>Lee</b>Ve los proyectos abiertos al equipo, sin cambiar nada. Así entra toda persona nueva.</div></div>' +
+    "<h2>Personas · " + D.miembros.length + '</h2><div class="personas">' + D.miembros.map(ficha).join("") + "</div>" +
+    (dueno ? "<h2>Proyectos reservados</h2>" + (D.reservados.length
+      ? '<div class="reservados">' + D.reservados.map((p) => '<a href="../proyecto/?p=' + p.id + '">' + esc(p.nombre) + "<span>" + (p.personas.length ? p.personas.length + (p.personas.length === 1 ? " persona" : " personas") + " además de quienes administran" : "solo quienes administran") + "</span></a>").join("") + "</div>"
+      : '<p class="vacio">Ninguno. Desde la página de un proyecto, «Quién lo ve» lo reserva para quienes elijas.</p>') +
+      "<h2>Lo último en el equipo</h2>" + (D.registro.length ? '<div class="linea">' + D.registro.map((r) => "<div><time>" + hace(r.creado_en) + (r.quien && r.accion !== "entro" ? " · " + esc(r.quien) : "") + "</time>" + (ACCION[r.accion] ? ACCION[r.accion](r.detalle || {}) : esc(r.accion)) + "</div>").join("") + "</div>" : '<p class="vacio">Aún no hay movimientos.</p>') : "");
+  $("app").querySelectorAll("[data-rol]").forEach((b) => b.onclick = () => cambiarRol(b.dataset.u, b.dataset.rol));
+  $("app").querySelectorAll("[data-quitar]").forEach((b) => b.onclick = () => quitar(b));
+}
+function ficha(m) {
+  const yo = m.user_id === D.yo, nombre = m.correo.split("@")[0];
+  return '<div class="ficha"><div class="quien"><span class="ini" style="--c:' + color(m.correo) + '">' + esc(nombre.slice(0, 1).toUpperCase()) + "</span><span><b>" + esc(m.correo) + (yo ? " (tú)" : "") + "</b><small>En el equipo desde " + hace(m.desde) + "</small></span></div>" +
+    (D.dueno && !yo
+      ? '<div class="roles" role="group" aria-label="Rol de ' + esc(m.correo) + '">' + Object.entries(ROL).map(([k, n]) => '<button type="button" data-u="' + m.user_id + '" data-rol="' + k + '" aria-pressed="' + (m.rol === k) + '">' + n + "</button>").join("") + "</div>" +
+        '<button type="button" class="quitar" data-quitar="' + m.user_id + '">Quitar del equipo</button>'
+      : '<span class="rol-solo">' + ROL[m.rol] + "</span>" + (D.dueno && yo ? '<p class="nota">Para dejar de administrar, primero dale ese rol a otra persona.</p>' : "")) + "</div>";
+}
+async function cambiarRol(u, rol) {
+  const m = D.miembros.find((x) => x.user_id === u); if (!m || m.rol === rol) return;
+  const { error } = await sb.rpc("equipo_rol", { e: E.id, u, rol });
+  if (error) { toast(limite(error) || "No se pudo cambiar el rol."); return; }
+  toast(m.correo + " ahora " + ROL[rol].toLowerCase() + ".");
+  await cargar();
+}
+async function quitar(b) {
+  if (!b.classList.contains("seguro")) { b.classList.add("seguro"); b.textContent = "Sí, quitarle el acceso ahora"; return; }
+  b.disabled = true;
+  const { error } = await sb.rpc("equipo_quitar", { e: E.id, u: b.dataset.quitar });
+  if (error) { b.disabled = false; toast(limite(error) || "No se pudo quitar."); return; }
+  toast("Listo: ya no tiene acceso al equipo.");
+  await cargar();
+}
+</script>
+</body>
+</html>

@@ -91,6 +91,8 @@ button{cursor:pointer}
 @keyframes sk{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.skeleton{animation:none}.tile{transition:none}}
 .en-vitrina{align-self:flex-start;font-size:11.5px;font-weight:700;color:var(--good);letter-spacing:.02em}
+.reservado{align-self:flex-start;font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:1px 8px;letter-spacing:.02em}
+.eq-k{margin:0 0 2px;font-family:var(--f-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ember)}
 </style>
 </head>
 <body>
@@ -100,7 +102,7 @@ button{cursor:pointer}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, hace, navApp, espacio, conSesion, avisos, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
+import { sb, $, esc, toast, hace, navApp, espacio, espacioActual, conSesion, avisos, plan, LIMITES, limite, editable, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
 import { TIPOS, ESTADOS, tc, PLANTILLA, SECCIONES, pesoDe, avance } from "../js/guias.js";
 import { sendero } from "../js/ayuda.js";
 import { FORMATOS } from "../js/brujula.js";
@@ -111,17 +113,17 @@ if (location.hash === "#cotizaciones") location.replace("../cotizaciones/");
 const viejo = location.hash.match(/^#p=([0-9a-f-]{36})/);
 if (viejo) location.replace("../proyecto/?p=" + viejo[1]);
 
-let ESP = null, PL = { mas: false }, PROYS = [], COTS = [], AV = {}, vista = location.hash === "#cotizaciones" ? "cot" : "proy", tipoNuevo = "historia";
+let ESP = null, EA = null, PL = { mas: false }, PROYS = [], COTS = [], AV = {}, vista = location.hash === "#cotizaciones" ? "cot" : "proy", tipoNuevo = "historia";
 let F = { tipo: "", estado: "", q: "", orden: "recientes" };
 try { Object.assign(F, JSON.parse(localStorage.getItem("forja-filtros") || "{}")); F.q = ""; } catch (e) {}
 const guardarF = () => { try { localStorage.setItem("forja-filtros", JSON.stringify(F)); } catch (e) {} };
 
 conSesion($("app"), async () => {
-  ESP = await espacio();
+  ESP = await espacio(); EA = await espacioActual();
   if (!ESP) throw new Error("sin espacio");
   PL = await plan();
   const [p, se, vi, tx, rf, pz] = await Promise.all([
-    sb.from("proyectos").select("id,nombre,tipo,estado,resumen,ejes,formato,actualizado_en").eq("espacio_id", ESP).order("actualizado_en", { ascending: false }),
+    sb.from("proyectos").select("id,nombre,tipo,estado,resumen,ejes,formato,acceso,actualizado_en").eq("espacio_id", ESP).order("actualizado_en", { ascending: false }),
     sb.from("secciones").select("proyecto_id,avance,peso").eq("espacio_id", ESP),
     sb.from("vitrinas").select("proyecto_id,publicada").eq("espacio_id", ESP),
     sb.from("secciones").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("texto", ""),
@@ -141,15 +143,18 @@ conSesion($("app"), async () => {
 
 function pintar() {
   $("app").innerHTML =
-    '<header><h1>Proyectos</h1><p class="lead">Todo lo que estás creando. Cada proyecto se abre en su propia página.</p></header>' +
+    (EQUIPO() ? '<header><p class="eq-k">Equipo</p><h1>' + esc(EA.nombre) + '</h1><p class="lead">' + ({ dueno: "Los proyectos del equipo. Administras quién entra y qué ve cada persona.", editor: "Los proyectos del equipo. Puedes plantar ideas y editar los que están abiertos al equipo.", lector: "Los proyectos del equipo. Por ahora puedes verlos; quien administra el equipo puede darte permiso para editar." })[EA.rol] + ' <a href="../equipo/">Personas del equipo</a></p></header>'
+      : '<header><h1>Proyectos</h1><p class="lead">Todo lo que estás creando. Cada proyecto se abre en su propia página.</p></header>') +
     '<div id="avisos"></div><div id="sendero"></div><div id="panel"></div>';
   avisos($("avisos"));
   proyectos();
-  sendero($("sendero"), HECHO, PROYS[0] ? PROYS[0].id : null);
+  if (!EQUIPO()) sendero($("sendero"), HECHO, PROYS[0] ? PROYS[0].id : null);
 }
 
+const EQUIPO = () => EA && EA.tipo === "equipo";
 const activos = () => PROYS.filter((p) => p.estado !== "archivado").length;
 function cupo() {
+  if (EQUIPO()) return "";
   if (PL.mas) return '<div class="cupo mas"><b>Forja Más</b><span>Proyectos, palabras y referentes sin límite.</span></div>';
   const n = activos(), max = LIMITES.proyectos, lleno = n >= max, pasado = n > max;
   return '<div class="cupo' + (lleno ? " lleno" : "") + (pasado ? " pasado" : "") + '"><div class="cupo-top"><b>Plan gratis</b><span>' + n + " de " + max + " proyectos en curso</span></div>" +
@@ -159,17 +164,17 @@ function cupo() {
       : '<p class="hint">Archivar un proyecto libera su cupo; lo archivado se puede ver y exportar siempre. <a href="../planes/">Ver planes</a></p>') + "</div>";
 }
 function proyectos() {
-  const sinCupo = !PL.mas && activos() >= LIMITES.proyectos;
-  $("panel").innerHTML = cupo() +
+  const sinCupo = !PL.mas && activos() >= LIMITES.proyectos, lector = EQUIPO() && EA.rol === "lector";
+  $("panel").innerHTML = cupo() + (lector ? '<div id="semilla" hidden></div>' :
     '<form class="semilla" id="semilla"><div class="line"><label class="fx-sr" for="s-nombre">Nombre de la idea</label>' +
     '<input type="text" id="s-nombre" maxlength="160" placeholder="' + (sinCupo ? "Archiva un proyecto para plantar otra idea" : "¿Qué idea traes hoy?") + '" autocomplete="off"' + (sinCupo ? " disabled" : "") + '><button class="plantar" type="submit"' + (sinCupo ? " disabled" : "") + '>Plantar</button></div>' +
     '<div class="tipos" role="group" aria-label="Tipo de proyecto">' +
     Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipoNuevo) + '">' + n + "</button>").join("") +
-    '</div></form><div class="buscador" id="buscador"></div><div id="mosaico" style="margin-top:12px"></div>';
-  $("semilla").querySelectorAll(".tipo").forEach((b) => b.onclick = () => {
+    '</div></form>') + '<div class="buscador" id="buscador"></div><div id="mosaico" style="margin-top:12px"></div>';
+  if (!lector) $("semilla").querySelectorAll(".tipo").forEach((b) => b.onclick = () => {
     tipoNuevo = b.dataset.t; $("semilla").querySelectorAll(".tipo").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
   });
-  $("semilla").onsubmit = async (e) => {
+  if (!lector) $("semilla").onsubmit = async (e) => {
     e.preventDefault();
     const nombre = $("s-nombre").value.trim();
     if (!nombre) { $("s-nombre").focus(); return; }
@@ -183,7 +188,7 @@ function proyectos() {
   const ESTO = ["semilla", "desarrollo", "pausa", "listo", "archivado"];
   const cuenta = (e) => PROYS.filter((p) => p.estado === e).length;
   const tiposUsados = [...new Set(PROYS.map((p) => p.tipo))];
-  if (!PROYS.length) { $("mosaico").innerHTML = '<div class="vacio"><b>Tu mesa está vacía</b>Escribe arriba una idea, aunque sea una frase, y elige qué tipo de proyecto es.</div>'; return; }
+  if (!PROYS.length) { $("mosaico").innerHTML = (EQUIPO() ? '<div class="vacio"><b>El equipo aún no tiene proyectos</b>' + (lector ? "Cuando alguien plante uno abierto al equipo, aparecerá aquí." : "Planta una idea arriba, o mueve aquí uno de tus proyectos personales desde su página.") + "</div>" : '<div class="vacio"><b>Tu mesa está vacía</b>Escribe arriba una idea, aunque sea una frase, y elige qué tipo de proyecto es.</div>'); return; }
   $("buscador").innerHTML =
     '<div class="b-fila"><label class="fx-sr" for="f-q">Buscar</label><input id="f-q" type="search" placeholder="Buscar por nombre o resumen…" autocomplete="off">' +
     '<label class="fx-sr" for="f-orden">Ordenar</label><select id="f-orden"><option value="recientes">Más recientes</option><option value="nombre">Por nombre</option><option value="mas">Más avanzados</option><option value="menos">Menos avanzados</option></select></div>' +
@@ -218,7 +223,7 @@ function tile(p) {
   const elegido = FORMATOS.find((f) => f.k === p.formato), av = AV[p.id] || 0, ro = !editable(p, activos(), PL);
   return '<a class="tile e-' + p.estado + '" href="../proyecto/?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')">' +
     '<span class="arriba"><span class="k">' + esc(TIPOS[p.tipo]) + (elegido && elegido.n !== TIPOS[p.tipo] ? " · " + esc(elegido.n) : "") + '</span><span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span>" +
-    "<h3>" + (ro ? '<svg class="candado" viewBox="0 0 16 16" width="15" height="15" aria-label="Solo lectura" role="img"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' : "") + esc(p.nombre) + "</h3>" + (VIT.has(p.id) ? '<span class="en-vitrina">● En vitrina</span>' : "") + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") +
+    "<h3>" + (ro ? '<svg class="candado" viewBox="0 0 16 16" width="15" height="15" aria-label="Solo lectura" role="img"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' : "") + esc(p.nombre) + "</h3>" + (VIT.has(p.id) ? '<span class="en-vitrina">● En vitrina</span>' : "") + (p.acceso === "reservado" ? '<span class="reservado">Reservado</span>' : "") + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") +
     '<span class="pie"><span class="av"><span class="fx-avance" role="img" aria-label="Avance ' + av + '%"><i style="width:' + av + '%"></i></span><b>' + av + '%</b></span><span>' + hace(p.actualizado_en) + "</span></span></a>";
 }
 

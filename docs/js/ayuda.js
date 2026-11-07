@@ -18,6 +18,7 @@ const ICO = {
   eventos: '<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/><circle cx="12" cy="15" r="1.6"/>',
   cuenta: '<path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.4 6.8 19.2l1-5.9L3.5 9.2l5.9-.8L12 3Z"/>',
   comunidad: '<path d="M4 20V5"/><path d="M4 5h11l-2 4 2 4H4"/>',
+  equipo: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M15 14.4c2.6-.4 4.8 1.2 5.5 4.6"/>',
   privacidad: '<path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>',
   app: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
 };
@@ -122,6 +123,12 @@ export const TEMAS = [
     pasos: ["Para mostrar tu proyecto en Explorar, marca «Mostrar en Explorar» al publicar la vitrina (necesita título y una historia de al menos 40 palabras).", "Si ves algo que rompe las normas, toca «Reportar esta vitrina» al final de la página y elige el motivo.", "Revisa tus avisos y escríbenos desde Mi cuenta; para apelar una suspensión usa «Apelar» en el editor de la vitrina.", "En Mi cuenta → Correos de Forja eliges qué te escribimos: boletín, herramientas que pediste y proyectos que sigues."],
     consejo: "Si tu historia trata temas fuertes, avísalo en la portada: la ficción puede tratar cualquier tema, lo que se modera es el daño a personas reales.",
     plan: ["Incluido", "Incluido"], ir: () => u("normas/"), publico: true, claves: "boletín correos baja suscribir seguir proyectos normas reglas reportar denunciar sanción suspendida apelar moderación explorar directorio publicar términos privacidad" },
+  { id: "equipo", n: "Trabajar en equipo", donde: "Menú de tu cuenta → Trabajando en",
+    corto: "Proyectos compartidos con tu equipo, cada persona con su rol.",
+    para: "Un equipo tiene sus propios proyectos, aparte de tu forja personal. Cada persona administra, edita o solo lee; los proyectos delicados se reservan para quienes elijas. Hoy los equipos son para Digital Monster: toda cuenta con correo del equipo entra sola, como lectora.",
+    pasos: ["Cambia entre «Mi forja» y el equipo desde el menú de tu cuenta: la etiqueta junto al logo te dice dónde estás.", "Para llevar una idea tuya al equipo, abre el proyecto y toca «Mover a…» bajo la cabecera.", "Quien administra decide los roles en «Personas del equipo» y reserva un proyecto con «Quién lo ve».", "Si alguien más está en el proyecto, lo verás bajo la cabecera; en el Taller, escriban en secciones distintas para no pisarse."],
+    consejo: "Las vitrinas del equipo las publica quien administra: quien edita prepara el borrador y avisa.",
+    plan: ["Solo Digital Monster", "Pronto: invitar personas a un proyecto"], ir: () => u("equipo/"), claves: "equipo compartir colaborar colaborativo roles miembros digital monster invitar permisos reservado mover" },
   { id: "app", n: "Forja en tu teléfono", donde: "Tu navegador",
     corto: "Instálala como una app desde el navegador, sin tienda de aplicaciones.",
     para: "Forja se puede instalar en el teléfono o el computador y abre como una app, con su ícono.",
@@ -135,7 +142,7 @@ export const tema = (id) => TEMAS.find((t) => t.id === id);
 export function temaDe(href = location.href, hash = location.hash) {
   const rel = href.split(/[?#]/)[0].slice(RAIZ.length).replace(/index\.html$/, ""), h = (hash || "").slice(1);
   if (rel === "proyecto/") return tema(h) ? h : "taller";
-  return ({ "proyectos/": "plantar", "cotizador/": "costos", "cotizaciones/": "costos", "eventos/": "eventos", "planes/": "cuenta", "vitrina/editar/": "vitrina", "biblia/": "biblia", "oportunidades/": "oportunidades", "entrar/": "privacidad", "cuenta/": "comunidad", "normas/": "comunidad", "terminos/": "privacidad", "privacidad/": "privacidad", "explorar/": "comunidad" })[rel] || "plantar";
+  return ({ "proyectos/": "plantar", "cotizador/": "costos", "cotizaciones/": "costos", "eventos/": "eventos", "planes/": "cuenta", "vitrina/editar/": "vitrina", "biblia/": "biblia", "oportunidades/": "oportunidades", "entrar/": "privacidad", "cuenta/": "comunidad", "normas/": "comunidad", "terminos/": "privacidad", "privacidad/": "privacidad", "explorar/": "comunidad", "equipo/": "equipo", "boletin/": "comunidad" })[rel] || "plantar";
 }
 export const contexto = () => { let p = null; try { p = localStorage.getItem("forja-ultimo-proyecto"); } catch (e) {} return { p }; };
 

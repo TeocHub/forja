@@ -153,7 +153,7 @@ dialog::backdrop{background:rgba(10,12,20,.5)}
 <dialog id="dlg-pub"><div class="dlg" id="dlg-pub-c"></div></dialog>
 <dialog id="dlg-comp"><div class="dlg" id="dlg-comp-c"></div></dialog>
 <script type="module">
-import { sb, $, esc, toast, hace, navApp, espacio, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame, proximamente } from "../../js/forja.js";
+import { sb, $, esc, toast, hace, navApp, espacio, accesoProyecto, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame, proximamente } from "../../js/forja.js";
 import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA, SEGUIR_TEXTOS, LIM, esPago, cuentaPagos } from "../../js/vitrina.js";
 import { MODOS } from "../../js/pizarra.js";
 import { pista } from "../../js/ayuda.js";
@@ -163,7 +163,7 @@ const ID = new URLSearchParams(location.search).get("p");
 const CANDADO = '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M5 7V5a3 3 0 0 1 6 0v2h.5A1.5 1.5 0 0 1 13 8.5v5A1.5 1.5 0 0 1 11.5 15h-7A1.5 1.5 0 0 1 3 13.5v-5A1.5 1.5 0 0 1 4.5 7H5Zm1.5 0h3V5a1.5 1.5 0 0 0-3 0v2Z"/></svg>';
 let EXP = false; // ¿aparece en Explorar?
 let SEG = null; // { total, ultimo_envio, proximo, en_cola } de seguidores_de
-let P, PL, RO, V, B, PUB = null, SECS = [], REFS = [], PIZ = [], NOTAS = [], abiertas = new Set(["portada"]), pendiente = false;
+let ACC = null, P, PL, RO, V, B, PUB = null, SECS = [], REFS = [], PIZ = [], NOTAS = [], abiertas = new Set(["portada"]), pendiente = false;
 const hoy = () => new Date().toISOString().slice(0, 10);
 // Comparar contenido sin importar el orden de las claves (la base las reordena).
 const canon = (o) => JSON.stringify(o, (k, v) => (v && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map((x) => [x, v[x]])) : v));
@@ -174,8 +174,11 @@ try { abiertas = new Set(JSON.parse(localStorage.getItem("forja-vt-abiertas") ||
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../../proyectos/");
 else conSesion($("app"), async () => {
-  const ESP = await espacio();
-  PL = await plan();
+  // En un equipo: quien edita prepara el borrador; publicar hacia afuera es de quien administra.
+  ACC = await accesoProyecto(ID);
+  if (!ACC || ACC.acceso !== "editar") { $("app").innerHTML = '<a class="vol" href="../../proyecto/?p=' + ID + '">← Volver al proyecto</a><div class="fx-empty">' + (ACC ? "Puedes ver este proyecto, pero no editar su vitrina." : "Este proyecto no existe o no tienes acceso a él.") + "</div>"; return; }
+  const ESP = ACC.espacio;
+  PL = { mas: !!ACC.mas };
   const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
   const [pr, se, re, pz, no, vi] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
@@ -235,6 +238,7 @@ function armar() {
     '<div class="cab"><h1>Vitrina<small>La página pública de tu proyecto</small></h1><span id="estado"></span>' +
     '<div class="acc"><span class="guardado" id="guardado" aria-live="polite">Borrador guardado</span><button type="button" class="btn" id="b-comp">Compartir</button><button type="button" class="btn prim" id="b-pub">Publicar</button></div></div>' +
     (V.suspendida ? suspensionHTML() : "") +
+    (!ACC.publica ? '<div class="aviso" style="margin-bottom:12px">En un equipo, publica quien lo administra. Prepara el borrador aquí y avísale cuando esté listo para revisarlo.</div>' : "") +
     (RO ? '<div class="aviso" style="margin-bottom:12px">' + CANDADO + " Este proyecto está en solo lectura en el plan gratis: puedes preparar el borrador y despublicar, pero no publicar cambios.</div>" : "") +
     '<div class="modo" role="group" aria-label="Vista"><button type="button" data-vista="editar" aria-pressed="true">Editar</button><button type="button" data-vista="previa" aria-pressed="false">Vista previa</button></div>' +
     '<div class="grid"><div class="panel" id="panel"></div><div class="previa"><div class="previa-barra"><i></i><i></i><i></i><span id="previa-url"></span></div><div id="previa"></div></div></div>';
@@ -252,7 +256,7 @@ function pintarEstado() {
     : cambios ? '<span class="estado cambios"><i></i>Publicada · hay cambios sin publicar</span>' : '<span class="estado vivo"><i></i>Publicada</span>';
   if (V.suspendida) $("estado").innerHTML = '<span class="estado" style="color:var(--bad);border-color:var(--bad)"><i style="background:var(--bad)"></i>Suspendida por moderación</span>';
   $("b-pub").textContent = PUB ? (cambios ? "Publicar cambios" : "Publicar de nuevo") : "Publicar";
-  $("b-pub").disabled = RO || V.suspendida;
+  $("b-pub").disabled = RO || V.suspendida || !ACC.publica;
   $("previa-url").textContent = urlPublica().replace(/^https?:\/\//, "");
 }
 let tPrevia;

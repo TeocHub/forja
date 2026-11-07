@@ -67,7 +67,7 @@ details.borrar[open] summary{margin-bottom:8px}
   <main id="app"><div class="fx-empty">Cargando…</div></main>
 </div>
 <script type="module">
-import { sb, $, esc, toast, hace, fecha, navApp, conSesion, plan, espacio, limite, avisos, u, DOCS } from "../js/forja.js";
+import { sb, $, esc, toast, hace, fecha, navApp, conSesion, plan, espacio, espacios, limite, avisos, u, DOCS } from "../js/forja.js";
 navApp(null);
 const TIPO = { contacto: "Contacto o consulta", privacidad: "Mis datos personales", apelacion: "Apelación" };
 const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
@@ -149,7 +149,8 @@ conSesion($("app"), async (ses) => {
 
 async function descargar() {
   $("descargar").disabled = true; $("descargar").textContent = "Preparando…";
-  const esp = await espacio();
+  // Solo lo tuyo: tu espacio personal (los proyectos de un equipo son del equipo).
+  const esp = ((await espacios()).find((x) => x.tipo === "personal") || {}).id || await espacio();
   const TABLAS = ["proyectos", "secciones", "referentes", "pizarras", "notas", "cotizaciones", "proyecto_oportunidades", "vitrinas"];
   const out = { exportado_en: new Date().toISOString(), cuenta: { correo: SES.user.email, creada_en: SES.user.created_at } };
   const { data: e } = await sb.from("espacios").select("*").eq("id", esp).maybeSingle(); out.espacio = e;

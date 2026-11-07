@@ -313,3 +313,22 @@ create table privado.config(clave text primary key, valor text not null);   -- '
 -- Moderación: mod_correos(), mod_intereses(), mod_anunciar_funcion(funcion, titulo, texto, enlace), mod_boletin(datos, prueba), mod_probar(tipo, datos).
 -- Solo service_role: cola_tomar(limite) (máx. 40/h y 90/24 h), cola_marcar(id, ok, error), cola_clave().
 -- pg_cron 'forja-correos' */10 * * * * → privado.despachar() → net.http_post a /functions/v1/enviar-correos con x-forja-clave.
+
+
+-- ===== Equipos (migraciones equipos_roles_y_acceso, equipos_vitrinas_permisos, equipos_ver_proyecto_por_fila,
+-- equipos_mas_al_crear_confirmado, acceso_proyecto_con_plan) =====
+-- espacios: + tipo ('personal'|'equipo'), + dominio (equipos: entran solas las cuentas confirmadas de ese dominio);
+--   creado_por ahora es nullable con on delete set null; el espacio personal se borra con su cuenta (trigger al_borrar_usuario → privado.t_borrar_personal).
+-- miembros.rol: 'dueno' | 'editor' | 'lector' (default 'lector'); los antiguos 'miembro' pasaron a 'editor'.
+-- proyectos: + acceso ('equipo'|'reservado').
+-- public.proyecto_accesos(proyecto_id, user_id, rol 'editor'|'lector', creado_en) pk (proyecto_id, user_id): solo lectura propia o del dueño; se escribe por RPC.
+-- public.espacio_registro(id, espacio_id, quien, accion, detalle jsonb, creado_en): sin acceso directo; los dueños lo leen en equipo_panel.
+-- Funciones: privado.rol_en(e), es_dueno(e), escribe_en(e), acceso(p) → 'editar'|'ver'|null, ve(p), edita(p), edita_en(p, e), publica(p), ve_fila(e, acceso, p),
+--   registrar(e, accion, detalle), unir_equipos(uid, correo), t_confirmado() (trigger al_confirmar_correo after insert or update of email_confirmed_at, email on auth.users),
+--   t_espacio_fijo() (trigger espacio_fijo en proyectos y sus tablas hijas; mover_proyecto pone forja.mover = '1').
+-- Políticas: proyectos (ver ve_fila; crear escribe_en; editar edita; borrar es_dueno), hijas (ver ve(proyecto_id); crear/editar edita_en; borrar edita),
+--   cotizaciones (sin proyecto: por espacio), espacios_renombrar solo dueño.
+-- RPCs: mis_espacios, acceso_proyecto, equipo_panel, equipo_rol, equipo_quitar, proyecto_acceso, mover_proyecto.
+-- publicar_vitrina y avisar_seguidores exigen privado.publica; despublicar_vitrina, privado.edita; seguidores_de, privado.ve; avisar_duenos avisa solo a dueños;
+-- borrar_mi_cuenta no deja un equipo sin dueño (FORJA_ULTIMO_DUENO).
+-- Equipo creado: 'Digital Monster' (tipo equipo, dominio digitalmonster.cl, plan mas).

@@ -77,11 +77,11 @@ export function navApp(actual) {
   if (!el) return;
   el.className = "fx-app";
   el.innerHTML =
-    '<a class="fx-logo" href="' + u("proyectos/") + '">Forja</a>' +
+    '<a class="fx-logo" href="' + u("proyectos/") + '">Forja<span class="fx-esp" id="fx-esp" hidden></span></a>' +
     '<nav class="fx-menu" aria-label="Mi forja">' + APP.map((m) => '<a href="' + m.href + '" class="m-' + m.id + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + svg(m.id) + "<span>" + m.nombre + "</span></a>").join("") + "</nav>" +
     '<button type="button" class="fx-ayuda" id="fx-ayuda" aria-label="Ayuda: cómo funciona esta página" title="Ayuda">?</button>' +
     '<details class="fx-cuenta" id="fx-cuenta"><summary aria-label="Mi cuenta"><span class="fx-ini" id="fx-ini">·</span></summary><div class="fx-pop">' +
-    '<span class="fx-mail" id="fx-mail2"></span><span class="fx-planb" id="fx-planb">Plan gratis</span>' +
+    '<span class="fx-mail" id="fx-mail2"></span><span class="fx-planb" id="fx-planb">Plan gratis</span><div class="fx-espacios" id="fx-espacios" hidden></div>' +
     '<a href="' + u("cuenta/") + '">Mi cuenta <span class="fx-nav-n" id="fx-avisos-n" hidden></span></a><a href="' + u("admin/") + '" id="fx-admin" hidden>Moderación</a>' +
     '<a href="' + u("guia/") + '">Guía de Forja</a><a href="' + u("boletin/") + '">Boletín de Forja</a><button type="button" class="fx-link" id="fx-pistas">Volver a ver las pistas</button><a href="' + u() + '">Ver el sitio público</a><a href="' + u("oportunidades/") + '">Calendario de oportunidades</a><span class="fx-legal"><a href="' + u("terminos/") + '">Términos</a> · <a href="' + u("privacidad/") + '">Privacidad</a> · <a href="' + u("normas/") + '">Normas</a></span><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
   document.body.classList.add("fx-con-app");
@@ -89,6 +89,14 @@ export function navApp(actual) {
     const ses = data.session; if (!ses) return;
     $("fx-ini").textContent = ses.user.email.slice(0, 1).toUpperCase();
     $("fx-mail2").textContent = ses.user.email;
+    const [lista, act] = await Promise.all([espacios(), espacioActual()]);
+    if (lista.length > 1 && act) {
+      $("fx-espacios").hidden = false;
+      $("fx-espacios").innerHTML = '<span class="fx-esp-t">Trabajando en</span>' + lista.map((x) => '<button type="button" class="fx-esp-b" data-esp="' + x.id + '" aria-pressed="' + (x.id === act.id) + '"><b>' + esc(x.tipo === "personal" ? "Mi forja" : x.nombre) + "</b><small>" + (x.tipo === "personal" ? "Tus proyectos personales" : "Equipo · " + ({ dueno: "administras", editor: "editas", lector: "puedes ver" })[x.rol]) + "</small></button>").join("") +
+        (act.tipo === "equipo" ? '<a href="' + u("equipo/") + '">Personas del equipo</a>' : "");
+      $("fx-espacios").querySelectorAll("[data-esp]").forEach((b) => b.onclick = () => { if (b.dataset.esp !== act.id) cambiarEspacio(b.dataset.esp); else $("fx-cuenta").open = false; });
+      if (act.tipo === "equipo") { $("fx-esp").hidden = false; $("fx-esp").textContent = act.nombre; }
+    }
     const pl = await plan();
     $("fx-planb").textContent = pl.mas ? "Forja Más" : "Plan gratis";
     $("fx-planb").classList.toggle("mas", pl.mas);
@@ -129,6 +137,8 @@ const MSG = {
   FORJA_PIZARRA_GRANDE: "La pizarra es demasiado grande para guardarla. Divídela en dos.",
   FORJA_VITRINA_GRANDE: "La vitrina es demasiado grande para publicarla. Quita algunas piezas o pizarras.",
   FORJA_NO_PERMITIDO: "No tienes permiso para hacer eso.",
+  FORJA_ULTIMO_DUENO: "El equipo necesita al menos una persona que lo administre. Primero dale ese rol a otra persona.",
+  FORJA_MOVER_PUBLICADA: "Este proyecto tiene una vitrina publicada: solo quien administra el equipo puede traerlo.",
   FORJA_VITRINA_SUSPENDIDA: "Esta vitrina está suspendida por moderación. Puedes apelar desde el editor.",
   FORJA_REPORTE_SIN_CUENTA: "Para reportar necesitas entrar con tu cuenta.",
   FORJA_REPORTE_PROPIO: "No puedes reportar tu propia vitrina.",
@@ -181,15 +191,38 @@ export const MAS_PRONTO = "Forja Más llega pronto, con proyectos, palabras y pi
 export const MAS_LINK = ' <a href="' + u("planes/") + '">Ver Forja Más</a>';
 
 /* --- sesión --- */
-let espacioCache = null;
+// Cada persona tiene su espacio personal y puede ser parte de equipos (hoy, Digital Monster).
+// El espacio elegido se recuerda en este navegador; si ya no es miembro, vuelve al personal.
+let espaciosCache = null, espacioCache = null;
+export async function espacios() {
+  if (espaciosCache) return espaciosCache;
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return [];
+  const { data, error } = await sb.rpc("mis_espacios");
+  if (error) throw error;
+  espaciosCache = data || [];
+  return espaciosCache;
+}
+export async function espacioActual() {
+  const lista = await espacios();
+  let elegido = null; try { elegido = localStorage.getItem("forja-espacio"); } catch (e) {}
+  return lista.find((x) => x.id === elegido) || lista.find((x) => x.tipo === "personal") || lista[0] || null;
+}
 export async function espacio() {
   if (espacioCache) return espacioCache;
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) return null;
-  const { data, error } = await sb.from("miembros").select("espacio_id, rol, espacios(nombre)").eq("user_id", session.user.id).order("creado_en").limit(1);
-  if (error) throw error;
-  espacioCache = data && data[0] ? data[0].espacio_id : null;
+  const e = await espacioActual();
+  espacioCache = e ? e.id : null;
   return espacioCache;
+}
+// Cambiar de espacio lleva a sus proyectos (cada página carga los datos del espacio elegido).
+export function cambiarEspacio(id, destino = "proyectos/") {
+  try { localStorage.setItem("forja-espacio", id); } catch (e) {}
+  location.href = u(destino);
+}
+// Qué puede hacer la persona en un proyecto: { acceso: "editar" | "ver", publica, rol, espacio, tipo } o null.
+export async function accesoProyecto(id) {
+  const { data } = await sb.rpc("acceso_proyecto", { p: id });
+  return data || null;
 }
 
 // Páginas de la cuenta: si no hay sesión, se va a entrar/ y se vuelve aquí al entrar.
