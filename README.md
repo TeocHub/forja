@@ -60,3 +60,10 @@ Una tarea programada de Claude revisa cada mañana (hora de Chile) fuentes ofici
 ## Datos privados
 
 Este repositorio es público y solo contiene código. Cada persona entra con su correo y sus proyectos y cotizaciones viven en Supabase, protegidos para que solo esa cuenta los vea. Por eso la misma web puede abrirse a otras personas sin mezclar datos.
+
+## Colaboradores y Desarrolladores
+
+Este repositorio ha sido creado en su mayoría con Vibe Coding.
+- Teoc
+- Claude
+- Skynook
