@@ -79,14 +79,32 @@ export function radar(svg, get, set, pregunta, getBase) {
   const local = (ev) => { const b = svg.getBoundingClientRect(), k = W / b.width; return [(ev.clientX - b.left) * k - C[0], (ev.clientY - b.top) * k - C[1]]; };
   let eje = null;
   const decir = (i) => { if (pregunta) pregunta.textContent = EJES[i].n + ": " + EJES[i].q; };
-  svg.onpointerdown = (ev) => {
-    const [dx, dy] = local(ev);
-    if (Math.hypot(dx, dy) > R + 40) return;
+  // Con el dedo solo se "agarra" el radar cerca de un punto (así el resto del radar deja desplazar la página).
+  // Con mouse o lápiz se mantiene el comportamiento de siempre: arrastrar desde cualquier parte del radar.
+  const HIT = 28; // radio de agarre en píxeles de pantalla
+  const cerca = (cx, cy) => {
+    const b = svg.getBoundingClientRect(), k = b.width / W, v = vals(get(), getBase ? getBase() : null);
+    let best = -1, bd = HIT;
+    v.forEach((x, i) => { const [hx, hy] = pt(...C, rad(x), ang(i, n)); const d = Math.hypot(b.left + hx * k - cx, b.top + hy * k - cy); if (d < bd) { bd = d; best = i; } });
+    return best;
+  };
+  const porAngulo = (dx, dy) => {
     const a = Math.atan2(dy, dx);
     let best = 0, bd = 9;
     EJES.forEach((_, i) => { const d = Math.abs(Math.atan2(Math.sin(a - ang(i, n)), Math.cos(a - ang(i, n)))); if (d < bd) { bd = d; best = i; } });
+    return best;
+  };
+  svg.onpointerdown = (ev) => {
+    let best;
+    if (ev.pointerType === "touch") { best = cerca(ev.clientX, ev.clientY); if (best < 0) return; }
+    else { const [dx, dy] = local(ev); if (Math.hypot(dx, dy) > R + 40) return; best = porAngulo(dx, dy); }
     eje = best; svg.setPointerCapture(ev.pointerId); decir(best); mover(ev); ev.preventDefault();
   };
+  // Un toque que cae sobre un punto no debe iniciar el desplazamiento de la página; cualquier otro sí.
+  svg.addEventListener("touchstart", (ev) => {
+    const t = ev.touches[0];
+    if (ev.cancelable && ev.touches.length === 1 && t && cerca(t.clientX, t.clientY) >= 0) ev.preventDefault();
+  }, { passive: false });
   const mover = (ev) => {
     if (eje == null) return;
     const [dx, dy] = local(ev), proy = dx * Math.cos(ang(eje, n)) + dy * Math.sin(ang(eje, n));
@@ -183,6 +201,6 @@ export const CSS_BRUJULA = `
 .dial .aguja path{fill:var(--ember)}
 .dial .aguja path.cola{fill:var(--muted)}
 .dial .eje-c{fill:var(--card);stroke:var(--fg);stroke-width:2}
-.radar,.dial{width:100%;max-width:460px;height:auto;display:block;margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none}
+.radar,.dial{width:100%;max-width:460px;height:auto;display:block;margin:0 auto;user-select:none;-webkit-user-select:none}
 @media (prefers-reduced-motion:reduce){.dial .aguja,.dial .petalo{transition:none}}
 `;
