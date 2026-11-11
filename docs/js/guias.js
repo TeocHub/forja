@@ -3,6 +3,7 @@
 
 export const TIPOS = {
   historia: "Historia",
+  comic: "Cómic",
   videojuego: "Videojuego",
   juegomesa: "Juego de mesa",
   contenido: "Contenido para redes",
@@ -16,7 +17,7 @@ export const tc = (t) => "var(--t-" + (TIPOS[t] ? t : "otro") + ")";
 export function areaDe(tipo, formato) {
   if (formato === "videojuego" || tipo === "videojuego") return "videojuego";
   if (formato === "mesa" || tipo === "juegomesa") return "juegomesa";
-  if (["comic", "novela", "cuento"].includes(formato) || tipo === "historia") return "comic";
+  if (["comic", "novela", "cuento"].includes(formato) || tipo === "historia" || tipo === "comic") return "comic";
   return "general";
 }
 
@@ -62,6 +63,8 @@ export const SECCIONES = {
   capitulos: { t: "Capítulos", p: ["Haz una línea por capítulo: qué pasa y qué cambia.", "¿Dónde termina cada capítulo para que den ganas de seguir?"] },
   escaleta: { t: "Escaleta", p: ["Escena por escena: lugar, momento del día, quién está y qué pasa.", "¿Cuánto dura cada escena, más o menos?", "¿Qué escena se podría cortar sin perder la historia?"] },
   temporada: { t: "Temporada y episodios", p: ["¿Cuántos episodios y cuánto dura cada uno?", "¿Qué pregunta abre la temporada y cuál la cierra?", "Una línea por episodio: qué pasa y en qué termina."] },
+  estilo: { t: "Estilo de dibujo", p: ["¿Línea limpia o trazo suelto? ¿Blanco y negro, pocos colores o color completo?", "¿A qué obras se parece en lo que se ve, no en lo que pasa?", "Dibuja a cada protagonista como silueta negra: ¿se reconoce sin detalles?"] },
+  edicion: { t: "Formato y publicación", p: ["¿Impreso, webcómic o ambos? ¿Dónde lo va a leer la gente?", "¿Cuántas páginas, de qué tamaño y en cuántos capítulos o números?", "¿Quién hace el guion, el lápiz, la tinta, el color y las letras?"] },
   vinetas: { t: "Guion por páginas", p: ["Página por página: cuántas viñetas, qué se ve en cada una y qué se dice.", "¿Qué página termina con un giro para dar vuelta la hoja?", "¿Qué momento merece una página completa?"] },
   episodio: { t: "Formato del episodio", p: ["¿Cuánto dura un episodio y cómo se divide (intro, bloques, cierre)?", "¿Quiénes hablan y con qué tono?", "¿Hay música, efectos o invitados?"] },
   libre: { t: "Notas", p: ["Escribe lo que quieras: esta sección no tiene preguntas."] },
@@ -76,7 +79,7 @@ export const PESO = { premisa: 15, personajes: 15, mundo: 15, conflicto: 10, est
   objetivo: 10, turno: 15, componentes: 15, reglas: 25, jugadores: 5, pruebas: 20, uso: 10,
   idea: 15, plataforma: 10, gancho: 15, guion: 40, calendario: 10,
   queEs: 15, paraQuien: 15, proceso: 25, precio: 20, presentacion: 15, venta: 10,
-  capitulos: 25, escaleta: 30, temporada: 30, vinetas: 30, episodio: 15, libre: 5, pasos: 5, financiamiento: 10, difusion: 10 };
+  capitulos: 25, escaleta: 30, temporada: 30, vinetas: 30, estilo: 15, edicion: 10, episodio: 15, libre: 5, pasos: 5, financiamiento: 10, difusion: 10 };
 export const pesoDe = (g) => (g in PESO ? PESO[g] : 10);
 
 // Etapas de avance de una sección; el porcentaje se puede ajustar a mano.
@@ -89,7 +92,8 @@ export function avance(secs) {
 
 // Formatos que caben en cada categoría, y la categoría natural de cada formato.
 export const FORMATOS_DE = {
-  historia: ["novela", "cuento", "comic", "corto", "largo", "serie", "animacion", "podcast"],
+  historia: ["novela", "cuento", "corto", "largo", "serie", "animacion", "podcast"],
+  comic: ["comic"],
   videojuego: ["videojuego"],
   juegomesa: ["mesa"],
   contenido: ["video", "podcast", "corto", "serie", "animacion"],
@@ -97,7 +101,7 @@ export const FORMATOS_DE = {
   otro: null, // cualquiera
 };
 export const formatoCabe = (tipo, f) => !f || FORMATOS_DE[tipo] === null || (FORMATOS_DE[tipo] || []).includes(f);
-export const tipoDe = (f) => ({ videojuego: "videojuego", mesa: "juegomesa", video: "contenido" })[f] || "historia";
+export const tipoDe = (f) => ({ videojuego: "videojuego", mesa: "juegomesa", video: "contenido", comic: "comic" })[f] || "historia";
 // Secciones extra que sugiere cada formato.
 export const PLANTILLA_FORMATO = { novela: ["capitulos"], cuento: [], comic: ["vinetas"], corto: ["escaleta"], largo: ["escaleta"], serie: ["temporada"], animacion: ["escaleta", "estetica"], podcast: ["episodio", "guion"], video: ["gancho", "guion"], videojuego: [], mesa: [] };
 export const sugeridas = (tipo, f) => [...new Set([...(PLANTILLA[tipo] || []), ...((f && PLANTILLA_FORMATO[f]) || [])])];
@@ -105,6 +109,7 @@ export const sugeridas = (tipo, f) => [...new Set([...(PLANTILLA[tipo] || []), .
 // Secciones con las que nace un proyecto de cada tipo.
 export const PLANTILLA = {
   historia: ["premisa", "personajes", "mundo", "conflicto", "estructura", "escenas", "tono"],
+  comic: ["premisa", "personajes", "mundo", "estilo", "estructura", "escenas", "vinetas", "edicion"],
   videojuego: ["pitch", "bucle", "mecanicas", "narrativa", "estetica", "publico", "alcance"],
   juegomesa: ["pitch", "objetivo", "turno", "componentes", "reglas", "jugadores", "pruebas"],
   contenido: ["idea", "plataforma", "gancho", "guion", "calendario"],

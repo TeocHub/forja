@@ -27,7 +27,7 @@ export const FORMATOS = [
 
 export const tocado = (ejes) => !!ejes && EJES.some((e) => e.k in ejes);
 // Configuración inicial: cómo suele ser cada formato, o la categoría si aún no hay formato. Es el punto de partida que la persona ajusta.
-export const BASE_TIPO = { historia: [0, 0, 3, 2, 1, 3], videojuego: [4, 3, 1, 3, 3, 3], juegomesa: [3, 4, 0, 2, 0, 1], contenido: [0, 0, 1, 3, 3, 0], producto: [1, 0, 1, 3, 0, 1], otro: [2, 2, 2, 2, 2, 2] };
+export const BASE_TIPO = { historia: [0, 0, 3, 2, 1, 3], comic: [0, 0, 2, 4, 1, 3], videojuego: [4, 3, 1, 3, 3, 3], juegomesa: [3, 4, 0, 2, 0, 1], contenido: [0, 0, 1, 3, 3, 0], producto: [1, 0, 1, 3, 0, 1], otro: [2, 2, 2, 2, 2, 2] };
 export function base(tipo, formato) {
   const f = FORMATOS.find((x) => x.k === formato);
   return f ? f.p.slice() : (BASE_TIPO[tipo] || BASE_TIPO.otro).slice();

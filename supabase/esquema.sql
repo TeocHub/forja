@@ -2163,6 +2163,17 @@ begin
 end $function$
 ;
 
+CREATE OR REPLACE FUNCTION privado.t_tipo_comic()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO ''
+AS $function$
+begin
+  if new.formato = 'comic' and new.tipo = 'historia' then new.tipo := 'comic'; end if;
+  return new;
+end $function$
+;
+
 CREATE OR REPLACE FUNCTION privado.t_proyectos()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -2375,7 +2386,7 @@ alter table public.proyectos add constraint proyectos_estado_check CHECK ((estad
 alter table public.proyectos add constraint proyectos_estructura_tam CHECK ((pg_column_size(estructura) < 60000));
 alter table public.proyectos add constraint proyectos_nombre_check CHECK (((char_length(nombre) >= 1) AND (char_length(nombre) <= 160)));
 alter table public.proyectos add constraint proyectos_ruta_tam CHECK ((pg_column_size(ruta) < 20000));
-alter table public.proyectos add constraint proyectos_tipo_check CHECK ((tipo = ANY (ARRAY['historia'::text, 'videojuego'::text, 'juegomesa'::text, 'contenido'::text, 'producto'::text, 'otro'::text])));
+alter table public.proyectos add constraint proyectos_tipo_check CHECK ((tipo = ANY (ARRAY['historia'::text, 'comic'::text, 'videojuego'::text, 'juegomesa'::text, 'contenido'::text, 'producto'::text, 'otro'::text])));
 alter table public.recompensa_interes add constraint recompensa_interes_pkey PRIMARY KEY (vitrina_id, tier, user_id);
 alter table public.recompensa_interes add constraint recompensa_interes_tier_check CHECK (((char_length(tier) >= 1) AND (char_length(tier) <= 20)));
 alter table public.referentes add constraint referentes_pkey PRIMARY KEY (id);
@@ -2576,6 +2587,7 @@ CREATE TRIGGER espacio_fijo BEFORE UPDATE OF espacio_id ON public.proyecto_oport
 CREATE TRIGGER po_mismo BEFORE INSERT OR UPDATE ON public.proyecto_oportunidades FOR EACH ROW EXECUTE FUNCTION mismo_espacio();
 CREATE TRIGGER espacio_fijo BEFORE UPDATE OF espacio_id ON public.proyectos FOR EACH ROW EXECUTE FUNCTION privado.t_espacio_fijo();
 CREATE TRIGGER proyectos_limites BEFORE INSERT OR UPDATE ON public.proyectos FOR EACH ROW EXECUTE FUNCTION privado.t_proyectos();
+CREATE TRIGGER tipo_comic BEFORE INSERT OR UPDATE OF tipo, formato ON public.proyectos FOR EACH ROW EXECUTE FUNCTION privado.t_tipo_comic();
 CREATE TRIGGER proyectos_tocar BEFORE UPDATE ON public.proyectos FOR EACH ROW EXECUTE FUNCTION tocar_actualizado();
 CREATE TRIGGER espacio_fijo BEFORE UPDATE OF espacio_id ON public.referentes FOR EACH ROW EXECUTE FUNCTION privado.t_espacio_fijo();
 CREATE TRIGGER referentes_limites BEFORE INSERT OR UPDATE ON public.referentes FOR EACH ROW EXECUTE FUNCTION privado.t_referentes();
@@ -3011,6 +3023,7 @@ revoke all on function privado.ronda_abierta(l ronda_lectores) from public, anon
 -- privado.t_proyectos(): permisos por defecto (cualquiera puede ejecutarla)
 -- privado.t_referentes(): permisos por defecto (cualquiera puede ejecutarla)
 -- privado.t_secciones(): permisos por defecto (cualquiera puede ejecutarla)
+revoke all on function privado.t_tipo_comic() from public, anon, authenticated, service_role;
 -- privado.t_vitrina_slug(): permisos por defecto (cualquiera puede ejecutarla)
 -- privado.tarjetas(d jsonb): permisos por defecto (cualquiera puede ejecutarla)
 revoke all on function privado.tope(e uuid, clave text) from public, anon, authenticated, service_role;

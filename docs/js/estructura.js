@@ -13,27 +13,31 @@ export const MOMENTOS = {
   contenido: [["Gancho", "¿Qué se ve o se dice en los primeros segundos?"], ["La promesa", "¿Qué va a recibir quien se quede?"], ["Desarrollo", "¿Cuáles son los pasos o las ideas, en orden?"], ["Remate", "¿Cuál es el momento que la gente va a recordar?"], ["Cierre", "¿Cómo se ata todo en una frase?"], ["Llamado", "¿Qué pides al final: seguir, comentar, comprar?"]],
   producto: [["Lo descubre", "¿Dónde y cómo se entera de que existe?"], ["Duda", "¿Qué le hace dudar antes de comprarlo?"], ["Lo prueba", "¿Cómo es la primera vez que lo usa?"], ["Le resuelve", "¿En qué momento siente que valió la pena?"], ["Lo usa seguido", "¿Cómo entra en su rutina?"], ["Lo recomienda", "¿Qué le cuenta a otra persona?"]],
 };
+MOMENTOS.comic = [["Primera página", "¿Qué se ve en la primera viñeta que hace querer seguir?"], ["Conflicto", "¿Qué pasa que obliga a actuar?"], ["Se complica", "¿Qué sale mal al intentar arreglarlo?"], ["Página clave", "¿Cuál es la página más fuerte, la que merece ser completa?"], ["Desenlace", "¿Qué queda después del golpe?"], ["Última viñeta", "¿Con qué imagen se despide?"]];
 MOMENTOS.otro = MOMENTOS.historia;
 export const momentos = (tipo) => (MOMENTOS[tipo] || MOMENTOS.otro).map(([n, q], i) => ({ k: CLAVES[i], n, q }));
 
 // Modelos. forma "curva" (x e y de 0 a 1, y = intensidad) o "ciclo" (los pasos en círculo). `m` = qué momento tuyo cae en ese paso (null = paso propio del modelo).
 // `actos` agrupa los pasos al pasar a la Escaleta.
 export const MODELOS = {
-  tres: { n: "Tres actos", forma: "curva", solo: ["historia", "otro", "contenido"], d: "Planteamiento, confrontación y resolución. La forma más usada: cada acto termina con algo que cambia.",
+  tres: { n: "Tres actos", forma: "curva", solo: ["historia", "comic", "otro", "contenido"], d: "Planteamiento, confrontación y resolución. La forma más usada: cada acto termina con algo que cambia.",
     actos: [["Acto I", [0, 1]], ["Acto II", [2, 3, 4]], ["Acto III", [5, 6]]],
     p: [{ n: "Planteamiento", x: .03, y: .18, m: "inicio" }, { n: "Detonante", x: .17, y: .32, m: "conflicto" }, { n: "Sin vuelta atrás", x: .29, y: .42, m: null, q: "¿Qué decisión hace imposible volver al inicio?" }, { n: "Todo se complica", x: .5, y: .62, m: "escalada" }, { n: "El punto más bajo", x: .7, y: .38, m: null, q: "¿Cuándo parece que todo está perdido?" }, { n: "Clímax", x: .86, y: .96, m: "climax" }, { n: "Resolución", x: .98, y: .3, m: "final" }] },
-  piramide: { n: "Pirámide", forma: "curva", solo: ["historia", "otro"], d: "Sube hasta un punto alto justo en la mitad y después baja hacia el cierre. Calza con tragedias y con historias de caída.",
+  piramide: { n: "Pirámide", forma: "curva", solo: ["historia", "comic", "otro"], d: "Sube hasta un punto alto justo en la mitad y después baja hacia el cierre. Calza con tragedias y con historias de caída.",
     actos: [["Subida", [0, 1]], ["Cumbre", [2]], ["Bajada", [3, 4]]],
     p: [{ n: "Presentación", x: .04, y: .15, m: "inicio" }, { n: "Subida", x: .26, y: .55, m: "escalada" }, { n: "Cumbre", x: .5, y: .97, m: "climax" }, { n: "Caída", x: .74, y: .5, m: "desenlace" }, { n: "Cierre", x: .97, y: .12, m: "final" }] },
-  cuatro: { n: "Cuatro tiempos", forma: "curva", solo: ["historia", "otro", "contenido"], d: "Presentación, desarrollo, giro e integración. No necesita un enemigo: la fuerza está en un giro que cambia cómo se ve todo lo anterior.",
+  cuatro: { n: "Cuatro tiempos", forma: "curva", solo: ["historia", "comic", "otro", "contenido"], d: "Presentación, desarrollo, giro e integración. No necesita un enemigo: la fuerza está en un giro que cambia cómo se ve todo lo anterior.",
     actos: [["Presentación", [0]], ["Desarrollo", [1]], ["Giro", [2]], ["Integración", [3]]],
     p: [{ n: "Presentación", x: .08, y: .3, m: "inicio" }, { n: "Desarrollo", x: .36, y: .38, m: "escalada" }, { n: "Giro", x: .64, y: .92, m: "climax" }, { n: "Integración", x: .93, y: .45, m: "final" }] },
-  viaje: { n: "El viaje", forma: "ciclo", solo: ["historia", "videojuego", "otro"], d: "Alguien sale de su mundo conocido, atraviesa pruebas en uno extraño y vuelve distinto, trayendo algo consigo.",
+  viaje: { n: "El viaje", forma: "ciclo", solo: ["historia", "comic", "videojuego", "otro"], d: "Alguien sale de su mundo conocido, atraviesa pruebas en uno extraño y vuelve distinto, trayendo algo consigo.",
     actos: [["Partida", [0, 1, 2]], ["Pruebas", [3, 4]], ["Regreso", [5, 6]]],
     p: [{ n: "Mundo conocido", m: "inicio" }, { n: "El llamado", m: "conflicto" }, { n: "Cruza el umbral", m: null, q: "¿Qué deja atrás al entrar al mundo extraño?" }, { n: "Pruebas y aliados", m: "escalada" }, { n: "La prueba mayor", m: "climax" }, { n: "Lo que gana", m: "desenlace" }, { n: "Vuelve cambiado", m: "final" }] },
-  circulo: { n: "Círculo de ocho pasos", forma: "ciclo", solo: ["historia", "contenido", "otro"], d: "Ocho pasos en círculo: estar cómodo, querer algo, ir a buscarlo, adaptarse, conseguirlo, pagar el precio, volver y haber cambiado.",
+  circulo: { n: "Círculo de ocho pasos", forma: "ciclo", solo: ["historia", "comic", "contenido", "otro"], d: "Ocho pasos en círculo: estar cómodo, querer algo, ir a buscarlo, adaptarse, conseguirlo, pagar el precio, volver y haber cambiado.",
     actos: [["Lo conocido", [0, 1]], ["Lo desconocido", [2, 3, 4, 5]], ["El regreso", [6, 7]]],
     p: [{ n: "Está cómodo", m: "inicio" }, { n: "Quiere algo", m: "conflicto" }, { n: "Va a buscarlo", m: null, q: "¿A dónde tiene que ir que nunca había ido?" }, { n: "Se adapta", m: "escalada" }, { n: "Lo consigue", m: null, q: "¿Cómo lo consigue, y por qué no es lo que esperaba?" }, { n: "Paga el precio", m: "climax" }, { n: "Vuelve", m: "desenlace" }, { n: "Ha cambiado", m: "final" }] },
+  entregas: { n: "Por entregas", forma: "curva", solo: ["comic"], d: "Cada capítulo o número sube y termina en alto, para que den ganas del siguiente. Calza con webcómics y series que salen por partes.",
+    actos: [["Entrega 1", [0, 1]], ["Entrega 2", [2, 3]], ["Final", [4, 5, 6]]],
+    p: [{ n: "Primera página", x: .03, y: .18, m: "inicio" }, { n: "Cierre en alto", x: .19, y: .58, m: "conflicto" }, { n: "Retomar", x: .32, y: .3, m: null, q: "¿Cómo retomas sin repetir lo que ya se leyó?" }, { n: "Sube la apuesta", x: .5, y: .72, m: "escalada" }, { n: "Respiro", x: .65, y: .45, m: null, q: "¿Dónde respira quien lee antes del final?" }, { n: "Página clave", x: .84, y: .98, m: "climax" }, { n: "Última viñeta", x: .97, y: .38, m: "final" }] },
   dificultad: { n: "Curva de dificultad", forma: "curva", solo: ["videojuego"], d: "Olas de tensión y alivio que suben poco a poco. Cada ola enseña algo y la siguiente lo pone a prueba.",
     actos: [["Aprender", [0, 1]], ["Dominar", [2, 3, 4]], ["Demostrar", [5, 6]]],
     p: [{ n: "Primer minuto", x: .03, y: .1, m: "inicio" }, { n: "Primera ola", x: .18, y: .4, m: "conflicto" }, { n: "Respiro", x: .3, y: .2, m: null, q: "¿Dónde descansa quien juega y qué recibe?" }, { n: "Ola mayor", x: .5, y: .65, m: "escalada" }, { n: "Respiro", x: .64, y: .42, m: null, q: "¿Qué cambia antes del gran final?" }, { n: "Jefe o prueba final", x: .84, y: .98, m: "climax" }, { n: "Recompensa", x: .97, y: .35, m: "desenlace" }] },
@@ -65,6 +69,7 @@ export const MODELOS = {
 // El orden importa: los dos primeros de cada categoría vienen en el plan gratis.
 const ORDEN = {
   historia: ["tres", "cuatro", "piramide", "viaje", "circulo"],
+  comic: ["tres", "entregas", "cuatro", "viaje", "piramide", "circulo"],
   videojuego: ["dificultad", "ciclojuego", "viaje"],
   juegomesa: ["partida", "turno", "ciclojuego"],
   contenido: ["gancho", "problema", "tres", "cuatro", "circulo", "antes"],

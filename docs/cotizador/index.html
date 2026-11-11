@@ -322,11 +322,11 @@ navApp("cotizaciones");
   // Viejos tipos que ya no existen en el catálogo se muestran como el más parecido.
   TIPOS.disco={g:"Juego de mesa",nombre:"Disco decodificador",c:TIPOS.fichas.c,s:[BG,TGC,PANDA],oculto:true};
   // Componentes con los que empieza la cotización según el proyecto.
-  var INICIO={juegomesa:["tablero","cartas","fichas","caja","libreto"],historia:["libro"],producto:["envase","etiqueta","empaque"],videojuego:[],contenido:[],otro:[]};
+  var INICIO={juegomesa:["tablero","cartas","fichas","caja","libreto"],historia:["libro"],comic:["comic","ilustracion"],producto:["envase","etiqueta","empaque"],videojuego:[],contenido:[],otro:[]};
   var CAMPOS=[["medida","Medidas o formato"],["cantidad","Cantidad por unidad"],["material","Material"],["impresion","Impresión o técnica"],["acabado","Acabado o detalle"]];
   function uid(){return Math.random().toString(36).slice(2,9);}
   function defaults(tipo,formato){
-    var t=(tipo==="historia"&&formato==="comic")?["comic","ilustracion"]:(INICIO[tipo]||[]);
+    var t=(formato==="comic")?INICIO.comic:(INICIO[tipo]||[]);
     return {nombre:"",cantidades:[10,100,500],dolar:null,dolarInfo:"",sinIva:false,
       componentes:t.map(function(k){return {id:uid(),tipo:k,nombre:TIPOS[k].nombre,specs:{}};}),cotizaciones:[]};
   }

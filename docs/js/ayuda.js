@@ -41,7 +41,7 @@ const enProyecto = (pest) => (ctx) => (ctx && ctx.p ? u("proyecto/?p=" + ctx.p +
 export const TEMAS = [
   { id: "plantar", linea: true, n: "Plantar un proyecto", donde: "Proyectos",
     corto: "Todo parte aquí: le das nombre a tu idea, eliges qué es y Forja te arma el Taller con las secciones que suelen hacer falta.",
-    para: "Un proyecto es la carpeta de una idea: un videojuego, un juego de mesa, una historia, contenido para redes o un producto. Al plantarlo, Forja prepara sus secciones según la categoría, y desde ahí lo vas haciendo crecer.",
+    para: "Un proyecto es la carpeta de una idea: un videojuego, un juego de mesa, una historia, un cómic, contenido para redes o un producto. Al plantarlo, Forja prepara sus secciones según la categoría, y desde ahí lo vas haciendo crecer.",
     pasos: ["En Proyectos, escribe el nombre de tu idea y elige su categoría.", "Toca «Plantar»: se abre el proyecto con su Taller listo para escribir.", "Arriba cambias el estado (semilla, en desarrollo, en pausa, listo) y el formato cuando lo tengas claro.", "Cuando un proyecto quede atrás, archívalo: no se borra y libera un cupo."],
     consejo: "No esperes a tener la idea completa. Una semilla con nombre y una frase ya sirve: Forja te va haciendo las preguntas.",
     plan: ["3 proyectos en curso (los archivados no cuentan)", "15 proyectos en curso", "Proyectos sin límite"],

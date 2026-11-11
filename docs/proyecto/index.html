@@ -1176,7 +1176,7 @@ function taller() {
   }
   if (!secActual || !SECS.some((s) => s.id === secActual)) secActual = SECS[0].id;
   $("panel").innerHTML = '<div id="sugerencia"></div><div class="taller" style="margin-top:14px"><nav class="indice" id="indice" aria-label="Secciones"></nav><div id="hoja-w"></div></div>' +
-    (PL.mas ? "" : pronto(P.tipo === "historia" || P.formato === "comic" ? ["capitulos", "vista-impresion", "historial"] : ["historial", "metas", "notas-margen"], "Para escribir más, próximamente"));
+    (PL.mas ? "" : pronto(P.tipo === "comic" ? ["guion-comic", "vista-impresion", "historial"] : P.tipo === "historia" ? ["capitulos", "vista-impresion", "historial"] : ["historial", "metas", "notas-margen"], P.tipo === "comic" ? "Para hacer tu cómic, próximamente" : "Para escribir más, próximamente"));
   pintarSugerencia(); pintarIndice(); pintarHoja();
 }
 function pintarSugerencia() {

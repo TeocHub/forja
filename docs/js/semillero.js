@@ -6,7 +6,7 @@ import { PLANTILLA, SECCIONES, pesoDe } from "./guias.js";
 
 export const MAX_IDEA = 80;
 
-// Detonantes escritos para Forja. `para`: "todo" o una categoría (historia, videojuego, juegomesa, contenido, producto).
+// Detonantes escritos para Forja. `para`: "todo" o una categoría (historia, comic, videojuego, juegomesa, contenido, producto).
 export const DETONANTES = [
   { para: "todo", t: "Da vuelta algo que conoces bien", d: "Piensa en una regla de tu barrio, tu trabajo o tu casa. ¿Qué pasaría si de un día para otro fuera al revés?" },
   { para: "todo", t: "Dos cosas que no se conocen", d: "Elige un oficio y un lugar que no tengan nada que ver: un relojero y una isla, una panadera y una mina. ¿Qué los junta?" },
@@ -22,6 +22,9 @@ export const DETONANTES = [
   { para: "videojuego", t: "Un verbo nuevo", d: "Elige un verbo que casi ningún juego usa (regar, coser, olvidar, devolver) y piensa cómo sería hacerlo con un botón." },
   { para: "videojuego", t: "La limitación como regla", d: "¿Y si no pudieras saltar, ni ver, ni detenerte? Una restricción fuerte suele ser una mecánica entera." },
   { para: "videojuego", t: "Un lugar que cambia", d: "Piensa en un lugar que conoces y en cómo cambia de día a noche o de invierno a verano. ¿Y si jugar fuera notar esos cambios?" },
+  { para: "comic", t: "Una sola viñeta", d: "Imagina una viñeta que cuente un mundo entero sin una palabra. ¿Qué pasó justo antes y qué pasa en la siguiente?" },
+  { para: "comic", t: "Lo que no se dice", d: "Dos personajes hablan de algo sin importancia mientras en el fondo pasa lo importante. ¿Qué se ve detrás de ellos?" },
+  { para: "comic", t: "Una calle que conoces", d: "Dibuja de memoria una esquina de tu barrio. ¿Qué historia necesitaría que la volvieras a dibujar cien veces?" },
   { para: "juegomesa", t: "Una decisión difícil por turno", d: "Busca una situación real con dos opciones buenas y poco tiempo para elegir. ¿Cómo se juega en una mesa?" },
   { para: "juegomesa", t: "Compartir lo escaso", d: "Algo que todos necesitan y no alcanza: agua, sombra, un solo bote. ¿Cooperan o compiten?" },
   { para: "juegomesa", t: "El componente primero", d: "Elige un objeto que te gustaría tocar en una mesa (fichas de madera, cartas transparentes, un mapa que se dobla) y busca el juego que lo necesita." },
@@ -32,7 +35,7 @@ export const DETONANTES = [
   { para: "producto", t: "Un regalo difícil", d: "¿A quién te cuesta hacerle regalos? Diseña la cosa que por fin acertaría." },
   { para: "producto", t: "Lo que se rompe siempre", d: "Hay objetos que se rompen o se pierden una y otra vez. ¿Qué tendría que tener uno que no?" },
 ];
-export const PARA = { todo: "Cualquier cosa", historia: "Historia", videojuego: "Videojuego", juegomesa: "Juego de mesa", contenido: "Contenido", producto: "Producto" };
+export const PARA = { todo: "Cualquier cosa", historia: "Historia", comic: "Cómic", videojuego: "Videojuego", juegomesa: "Juego de mesa", contenido: "Contenido", producto: "Producto" };
 // Un detonante al azar, distinto del anterior.
 export function detonante(para = "todo", antes = null) {
   const lista = DETONANTES.filter((x) => para === "todo" || x.para === para || x.para === "todo");

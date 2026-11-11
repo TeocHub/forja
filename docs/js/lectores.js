@@ -5,7 +5,7 @@ import { sb, esc, toast, limite, hace, fecha, u } from "./forja.js";
 
 // Cómo se llama quien prueba, según la categoría del proyecto.
 const NOMBRES = {
-  historia: ["lectores beta", "lector beta", "Lectores beta", "leer"], contenido: ["lectores beta", "lector beta", "Lectores beta", "ver"], otro: ["lectores beta", "lector beta", "Lectores beta", "leer"],
+  historia: ["lectores beta", "lector beta", "Lectores beta", "leer"], comic: ["lectores beta", "lector beta", "Lectores beta", "leer"], contenido: ["lectores beta", "lector beta", "Lectores beta", "ver"], otro: ["lectores beta", "lector beta", "Lectores beta", "leer"],
   videojuego: ["testers", "tester", "Testers", "jugar"], juegomesa: ["testers", "tester", "Testers", "jugar"], producto: ["probadores", "probador", "Probadores", "probar"],
 };
 export const quienes = (tipo) => { const n = NOMBRES[tipo] || NOMBRES.otro; return { plural: n[0], uno: n[1], titulo: n[2], verbo: n[3], palabra: n[0].split(" ")[0] }; };
@@ -16,6 +16,14 @@ const P_HIST = [
   { k: "mejor", t: "¿Qué fue lo mejor? Lo que te quedó dando vueltas." },
   { k: "confuso", t: "¿Qué te confundió o te sacó de la lectura?" },
   { k: "lento", t: "¿En qué parte se hizo lento o perdiste el interés?" },
+  { k: "seguir", t: "¿Seguirías leyendo? ¿Por qué sí o por qué no?" },
+];
+const P_COMIC = [
+  { k: "entendio", t: "¿Se entendió de qué se trata? Cuéntalo con tus palabras." },
+  { k: "orden", t: "¿Hubo alguna página donde no supiste qué viñeta o qué globo leer primero?" },
+  { k: "quien", t: "¿Confundiste a algún personaje con otro? ¿En qué página?" },
+  { k: "vuelta", t: "¿Qué página te dio ganas de dar vuelta la hoja?" },
+  { k: "mejor", t: "¿Qué fue lo mejor? Una viñeta, un diálogo, un momento." },
   { k: "seguir", t: "¿Seguirías leyendo? ¿Por qué sí o por qué no?" },
 ];
 const P_JUEGO = [
@@ -40,7 +48,7 @@ const P_CONT = [
   { k: "lento", t: "¿Dónde se hizo largo o perdiste el hilo?" },
   { k: "compartir", t: "¿Se lo mostrarías a alguien? ¿A quién?" },
 ];
-export const PREGUNTAS = { historia: P_HIST, otro: P_HIST, contenido: P_CONT, videojuego: P_JUEGO, juegomesa: P_JUEGO, producto: P_PROD };
+export const PREGUNTAS = { historia: P_HIST, comic: P_COMIC, otro: P_HIST, contenido: P_CONT, videojuego: P_JUEGO, juegomesa: P_JUEGO, producto: P_PROD };
 export const preguntasDe = (tipo) => PREGUNTAS[tipo] || P_HIST;
 export const MARCAS = { opinion: "Opinión", mejora: "Hay que mejorar", resuelta: "Ya resuelta" };
 

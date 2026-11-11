@@ -141,7 +141,7 @@ export function nuevaVitrina(P) {
   return { v: 1, titulo: P.nombre || "", lema: corta(P.resumen || "", 180), firma: "", tipo: P.tipo, formato: P.formato || null,
     portada: null, tono: "claro", acento: ACENTO_TIPO[P.tipo] || ACENTO_TIPO.otro, historia: [], galeria: [], pizarras: [], novedades: [], enlaces: [] };
 }
-export const ACENTO_TIPO = { historia: "#7a3fc4", videojuego: "#2a3fd1", juegomesa: "#0f7a4f", contenido: "#c2366b", producto: "#a86200", otro: "#5b6275" };
+export const ACENTO_TIPO = { historia: "#7a3fc4", comic: "#0e6c82", videojuego: "#2a3fd1", juegomesa: "#0f7a4f", contenido: "#c2366b", producto: "#a86200", otro: "#5b6275" };
 export function normal(d) {
   d = d && typeof d === "object" ? d : {};
   return {

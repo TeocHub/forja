@@ -18,6 +18,15 @@ export const RAMAS = {
     { k: "h_cambio", n: "El día que todo cambia", q: "¿Qué pasa al comienzo que rompe la rutina?", sec: "estructura" },
     { k: "h_final", n: "Un final posible", q: "Si tuvieras que terminarla hoy, ¿cómo terminaría?", sec: "estructura" },
   ],
+  // Comparte claves con historia donde la pregunta es la misma: al pasar de una a otra no se pierde lo respondido.
+  comic: [
+    { k: "h_quien", n: "Protagonista", q: "¿Quién es, qué quiere y cómo se le reconoce a primera vista?", sec: "personajes" },
+    { k: "h_contra", n: "Lo que se opone", q: "¿Qué o quién se lo impide, y por qué cree tener la razón?", sec: "premisa" },
+    { k: "h_donde", n: "Dónde y cuándo", q: "¿En qué lugar y en qué tiempo pasa? ¿Qué se ve en el fondo de las viñetas?", sec: "mundo" },
+    { k: "k_imagen", n: "La imagen", q: "¿Qué página o viñeta ya ves en tu cabeza y tiene que estar sí o sí?", sec: "escenas" },
+    { k: "k_mira", n: "Cómo se ve", q: "¿Qué trazo y qué colores tiene? ¿Con qué obras comparte la sensación visual?", sec: "estilo" },
+    { k: "k_largo", n: "Cuánto mide", q: "¿Es una historia corta, un tomo o una serie que sale por capítulos? ¿Impresa o en la web?", sec: "edicion" },
+  ],
   videojuego: [
     { k: "v_rol", n: "Quién eres", q: "¿A quién controla quien juega y qué busca?", sec: "narrativa" },
     { k: "v_verbo", n: "Qué haces", q: "¿Cuál es la acción principal, la que se repite todo el rato?", sec: "mecanicas" },
@@ -60,7 +69,7 @@ export const RAMAS = {
   ],
 };
 // El foco va a la primera sección de la plantilla de la categoría.
-const FOCO_SEC = { historia: "premisa", videojuego: "pitch", juegomesa: "pitch", contenido: "idea", producto: "queEs", otro: "idea" };
+const FOCO_SEC = { historia: "premisa", comic: "premisa", videojuego: "pitch", juegomesa: "pitch", contenido: "idea", producto: "queEs", otro: "idea" };
 
 export const nodos = (tipo) => [...FOCO.map((x) => ({ ...x, foco: true, sec: FOCO_SEC[tipo] || "idea" })), ...(RAMAS[tipo] || RAMAS.otro)];
 
