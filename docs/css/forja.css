@@ -2,6 +2,9 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 a{color:var(--accent)}
+/* Base de todas las páginas: no repetir en cada una (una página puede cambiar solo el tamaño de letra). */
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+:where(a,button):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 :root{
   --bg:#f3f4f7; --card:#ffffff; --fg:#161a26; --muted:#5b6275; --line:#dfe2ea; --field:#f7f8fb;
   --accent:#2a3fd1; --accent-soft:#e6e9fb; --ember:#e0602f; --ember-soft:#fbe6dc;

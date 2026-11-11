@@ -34,6 +34,8 @@ export const icono = (k, tam = 22) => '<svg viewBox="0 0 24 24" width="' + tam +
 // ctx = { p: id del último proyecto abierto (o null) }
 // Direcciones absolutas desde la raíz del sitio (la ayuda se abre desde páginas en distintas carpetas).
 import { RAIZ, u, esc } from "./forja.js";
+import { PRECIOS } from "./planes.js";
+const clp = (n) => "$" + n.toLocaleString("es-CL");
 const enProyecto = (pest) => (ctx) => (ctx && ctx.p ? u("proyecto/?p=" + ctx.p + "#" + pest) : u("proyectos/"));
 
 export const TEMAS = [
@@ -159,7 +161,7 @@ export const TEMAS = [
     para: "Con el plan gratis puedes tener 3 proyectos en curso con 20.000 palabras y 30 referentes cada uno, una pizarra libre y tu vitrina. Forja Más (próximamente) trae todas las herramientas y hasta 15 proyectos en curso; Forja Estudio, para equipos y creadores con mucho en marcha, quita el tope de proyectos y deja invitar a más personas. Los precios son de lanzamiento y pueden cambiar.",
     pasos: ["Mira tu cupo en Proyectos y los contadores en el Taller y Referentes.", "Si llegas a un límite, archiva o recorta: lo anterior queda guardado.", "Si un proyecto queda en solo lectura, igual puedes verlo, exportarlo, archivarlo o borrarlo."],
     consejo: "En Planes, el botón «Avísame» en cada herramienta nos dice qué construir primero, y en la casilla de sugerencias puedes contarnos lo que falta.",
-    plan: ["Gratis para siempre", "$2.990 al mes (próximamente)", "$5.990 al mes (próximamente)"], ir: () => u("planes/"), claves: "precio pagar suscripción gratis límite forja más forja estudio plan cupo solo lectura lanzamiento sugerencia sugerir idea falta casilla" },
+    plan: ["Gratis para siempre", clp(PRECIOS.mas.mes) + " al mes (próximamente)", clp(PRECIOS.estudio.mes) + " al mes (próximamente)"], ir: () => u("planes/"), claves: "precio pagar suscripción gratis límite forja más forja estudio plan cupo solo lectura lanzamiento sugerencia sugerir idea falta casilla" },
   { id: "privacidad", n: "Quién ve qué", donde: "Tu cuenta",
     corto: "Tus proyectos son solo tuyos. Lo único público es lo que publicas en una vitrina.",
     para: "Entras con un enlace a tu correo, sin contraseña. Todo lo que creas queda en tu espacio privado: nadie más lo ve, ni otras cuentas. Lo único que se puede ver sin cuenta es la versión publicada de una vitrina, y los precios que decides compartir en el cotizador van sin tu nombre.",

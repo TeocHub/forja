@@ -1,7 +1,8 @@
 // Forja · base común: conexión a Supabase, sesión, navegación y utilidades.
 // El repositorio es público: aquí solo va la URL y la clave publicable (pensada para el navegador).
 // Lo privado de cada persona queda en Supabase, protegido por las reglas de cada tabla.
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+// Versión fija (probada): con "@2" una actualización del CDN podía cambiar el cliente sin aviso. Para subirla, probar antes.
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/+esm";
 
 export const SB_URL = "https://gfkiwldxxvffnkjcesws.supabase.co";
 export const SB_KEY = "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j";
@@ -103,9 +104,13 @@ export function navApp(actual) {
     $("fx-planb").textContent = pl.nombre;
     $("fx-planb").classList.toggle("mas", pl.mas);
     // avisos sin leer (la moderación explica sus decisiones aquí) y acceso a moderación
-    const [{ count }, adm] = await Promise.all([sb.from("avisos").select("id", { count: "exact", head: true }).eq("leido", false), sb.rpc("soy_admin")]);
+    // Si la cuenta modera se recuerda en esta pestaña (sessionStorage): no hace falta preguntarlo en cada página.
+    const llaveAdm = "forja-admin-" + ses.user.id;
+    let adm = null; try { adm = sessionStorage.getItem(llaveAdm); } catch (e) {}
+    const [{ count }, r] = await Promise.all([sb.from("avisos").select("id", { count: "exact", head: true }).eq("leido", false), adm === null ? sb.rpc("soy_admin") : null]);
+    if (r && !r.error) { adm = r.data === true ? "1" : "0"; try { sessionStorage.setItem(llaveAdm, adm); } catch (e) {} }
     if (count) { $("fx-avisos-n").textContent = count; $("fx-avisos-n").hidden = false; $("fx-ini").insertAdjacentHTML("afterend", '<span class="fx-punto" title="Tienes avisos nuevos"></span>'); }
-    if (adm && adm.data === true) $("fx-admin").hidden = false;
+    if (adm === "1") $("fx-admin").hidden = false;
   });
   $("fx-salir").onclick = async () => { await sb.auth.signOut(); location.href = u(); };
   // La ayuda se carga solo cuando se pide.
@@ -134,19 +139,24 @@ export async function plan() {
 }
 // Puede editarse si no hay más proyectos en curso que el tope del plan; en el plan gratis, además, si no está archivado.
 export const editable = (p, activos, pl) => { const t = tope(pl, "proyectos"); return t === null || (activos <= t && (pl.mas || p.estado !== "archivado")); };
+// «3 gratis, 15 con Forja Más, sin límite con Forja Estudio»: sale de TOPES para que los mensajes no queden desfasados.
+const fmt = (n) => n.toLocaleString("es-CL");
+export const porPlan = (clave) => [["libre", "gratis"], ["mas", "con Forja Más"], ["estudio", "con Forja Estudio"]]
+  .map(([k, t]) => (TOPES[k][clave] == null ? "sin límite" : fmt(TOPES[k][clave])) + " " + t).join(", ");
 const MSG = {
-  FORJA_LIMITE_PROYECTOS: "Llegaste al máximo de proyectos en curso de tu plan (3 gratis, 15 con Forja Más). Archiva uno para plantar o reactivar otro.",
-  FORJA_LIMITE_PALABRAS: "Llegaste al límite de 20.000 palabras por proyecto del plan gratis. Lo que escribiste antes está guardado.",
-  FORJA_LIMITE_IDEAS: "Llegaste al máximo de ideas en el Semillero de tu plan (50 gratis, 500 con Forja Más). Planta o borra alguna para anotar otra.",
-  FORJA_LIMITE_ANALISIS: "El plan gratis permite analizar 3 obras por proyecto. Con Forja Más no hay límite.",
-  FORJA_LIMITE_REFERENTES: "El plan gratis permite 30 referentes por proyecto. Quita uno para agregar otro.",
+  FORJA_LIMITE_PROYECTOS: "Llegaste al máximo de proyectos en curso de tu plan (" + porPlan("proyectos") + "). Archiva uno para plantar o reactivar otro.",
+  FORJA_LIMITE_PALABRAS: "Llegaste al límite de " + fmt(LIMITES.palabras) + " palabras por proyecto del plan gratis. Lo que escribiste antes está guardado.",
+  FORJA_LIMITE_IDEAS: "Llegaste al máximo de ideas en el Semillero de tu plan (" + porPlan("ideas") + "). Planta o borra alguna para anotar otra.",
+  FORJA_LIMITE_ANALISIS: "El plan gratis permite analizar " + LIMITES.analisis + " obras por proyecto. Con Forja Más y Forja Estudio no hay límite.",
+  FORJA_LIMITE_REFERENTES: "El plan gratis permite " + LIMITES.referentes + " referentes por proyecto. Quita uno para agregar otro.",
   FORJA_SOLO_LECTURA: "Este proyecto está en solo lectura: hay más proyectos en curso que los que permite tu plan, o está archivado en el plan gratis.",
   FORJA_LIMITE_PIZARRAS: "El plan gratis incluye una pizarra por proyecto.",
-  FORJA_LIMITE_TARJETAS: "El plan gratis permite 20 tarjetas por pizarra. Quita una para agregar otra.",
-  FORJA_SOLO_MAS: "Esta pizarra es de Forja Más: puedes verla o borrarla.",
+  FORJA_LIMITE_TARJETAS: "El plan gratis permite " + LIMITES.tarjetas + " tarjetas por pizarra. Quita una para agregar otra.",
+  FORJA_SOLO_MAS: "Esto es parte de Forja Más. Lo que ya tienes se puede ver y borrar.",
   FORJA_PIZARRA_GRANDE: "La pizarra es demasiado grande para guardarla. Divídela en dos.",
   FORJA_VITRINA_GRANDE: "La vitrina es demasiado grande para publicarla. Quita algunas piezas o pizarras.",
   FORJA_NO_PERMITIDO: "No tienes permiso para hacer eso.",
+  FORJA_ESPACIO_FIJO: "Una idea no se cambia de espacio así: usa «Pasar a…» en el Semillero.",
   FORJA_ULTIMO_DUENO: "El equipo necesita al menos una persona que lo administre. Primero dale ese rol a otra persona.",
   FORJA_MOVER_PUBLICADA: "Este proyecto tiene una vitrina publicada: solo quien administra el equipo puede traerlo.",
   FORJA_VITRINA_SUSPENDIDA: "Esta vitrina está suspendida por moderación. Puedes apelar desde el editor.",
@@ -169,7 +179,7 @@ const MSG = {
   FORJA_INVITAR_PROPIO: "Ese es tu propio correo.",
   FORJA_INVITAR_YA_ESTA: "Esa persona ya tiene acceso a este proyecto.",
   FORJA_INVITAR_PENDIENTE: "Ya hay una invitación pendiente para ese correo.",
-  FORJA_INVITAR_LIMITE: "Llegaste al máximo de personas para este proyecto (1 en el plan gratis, 5 con Forja Más, 15 con Forja Estudio). Anula una invitación o quita a alguien para invitar a otra persona.",
+  FORJA_INVITAR_LIMITE: "Llegaste al máximo de personas invitadas a este proyecto (" + porPlan("invitados") + "). Anula una invitación o quita a alguien para invitar a otra persona.",
   FORJA_INVITAR_MUCHAS: "Enviaste muchas invitaciones hoy. Intenta mañana.",
   FORJA_INVITACION_NO: "Esta invitación ya no está disponible.",
   FORJA_INVITACION_VENCIDA: "Esta invitación venció. Pídele a quien te invitó que te envíe otra.",
@@ -192,7 +202,7 @@ const MSG = {
   FORJA_RONDA_NO: "Este enlace ya no funciona.",
   FORJA_RONDA_OTRA: "Este enlace es de otra persona.",
   FORJA_RONDA_SIN_CUENTA: "Entra con tu cuenta y confirma tu correo para abrir la ronda.",
-  FORJA_LIMITE_LECTORES: "Llegaste al máximo de personas por ronda de tu plan (3 gratis, 15 con Forja Más, 40 con Forja Estudio).",
+  FORJA_LIMITE_LECTORES: "Llegaste al máximo de personas por ronda de tu plan (" + porPlan("lectores") + ").",
   FORJA_LECTOR_NOMBRE: "Escribe el nombre de la persona (hasta 60 caracteres).",
   FORJA_COMENTARIO_TEXTO: "El comentario va de 1 a 2.000 caracteres.",
   FORJA_COMENTARIO_LIMITE: "Ya dejaste muchos comentarios en esta ronda.",
@@ -214,7 +224,8 @@ export async function activarAvisame(root) {
   const botones = [...(root || document).querySelectorAll("[data-avisame]")];
   if (!botones.length) return;
   if (!session) { botones.forEach((b) => { b.textContent = "Entra para que te avisemos"; b.onclick = () => { location.href = u("entrar/?siguiente=" + encodeURIComponent("planes/")); }; }); return; }
-  if (!intereses) { const { data } = await sb.from("interes_funciones").select("funcion"); intereses = new Set((data || []).map((x) => x.funcion)); }
+  if (!intereses) intereses = sb.from("interes_funciones").select("funcion").then(({ data }) => new Set((data || []).map((x) => x.funcion)));
+  intereses = await intereses;
   const marcar = (b) => { const on = intereses.has(b.dataset.avisame); b.textContent = on ? "Te avisaremos ✓" : "Avísame"; b.setAttribute("aria-pressed", String(on)); };
   botones.forEach((b) => {
     marcar(b);
@@ -234,14 +245,16 @@ export const MAS_LINK = ' <a href="' + u("planes/") + '">Ver Forja Más</a>';
 /* --- sesión --- */
 // Cada persona tiene su espacio personal y puede ser parte de equipos (hoy, Digital Monster).
 // El espacio elegido se recuerda en este navegador; si ya no es miembro, vuelve al personal.
+// Se guarda la promesa (no el resultado): si varias partes de la página la piden a la vez, se consulta una sola vez.
 let espaciosCache = null, espacioCache = null;
-export async function espacios() {
-  if (espaciosCache) return espaciosCache;
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) return [];
-  const { data, error } = await sb.rpc("mis_espacios");
-  if (error) throw error;
-  espaciosCache = data || [];
+export function espacios() {
+  if (!espaciosCache) espaciosCache = (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return [];
+    const { data, error } = await sb.rpc("mis_espacios");
+    if (error) throw error;
+    return data || [];
+  })().catch((e) => { espaciosCache = null; throw e; });
   return espaciosCache;
 }
 export async function espacioActual() {
@@ -277,14 +290,23 @@ export async function conSesion(caja, listo) {
 }
 
 /* --- documentos: términos, privacidad y normas --- */
-// Al cambiar un documento de forma importante, subir la versión: todos lo vuelven a aceptar al entrar.
-export const DOCS = { version: "2026-11-06", fecha: "6 de noviembre de 2026" };
+// Un cambio importante se publica con 15 días de aviso (CLAUDE.md): `version`/`fecha` es la nueva, `rige` el día en que
+// empieza a regir y `anterior` la que sigue vigente hasta entonces. Antes de `rige` se pide aceptar la anterior; desde
+// ese día, la nueva (sin otra publicación). Pasada la fecha, en el siguiente cambio `anterior` pasa a ser esta.
+export const DOCS = { version: "2026-11-26", fecha: "26 de noviembre de 2026", rige: "2026-11-26", publicada: "11 de noviembre de 2026",
+  anterior: { version: "2026-11-06", fecha: "6 de noviembre de 2026" } };
+const hoyChile = () => { try { return new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" }); } catch (e) { return new Date().toISOString().slice(0, 10); } };
+// La versión que hay que aceptar hoy.
+export const docsVigentes = () => (DOCS.anterior && DOCS.rige && hoyChile() < DOCS.rige ? DOCS.anterior : DOCS);
+export const docsPorRegir = () => DOCS.anterior && DOCS.rige && hoyChile() < DOCS.rige;
+export const fechaDocs = (v) => (v === DOCS.version ? DOCS.fecha : DOCS.anterior && v === DOCS.anterior.version ? DOCS.anterior.fecha : v);
 // Se recuerda en este navegador cuando la versión vigente ya está aceptada, para no consultarlo en cada página.
 async function aceptado() {
   const { data: { session } } = await sb.auth.getSession();
-  const llave = "forja-acepta-" + (session ? session.user.id : "") + "-" + DOCS.version;
+  const V = docsVigentes();
+  const llave = "forja-acepta-" + (session ? session.user.id : "") + "-" + V.version;
   try { if (localStorage.getItem(llave) === "1") return true; } catch (e) {}
-  const { data, error } = await sb.from("aceptaciones").select("documento").eq("version", DOCS.version);
+  const { data, error } = await sb.from("aceptaciones").select("documento").eq("version", V.version);
   if (error) return true; // si falla la consulta no se bloquea el uso; se vuelve a pedir en la próxima visita
   const d = new Set((data || []).map((x) => x.documento));
   const ok = ["terminos", "privacidad", "normas"].every((k) => d.has(k));
@@ -299,7 +321,7 @@ function pedirAceptacion() {
       '<div class="fx-acepta-docs"><a href="' + u("terminos/") + '" target="_blank" rel="noopener"><b>Términos de uso</b><span>Tu contenido es tuyo. Qué puedes esperar de Forja y qué esperamos de ti.</span></a>' +
       '<a href="' + u("privacidad/") + '" target="_blank" rel="noopener"><b>Política de privacidad</b><span>Qué datos guardamos, para qué, quién más los procesa y tus derechos.</span></a>' +
       '<a href="' + u("normas/") + '" target="_blank" rel="noopener"><b>Normas de la comunidad</b><span>Qué se puede publicar, cómo funcionan los reportes y las sanciones.</span></a></div>' +
-      '<label class="fx-acepta-ok"><input type="checkbox" id="fx-acepta-chk"> <span>Tengo 14 años o más, leí y acepto los Términos de uso, la Política de privacidad y las Normas de la comunidad (versión del ' + DOCS.fecha + ").</span></label>" +
+      '<label class="fx-acepta-ok"><input type="checkbox" id="fx-acepta-chk"> <span>Tengo 14 años o más, leí y acepto los Términos de uso, la Política de privacidad y las Normas de la comunidad (versión del ' + docsVigentes().fecha + ").</span></label>" +
       '<div class="fx-acepta-pie"><button type="button" class="fx-link" id="fx-acepta-no">No acepto, salir</button><button type="button" class="fx-primary" id="fx-acepta-si" disabled>Aceptar y seguir</button></div></form>';
     document.body.appendChild(dl);
     dl.addEventListener("cancel", (e) => e.preventDefault()); // no se puede cerrar con Escape
@@ -308,7 +330,7 @@ function pedirAceptacion() {
     $("fx-acepta-no").onclick = async () => { await sb.auth.signOut(); location.href = u(); };
     $("fx-acepta-si").onclick = async () => {
       $("fx-acepta-si").disabled = true;
-      const { error } = await sb.from("aceptaciones").insert(["terminos", "privacidad", "normas"].map((documento) => ({ documento, version: DOCS.version })));
+      const { error } = await sb.from("aceptaciones").insert(["terminos", "privacidad", "normas"].map((documento) => ({ documento, version: docsVigentes().version })));
       if (error && !/duplicate|23505/i.test(error.message + (error.code || ""))) { toast("No se pudo guardar. Revisa tu conexión e intenta de nuevo."); $("fx-acepta-si").disabled = false; return; }
       dl.close(); dl.remove(); listo();
     };
@@ -354,7 +376,7 @@ export function pintarEntrada(caja, texto) {
     b.disabled = false;
     if (error) { $("fx-msg").textContent = error.status === 429 ? "Se enviaron muchos correos seguidos. Espera unos minutos e intenta de nuevo." : "No se pudo enviar el correo: " + error.message; return; }
     $("fx-f1").hidden = true; $("fx-tengo").hidden = false;
-    $("fx-msg").textContent = "Listo. Revisa " + mail + " (también spam) y toca el enlace desde este mismo dispositivo. El correo llega en inglés, con el asunto «Your Magic Link».";
+    $("fx-msg").textContent = "Listo. Revisa " + mail + " (también spam) y toca el enlace desde este mismo dispositivo. Llega desde forja@digitalmonster.cl.";
   };
   $("fx-f2").onsubmit = async (e) => {
     e.preventDefault();

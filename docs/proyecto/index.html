@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="../css/forja.css">
 <style>
 /* Layout: página de proyecto — cabecera editable y pestañas (Taller, Referentes, Brújula, Costos, Oportunidades, Bitácora); el Taller es índice de secciones + hoja de escritura */
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+
 .wrap{max-width:1120px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0}
 button,select,input,textarea{font:inherit;color:var(--fg)}
@@ -576,6 +576,7 @@ import * as O from "../js/obras.js";
 import * as MP from "../js/mapa.js";
 import * as ES from "../js/estructura.js";
 import * as LB from "../js/lectores.js";
+import * as HV from "../js/herramientas.js";
 navApp("proyectos");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + "</style>");
 
@@ -584,7 +585,9 @@ const PESTANAS = [["ruta", "Ruta"], ["taller", "Taller"], ["referentes", "Refere
 // Cada pestaña pertenece a un área; las personas invitadas pueden editar, ver o no ver cada área.
 const AREA_DE = { ruta: "taller", mapa: "taller", estructura: "taller", lectores: "taller", taller: "taller", referentes: "referentes", brujula: "taller", pizarra: "pizarra", costos: "costos", oportunidades: "oportunidades", bitacora: "bitacora", vitrina: "vitrina" };
 const AREAS = [["taller", "Taller y ficha"], ["referentes", "Referentes"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
-const nivelDe = (k) => (ACC && ACC.areas ? ACC.areas[AREA_DE[k]] : "editar");
+// Las vistas nuevas del registro (herramientas.js) usan su `areaPermiso` (por defecto, el Taller).
+const areaDe_ = (k) => AREA_DE[k] || (HV.vistaDe(k) ? HV.vistaDe(k).areaPermiso || "taller" : undefined);
+const nivelDe = (k) => (ACC && ACC.areas ? ACC.areas[areaDe_(k)] : "editar");
 const visibles = () => PESTANAS.filter(([k]) => nivelDe(k));
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
 let ESP, P, ACC = null, VER = false, PERS = null, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
@@ -767,7 +770,7 @@ function ruta() {
       (bloq ? '<a class="rt-mas" href="../planes/">Forja Más</a>' : pronto ? '<span class="rt-pronto">Llega pronto</span>' : hecho ? '<span class="rt-ok">Hecho</span>' : "") + "</div>" +
       "<h4>" + esc(x.t) + "</h4><p>" + esc(x.d) + "</p>" +
       '<div class="rt-pasos">' + x.pasos.map((p, j) => '<span><i>' + (j + 1) + "</i>" + esc(p) + "</span>").join("") + "</div>" +
-      '<div class="rt-tec-acc">' + (dest && !pronto && !bloq ? '<button type="button" class="btn chico prim" data-rt-ir="' + x.id + '">' + (DESTINO[dest] || "Abrir") + "</button>" : "") +
+      '<div class="rt-tec-acc">' + (dest && !pronto && !bloq ? '<button type="button" class="btn chico prim" data-rt-ir="' + x.id + '">' + (DESTINO[dest] || (HV.vistaDe(dest) ? "Abrir " + HV.vistaDe(dest).t : "Abrir")) + "</button>" : "") +
       (ed && !bloq ? '<button type="button" class="btn chico" data-rt-hecho="' + x.id + '" aria-pressed="' + hecho + '">' + (hecho ? "Desmarcar" : "Ya lo hice") + "</button>" : "") + "</div></article>";
   };
   $("panel").innerHTML = '<section class="ruta" style="--tc:' + tc(P.tipo) + '">' +
@@ -1062,7 +1065,9 @@ function irA(k) {
 function calcRO() { return nivelDe(pest) !== "editar" || !editable(P, ACT, PL); }
 function pintarPestana() {
   if (EDITOR) { EDITOR.destruir(); EDITOR = null; }
-  ({ ruta, mapa, estructura, lectores, taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest](); activarAvisame($("panel"));
+  const local = ({ ruta, mapa, estructura, lectores, taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest];
+  if (local) local(); else vistaModulo(pest);
+  activarAvisame($("panel"));
   pista($("panel"), pest); // la primera vez en cada herramienta, una nota corta
 }
 // Tarjetas "Próximamente" de Forja Más, por clave de planes.js.
@@ -1296,7 +1301,8 @@ function pintarHoja() {
 
 /* ================= MAPA DE LA IDEA Y ESTRUCTURA (herramientas de la ruta) ================= */
 // Se abren desde la Ruta (técnicas «mapa» y «estructura») y viven en #mapa y #estructura; la pestaña marcada sigue siendo Ruta.
-const HERR = { mapa: "Mapa de la idea", estructura: "Estructura", lectores: "Lectores beta" };
+// Las vistas salen del registro común (herramientas.js): una herramienta nueva con `vista` y `modulo` se abre sola aquí.
+const HERR = Object.fromEntries(HV.vistas().map((h) => [h.vista, h.t]));
 const volverRuta = () => '<button type="button" class="btn chico es-volver" data-volver>← Ruta</button>';
 const conVolver = () => { const b = $("panel").querySelector("[data-volver]"); if (b) b.onclick = () => irA("ruta"); };
 // Agrega bloques de texto al final de secciones del Taller (crea las que falten). bloques: [{ guia, texto }]. Devuelve cuántas secciones cambiaron.
@@ -1316,6 +1322,17 @@ async function alTaller(bloques) {
   }
   pintarAvance(); pintarTabs();
   return n;
+}
+// Herramientas nuevas: su módulo (js/<modulo>) exporta vista(ctx) y se carga solo al abrirla. Ver herramientas.js.
+async function vistaModulo(k) {
+  const h = HV.vistaDe(k);
+  if (!h || !h.modulo) { irA("ruta"); return; }
+  $("panel").innerHTML = '<div class="fx-empty">Abriendo ' + esc(h.t) + "…</div>";
+  try {
+    const m = await import("../js/" + h.modulo);
+    if (pest !== k) return; // la persona ya se fue a otra pestaña
+    await m.vista({ P, SECS, REFS, PIZ, PL, panel: $("panel"), tc: tc(P.tipo), ed: puedeRuta() && nivelDe(k) === "editar", volver: volverRuta(), conVolver, marcarHecho, alTaller, guardar, toast, sb, u: (r) => "../" + r });
+  } catch (e) { console.error(e); $("panel").innerHTML = '<div class="fx-empty">No se pudo abrir ' + esc(h.t) + ". Revisa tu conexión y recarga la página.</div>"; }
 }
 const marcarHecho = (id) => { const h = R.estado(P.ruta).hechos; if (!h[id] && puedeRuta()) guardarRuta({ hechos: { ...h, [id]: new Date().toISOString().slice(0, 10) } }); };
 

@@ -1,6 +1,9 @@
 // Forja · lo que trae Forja Más. Lo que aún no existe se muestra como "próximamente", para que se entienda qué viene
 // y para medir con "Avísame" qué conviene construir primero (tabla public.interes_funciones).
-// Las que tienen `listo` ya funcionan; `libre` dice qué parte trae el plan gratis.
+// Las herramientas se declaran en herramientas.js; aquí van los precios, las áreas y las tarjetas.
+
+import { esc, proximamente } from "./forja.js";
+import { HERRAMIENTAS } from "./herramientas.js";
 
 // Precios de lanzamiento (pueden cambiar: lo dicen planes/ y terminos/#planes).
 export const PRECIOS = { mas: { mes: 2990, anio: 29900 }, estudio: { mes: 5990, anio: 59900 } };
@@ -18,39 +21,11 @@ export const AREAS = [
   { k: "equipo", n: "Equipo y opiniones", d: "Trabajar con otros, pedir opiniones y no perder fechas." },
 ];
 
-export const FUNCIONES = [
-  { k: "analizar-obras", a: "escritura", t: "Analizar obras", d: "La ficha de cada libro, juego o película con su cita armada, tres miradas para entender cómo está hecha y lo que aprendiste. Con Forja Más, también MLA, Chicago y la bibliografía en la biblia.", listo: true, libre: "Gratis: 3 obras analizadas por proyecto y cita APA." },
-  { k: "estructuras", a: "escritura", t: "Mapa de la idea y estructuras", d: "La idea completa en una vista y tus momentos probados en modelos dibujados. Con Forja Más: todos los modelos, comparar dos lado a lado, llevar el mapa al Taller y pasar la estructura a la Escaleta.", listo: true, libre: "Gratis: el mapa completo y dos modelos de estructura por categoría." },
-  { k: "capitulos", a: "escritura", t: "Capítulos y conteo", d: "Divide una sección en capítulos o escenas y cuenta palabras, páginas y tiempo de lectura de cada uno." },
-  { k: "metas", a: "escritura", t: "Metas y constancia", d: "Meta de palabras por día o semana y un calendario de los días que escribiste." },
-  { k: "manuscrito", a: "escritura", t: "Modo manuscrito", d: "El formato estándar para enviar a editoriales y concursos." },
-  { k: "notas-margen", a: "escritura", t: "Notas al margen", d: "Comentarios sobre frases del texto, tuyos o de tu equipo, sin ensuciarlo." },
-  { k: "historial", a: "escritura", t: "Historial de versiones", d: "Volver a cualquier versión de los últimos 90 días y ver qué cambió." },
-  { k: "vista-impresion", a: "impresion", t: "Vista de impresión", d: "Tu texto en el tamaño de página elegido (A5, 14 × 21 cm, carta, cómic) y cuántas páginas sale." },
-  { k: "paginas-costos", a: "impresion", t: "De páginas a costos", d: "Lleva las páginas, el tamaño y el papel a la cotización del libro sin escribirlos dos veces." },
-  { k: "guion-comic", a: "impresion", t: "Guion de cómic por páginas", d: "Página, viñeta, imagen y diálogo, con aviso si el total no calza con los pliegos de imprenta." },
-  { k: "pizarra", a: "pizarras", t: "Pizarras sin límite", d: "Tarjetas, referentes, colores y flechas en tableros para ordenar ideas, todos los que quieras.", listo: true, libre: "Gratis: una pizarra por proyecto, con 20 tarjetas." },
-  { k: "relaciones", a: "pizarras", t: "Mapa de relaciones", d: "Personajes o facciones unidos por lazos con nombre: familia, amor, rivalidad, secreto…", listo: true },
-  { k: "escaleta", a: "pizarras", t: "Escaleta en tarjetas", d: "Escenas por actos que se reordenan arrastrando, con duración, y el orden vuelve al Taller.", listo: true },
-  { k: "mapa-mundo", a: "pizarras", t: "Mapa del mundo", d: "Lugares, regiones y rutas sobre la imagen de tu mapa, cada uno con su ficha.", listo: true },
-  { k: "semillero", a: "organizacion", t: "Semillero sin límite", d: "Ideas de una frase que no gastan proyectos, con detonantes para encontrarlas y un semillero compartido para tu equipo.", listo: true, libre: "Gratis: 50 ideas en el semillero." },
-  { k: "fichas", a: "organizacion", t: "Fichas y línea de tiempo", d: "Personajes, lugares y objetos con sus campos, y la cronología de la historia." },
-  { k: "tareas", a: "organizacion", t: "Tareas con recordatorios", d: "Qué falta para la feria o la postulación, con aviso por correo." },
-  { k: "versiones-precio", a: "venta", t: "Versiones de precio", d: "Comparar edición normal, deluxe y preventa en la misma cotización." },
-  { k: "campanas", a: "venta", t: "Planificador de campañas", d: "Recompensas armadas con los productos que cotizas, precio sugerido, cuánto mandar a hacer, envíos por zona y la meta de tu Kickstarter o preventa; se muestran en la vitrina.", listo: true, libre: "Gratis: hasta 3 recompensas." },
-  { k: "presupuesto-fondos", a: "venta", t: "Presupuesto para fondos", d: "Tus costos ordenados como los piden los formularios de postulación." },
-  { k: "biblia-diseno", a: "presentacion", t: "Biblia con diseño", d: "Plantillas de portada y página, sin la marca de Forja, en PDF, Word o EPUB." },
-  { k: "pagina-publica", a: "presentacion", t: "Vitrina del proyecto", d: "Una página pública para ferias, fondos o editoriales, con lo que elijas mostrar, enlace propio y QR. Con Forja Más, tus pizarras se publican para explorarlas.", listo: true, libre: "Gratis: vitrina con portada, historia, galería, novedades y enlaces." },
-  { k: "apoyo-pagos", a: "presentacion", t: "Apoyo y preventas en la vitrina", d: "Recibe apoyo, reservas o preventas desde tu vitrina con métodos de pago chilenos, con metas y recompensas visibles." },
-  { k: "kit-prensa", a: "presentacion", t: "Kit de prensa", d: "Un paquete descargable con logo, capturas, ficha y contacto para medios y festivales." },
-  { k: "lectores", a: "equipo", t: "Lectores beta", d: "Rondas de prueba sobre una copia de tu proyecto: un enlace por persona, preguntas según tu categoría, comentarios por párrafo y las respuestas juntas, con lo que varias personas señalan destacado. Con Forja Más, rondas sin límite y preguntas propias.", listo: true, libre: "Gratis: una ronda abierta a la vez, con 3 personas." },
-  { k: "colaboradores", a: "equipo", t: "Colaboradores", d: "Invita hasta 5 personas a un proyecto y decide qué puede hacer cada una en cada parte; ellas no necesitan pagar.", listo: true, libre: "Gratis: 1 persona por proyecto." },
-  { k: "alertas", a: "equipo", t: "Alertas de oportunidades", d: "Un correo cuando abre o está por cerrar una convocatoria que calza con tus proyectos." },
-];
+// El catálogo sale del registro común de herramientas (herramientas.js): ahí se agrega una herramienta y se marca lista.
+export const FUNCIONES = HERRAMIENTAS.filter((h) => h.area).map((h) => ({ k: h.id, a: h.area, t: h.t, d: h.d, listo: h.estado === "listo", libre: h.libre, solo: h.solo }));
 export const funcion = (k) => FUNCIONES.find((f) => f.k === k);
 
 // Tarjeta de una herramienta del catálogo: «Ya disponible» (con enlace si se da) o «Próximamente» con «Avísame».
-import { esc, proximamente } from "./forja.js";
 export function tarjetaFuncion(k, href, chico = true) {
   const f = funcion(k); if (!f) return "";
   if (!f.listo) return proximamente(f.k, f.t, f.d, chico);

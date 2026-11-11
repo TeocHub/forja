@@ -14,9 +14,9 @@
 <link rel="stylesheet" href="../css/forja.css">
 <style>
 /* Layout: darse de baja — una sola tarjeta centrada con la pregunta y un botón; sin entrar a la cuenta */
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+body{font-size:16px;line-height:1.55}
 .wrap{max-width:720px;margin:0 auto;padding-block:24px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-:where(a,button):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
 .carta{margin-top:40px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,5vw,36px);display:flex;flex-direction:column;gap:12px}
 .carta h1{font-family:var(--f-display);font-size:clamp(26px,5vw,34px);line-height:1.1;margin:0}
 .carta p{margin:0;color:var(--muted);max-width:56ch}

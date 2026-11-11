@@ -1,3 +1,6 @@
+-- AVISO (2026-11-11): este archivo refleja el esquema hasta el 2026-11-06 y ya no está completo (equipos, planes Más y Estudio,
+-- Semillero, obras, rondas de lectores beta, correos, sugerencias). La fuente es la base de Supabase y sus migraciones;
+-- para regenerarlo: supabase db dump --schema public,privado (necesita la clave de la base).
 -- Forja · esquema de datos privados (Supabase, proyecto "forja").
 -- Solo estructura y reglas de acceso; ningún dato. Aplicado como migraciones:
 -- espacios_privados_proyectos, es_miembro_fuera_de_api y

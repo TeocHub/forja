@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="../css/forja.css">
 <style>
 /* Layout: eventos — una línea de tiempo con las fechas de lo que sigues (cierres y eventos, por mes) y, debajo, sugerencias por proyecto */
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+
 .wrap{max-width:980px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1{font-family:var(--f-display);font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0}
 h2{font-family:var(--f-display);font-size:20px;margin:0}
@@ -56,9 +56,9 @@ section{margin-top:30px;display:flex;flex-direction:column;gap:12px}
   <main id="app"><div class="fx-empty">Cargando…</div></main>
 </div>
 <script type="module">
-import { sb, $, esc, toast, navApp, espacio, conSesion, proximamente, activarAvisame } from "../js/forja.js";
+import { sb, $, esc, toast, navApp, espacio, conSesion, activarAvisame } from "../js/forja.js";
 import { TIPOS, tc, areaDe } from "../js/guias.js";
-import { funcion } from "../js/planes.js";
+import { tarjetaFuncion, pendientes } from "../js/planes.js";
 import { pista } from "../js/ayuda.js";
 navApp("eventos");
 const MES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -113,7 +113,6 @@ function pintar() {
     return { pr, l };
   }).filter((x) => x.l.length);
 
-  const fa = funcion("alertas"), ft = funcion("tareas");
   $("app").innerHTML =
     '<header><h1>Eventos</h1><p class="lead">Las fechas de las ferias, fondos y convocatorias que siguen tus proyectos, de la más cercana a la más lejana.</p></header>' +
     '<section aria-labelledby="t-fechas"><div class="cab"><h2 id="t-fechas">Próximas fechas</h2><a href="../oportunidades/" style="font-size:14px">Ver el calendario completo</a></div>' +
@@ -122,7 +121,7 @@ function pintar() {
       '<div class="grupo" style="--tc:' + tc(pr.tipo) + '"><h3>' + esc(pr.nombre) + ' <span style="font-size:12px;color:var(--muted);font-family:var(--f-body);font-weight:400">' + esc(TIPOS[pr.tipo]) + '</span></h3><div class="sugs">' +
       l.map((o) => { const pf = pd(o.postul_fin), ei = pd(o.evento_inicio), t = pf && dias(pf) >= 0 ? "postulación cierra en " + dias(pf) + " días" : "evento en " + dias(ei) + " días";
         return '<div class="sug"><b>' + esc(o.nombre) + "</b><span>" + (o.fechas_estimadas ? "≈ " : "") + t + '</span><button type="button" data-seguir="' + o.id + '" data-p="' + pr.id + '">Seguir</button></div>'; }).join("") + "</div></div>").join("") + "</section>" : "") +
-    '<section aria-labelledby="t-pronto"><h2 id="t-pronto">Próximamente</h2><div class="sugs">' + proximamente(fa.k, fa.t, fa.d, true) + proximamente(ft.k, ft.t, ft.d, true) + "</div></section>";
+    (pendientes(["alertas", "tareas"]).length ? '<section aria-labelledby="t-pronto"><h2 id="t-pronto">Próximamente</h2><div class="sugs">' + pendientes(["alertas", "tareas"]).map((k) => tarjetaFuncion(k)).join("") + "</div></section>" : "");
   activarAvisame($("app"));
   pista($("app").querySelector("header"), "eventos");
   $("app").querySelectorAll("[data-seguir]").forEach((b) => b.onclick = async () => {

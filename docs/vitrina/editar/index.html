@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="../../css/forja.css">
 <style>
 /* Layout: editor de vitrina — panel de edición a la izquierda (secciones plegables) y la vista previa real a la derecha; en el celular se alternan */
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+
 .wrap{max-width:1440px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 :where(button,a,input,select,textarea,summary):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .vol{font-size:14px;text-decoration:none}
@@ -171,7 +171,8 @@ dialog::backdrop{background:rgba(10,12,20,.5)}
 <dialog id="dlg-pub"><div class="dlg" id="dlg-pub-c"></div></dialog>
 <dialog id="dlg-comp"><div class="dlg" id="dlg-comp-c"></div></dialog>
 <script type="module">
-import { sb, $, esc, toast, hace, navApp, espacio, accesoProyecto, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame, proximamente, ayudaImagenes, probarImagen } from "../../js/forja.js";
+import { sb, $, esc, toast, hace, navApp, espacio, accesoProyecto, conSesion, plan, editable, limite, MAS_PRONTO, activarAvisame, ayudaImagenes, probarImagen } from "../../js/forja.js";
+import { tarjetaFuncion } from "../../js/planes.js";
 import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA, SEGUIR_TEXTOS, LIM, esPago, cuentaPagos, normalRecompensas, ENVIOS, MAX_TIERS, BLOQUES, SECCIONES_VT, TAMANOS } from "../../js/vitrina.js";
 import { MODOS } from "../../js/pizarra.js";
 import { pista } from "../../js/ayuda.js";
@@ -373,7 +374,7 @@ function enlacesHTML() {
     B.enlaces.map((e) => '<div class="bloque"><div class="bloque-cab"><input data-e="nombre" data-id="' + e.id + '" value="' + esc(e.nombre) + '" placeholder="Nombre (ej.: Instagram)" aria-label="Nombre del enlace"><button type="button" class="ico x" data-quitar="enlaces:' + e.id + '" aria-label="Quitar enlace">×</button></div><input data-e="url" data-id="' + e.id + '" type="url" inputmode="url" value="' + esc(e.url) + '" placeholder="https://…" aria-label="Dirección" style="font:inherit;font-size:13px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:8px;padding:6px 8px">' + (e.url && !okUrl(e.url) ? '<span class="origen" style="color:var(--bad)">Debe empezar con https://</span>' : "") + "</div>").join("") +
     (pagos > LIM.pagos ? '<p class="ayuda" style="color:var(--bad)">Tienes ' + pagos + " enlaces de pago o apoyo y el máximo es " + LIM.pagos + ". Quita alguno para poder publicar.</p>" : "") +
     '<div class="fila"><button type="button" class="btn chico" data-nuevo="enlaces"' + (lleno ? " disabled" : "") + '>+ Enlace</button><span class="ayuda">' + B.enlaces.length + " de " + LIM.enlaces + (pagos ? " · " + pagos + " de " + LIM.pagos + " de pago" : "") + "</span></div>" +
-    proximamente("apoyo-pagos", "Apoyo y preventas en la vitrina", "Recibir apoyo, reservas o preventas desde tu vitrina con medios de pago chilenos, con metas y recompensas a la vista. Mientras tanto, puedes poner hasta " + LIM.pagos + " enlaces de pago tuyos.", true);
+    tarjetaFuncion("apoyo-pagos");
 }
 function recompensasHTML() {
   const R = B.recompensas, an = (ANOT && ANOT.conteo) || {};

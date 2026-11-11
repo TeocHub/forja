@@ -27,7 +27,7 @@
   --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e; --field:#141722;
   --accent:#8c9bff; --accent-soft:#232a52;
   --good:#4fd19a; --good-soft:#123a2a; --warn:#e8b84a; --warn-soft:#3a2e12; --bad:#ff8a63; color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+
 .wrap{max-width:980px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
 .logo{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em}
 h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0;text-wrap:balance}
@@ -1081,13 +1081,12 @@ navApp("cotizaciones");
       ESP=e;if(!ESP)throw new Error("sin espacio");
       return Promise.all([
         sb.from("cotizaciones").select("id,nombre,proyecto_id,actualizado_en").eq("espacio_id",ESP).order("actualizado_en",{ascending:false}),
-        sb.from("cotizaciones").select("id,proyecto_id").eq("espacio_id",ESP).limit(1),
         sb.from("proyectos").select("id,nombre,tipo,formato,estado,espacio_id").eq("espacio_id",ESP).order("nombre"),
         plan()
       ]);
     }).then(function(res){
       if(res[0].error)throw res[0].error;
-      LISTA=res[0].data||[];PROYS=res[2].data||[];PLAN=PLAN_ESP=res[3]||{mas:false};
+      LISTA=res[0].data||[];PROYS=res[1].data||[];PLAN=PLAN_ESP=res[2]||{mas:false};
       $("contenido").hidden=false;
       // Cotización que estaba guardada solo en este navegador: se sube una vez a la cuenta.
       var viejo=null;try{viejo=JSON.parse(localStorage.getItem(KEY)||"null");}catch(err){}

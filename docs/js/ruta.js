@@ -1,6 +1,7 @@
 // Forja · Ruta del proyecto: las etapas de cualquier proyecto, sus técnicas y lo que sigue.
 // Un solo archivo para la pestaña Ruta, la franja «Lo que sigue», la ayuda y la guía.
 // La ruta orienta y nunca bloquea: la persona marca en qué etapa está, salta o vuelve cuando quiere.
+import { rutaPronto } from "./herramientas.js";
 
 // Cómo trabaja cada persona en este proyecto (proyectos.ruta.creador). Decide cuánta guía se ve.
 export const CREADORES = {
@@ -31,7 +32,8 @@ export const etapaNombre = (k, tipo) => { const e = ETAPAS.find((x) => x.k === k
 export const etapaIndice = (k) => Math.max(0, ETAPAS.findIndex((x) => x.k === k));
 
 // Herramientas que todavía no existen: su tarjeta se ve, pero dice «Llega pronto».
-export const PRONTO = new Set(["sesion", "metrabe", "revision", "pulido", "prototipo"]);
+// Sale del registro común (herramientas.js): al marcar una herramienta como lista, su técnica deja de decirlo.
+export const PRONTO = rutaPronto();
 
 // Técnicas por etapa. Campos:
 // id, t (título), d (qué es y para qué), pasos (cómo, en 2 o 3 pasos), min (minutos aprox.),

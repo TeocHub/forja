@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="../css/forja.css">
 <style>
 /* Layout: planes — tres tarjetas lado a lado, una comparación, un explorador por áreas de las herramientas, la casilla de sugerencias y preguntas */
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+body{font-size:16px;line-height:1.55}
 .wrap{max-width:1040px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 h1{font-size:clamp(32px,6vw,48px);line-height:1.05;margin-top:8px}
@@ -209,8 +209,8 @@ section{margin-top:44px}
   </main>
 </div>
 <script type="module">
-import { sb, $, esc, toast, hace, limite, nav, navApp, plan, proximamente, activarAvisame, u } from "../js/forja.js";
-import { PRECIOS, AREAS, AREAS_SUGERENCIA, FUNCIONES } from "../js/planes.js";
+import { sb, $, esc, toast, hace, limite, nav, navApp, plan, activarAvisame, u } from "../js/forja.js";
+import { PRECIOS, AREAS, AREAS_SUGERENCIA, FUNCIONES, tarjetaFuncion } from "../js/planes.js";
 const { data } = await sb.auth.getSession();
 const SES = data.session;
 if (SES) {
@@ -227,14 +227,13 @@ for (const k of ["mas", "estudio"]) {
 }
 $("n-func").textContent = FUNCIONES.length;
 $("n-listas").textContent = FUNCIONES.filter((f) => f.listo).length;
-// Las herramientas que ya existen se muestran como disponibles, con lo que trae el plan gratis.
-const disponible = (f) => '<div class="fx-pronto listo" data-funcion="' + f.k + '"><span class="fx-pronto-tag">Ya disponible</span><b>' + esc(f.t) + "</b><span>" + esc(f.d) + "</span>" + (f.libre ? '<span class="libre">' + esc(f.libre) + "</span>" : "") + "</div>";
+// Cada herramienta, disponible o próximamente, sale del registro común (herramientas.js) con la misma tarjeta que el resto de Forja.
 
 let area = "pizarras"; // lo primero que ya funciona
 function pintar() {
   $("areas").innerHTML = AREAS.map((a) => '<button role="tab" data-a="' + a.k + '" aria-selected="' + (a.k === area) + '"><b>' + esc(a.n) + "</b><small>" + esc(a.d) + "</small></button>").join("");
   $("areas").querySelectorAll("[data-a]").forEach((b) => b.onclick = () => { area = b.dataset.a; pintar(); });
-  $("funciones").innerHTML = FUNCIONES.filter((f) => f.a === area).map((f) => (f.listo ? disponible(f) : proximamente(f.k, f.t, f.d))).join("");
+  $("funciones").innerHTML = FUNCIONES.filter((f) => f.a === area).map((f) => tarjetaFuncion(f.k, null, false)).join("");
   activarAvisame($("funciones"));
 }
 pintar();

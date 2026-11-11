@@ -64,7 +64,7 @@ details.borrar[open] summary{margin-bottom:8px}
   <main id="app"><div class="fx-empty">Cargando…</div></main>
 </div>
 <script type="module">
-import { sb, $, esc, toast, hace, fecha, navApp, conSesion, plan, espacio, espacios, limite, avisos, u, DOCS } from "../js/forja.js";
+import { sb, $, esc, toast, hace, fecha, navApp, conSesion, plan, espacio, espacios, limite, avisos, u, fechaDocs } from "../js/forja.js";
 navApp(null);
 const TIPO = { contacto: "Contacto o consulta", privacidad: "Mis datos personales", apelacion: "Apelación" };
 const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
@@ -74,14 +74,16 @@ let SES, PREFS, TIENE_PREFS = false;
 
 conSesion($("app"), async (ses) => {
   SES = ses;
-  const [pl, ms, rp, ac, pf, sg] = await Promise.all([
+  const [pl, ms, rp, ac, pf, sg, lc] = await Promise.all([
     plan(),
     sb.from("mensajes").select("id,tipo,texto,estado,respuesta,creado_en,respondido_en").order("creado_en", { ascending: false }).limit(30),
     sb.from("reportes").select("id,motivo,estado,creado_en,revisado_en").order("creado_en", { ascending: false }).limit(30),
     sb.from("aceptaciones").select("documento,version,aceptado_en").order("aceptado_en", { ascending: false }),
     sb.from("correo_prefs").select("boletin,funciones,vitrinas,boletin_desde").maybeSingle(),
     sb.rpc("mis_seguidas"),
+    sb.rpc("mis_lecturas"),
   ]);
+  const LECT = (lc.data || []).filter((x) => Object.keys(x.respuestas || {}).length || (x.comentarios || []).length);
   PREFS = pf.data || { boletin: false, funciones: true, vitrinas: true }; TIENE_PREFS = !!pf.data;
   const creada = ses.user.created_at ? fecha(ses.user.created_at) : "";
   $("app").innerHTML =
@@ -102,9 +104,12 @@ conSesion($("app"), async (ses) => {
         .map(([k, t, d]) => '<label class="pref"><input type="checkbox" data-pref="' + k + '"' + (PREFS[k] ? " checked" : "") + "><span><b>" + t + "</b><small>" + d + "</small></span></label>").join("") + "</div>" +
       '<h3 class="sub">Proyectos que sigues</h3>' + ((sg.data || []).length ? '<div class="seguidas">' + sg.data.map((x) => '<div class="seguida">' + (x.visible ? '<a href="../vitrina/?v=' + esc(x.slug) + '">' + esc(x.titulo || x.slug) + "</a>" : "<span>" + esc(x.titulo || x.slug) + " <small>(no publicada)</small></span>") + '<button type="button" class="btn" data-dejar="' + esc(x.slug) + '">Dejar de seguir</button></div>').join("") + "</div>" : '<p class="vacio">Aún no sigues ningún proyecto. En cada vitrina que tenga el botón, puedes seguirla para recibir sus novedades.</p>') + "</section>" +
     '<section class="blq"><h2>Mis reportes</h2>' + ((rp.data || []).length ? (rp.data.map((r) => { const e = EST_REP[r.estado] || [r.estado, ""]; return '<div class="msj"><div class="fila"><b>' + esc(MOTIVOS[r.motivo] || r.motivo) + '</b><span class="est ' + e[1] + '">' + e[0] + "</span></div><small>Enviado " + hace(r.creado_en) + "</small></div>"; }).join("")) : '<p class="vacio">No has reportado ninguna vitrina. Si ves algo que rompe las <a href="../normas/">normas</a>, usa "Reportar esta vitrina" al final de esa página.</p>') + "</section>" +
-    '<section class="blq"><h2>Documentos que aceptaste</h2><div class="docs">' + ["terminos", "privacidad", "normas"].map((d) => { const a = (ac.data || []).find((x) => x.documento === d); return '<a href="../' + d + '/"><b>' + NOMBRE_DOC[d] + "</b><small>" + (a ? "Versión del " + (a.version === DOCS.version ? DOCS.fecha : a.version) + (a.aceptado_en ? ", aceptada el " + fecha(a.aceptado_en) : "") : "Sin aceptar") + "</small></a>"; }).join("") + "</div></section>" +
-    '<section class="blq"><h2>Tus datos</h2><p>Todo lo que guardaste en Forja en un archivo JSON: proyectos, escritura, referentes, pizarras, bitácora, ideas del Semillero, cotizaciones, vitrinas, mensajes y reportes. Para tus proyectos, la <b>biblia</b> de cada uno es una copia más legible.</p><div class="acc"><button class="btn" type="button" id="descargar">Descargar mis datos</button></div></section>' +
-    '<section class="blq zona"><h2>Borrar mi cuenta</h2><p>Se borran de inmediato tu correo, tus proyectos, vitrinas publicadas, cotizaciones, precios compartidos, mensajes, reportes y avisos. No se puede deshacer. Si tienes proyectos importantes, descarga tus datos antes.</p>' +
+    '<section class="blq"><h2>Documentos que aceptaste</h2><div class="docs">' + ["terminos", "privacidad", "normas"].map((d) => { const a = (ac.data || []).find((x) => x.documento === d); return '<a href="../' + d + '/"><b>' + NOMBRE_DOC[d] + "</b><small>" + (a ? "Versión del " + fechaDocs(a.version) + (a.aceptado_en ? ", aceptada el " + fecha(a.aceptado_en) : "") : "Sin aceptar") + "</small></a>"; }).join("") + "</div></section>" +
+    (LECT.length ? '<section class="blq" id="lecturas"><h2>Lo que opinaste como lector beta</h2><p>Tus respuestas y comentarios en rondas de otras personas. Quien maneja cada ronda los ve con el nombre que te dio, nunca tu correo. Puedes borrarlos cuando quieras, también si ya te quitaron de la ronda.</p>' +
+      LECT.map((x) => '<div class="seguida"><span><b>' + esc(x.proyecto) + "</b> · " + esc(x.titulo) + " <small>(" + ((n) => n + (n === 1 ? " opinión" : " opiniones"))(Object.keys(x.respuestas || {}).length + (x.comentarios || []).length) + (x.quitado ? " · ya no estás en la ronda" : x.abierta ? " · abierta" : " · cerrada") + ")</small></span>" +
+        (x.abierta ? '<a class="btn" href="../prueba/?t=' + encodeURIComponent(x.token) + '">Abrir</a>' : "") + '<button type="button" class="btn" data-borrar-lect="' + esc(x.token) + '">Borrar lo que respondí</button></div>').join("") + "</section>" : "") +
+    '<section class="blq"><h2>Tus datos</h2><p>Todo lo que guardaste en Forja en un archivo JSON: proyectos, escritura, referentes y obras analizadas, pizarras, bitácora, ideas del Semillero, rondas de lectores beta (las tuyas y lo que respondiste en otras), cotizaciones, vitrinas, sugerencias, mensajes y reportes. Para tus proyectos, la <b>biblia</b> de cada uno es una copia más legible.</p><div class="acc"><button class="btn" type="button" id="descargar">Descargar mis datos</button></div></section>' +
+    '<section class="blq zona"><h2>Borrar mi cuenta</h2><p>Se borran de inmediato tu correo, tus proyectos (con sus ideas del Semillero, rondas de lectores beta y todo lo demás), vitrinas publicadas, cotizaciones, precios compartidos, lo que respondiste como lector beta, mensajes, sugerencias, reportes y avisos. No se puede deshacer. Si tienes proyectos importantes, descarga tus datos antes.</p>' +
     '<details class="borrar"><summary>Quiero borrar mi cuenta</summary><form class="forma" id="f-borrar"><label>Escribe BORRAR para confirmar<input id="b-conf" autocomplete="off" spellcheck="false"></label><div class="acc"><button class="btn peligro lleno" type="submit" id="b-si" disabled>Borrar mi cuenta para siempre</button></div></form></details></section>';
   const n = await avisos($("avisos"));
   $("sin-avisos").hidden = n > 0;
@@ -132,6 +137,13 @@ conSesion($("app"), async (ses) => {
     const { error } = await sb.rpc("seguir_vitrina", { slug: b.dataset.dejar, seguir: false });
     if (error) { toast("No se pudo."); return; }
     b.closest(".seguida").remove(); toast("Dejaste de seguir ese proyecto.");
+  });
+  $("app").querySelectorAll("[data-borrar-lect]").forEach((b) => b.onclick = async () => {
+    if (b.dataset.ok !== "1") { b.dataset.ok = "1"; b.textContent = "Toca otra vez para borrar"; return; }
+    b.disabled = true;
+    const { error } = await sb.rpc("borrar_mis_respuestas", { t: b.dataset.borrarLect });
+    if (error) { toast("No se pudo borrar."); b.disabled = false; return; }
+    b.closest(".seguida").remove(); toast("Borramos tus respuestas y comentarios de esa ronda.");
   });
   $("b-conf").oninput = (e) => { $("b-si").disabled = e.target.value.trim() !== "BORRAR"; };
   $("f-borrar").onsubmit = async (e) => {
