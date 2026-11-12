@@ -1353,6 +1353,7 @@ function hojaSeccion(s, col) {
     '<div class="barra"><span class="est" id="h-est">' + palabras(s.texto) + ' palabras</span><div class="acc">' +
     '<button class="btn chico" id="h-foco">Pantalla completa</button>' +
     (col && puedeHojas(col) && s.texto.trim() ? '<button class="btn chico" id="h-pasar" title="Reparte en fichas las partes que hablan de cada uno">Pasar a fichas</button>' : "") +
+    (!col && EQ && CR.cruce(s.guia, P.tipo) && edTaller() && rechazos().includes(s.id) ? '<button class="btn chico" id="hj-conectar">Conectar con Fichas</button>' : "") +
     (i > 0 ? '<button class="btn chico" id="h-up" aria-label="Mover arriba">↑</button>' : "") + (i < SECS.length - 1 ? '<button class="btn chico" id="h-down" aria-label="Mover abajo">↓</button>' : "") +
     '<span id="h-del"><button class="btn chico peligro" id="h-borrar">Borrar sección</button></span></div></div></article>' + pieHojas(col);
   const ta = $("h-txt"), crecer = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
@@ -1492,6 +1493,7 @@ async function conectar(s) {
   const { error } = await sb.from("secciones").update({ coleccion_id: col.id }).eq("id", s.id);
   if (error) { toast(limite(error) || "No se pudo conectar."); if (b) b.disabled = false; return; }
   s.coleccion_id = col.id; hojaSel[s.id] = null;
+  try { localStorage.setItem("forja-cruce-no-" + P.id, JSON.stringify(rechazos().filter((x) => x !== s.id))); } catch (e) {}
   const hay = CR.partir(s.texto).partes.length;
   toast(hay ? "Conectada. Si tu texto ya habla de cada " + CR.nombrePl(col.plantilla).uno + ", usa «Pasar a fichas»." : "Conectada con «" + col.nombre + "».");
   pintarIndice(); pintarHoja();
