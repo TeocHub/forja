@@ -167,6 +167,14 @@ button.ar-chip{cursor:pointer}
 .vit-ilus .l{fill:var(--line);stroke:none}
 .vit-ilus .g{fill:color-mix(in srgb,var(--tc,var(--accent)) 12%,var(--field));stroke:none}
 @media (max-width:640px){.vit-hero{grid-template-columns:1fr}.vit-ilus{display:none}}
+/* pizarra conectada con Fichas */
+.pz-fichas{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:14px;color:var(--muted);border:1px dashed color-mix(in srgb,var(--tc,var(--accent)) 45%,var(--line));border-radius:12px;padding:8px 12px;margin:8px 0 10px}
+.pz-fichas.oferta{background:color-mix(in srgb,var(--tc) 6%,var(--card));color:var(--fg)}
+.pz-fichas.chica{border:0;padding:0;margin:6px 0 8px}
+.pz-fichas .pzf-ic{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-weight:700;color:var(--card);background:var(--tc,var(--accent))}
+.pz-fichas .pzf-t{flex:1 1 260px;min-width:0}
+.pz-fichas .pzf-acc{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pz-fichas select{font-size:14px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;background:var(--card);max-width:220px}
 /* pizarra: pestañas de pizarras, elección de modo y cabecera */
 .piz-cab{display:flex;flex-direction:column;gap:8px}
 .piz-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:thin;padding-bottom:2px}
@@ -674,7 +682,7 @@ else conSesion($("app"), async (ses) => {
     sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
     sb.from("cotizaciones").select("id,nombre,datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
     sb.from("proyecto_oportunidades").select("oportunidad_id,estado").eq("proyecto_id", ID),
-    sb.from("pizarras").select("id,nombre,modo,datos,creado_en").eq("proyecto_id", ID).order("creado_en"),
+    sb.from("pizarras").select("id,nombre,modo,datos,creado_en,coleccion_id").eq("proyecto_id", ID).order("creado_en"),
     sb.from("vitrinas").select("id,slug,publicada,publicado_en,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
   ]);
   P = pr.data; VIT = vi.data || null;
@@ -1065,7 +1073,7 @@ let obs = null;
 function aplicarSoloLectura() {
   if (obs) { obs.disconnect(); obs = null; }
   if (!RO) return;
-  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fi-cajon:not(.nuevo), .fi-modo, .fi-estados, .fi-t, .fi-abrir, #fi-cerrar, [data-ir], #fi-q, .fx-tabs, .mesa, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr, [data-mp], [data-mp-ir], [data-volver], [data-taller], .fi-ir-taller, .hojas, #hj-ir-col, #hf-ficha, [data-mod], [data-ir-m], #es-comp, [data-quitar-c]") || el.id === "h-foco";
+  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fi-cajon:not(.nuevo), .fi-modo, .fi-estados, .fi-t, .fi-abrir, #fi-cerrar, [data-ir], #fi-q, .fx-tabs, .mesa, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr, [data-mp], [data-mp-ir], [data-volver], [data-pzf-ir], [data-taller], .fi-ir-taller, .hojas, #hj-ir-col, #hf-ficha, [data-mod], [data-ir-m], #es-comp, [data-quitar-c]") || el.id === "h-foco";
   const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
   aplicar();
   obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });
@@ -1196,6 +1204,7 @@ function pizarra() {
     '<div id="pz-elegir"></div>' +
     (motivo ? '<div class="lectura piz-lock" role="status">' + CANDADO + "<span>" + motivo + MAS_LINK + "</span></div>" : "") +
     '<div class="piz-titulo"><label class="fx-sr" for="pz-nombre">Nombre de la pizarra</label><input id="pz-nombre" maxlength="120" value="' + esc(z.nombre) + '"' + (edz ? "" : " disabled") + '>' + (z.nombre === MODOS[z.modo].n ? "" : '<span class="piz-modo">' + MODOS[z.modo].n + "</span>") + '<span id="pz-borrar-w"><button type="button" class="btn chico peligro pz-libre" id="pz-borrar">Borrar pizarra</button></span></div>' +
+    pzFichasHTML(z, edz) +
     '<div id="pz-raiz"></div>' +
     (PL.mas ? "" : '<p class="hint piz-pie">Plan gratis: una pizarra libre por proyecto, con hasta ' + LIMITES.tarjetas + ' tarjetas. Forja Más suma pizarras sin límite y los modos de relaciones, escaleta y mapa del mundo. <a href="../planes/">Ver Forja Más</a></p>');
   $("panel").querySelectorAll("[data-piz]").forEach((b) => b.onclick = () => { if (b.dataset.piz === pizSel) return; pizSel = b.dataset.piz; recordarPiz(pizSel); pintarPestana(); });
@@ -1219,12 +1228,16 @@ function pizarra() {
   EDITOR = montar($("pz-raiz"), {
     piz: z, editable: edz, max: PL.mas ? Infinity : LIMITES.tarjetas,
     secciones: SECS.slice().sort((a, b) => a.orden - b.orden).map((s) => ({ id: s.id, titulo: s.titulo })), referentes: REFS,
-    fichas: FICHAS.fichas.map((f) => ({ id: f.id, titulo: f.titulo, col: f.coleccion_id, enlaces: f.enlaces || [] })), colecciones: FICHAS.cols,
+    // Las fichas solo existen para el equipo (mientras Fichas esté en prueba); para el resto la pizarra no muestra enlaces a fichas.
+    fichas: EQ ? (PZF = FICHAS.fichas.map((f) => ({ id: f.id, titulo: f.titulo, col: f.coleccion_id, enlaces: f.enlaces || [] }))) : null, colecciones: EQ ? FICHAS.cols : [],
+    coleccion: pzCol(z) ? { id: pzCol(z).id, nombre: pzCol(z).nombre, uno: CR.nombrePl(pzCol(z).plantilla).uno } : null,
     irFicha: (id) => { try { sessionStorage.setItem("forja-ficha-abrir", id); } catch (e) {} irA("fichas"); window.scrollTo({ top: 0, behavior: "smooth" }); },
     guardar: async (datos) => {
       const { error } = await sb.from("pizarras").update({ datos }).eq("id", z.id);
       if (error) return limite(error) || "No se pudo guardar la pizarra. Revisa tu conexión.";
-      z.datos = datos; const c = $("panel") && $("panel").querySelector('[data-piz="' + z.id + '"] small'); if (c) c.textContent = MODOS[z.modo].corto + " · " + cuentaTarjetas(datos);
+      const prev = z.datos; z.datos = datos;
+      if (pzCol(z)) pzEncolar(() => pzSincronizar(z, prev, datos)); // tarjetas → fichas, flechas → enlaces
+      const c = $("panel") && $("panel").querySelector('[data-piz="' + z.id + '"] small'); if (c) c.textContent = MODOS[z.modo].corto + " · " + cuentaTarjetas(datos);
       return null;
     },
     irSeccion: (id) => { secActual = id; irA("taller"); window.scrollTo({ top: 0, behavior: "smooth" }); },
@@ -1239,6 +1252,147 @@ function pizarra() {
     aviso: (m) => toast(m),
     alLimite: () => toast("El plan gratis permite " + LIMITES.tarjetas + " tarjetas por pizarra. " + MAS_PRONTO),
   });
+  pzFichasEnlazar(z);
+}
+/* --- Pizarra y Fichas: un elemento, varias miradas (js/cruces.js) --- */
+// Una pizarra conectada con una colección (pizarras.coleccion_id): cada tarjeta nueva con nombre es una ficha, y cada lazo, ruta
+// o flecha entre dos fichas queda como enlace entre ellas. Solo el equipo, mientras Fichas esté en prueba (la base revisa lo mismo).
+let PZF = null, PZ_COLA = Promise.resolve();
+const PZ_FALLO = new Set();
+const pzEncolar = (fn) => (PZ_COLA = PZ_COLA.then(fn).catch((e) => console.error(e)));
+const pzCol = (z) => (EQ && z && z.coleccion_id && z.modo !== "escaleta" ? FICHAS.cols.find((c) => c.id === z.coleccion_id) || null : null);
+const pzNorm = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+const PZ_UNE = { relaciones: "lazo", mapa: "ruta", libre: "flecha" };
+// Colecciones a las que se puede conectar una pizarra: las que sirven a la categoría, con la sugerida por el modo primero,
+// más las plantillas sugeridas que aún no tienen colección (se crean al conectar).
+const pref = (z) => (CR.PLANTILLA_MODO[z.modo] || []).filter((k) => fSirve(k, P.tipo));
+function pzOpciones(z) {
+  const pref = (CR.PLANTILLA_MODO[z.modo] || []).filter((k) => fSirve(k, P.tipo));
+  const cols = FICHAS.cols.filter((c) => fSirve(c.plantilla, P.tipo)).sort((a, b) => (pref.includes(b.plantilla) ? 1 : 0) - (pref.includes(a.plantilla) ? 1 : 0));
+  const nuevas = pref.filter((k) => !FICHAS.cols.some((c) => c.plantilla === k));
+  return { cols, nuevas };
+}
+const pzRechazo = (z) => { try { return localStorage.getItem("forja-pz-fichas-no-" + z.id) === "1"; } catch (e) { return false; } };
+function pzFichasHTML(z, edz) {
+  if (!EQ || z.modo === "escaleta") return "";
+  const col = pzCol(z), une = PZ_UNE[z.modo];
+  if (col) return '<div class="pz-fichas" style="--tc:' + tc(P.tipo) + '"><span class="pzf-ic" aria-hidden="true">▤</span><span class="pzf-t">Conectada con <button type="button" class="hj-ir" data-pzf-ir>«' + esc(col.nombre) + '» en Fichas</button>: cada ' + esc(CR.nombrePl(col.plantilla).uno) + " nuevo es una ficha y cada " + une + ", un enlace entre fichas.</span>" +
+    (edz ? '<span id="pzf-soltar-w"><button type="button" class="hj-ir suave" data-pzf-soltar>Desconectar</button></span>' : "") + "</div>";
+  if (!edz) return "";
+  const { cols, nuevas } = pzOpciones(z); if (!cols.length && !nuevas.length) return "";
+  const D = normalPiz(z.datos, z.modo), n = D.tarjetas.filter((t) => !t.enlace && String(t.titulo || "").trim()).length;
+  if (pzRechazo(z)) return '<div class="pz-fichas chica"><button type="button" class="hj-ir" data-pzf-abrir>Conectar esta pizarra con Fichas</button></div>';
+  return '<div class="pz-fichas oferta" style="--tc:' + tc(P.tipo) + '"><span class="pzf-ic" aria-hidden="true">▤</span><div class="pzf-t"><b>' + (n ? (n === 1 ? "Su tarjeta puede pasar" : "Sus " + n + " tarjetas pueden pasar") + " a Fichas." : "Conéctala con Fichas.") + "</b> " +
+    "Cada tarjeta con nombre será una ficha (o se une a la que ya se llame igual) y cada " + une + ", un enlace entre fichas. La pizarra queda como está: no se borra nada.</div>" +
+    '<div class="pzf-acc"><label class="fx-sr" for="pzf-col">Colección</label><select id="pzf-col">' +
+    // Primero lo sugerido por el modo (en Relaciones, personajes; en el Mapa, lugares), aunque haya que crear la colección.
+    [...cols.filter((c) => pref(z).includes(c.plantilla)).map((c) => [c.id, c.nombre]), ...nuevas.map((k) => ["+" + k, "Nueva: " + FPL[k].n]), ...cols.filter((c) => !pref(z).includes(c.plantilla)).map((c) => [c.id, c.nombre])]
+      .map(([v, n]) => '<option value="' + v + '">' + esc(n) + "</option>").join("") + "</select>" +
+    '<button type="button" class="btn chico prim" data-pzf-conectar>' + (n ? "Pasar a fichas" : "Conectar") + '</button><button type="button" class="btn chico" data-pzf-no>Ahora no</button></div></div>';
+}
+function pzFichasEnlazar(z) {
+  const w = $("panel"), q = (x) => w.querySelector(x); if (!q(".pz-fichas")) return;
+  if (q("[data-pzf-ir]")) q("[data-pzf-ir]").onclick = () => { try { sessionStorage.setItem("forja-coleccion-abrir", z.coleccion_id); } catch (e) {} DESDE_RUTA = false; irA("fichas"); };
+  if (q("[data-pzf-no]")) q("[data-pzf-no]").onclick = () => { try { localStorage.setItem("forja-pz-fichas-no-" + z.id, "1"); } catch (e) {} pintarPestana(); };
+  if (q("[data-pzf-abrir]")) q("[data-pzf-abrir]").onclick = () => { try { localStorage.removeItem("forja-pz-fichas-no-" + z.id); } catch (e) {} pintarPestana(); };
+  if (q("[data-pzf-conectar]")) q("[data-pzf-conectar]").onclick = (e) => { e.target.disabled = true; pzConectar(z, q("#pzf-col").value); };
+  if (q("[data-pzf-soltar]")) q("[data-pzf-soltar]").onclick = () => {
+    $("pzf-soltar-w").innerHTML = '<span class="hint">Las fichas y sus enlaces quedan en Fichas. ¿Desconectar?</span> <button type="button" class="btn chico" id="pzf-si">Sí</button> <button type="button" class="btn chico" id="pzf-nop">No</button>';
+    $("pzf-nop").onclick = () => pintarPestana();
+    $("pzf-si").onclick = async () => {
+      const { error } = await sb.from("pizarras").update({ coleccion_id: null }).eq("id", z.id);
+      if (error) { toast(limite(error) || "No se pudo desconectar."); return; }
+      z.coleccion_id = null; try { localStorage.setItem("forja-pz-fichas-no-" + z.id, "1"); } catch (e) {} pintarPestana();
+    };
+  };
+}
+// La ficha de una tarjeta: la de la colección que ya se llame igual, o una nueva con lo que la tarjeta tiene escrito.
+async function pzFichaPara(col, t) {
+  const nombre = String(t.titulo || "").trim().slice(0, 160);
+  const ya = FICHAS.fichas.find((f) => f.coleccion_id === col.id && pzNorm(f.titulo) === pzNorm(nombre));
+  if (ya) return ya;
+  const pl = CR.nombrePl(col.plantilla), { datos, texto } = CR.datosDeTarjeta(t, col.plantilla), hs = FICHAS.fichas.filter((f) => f.coleccion_id === col.id);
+  const { data, error } = await sb.from("elementos").insert({ espacio_id: P.espacio_id, proyecto_id: P.id, coleccion_id: col.id, plantilla: col.plantilla, titulo: nombre, datos, texto, estado: pl.estados[0] || null, orden: Math.max(-1, ...hs.map((f) => f.orden)) + 1 })
+    .select("id,titulo,coleccion_id,enlaces,orden,texto,datos,estado,creado_en").single();
+  if (error) { if (!PZ_FALLO.size) toast(limite(error) || "No se pudo crear la ficha de «" + nombre + "»."); PZ_FALLO.add(t.id); return null; }
+  FICHAS.fichas = [...FICHAS.fichas, data];
+  if (PZF) PZF.push({ id: data.id, titulo: data.titulo, col: data.coleccion_id, enlaces: [] });
+  marcarHecho("fichas");
+  return data;
+}
+// Las flechas entre dos fichas, como enlaces: { "de|a|t": { de, a, t, n } } (ids de fichas).
+function pzEnlaces(datos, modo) {
+  const D = normalPiz(datos, modo), T = new Map(D.tarjetas.map((t) => [t.id, t])), out = new Map();
+  const fid = (id) => { const t = T.get(id); return t && t.enlace && t.enlace.t === "f" && FICHAS.fichas.some((f) => f.id === t.enlace.id) ? t.enlace.id : null; };
+  D.flechas.forEach((f) => { const a = fid(f.de), b = fid(f.a); if (!a || !b || a === b) return; const e = CR.enlaceDeFlecha(f, modo); out.set(a + "|" + b + "|" + e.t, { de: a, a: b, t: e.t, n: e.n }); });
+  return { out, fichas: new Set(D.tarjetas.filter((t) => t.enlace && t.enlace.t === "f").map((t) => t.enlace.id)) };
+}
+// Después de cada guardado de una pizarra conectada: tarjetas nuevas → fichas, nombres → fichas, flechas → enlaces.
+async function pzSincronizar(z, prev, datos) {
+  const col = pzCol(z); if (!col || !fSirve(col.plantilla, P.tipo) || nivelDe("taller") !== "editar" || !editable(P, ACT, PL)) return;
+  const D = normalPiz(datos, z.modo);
+  for (const t of D.tarjetas) {
+    if (t.enlace || t.suelta || PZ_FALLO.has(t.id) || !String(t.titulo || "").trim()) continue;
+    const f = await pzFichaPara(col, t); if (!f) continue;
+    // Si se unió a una ficha que ya existía, la tarjeta toma su nombre (la ficha manda); si es nueva, ya se llaman igual.
+    if (f.titulo !== String(t.titulo || "").trim()) t.titulo = f.titulo;
+    if (EDITOR && pizSel === z.id && EDITOR.enlazarTarjeta) EDITOR.enlazarTarjeta(t.id, { t: "f", id: f.id }, f.titulo); // vuelve a guardar y a sincronizar
+  }
+  // Nombres: la tarjeta manda mientras se escribe en la pizarra.
+  for (const t of D.tarjetas) {
+    if (!t.enlace || t.enlace.t !== "f") continue;
+    const f = FICHAS.fichas.find((x) => x.id === t.enlace.id), nombre = String(t.titulo || "").trim().slice(0, 160);
+    if (!f || !nombre || f.titulo === nombre) continue;
+    const { error } = await sb.from("elementos").update({ titulo: nombre }).eq("id", f.id);
+    if (!error) { f.titulo = nombre; const g = PZF && PZF.find((x) => x.id === f.id); if (g) g.titulo = nombre; }
+  }
+  // Enlaces: se agregan los de las flechas nuevas o cambiadas y se quitan los de flechas borradas (si sus dos tarjetas siguen ahí).
+  const ahora = pzEnlaces(datos, z.modo), antes = pzEnlaces(prev || {}, z.modo), tocar = new Map();
+  const de = (id) => { if (!tocar.has(id)) { const f = FICHAS.fichas.find((x) => x.id === id); if (!f) return null; tocar.set(id, { f, en: (f.enlaces || []).map((x) => ({ ...x })), cambio: false }); } return tocar.get(id); };
+  ahora.out.forEach((e) => {
+    const x = de(e.de); if (!x) return;
+    const ya = x.en.find((y) => y.a === e.a && y.t === e.t);
+    if (!ya) { if (x.en.length < 30) { x.en.push(e.n ? { a: e.a, t: e.t, n: e.n } : { a: e.a, t: e.t }); x.cambio = true; } }
+    else if ((ya.n || "") !== e.n) { if (e.n) ya.n = e.n; else delete ya.n; x.cambio = true; }
+  });
+  antes.out.forEach((e, k) => {
+    if (ahora.out.has(k) || !ahora.fichas.has(e.de) || !ahora.fichas.has(e.a)) return;
+    const x = de(e.de); if (!x) return;
+    const n0 = x.en.length; x.en = x.en.filter((y) => !(y.a === e.a && y.t === e.t)); if (x.en.length !== n0) x.cambio = true;
+  });
+  for (const x of tocar.values()) {
+    if (!x.cambio) continue;
+    const { data, error } = await sb.from("elementos").update({ enlaces: x.en }).eq("id", x.f.id).select("enlaces").maybeSingle();
+    if (error) { toast(limite(error) || "No se pudo guardar un enlace entre fichas."); continue; }
+    x.f.enlaces = (data && data.enlaces) || x.en; const g = PZF && PZF.find((y) => y.id === x.f.id); if (g) g.enlaces = x.f.enlaces;
+  }
+}
+// Conectar: crea la colección si hace falta, pasa las tarjetas con nombre a fichas (sin tocar la pizarra más que su enlace) y las flechas a enlaces.
+async function pzConectar(z, valor) {
+  if (EDITOR) { EDITOR.destruir(); EDITOR = null; }
+  await PZ_COLA; await new Promise((r) => setTimeout(r, 300)); // lo último que se escribió termina de guardarse
+  let col = FICHAS.cols.find((c) => c.id === valor);
+  if (!col && String(valor).startsWith("+")) {
+    const k = valor.slice(1);
+    const { data, error } = await sb.from("colecciones").insert({ espacio_id: P.espacio_id, proyecto_id: P.id, plantilla: k, nombre: FPL[k].n, orden: FICHAS.cols.length }).select("id,nombre,plantilla").single();
+    if (error) { toast(limite(error) || "No se pudo crear la colección en Fichas."); pintarPestana(); return; }
+    col = data; FICHAS.cols = [...FICHAS.cols, col];
+  }
+  if (!col) { pintarPestana(); return; }
+  const r1 = await sb.from("pizarras").update({ coleccion_id: col.id }).eq("id", z.id);
+  if (r1.error) { toast(limite(r1.error) || "No se pudo conectar la pizarra."); pintarPestana(); return; }
+  z.coleccion_id = col.id; PZ_FALLO.clear();
+  const D = normalPiz(z.datos, z.modo); let nuevas = 0, unidas = 0;
+  for (const t of D.tarjetas) {
+    if (t.enlace || t.suelta || !String(t.titulo || "").trim()) continue;
+    const antesN = FICHAS.fichas.length, f = await pzFichaPara(col, t); if (!f) break;
+    t.enlace = { t: "f", id: f.id }; t.titulo = f.titulo; if (FICHAS.fichas.length > antesN) nuevas++; else unidas++;
+  }
+  const r2 = await sb.from("pizarras").update({ datos: D }).eq("id", z.id);
+  if (r2.error) toast(limite(r2.error) || "Las fichas quedaron listas, pero la pizarra no se pudo actualizar.");
+  else { z.datos = D; await pzSincronizar(z, {}, D); }
+  toast(nuevas || unidas ? (nuevas ? nuevas + (nuevas === 1 ? " ficha nueva" : " fichas nuevas") : "") + (nuevas && unidas ? " y " : "") + (unidas ? unidas + (unidas === 1 ? " unida a una que ya existía" : " unidas a fichas que ya existían") : "") + " en «" + col.nombre + "»." : "Conectada con «" + col.nombre + "».");
+  pintarPestana();
 }
 // Elegir el modo de una pizarra nueva. Los de Forja Más se muestran con su etiqueta; tocarlos explica y ofrece "Avísame".
 function elegirModo() {
@@ -1257,7 +1411,7 @@ function elegirModo() {
   });
 }
 async function crearPizarra(modo) {
-  const { data, error } = await sb.from("pizarras").insert({ espacio_id: ESP, proyecto_id: P.id, modo, nombre: MODOS[modo].n, datos: modo === "escaleta" ? normalPiz({}, "escaleta") : {} }).select("id,nombre,modo,datos,creado_en").single();
+  const { data, error } = await sb.from("pizarras").insert({ espacio_id: ESP, proyecto_id: P.id, modo, nombre: MODOS[modo].n, datos: modo === "escaleta" ? normalPiz({}, "escaleta") : {} }).select("id,nombre,modo,datos,creado_en,coleccion_id").single();
   if (error) { toast(limite(error) || "No se pudo crear la pizarra."); return; }
   PIZ.push(data); pizSel = data.id; recordarPiz(data.id); pintarTabs(); pintarPestana(); toast(MODOS[modo].n + " lista");
 }

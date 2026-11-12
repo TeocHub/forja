@@ -5,7 +5,7 @@
 // Taller lo crea en Fichas y al revés. Fichas guarda los datos; el Taller, el texto largo.
 // Mientras Fichas sea solo del equipo, quien no es del equipo ve el Taller como siempre (la base revisa lo mismo).
 // Un solo archivo para proyecto/ (Taller y Fichas), la biblia, la vitrina y lectores beta.
-import { PLANTILLAS, sirve } from "./fichas-plantillas.js";
+import { PLANTILLAS, sirve, ENLACES } from "./fichas-plantillas.js";
 
 // Sección del Taller (guía de guias.js) → plantilla de Fichas, con preguntas que van más allá de los datos de la ficha.
 // `varios`: cómo se nombran en plural; `conjunto`: preguntas para el texto de la sección; `uno`: para la hoja de cada elemento.
@@ -85,3 +85,35 @@ export function textoCompleto(sec, elementos) {
 }
 // Cómo se nombran en plural los elementos de una sección («los personajes»).
 export const varios = (guia, pl) => (CRUCES[guia] && CRUCES[guia].varios) || "las " + (PLANTILLAS[pl] || PLANTILLAS.libre).n.toLowerCase();
+
+// La Pizarra y Fichas (desde el 2026-11-12): una pizarra se conecta con una colección (pizarras.coleccion_id). En Relaciones
+// las tarjetas son los personajes; en el Mapa, los lugares; en la libre, cualquier colección (un bucle de mecánicas, una ruta de
+// pistas). Cada tarjeta nueva con nombre es una ficha, y cada lazo, ruta o flecha entre dos de ellas, un enlace entre fichas.
+// Qué plantilla se sugiere por modo (la primera que sirva a la categoría); la libre acepta cualquiera.
+export const PLANTILLA_MODO = { relaciones: ["personajes"], mapa: ["lugares"], libre: [] };
+const DE_ORDEN = (t) => t === "abre" || t === "necesita";
+// Una flecha de la pizarra → el enlace que guarda la ficha de origen: { t, n }.
+export function enlaceDeFlecha(f, modo) {
+  const texto = String(f.texto || "").trim().slice(0, 120);
+  if (modo === "relaciones") return { t: f.lazo && f.lazo !== "otro" ? f.lazo : "lazo", n: texto };
+  if (modo === "mapa") return { t: "ruta", n: texto };
+  return DE_ORDEN(texto) ? { t: texto, n: "" } : { t: "lleva", n: texto };
+}
+// Un enlace de ficha → los datos de su flecha en una pizarra (al traer una colección completa).
+export function flechaDeEnlace(e, modo) {
+  const grupo = (ENLACES[e.t] || [])[2];
+  if (modo === "relaciones") return { lazo: grupo === "lazo" && e.t !== "lazo" ? e.t : "otro", texto: e.n || (grupo === "lazo" ? "" : ENLACES[e.t] ? ENLACES[e.t][0] : ""), dir: grupo === "lazo" ? "nada" : "a" };
+  if (modo === "mapa") return { texto: e.n || (e.t === "ruta" ? "" : ENLACES[e.t] ? ENLACES[e.t][0] : ""), dir: e.t === "ruta" ? "nada" : "a" };
+  return { texto: e.n || (DE_ORDEN(e.t) ? e.t : e.t === "lleva" ? "" : ENLACES[e.t] ? ENLACES[e.t][0] : ""), dir: "a" };
+}
+// Lo que una tarjeta ya tiene escrito pasa a la ficha nueva: el detalle y las notas van al campo que corresponde a su plantilla.
+// Lo que no calza con un campo va a la hoja del Taller de la ficha. La tarjeta no se toca.
+export function datosDeTarjeta(t, plantilla) {
+  const pl = PLANTILLAS[plantilla] || PLANTILLAS.libre, datos = {}, sub = String(t.sub || "").trim(), texto = String(t.texto || "").trim();
+  const opcion = (k) => { const c = pl.campos.find((x) => x.k === k); return c && c.op ? c.op.find((o) => o.toLowerCase() === sub.toLowerCase()) : null; };
+  let resto = [];
+  if (sub) { const op = opcion("rol") || opcion("clase"); if (op) datos[pl.campos.find((x) => x.k === "rol") ? "rol" : "clase"] = op; else resto.push(sub); }
+  const largo = { personajes: "quiere", lugares: "como", mecanicas: "cambia", contenido: "desc", cartas: "efecto", componentes: "notas", pilares: "que", series: "idea", producto: "larga", libre: "notas" }[plantilla];
+  if (texto && largo && pl.campos.some((x) => x.k === largo)) datos[largo] = texto.slice(0, 4000); else if (texto) resto.push(texto);
+  return { datos, texto: resto.join("\n\n") };
+}

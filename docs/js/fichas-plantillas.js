@@ -118,5 +118,16 @@ export const MAX_CAMPOS = 12;
 // Campos de una colección: los de su plantilla más los propios.
 export const camposDe = (c) => [...((PLANTILLAS[c.plantilla] || PLANTILLAS.libre).campos), ...((c.campos || []).filter((x) => x && /^p_[a-z0-9_]+$/.test(x.k)))];
 
-// Enlaces entre fichas. Cada uno se guarda en la ficha de origen.
-export const ENLACES = { abre: ["abre", "La abre"], necesita: ["necesita", "La necesita"] };
+// Enlaces entre fichas. Cada uno se guarda en la ficha de origen: { a: id de la otra ficha, t: tipo, n: nota corta opcional }.
+// [cómo se lee desde la ficha que sale, cómo se lee desde la que llega, grupo]. La base acepta los mismos tipos
+// (privado.t_elementos: cambiar ambos juntos). Los lazos vienen del mapa de relaciones y las rutas del mapa del mundo.
+export const ENLACES = {
+  abre: ["abre", "La abre", "orden"], necesita: ["necesita", "La necesita", "orden"], lleva: ["lleva a", "Viene de", "orden"],
+  familia: ["Familia", "Familia", "lazo"], amor: ["Amor", "Amor", "lazo"], amistad: ["Amistad", "Amistad", "lazo"], alianza: ["Alianza", "Alianza", "lazo"],
+  mentor: ["Mentor de", "Su mentor", "lazo"], rivalidad: ["Rivalidad", "Rivalidad", "lazo"], secreto: ["Secreto", "Secreto", "lazo"], lazo: ["Lazo", "Lazo", "lazo"],
+  ruta: ["Ruta a", "Ruta desde", "ruta"],
+};
+// Cómo se lee un enlace en la ficha: «Esta abre → X», «Familia · X», «Ruta a X».
+export const textoEnlace = (t, sale) => { const e = ENLACES[t] || ENLACES.lazo; return e[2] === "orden" ? (sale ? "Esta " + e[0] + " →" : e[1]) : e[2] === "lazo" ? (sale ? e[0] : e[1]) + " ·" : sale ? e[0] : e[1]; };
+// Para elegir en Fichas: los de orden primero, después lazos y rutas.
+export const GRUPOS_ENLACE = [["orden", "Orden"], ["lazo", "Lazos"], ["ruta", "Lugares"]];

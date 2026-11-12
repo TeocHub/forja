@@ -1,4 +1,5 @@
 import { ayudaImagenes } from "./forja.js";
+import { flechaDeEnlace } from "./cruces.js";
 // Forja · Pizarra. Un tablero dentro de cada proyecto, en cuatro modos:
 //   libre      tarjetas, colores y flechas para ordenar ideas (plan gratis: una por proyecto, 20 tarjetas)
 //   relaciones personajes o facciones unidos por lazos con nombre          (Forja Más)
@@ -8,6 +9,9 @@ import { ayudaImagenes } from "./forja.js";
 // Los datos de una pizarra viven en public.pizarras.datos:
 //   { tarjetas:[{id,x,y,titulo,sub,texto,color,enlace:{t:"s"|"r"|"f",id},acto,min}], flechas:[{id,de,a,texto,lazo,dir}],
 //     regiones:[{id,x,y,w,h,nombre,color}], actos:[{id,n}], fondo:{url,w} }
+// Conectada con Fichas (pizarras.coleccion_id, solo el equipo mientras Fichas esté en prueba; ver cruces.js): o.coleccion dice
+// con cuál. Cada tarjeta nueva con nombre se vuelve una ficha (la página la crea y llama a enlazarTarjeta), salvo las marcadas
+// `suelta` («solo en esta pizarra»); la página también pasa cada lazo, ruta o flecha entre dos fichas a un enlace entre ellas.
 
 export const MODOS = {
   libre: { n: "Pizarra libre", corto: "Libre", d: "Tarjetas, colores y flechas para ordenar ideas, con tus secciones y referentes a mano.", mas: false },
@@ -95,11 +99,15 @@ const dirDef = (modo) => (modo === "libre" ? "a" : "nada");
 
 /* ---------- editor ---------- */
 // o: { piz:{id,nombre,modo,datos}, editable, max, secciones:[{id,titulo}], referentes:[{id,tipo,valor,titulo}],
-//      guardar(datos)→Promise<string|null>, irSeccion(id), irReferente(id), ordenarTaller(ids)?, aviso(msg), alLimite() }
+//      fichas:[{id,titulo,col,enlaces}] (lista viva: la página agrega las fichas nuevas), colecciones, coleccion:{id,nombre,uno}?,
+//      guardar(datos)→Promise<string|null>, irSeccion(id), irReferente(id), irFicha(id), ordenarTaller(ids)?, aviso(msg), alLimite() }
 export function montar(raiz, o) {
   const modo = MODOS[o.piz.modo] ? o.piz.modo : "libre", ed = !!o.editable, max = o.max ?? Infinity;
   const D = normal(o.piz.datos, modo);
   const ES = modo === "escaleta";
+  // Una ficha renombrada en Fichas o en el Taller se ve con su nombre nuevo (es el mismo elemento).
+  let renombradas = false;
+  D.tarjetas.forEach((t) => { if (t.enlace && t.enlace.t === "f") { const f = (o.fichas || []).find((x) => x.id === t.enlace.id); if (f && f.titulo && f.titulo !== t.titulo) { t.titulo = f.titulo; renombradas = true; } } });
   let sel = null, V = { x: 40, y: 40, z: 1 }, hist = [], rehacer = [], pendiente = false, tGuardar = null, vivo = true, fondoMal = false;
   const tam = new Map();
   const claveVista = "forja-pz-vista-" + o.piz.id;
@@ -207,7 +215,8 @@ export function montar(raiz, o) {
     const tarjetaDe = (fid) => D.tarjetas.find((t) => t.enlace && t.enlace.t === "f" && t.enlace.id === fid);
     (o.fichas || []).forEach((f) => (f.enlaces || []).forEach((e) => {
       const de = tarjetaDe(f.id), a = tarjetaDe(e.a);
-      if (de && a && !D.flechas.some((x) => x.de === de.id && x.a === a.id && x.texto === e.t)) D.flechas.push({ id: uid(), de: de.id, a: a.id, texto: e.t, dir: "a", ...(modo === "relaciones" ? { lazo: "otro" } : {}) });
+      // Lazos, rutas y «abre / necesita» se dibujan con su tipo (cruces.js).
+      if (de && a && !D.flechas.some((x) => (x.de === de.id && x.a === a.id) || (x.de === a.id && x.a === de.id))) { const fl = flechaDeEnlace(e, modo); D.flechas.push({ id: uid(), de: de.id, a: a.id, texto: fl.texto, dir: fl.dir, ...(modo === "relaciones" ? { lazo: fl.lazo } : {}) }); }
     }));
     if (cabe < fs.length) puedeCrear();
     sel = null; todo(); verTodo(); cambio();
@@ -267,7 +276,7 @@ export function montar(raiz, o) {
     if (!t.enlace) return "";
     const s = ENL(t.enlace);
     if (!s) return t.enlace.t === "f" && !o.fichas ? "" : '<span class="pz-chip roto" title="Ya no existe en el proyecto">enlace perdido</span>';
-    return '<button type="button" class="pz-chip" data-ir="' + t.enlace.t + ":" + t.enlace.id + '" tabindex="-1">' + (t.enlace.t === "s" ? "§ " + esc(s.titulo) : t.enlace.t === "f" ? "▤ " + esc(s.titulo) : "✦ " + esc(nombreRef(s))) + "</button>";
+    return '<button type="button" class="pz-chip" data-ir="' + t.enlace.t + ":" + t.enlace.id + '" tabindex="-1">' + (t.enlace.t === "s" ? "§ " + esc(s.titulo) : t.enlace.t === "f" ? "▤ " + (s.titulo === t.titulo ? "Ficha" : esc(s.titulo)) : "✦ " + esc(nombreRef(s))) + "</button>";
   }
   function media(t) {
     const r = t.enlace && t.enlace.t === "r" ? REF(t.enlace.id) : null;
@@ -499,9 +508,10 @@ export function montar(raiz, o) {
         (refs.length ? '<optgroup label="Referentes">' + refs.map((x) => '<option value="r:' + x.id + '"' + (en === "r:" + x.id ? " selected" : "") + ">" + esc(nombreRef(x)) + "</option>").join("") + "</optgroup>" : "") +
         (fis.length ? '<optgroup label="Fichas">' + fis.map((x) => '<option value="f:' + x.id + '"' + (en === "f:" + x.id ? " selected" : "") + ">" + esc(x.titulo) + "</option>").join("") + "</optgroup>" : "") + "</select></label>" +
         (ENL(t.enlace) ? '<button type="button" class="pz-b pz-libre" data-i="ir">Abrir ' + (t.enlace.t === "s" ? "en el Taller" : t.enlace.t === "f" ? "en Fichas" : "en Referentes") + " →</button>" : "") +
+        (o.coleccion && !ES && (!t.enlace || t.enlace.t === "f") ? '<div class="pz-fi" data-fichalinea>' + lineaFicha(t) + "</div>" : "") +
         (ES && ed ? '<div class="pz-mover" role="group" aria-label="Mover escena"><button type="button" class="pz-b" data-m="0,-1">↑ Antes</button><button type="button" class="pz-b" data-m="0,1">↓ Después</button><button type="button" class="pz-b" data-m="-1,0">← Acto</button><button type="button" class="pz-b" data-m="1,0">Acto →</button></div>' : "") +
         (!ES && rel.length ? '<div class="pz-rel"><span>' + (modo === "relaciones" ? "Lazos" : modo === "mapa" ? "Rutas" : "Flechas") + "</span>" + rel.map((f) => { const otro = T(f.de === t.id ? f.a : f.de), st = estiloFlecha(f, modo); return '<button type="button" data-sf="' + f.id + '"' + (st.color ? ' style="--lc:' + st.color + '"' : "") + '><i></i>' + (st.texto ? esc(st.texto) + " · " : "") + esc(otro.titulo || "sin título") + "</button>"; }).join("") + "</div>" : "") +
-        (ed ? '<div class="pz-i-pie"><button type="button" class="pz-b" data-i="duplicar">Duplicar</button><button type="button" class="pz-b peligro" data-i="borrar">Borrar</button></div>' : "") +
+        (ed ? '<div class="pz-i-pie"><button type="button" class="pz-b" data-i="duplicar">Duplicar</button><button type="button" class="pz-b peligro" data-i="borrar"' + (FIC(t.enlace && t.enlace.t === "f" ? t.enlace.id : "") ? ' title="La ficha sigue en Fichas">Quitar de la pizarra' : ">Borrar") + "</button></div>" : "") +
         (ed && !ES && !rel.length ? '<p class="pz-tip">Para unirla con otra, arrastra el punto <span class="pz-punto"></span> de su borde.</p>' : "");
     } else if (s.k === "f") {
       const f = D.flechas.find((x) => x.id === s.id), a = T(f.de), b = T(f.a), dir = f.dir || dirDef(modo);
@@ -542,6 +552,14 @@ export function montar(raiz, o) {
     const n = D.tarjetas.length;
     return cab(MODOS[modo].n) + '<p class="pz-resumen"><b>' + n + "</b> " + (n === 1 ? NOMBRE_T[modo].toLowerCase() : PLURAL[modo]) + (ES ? minTotal() : "") + '</p><div class="pz-ayuda"><p>' + (ES ? "Toca una escena para leerla." : "Toca " + (modo === "relaciones" ? "un personaje" : modo === "mapa" ? "un lugar" : "una tarjeta") + " para leerla.") + "</p>" + (ES ? "" : "<p>" + (matchMedia("(pointer: coarse)").matches ? "Arrastra para moverte; pellizca para acercar." : "Arrastra para moverte; la rueda acerca.") + "</p>") + "</div>";
   }
+  // Qué es esta tarjeta para Fichas (solo en una pizarra conectada).
+  function lineaFicha(t) {
+    const c = o.coleccion, f = t.enlace && t.enlace.t === "f" ? FIC(t.enlace.id) : null;
+    if (f) return '<span class="pz-fi-ok">▤</span><span>Es una ficha' + (f.col === c.id ? " de «" + esc(c.nombre) + "»" : "") + ". Lo que cambies en su nombre cambia también en Fichas; quitarla de la pizarra no la borra.</span>";
+    if (t.suelta) return "<span>Solo en esta pizarra, no es una ficha.</span>" + (ed ? '<button type="button" class="pz-b pz-libre" data-i="suelta">Hacerla ficha</button>' : "");
+    return "<span>" + (t.titulo ? "Se está guardando como ficha de «" + esc(c.nombre) + "»…" : "Ponle nombre y se vuelve " + (c.uno === "personaje" || c.uno === "componente" || c.uno === "producto" || c.uno === "lugar u objeto" ? "un " : "una ") + esc(c.uno) + " en Fichas.") + "</span>" +
+      (ed ? '<button type="button" class="pz-b pz-libre" data-i="suelta">Dejarla solo en la pizarra</button>' : "");
+  }
   function campo(k, label, v, ro, ph) { return '<label class="pz-c"><span>' + label + '</span><input data-campo="' + k + '" maxlength="' + (k === "titulo" || k === "nombre" || k === "n" ? 120 : 200) + '" value="' + esc(v || "") + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : "") + ro + "></label>"; }
   function colores(actual, ro, sinVacio) {
     return '<div class="pz-c"><span>Color</span><div class="pz-colores" role="radiogroup">' + COLORES.filter(([c]) => !sinVacio || c).map(([c, n]) => '<button type="button" role="radio" aria-checked="' + ((actual || "") === c) + '" aria-label="' + n + '" title="' + n + '" data-color="' + c + '" style="--c:' + (c || "transparent") + '"' + ro + "></button>").join("") + "</div></div>";
@@ -571,6 +589,8 @@ export function montar(raiz, o) {
         if (!ed) return; const x = obj(); if (!x) return;
         if (!tomado) { antes(); tomado = true; }
         const k = i.dataset.campo; x[k] = k === "min" ? (i.value === "" ? null : Math.max(0, num(i.value.replace(",", "."), 0))) : i.value;
+        // Una tarjeta que es ficha: su nombre es el de la ficha (la página lo guarda en Fichas al sincronizar).
+        if (k === "titulo" && x.enlace && x.enlace.t === "f") { const f = FIC(x.enlace.id), op = aside.querySelector("[data-i=enlace] option:checked"); if (f && i.value.trim()) f.titulo = i.value.trim(); if (op && i.value.trim()) op.textContent = i.value.trim(); }
         repintarUno(); cambio();
       });
     });
@@ -591,6 +611,7 @@ export function montar(raiz, o) {
       if (k === "cerrar") { seleccionar(null); (lienzo || escW).focus({ preventScroll: true }); }
       else if (k === "borrar") borrarSel();
       else if (k === "ir") { const t = obj(); irEnlace(t.enlace.t + ":" + t.enlace.id); }
+      else if (k === "suelta") { const t = obj(); antes(); if (t.suelta) delete t.suelta; else t.suelta = true; pintarInsp(); cambio(); }
       else if (k === "invertir") { antes(); const f = obj(); [f.de, f.a] = [f.a, f.de]; pintarLineas(); pintarInsp(); cambio(); }
       else if (k === "duplicar") {
         if (!puedeCrear()) return; antes(); const t = obj(), c = { ...JSON.parse(JSON.stringify(t)), id: uid(), x: t.x + 24, y: t.y + 24 };
@@ -709,6 +730,7 @@ export function montar(raiz, o) {
 
   /* ----- arranque ----- */
   pintarBarra(); todo();
+  if (renombradas && ed) cambio();
   if (lienzo) {
     let guardada = null; if (!o.publico) try { guardada = JSON.parse(localStorage.getItem(claveVista) || "null"); } catch (e) {} // en una vitrina siempre se parte viendo todo
     requestAnimationFrame(() => { medir(); pintarLineas(); if (guardada && Number.isFinite(guardada.z)) { V = guardada; aplicarVista(); } else verTodo(); });
@@ -722,6 +744,20 @@ export function montar(raiz, o) {
   return {
     destruir() { alSalir(); vivo = false; window.removeEventListener("pagehide", alSalir); if (ro2) ro2.disconnect(); document.documentElement.classList.remove("pz-sin-scroll"); },
     hayCambios: () => pendiente,
+    // La página creó (o encontró) la ficha de una tarjeta: queda enlazada sin tocar lo que la persona está escribiendo.
+    enlazarTarjeta(id, enlace, titulo) {
+      const t = T(id); if (!t || !vivo) return;
+      t.enlace = enlace; delete t.suelta;
+      // Se unió a una ficha que ya existía: la tarjeta toma su nombre (y el campo, si no se está escribiendo en él).
+      if (titulo && titulo !== t.titulo) { t.titulo = titulo; const i = aside.querySelector("[data-campo=titulo]"); if (i && sel && sel.id === id && document.activeElement !== i) i.value = titulo; }
+      if (!ES) { const el = mundo.querySelector('.pz-t[data-id="' + id + '"]'); if (el) { el.outerHTML = htmlTarjeta(t); if (sel && sel.id === id) marcar(); medir(); pintarLineas(); } }
+      if (sel && sel.k === "t" && sel.id === id) {
+        const l = aside.querySelector("[data-fichalinea]"); if (l) l.innerHTML = lineaFicha(t);
+        const s2 = aside.querySelector("[data-i=enlace]"), f = FIC(enlace.id);
+        if (s2 && f) { if (![...s2.options].some((x) => x.value === "f:" + f.id)) s2.insertAdjacentHTML("beforeend", '<option value="f:' + f.id + '">' + esc(f.titulo) + "</option>"); s2.value = "f:" + f.id; }
+      }
+      cambio();
+    },
   };
 }
 function debounceL(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
@@ -791,6 +827,10 @@ export function estatica(piz, o = {}) {
 
 /* ---------- estilos ---------- */
 export const CSS_PIZARRA = `
+.pz-fi{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:13px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:7px 9px}
+.pz-fi span{flex:1 1 160px}
+.pz-fi .pz-fi-ok{flex:none;color:var(--tc,var(--accent));font-weight:700}
+
 .pz{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden;min-width:0}
 .pz.pz-full{position:fixed;inset:0;z-index:60;border-radius:0;border:0}
 html.pz-sin-scroll,html.pz-sin-scroll body{overflow:hidden}

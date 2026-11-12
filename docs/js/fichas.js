@@ -2,7 +2,7 @@
 // Tablas public.colecciones y public.elementos. La base revisa categoría, plan, topes y enlaces (privado.t_colecciones, t_elementos);
 // esta página solo lo muestra. Mientras se prueba, solo la ve el equipo Digital Monster (privado.herramientas_equipo).
 import { esc, debounce, limite, tope, LIMITES, MAS_LINK } from "./forja.js";
-import { PLANTILLAS, plantillasDe, sirve, camposDe, TIPOS_CAMPO, MAX_CAMPOS, ENLACES } from "./fichas-plantillas.js";
+import { PLANTILLAS, plantillasDe, sirve, camposDe, TIPOS_CAMPO, MAX_CAMPOS, ENLACES, textoEnlace, GRUPOS_ENLACE } from "./fichas-plantillas.js";
 import { pista } from "./ayuda.js";
 import { CRUCES } from "./cruces.js";
 
@@ -147,7 +147,7 @@ export async function vista(ctx) {
       (img ? '<img src="' + esc(img) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : "") +
       '<span class="fi-t-tit">' + esc(f.titulo) + "</span>" +
       ver.map((x) => '<span class="fi-t-dato"><i>' + esc(x.n) + "</i>" + esc(corta(valorTxt(x, d[x.k]), x.t === "l" ? 110 : 40)) + "</span>").join("") +
-      (enl.length ? '<span class="fi-t-enl">' + enl.slice(0, 3).map(([x, g]) => "<span>" + esc(ENLACES[x.t][0]) + " → " + esc(corta(g.titulo, 24)) + "</span>").join("") + (enl.length > 3 ? "<span>+" + (enl.length - 3) + "</span>" : "") + "</span>" : "") +
+      (enl.length ? '<span class="fi-t-enl">' + enl.slice(0, 3).map(([x, g]) => "<span>" + esc(textoEnlace(x.t, true).replace(/^Esta /, "")) + " " + esc(corta(g.titulo, 24)) + "</span>").join("") + (enl.length > 3 ? "<span>+" + (enl.length - 3) + "</span>" : "") + "</span>" : "") +
       (f.estado ? '<span class="fi-t-est">' + esc(f.estado) + "</span>" : "") + "</button>";
   }
 
@@ -193,10 +193,10 @@ export async function vista(ctx) {
       '<div class="fi-fila"><label class="fi-c"><span>Estado</span><select id="fi-estado"' + dis + '><option value="">—</option>' + [...new Set([...pl.estados, f.estado].filter(Boolean))].map((o) => "<option" + (o === f.estado ? " selected" : "") + ">" + esc(o) + "</option>").join("") + "</select></label>" +
       '<label class="fi-c"><span>Fecha</span><input type="date" id="fi-fecha" value="' + esc(f.fecha || "") + '"' + dis + "></label></div>" +
       '<div class="fi-enl"><span class="fi-enl-t">Enlaces con otras fichas</span>' +
-      (salen.length || llegan.length ? '<div class="fi-chips">' + salen.map(([x, g]) => chip(g, "Esta " + esc(ENLACES[x.t][0]) + " → <b>" + esc(corta(g.titulo, 30)) + "</b>", x.t + ":" + x.a)).join("") +
-        llegan.map(([x, g]) => chip(g, esc(ENLACES[x.t][1]) + " <b>" + esc(corta(g.titulo, 30)) + "</b>", "")).join("") + "</div>"
+      (salen.length || llegan.length ? '<div class="fi-chips">' + salen.map(([x, g]) => chip(g, esc(textoEnlace(x.t, true)) + " <b>" + esc(corta(g.titulo, 30)) + "</b>" + (x.n ? " <small>" + esc(corta(x.n, 40)) + "</small>" : ""), x.t + ":" + x.a)).join("") +
+        llegan.map(([x, g]) => chip(g, esc(textoEnlace(x.t, false)) + " <b>" + esc(corta(g.titulo, 30)) + "</b>" + (x.n ? " <small>" + esc(corta(x.n, 40)) + "</small>" : ""), "")).join("") + "</div>"
         : '<p class="hint">Une fichas para marcar qué abre qué (una pista abre un acertijo) o qué necesita qué (una carta necesita a otra para jugarse).</p>') +
-      (ed && otras.length ? '<div class="fi-fila fi-unir"><label class="fx-sr" for="fi-ent">Tipo de enlace</label><select id="fi-ent">' + Object.entries(ENLACES).map(([k, [n]]) => '<option value="' + k + '">Esta ' + n + "</option>").join("") + "</select>" +
+      (ed && otras.length ? '<div class="fi-fila fi-unir"><label class="fx-sr" for="fi-ent">Tipo de enlace</label><select id="fi-ent">' + GRUPOS_ENLACE.map(([gk, gn]) => '<optgroup label="' + gn + '">' + Object.entries(ENLACES).filter(([, e]) => e[2] === gk).map(([k]) => '<option value="' + k + '">' + esc(textoEnlace(k, true)) + "</option>").join("") + "</optgroup>").join("") + "</select>" +
         '<label class="fx-sr" for="fi-ena">Ficha</label><select id="fi-ena"><option value="">Elige una ficha…</option>' +
         D.cols.map((c2) => { const g = otras.filter((x) => x.coleccion_id === c2.id); return g.length ? '<optgroup label="' + esc(c2.nombre) + '">' + g.map((x) => '<option value="' + x.id + '">' + esc(corta(x.titulo, 50)) + "</option>").join("") + "</optgroup>" : ""; }).join("") +
         '</select><button type="button" class="btn chico" id="fi-unir">Unir</button></div>' : "") + "</div>" +

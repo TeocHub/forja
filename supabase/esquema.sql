@@ -1,5 +1,5 @@
 -- Forja · esquema de la base (Supabase, proyecto "forja", id gfkiwldxxvffnkjcesws).
--- Sacado de la base en vivo el 2026-11-11 (y al día con la migración taller_fichas_enlazados del 2026-11-12): es la foto completa de la estructura y las reglas de acceso, sin ningún dato
+-- Sacado de la base en vivo el 2026-11-11 (y al día con las migraciones taller_fichas_enlazados y pizarra_fichas_enlazadas del 2026-11-12): es la foto completa de la estructura y las reglas de acceso, sin ningún dato
 -- (ni oportunidades, ni cuentas, ni privado.config, que guarda la clave de la cola de correos y se genera dentro de la base).
 -- La fuente sigue siendo la base: todo cambio se aplica como migración y después se vuelve a sacar este archivo.
 -- Orden: extensiones y esquemas, tablas, funciones, restricciones, índices, triggers, reglas (RLS) y permisos.
@@ -220,7 +220,8 @@ create table public.pizarras(
   modo text default 'libre'::text not null,
   datos jsonb default '{}'::jsonb not null,
   creado_en timestamp with time zone default now() not null,
-  actualizado_en timestamp with time zone default now() not null
+  actualizado_en timestamp with time zone default now() not null,
+  coleccion_id uuid
 );
 
 create table public.precios_comunidad(
@@ -2173,6 +2174,16 @@ CREATE OR REPLACE FUNCTION privado.t_pizarras()
 AS $function$
 declare antes int; despues int; primera uuid;
 begin
+  -- Desconectar de Fichas (o que se borre la colección) siempre se puede.
+  if tg_op = 'UPDATE' and new.coleccion_id is null and old.coleccion_id is not null and new.datos = old.datos and new.modo = old.modo and new.nombre = old.nombre then
+    return new;
+  end if;
+  -- Conectar una pizarra con una colección de Fichas: solo el equipo (mientras Fichas esté en prueba) y del mismo proyecto.
+  if new.coleccion_id is not null and (tg_op = 'INSERT' or new.coleccion_id is distinct from old.coleccion_id)
+     and coalesce(current_setting('forja.mover', true), '') <> '1' then
+    if not privado.herramientas_equipo() then raise exception 'FORJA_SOLO_EQUIPO'; end if;
+    if new.modo = 'escaleta' or not exists(select 1 from public.colecciones c where c.id = new.coleccion_id and c.proyecto_id = new.proyecto_id) then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  end if;
   if octet_length(new.datos::text) > 1500000 or privado.tarjetas(new.datos) > 1000 then
     raise exception 'FORJA_PIZARRA_GRANDE';
   end if;
@@ -2479,10 +2490,12 @@ begin
     end if;
   end if;
   if tg_op = 'INSERT' or new.enlaces is distinct from old.enlaces then
-    select coalesce(jsonb_agg(jsonb_build_object('a', x.a, 't', x.t)), '[]'::jsonb) into limpio
-    from (select distinct on (j->>'a', j->>'t') (j->>'a')::uuid as a, j->>'t' as t
+    select coalesce(jsonb_agg(case when x.nota is null then jsonb_build_object('a', x.a, 't', x.t) else jsonb_build_object('a', x.a, 't', x.t, 'n', x.nota) end), '[]'::jsonb) into limpio
+    from (select distinct on (j->>'a', j->>'t') (j->>'a')::uuid as a, j->>'t' as t,
+                 nullif(left(btrim(coalesce(j->>'n', '')), 120), '') as nota
           from jsonb_array_elements(new.enlaces) j
-          where jsonb_typeof(j) = 'object' and j->>'t' in ('abre', 'necesita')
+          where jsonb_typeof(j) = 'object'
+            and j->>'t' in ('abre', 'necesita', 'lleva', 'ruta', 'familia', 'amor', 'amistad', 'alianza', 'mentor', 'rivalidad', 'secreto', 'lazo')
             and (j->>'a') ~ '^[0-9a-f-]{36}$' and (j->>'a')::uuid <> new.id
             and exists(select 1 from public.elementos e where e.id = (j->>'a')::uuid and e.proyecto_id = new.proyecto_id)) x;
     new.enlaces := limpio;
@@ -2628,6 +2641,7 @@ alter table public.correo_prefs add constraint correo_prefs_user_id_fkey FOREIGN
 alter table public.colecciones add constraint colecciones_espacio_id_fkey FOREIGN KEY (espacio_id) REFERENCES espacios(id) ON DELETE CASCADE;
 alter table public.colecciones add constraint colecciones_proyecto_id_fkey FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE;
 alter table public.secciones add constraint secciones_coleccion_id_fkey FOREIGN KEY (coleccion_id) REFERENCES colecciones(id) ON DELETE SET NULL;
+alter table public.pizarras add constraint pizarras_coleccion_id_fkey FOREIGN KEY (coleccion_id) REFERENCES colecciones(id) ON DELETE SET NULL;
 alter table public.elementos add constraint elementos_coleccion_id_fkey FOREIGN KEY (coleccion_id) REFERENCES colecciones(id) ON DELETE CASCADE;
 alter table public.elementos add constraint elementos_espacio_id_fkey FOREIGN KEY (espacio_id) REFERENCES espacios(id) ON DELETE CASCADE;
 alter table public.elementos add constraint elementos_proyecto_id_fkey FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE;
@@ -2694,6 +2708,7 @@ CREATE INDEX avisos_user ON public.avisos USING btree (user_id, creado_en DESC);
 CREATE INDEX colecciones_espacio_idx ON public.colecciones USING btree (espacio_id);
 CREATE INDEX colecciones_proyecto_idx ON public.colecciones USING btree (proyecto_id, orden);
 CREATE UNIQUE INDEX secciones_coleccion_uni ON public.secciones USING btree (coleccion_id) WHERE (coleccion_id IS NOT NULL);
+CREATE INDEX pizarras_coleccion_idx ON public.pizarras USING btree (coleccion_id) WHERE (coleccion_id IS NOT NULL);
 CREATE INDEX elementos_coleccion_idx ON public.elementos USING btree (coleccion_id, orden);
 CREATE INDEX elementos_espacio_idx ON public.elementos USING btree (espacio_id);
 CREATE INDEX elementos_proyecto_idx ON public.elementos USING btree (proyecto_id);
