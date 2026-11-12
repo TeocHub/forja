@@ -116,7 +116,7 @@ function pintar() {
   $("app").innerHTML =
     '<header><h1>Eventos</h1><p class="lead">Las fechas de las ferias, fondos y convocatorias que siguen tus proyectos, de la más cercana a la más lejana.</p></header>' +
     '<section aria-labelledby="t-fechas"><div class="cab"><h2 id="t-fechas">Próximas fechas</h2><a href="../oportunidades/" style="font-size:14px">Ver el calendario completo</a></div>' +
-    (H.length ? '<div class="linea">' + linea + "</div>" : '<div class="vacio">Todavía no sigues oportunidades con fechas próximas. Abajo hay algunas que calzan con tus proyectos; también puedes seguirlas desde la pestaña Oportunidades de cada proyecto.</div>') + "</section>" +
+    (H.length ? '<div class="linea">' + linea + "</div>" : '<div class="vacio">Todavía no sigues oportunidades con fechas próximas. Abajo hay algunas que calzan con tus proyectos; también puedes seguirlas desde cada proyecto, en Mostrar → Oportunidades.</div>') + "</section>" +
     (sug.length ? '<section aria-labelledby="t-sug"><h2 id="t-sug">Para tus proyectos</h2>' + sug.map(({ pr, l }) =>
       '<div class="grupo" style="--tc:' + tc(pr.tipo) + '"><h3>' + esc(pr.nombre) + ' <span style="font-size:12px;color:var(--muted);font-family:var(--f-body);font-weight:400">' + esc(TIPOS[pr.tipo]) + '</span></h3><div class="sugs">' +
       l.map((o) => { const pf = pd(o.postul_fin), ei = pd(o.evento_inicio), t = pf && dias(pf) >= 0 ? "postulación cierra en " + dias(pf) + " días" : "evento en " + dias(ei) + " días";

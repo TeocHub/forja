@@ -43,6 +43,16 @@ body{font-size:16px;line-height:1.55}
 .g-ruta-intro p{margin:0;color:var(--muted);max-width:62ch}
 .g-ruta-intro button{font:inherit;font-weight:700;font-size:14px;border:1.5px solid var(--accent);color:var(--accent);background:transparent;border-radius:12px;padding:8px 14px;cursor:pointer}
 .g-ruta-intro button[aria-pressed=true]{background:var(--accent);color:#fff}
+.g-ri-b{display:flex;flex-wrap:wrap;gap:8px}
+/* demo de las cinco partes: las mismas piezas de proyecto/ */
+.d-partes{display:flex;flex-direction:column;gap:10px}
+.d-partes .fx-tabs button{font-family:var(--f-display);font-size:15px;padding:8px 11px}
+.d-partes .mesa-in{grid-auto-columns:max-content}
+.d-partes .mesa-h{grid-template-columns:auto auto auto}
+.d-partes .mesa-t small{display:none}
+.d-parte-txt{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-height:118px}
+.d-parte-txt p{margin:0}
+.d-parte-txt button{align-self:flex-start;font:inherit;font-size:14px;font-weight:700;border:0;background:none;color:var(--accent);padding:0;cursor:pointer}
 .g-camino{position:relative;overflow-x:auto;scrollbar-width:none;padding:10px 2px 6px;scroll-snap-type:x proximity}
 .g-camino::-webkit-scrollbar{display:none}
 .g-paradas{position:relative;display:grid;grid-template-columns:repeat(7,minmax(104px,1fr));min-width:760px}
@@ -218,7 +228,7 @@ body{font-size:16px;line-height:1.55}
         <div class="g-sug" id="g-sug"></div></div>
     </section>
     <h2 class="g-h2" id="recorrido">La ruta de un proyecto</h2>
-    <div class="g-ruta-intro"><p>La ruta orienta y nunca obliga: marcas en qué etapa vas, saltas o vuelves cuando quieras. Toca una etapa para ver sus herramientas.</p><button type="button" id="g-ver-ruta" aria-pressed="false">Cómo te guía la Ruta</button></div>
+    <div class="g-ruta-intro"><p>La ruta orienta y nunca obliga: marcas en qué etapa vas, saltas o vuelves cuando quieras. Toca una etapa para ver sus herramientas.</p><span class="g-ri-b"><button type="button" id="g-ver-ruta" aria-pressed="false">Cómo te guía la Ruta</button><button type="button" id="g-ver-proy" aria-pressed="false">El proyecto por dentro</button></span></div>
     <div class="g-camino" id="g-camino"><div class="g-paradas" id="g-paradas" role="tablist" aria-label="Etapas de la ruta"></div></div>
     <article class="g-lamina" id="g-lamina" role="tabpanel" aria-live="polite"></article>
     <h2 class="g-h2">Tu cuenta y tus datos</h2>
@@ -246,8 +256,9 @@ import { modelosDe, dibujo, momentos, LIBRES, CSS_ESTRUCTURA } from "../js/estru
 import { quienes, preguntasDe } from "../js/lectores.js";
 import { PRECIOS } from "../js/planes.js";
 import { PLANTILLAS, ENLACES } from "../js/fichas-plantillas.js";
+import { GRUPOS, LEMA, herrDe, mesaHTML, CSS_MESA } from "../js/herramientas.js";
 import { CSS_FICHAS } from "../js/fichas.js";
-document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_AYUDA + CSS_BRUJULA + CSS_VITRINA + CSS_ESTRUCTURA + CSS_FICHAS + "</style>");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_AYUDA + CSS_BRUJULA + CSS_VITRINA + CSS_ESTRUCTURA + CSS_FICHAS + CSS_MESA + "</style>");
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 let SES = null, CTX = { p: null };
@@ -268,7 +279,7 @@ const ESTACIONES = [
   { k: "revisar", temas: ["lectores"] },
   { k: "pulir", temas: ["vitrina", "costos", "oportunidades", "biblia"] },
 ].map((e) => ({ ...e, ...ETAPAS_R.find((x) => x.k === e.k) }));
-const EN_RUTA = new Set(["ruta", ...ESTACIONES.flatMap((e) => e.temas)]);
+const EN_RUTA = new Set(["ruta", "proyecto", ...ESTACIONES.flatMap((e) => e.temas)]);
 const OTROS = TEMAS.filter((t) => !EN_RUTA.has(t.id));
 const estacionDe = (id) => ESTACIONES.findIndex((e) => e.temas.includes(id));
 let actual = null, limpiar = null;
@@ -286,6 +297,7 @@ function senda(hasta) {
 }
 $("g-paradas").querySelectorAll("[data-e]").forEach((b) => b.onclick = () => abrir(ESTACIONES[+b.dataset.e].temas[0], true));
 $("g-ver-ruta").onclick = () => abrir("ruta", true);
+$("g-ver-proy").onclick = () => abrir("proyecto", true);
 $("g-cuenta").innerHTML = OTROS.map((t) => '<button type="button" data-t="' + t.id + '" aria-pressed="false">' + icono(t.id, 22) + "<b>" + esc(t.n) + "</b><small>" + esc(t.corto) + "</small></button>").join("");
 $("g-cuenta").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { abrir(b.dataset.t, true); $("g-lamina").scrollIntoView({ behavior: "smooth", block: "start" }); });
 
@@ -296,6 +308,7 @@ function abrir(id, empujar) {
   const i = estacionDe(id), E = ESTACIONES[i];
   $("g-paradas").querySelectorAll("[data-e]").forEach((b) => { const j = +b.dataset.e; b.setAttribute("aria-selected", String(j === i)); b.classList.toggle("visto", ESTACIONES[j].temas.some((x) => vistos.has(x))); });
   $("g-ver-ruta").setAttribute("aria-pressed", String(id === "ruta"));
+  $("g-ver-proy").setAttribute("aria-pressed", String(id === "proyecto"));
   $("g-cuenta").querySelectorAll("[data-t]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.t === id)));
   senda(i);
   const conDemo = !!DEMOS[id];
@@ -321,6 +334,22 @@ addEventListener("resize", () => senda(estacionDe(actual)));
 
 /* ---------- demos: las piezas reales de Forja, sin guardar nada ---------- */
 const DEMOS = {
+  // Las cinco partes del proyecto, como se ven arriba de cada uno (las herramientas en prueba solo aparecen para el equipo).
+  proyecto(c) {
+    const EJ = { mapa: "5 de 9", estructura: "4 de 6", referentes: 12, taller: "40%", pizarra: 2, bitacora: 7, oportunidades: 3, vitrina: "Publicada" };
+    const de = (gk) => herrDe(gk).filter((k) => tema(k));
+    let g = "idea", h = "mapa";
+    const pintar = () => {
+      const t = tema(h), hs = g === "ruta" ? [] : de(g);
+      c.innerHTML = '<div class="d-partes" style="--tc:var(--t-videojuego)"><div class="fx-tabs" role="tablist" aria-label="Partes de un proyecto">' + GRUPOS.map((x) => '<button type="button" role="tab" data-g="' + x.k + '" aria-selected="' + (x.k === g) + '">' + esc(x.n) + "</button>").join("") + "</div>" +
+        (hs.length ? mesaHTML(hs.map((k) => ({ k, n: esc(k === "lectores" ? "Testers" : tema(k).n.replace(/^(El|La) /, "")), ico: icono(k, 18), dato: EJ[k] != null ? EJ[k] : "" })), h, "Herramientas de " + esc(GRUPOS.find((x) => x.k === g).n)) : "") +
+        '<div class="d-parte-txt"><small class="d-nota" style="margin:0">' + esc(GRUPOS.find((x) => x.k === g).d) + "</small><p><b>" + esc(t.n) + ".</b> " + esc(t.corto) + '</p><button type="button" data-ver>Ver cómo funciona →</button></div></div>';
+      c.querySelectorAll("[data-g]").forEach((b) => b.onclick = () => { g = b.dataset.g; h = g === "ruta" ? "ruta" : de(g)[0]; pintar(); });
+      c.querySelectorAll(".mesa-h").forEach((b) => b.onclick = () => { h = b.dataset.p; pintar(); });
+      c.querySelector("[data-ver]").onclick = () => { abrir(h, true); $("g-lamina").scrollIntoView({ behavior: "smooth", block: "start" }); };
+    };
+    pintar();
+  },
   ruta(c) {
     const tipos = Object.entries(TIPOS); let tipo = "historia", cr = "rumbo", et = "inspirar";
     const pintar = () => {
@@ -575,7 +604,7 @@ document.addEventListener("click", (e) => { if (!e.target.closest(".g-busca")) r
 /* ---------- dudas ---------- */
 const DUDAS = [
   ["¿Forja es gratis?", "Sí. El plan gratis no vence y sirve para trabajar de verdad: 3 proyectos en curso, con su Ruta, Taller, referentes, pizarra, cotización, vitrina y una ronda de lectores beta. Forja Más y Forja Estudio, que llegan pronto, suben los límites y suman todas las herramientas, con precios de lanzamiento que pueden cambiar."],
-  ["¿Tengo que seguir la Ruta en orden?", "No. La Ruta orienta, no obliga: marcas en qué etapa vas, saltas o vuelves cuando quieras, y si eliges «Lo descubro haciendo» no te sugiere nada. Todas las herramientas se pueden abrir también desde sus pestañas."],
+  ["¿Tengo que seguir la Ruta en orden?", "No. La Ruta orienta, no obliga: marcas en qué etapa vas, saltas o vuelves cuando quieras, y si eliges «Lo descubro haciendo» no te sugiere nada. Todas las herramientas se pueden abrir también desde las partes del proyecto: Idea, Crear, Probar y Mostrar."],
   ["¿Quienes leen mi proyecto pueden copiarlo?", "Leen una copia de lo que elegiste, sin acceso al proyecto real, y cada página dice para quién es la copia. Cada enlace sirve para una sola cuenta y puedes quitar el acceso al instante. Nada de una ronda es público."],
   ["¿Alguien más puede ver mis proyectos?", "No. Todo lo que creas es privado de tu cuenta. Lo único público es lo que tú publicas en una vitrina."],
   ["¿Por qué no tengo contraseña?", "Entras con un enlace que llega a tu correo. Así no hay contraseñas que olvidar ni que se puedan filtrar. El correo llega desde forja@digitalmonster.cl."],

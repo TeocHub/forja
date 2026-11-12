@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
 <link rel="stylesheet" href="../css/forja.css">
 <style>
-/* Layout: página de proyecto — cabecera editable y pestañas (Taller, Referentes, Brújula, Costos, Oportunidades, Bitácora); el Taller es índice de secciones + hoja de escritura */
+/* Layout: página de proyecto — cabecera editable y cinco partes (Ruta · Idea · Crear · Probar · Mostrar), cada una con su mesa de herramientas; el Taller es índice de secciones + hoja de escritura */
 
 .wrap{max-width:1120px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0}
@@ -239,6 +239,11 @@ button.ar-chip{cursor:pointer}
 .sello{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--ember);color:var(--ember);border-radius:999px;padding:1px 10px;font-weight:700;font-size:13px;background:none}
 textarea.resumen{width:100%;min-height:64px;resize:vertical;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;line-height:1.5}
 .fx-tabs{position:sticky;top:0;z-index:5;background:var(--bg)}
+/* las cinco partes: pestañas más grandes; bajo ellas, la mesa con sus herramientas */
+.fx-tabs.partes{gap:2px}
+.fx-tabs.partes button{font-family:var(--f-display);font-size:16px;padding:9px 14px}
+.mesa{margin-top:-8px}
+.mesa[hidden]{display:none}
 
 .bloque{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 12px}
@@ -570,7 +575,7 @@ import { funcion, tarjetaFuncion, pendientes } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
 import { montar, MODOS, cuentaTarjetas, normal as normalPiz, CSS_PIZARRA } from "../js/pizarra.js";
-import { pista, abrirTemasEquipo } from "../js/ayuda.js";
+import { pista, abrirTemasEquipo, icono } from "../js/ayuda.js";
 import * as R from "../js/ruta.js";
 import * as O from "../js/obras.js";
 import * as MP from "../js/mapa.js";
@@ -578,7 +583,7 @@ import * as ES from "../js/estructura.js";
 import * as LB from "../js/lectores.js";
 import * as HV from "../js/herramientas.js";
 navApp("proyectos");
-document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + "</style>");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + HV.CSS_MESA + "</style>");
 
 const ID = new URLSearchParams(location.search).get("p");
 const PESTANAS = [["ruta", "Ruta"], ["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
@@ -588,7 +593,15 @@ const AREAS = [["taller", "Taller y ficha"], ["referentes", "Referentes"], ["piz
 // Las vistas nuevas del registro (herramientas.js) usan su `areaPermiso` (por defecto, el Taller).
 const areaDe_ = (k) => AREA_DE[k] || (HV.vistaDe(k) ? HV.vistaDe(k).areaPermiso || "taller" : undefined);
 const nivelDe = (k) => (ACC && ACC.areas ? ACC.areas[areaDe_(k)] : "editar");
-const visibles = () => PESTANAS.filter(([k]) => nivelDe(k));
+// Las herramientas se agrupan en cinco partes (GRUPOS de herramientas.js). Las direcciones siguen siendo las de cada herramienta.
+const NOMBRE = Object.fromEntries(PESTANAS);
+const existe = (k) => !!NOMBRE[k] || !!HERR[k];
+const nombreDe = (k) => (k === "lectores" && P ? LB.quienes(P.tipo).titulo : NOMBRE[k] || HERR[k] || k);
+const herrsDe = (gk) => HV.herrDe(gk).filter((k) => existe(k) && nivelDe(k));
+const visibles = () => HV.GRUPOS.flatMap((g) => herrsDe(g.k));
+const grupoAct = () => HV.grupoDe(pest) || HV.GRUPOS[0]; // una vista sin parte se abre desde la Ruta
+let DESDE_RUTA = false; // «← Ruta» aparece solo si se llegó desde la Ruta o «Lo que sigue»
+const ULT = () => { try { return JSON.parse(localStorage.getItem("forja-grupos-" + P.id) || "{}"); } catch (e) { return {}; } };
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
 let FICHAS = { cols: [], fichas: [] }, ESP, P, ACC = null, VER = false, PERS = null, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
 
@@ -626,12 +639,12 @@ else conSesion($("app"), async (ses) => {
     FICHAS = { cols: fc.data || [], fichas: fe.data || [] };
   }
   const h = location.hash.slice(1);
-  if ((PESTANAS.some(([k]) => k === h) || HERR[h]) && nivelDe(h)) pest = h;
+  if (existe(h) && nivelDe(h)) pest = h;
   else {
     // Dónde abre el proyecto: lo elige cada persona en la Ruta (los proyectos de antes siguen abriendo en el Taller).
     const ab = R.estado(P.ruta).abrir; let k = ab === "ruta" ? "ruta" : "taller";
     if (ab === "ultima") try { k = localStorage.getItem("forja-pest-" + P.id) || "taller"; } catch (e) {}
-    if (PESTANAS.some(([x]) => x === k) && nivelDe(k)) pest = k;
+    if (existe(k) && nivelDe(k)) pest = k;
   }
   armar();
 }, "Tus proyectos son privados: solo los ves tú.");
@@ -647,7 +660,7 @@ const tocarProyecto = debounce(() => sb.from("proyectos").update({ nombre: P.nom
 /* ================= estructura ================= */
 function armar() {
   document.title = "Forja · " + P.nombre;
-  if (!nivelDe(pest)) pest = (visibles()[0] || ["taller"])[0];
+  if (!existe(pest) || !nivelDe(pest)) pest = visibles()[0] || "taller";
   RO = calcRO();
   $("app").innerHTML =
     '<a class="vol" href="../proyectos/">← Proyectos</a>' +
@@ -662,7 +675,7 @@ function armar() {
     (RO ? '<div class="lectura" role="status"><b>Solo lectura</b><span>' + (nivelDe(pest) !== "editar" ? (ACC.invitado ? "En esta parte del proyecto puedes mirar, pero no editar. Si necesitas cambiar algo, pídeselo a quien te invitó." : "Puedes ver este proyecto del equipo, pero no editarlo. Si necesitas editarlo, pídele permiso a quien administra el equipo.") : P.estado === "archivado"
       ? "Este proyecto está archivado. Puedes verlo y exportarlo; para editarlo cámbialo a otro estado (usa uno de tus " + tope(PL, "proyectos") + " cupos del plan gratis)."
       : "Hay " + ACT + " proyectos en curso y " + (PL.mas ? NOMBRE_PLAN[PL.plan] : "el plan gratis") + " permite " + tope(PL, "proyectos") + ". Archiva " + (ACT - tope(PL, "proyectos")) + " (este u otro, desde Mi forja) para seguir editando. Nada se borra.") + "</span></div>" : "") +
-    '<div id="sigue"></div><div class="fx-tabs" role="tablist" id="tabs"></div><div id="panel" role="tabpanel"></div>' +
+    '<div id="sigue"></div><div class="fx-tabs partes" role="tablist" id="tabs" aria-label="Partes del proyecto"></div><div class="mesa" id="mesa" style="--tc:' + tc(P.tipo) + '"></div><div id="panel" role="tabpanel" aria-labelledby="tab-' + grupoAct().k + '"></div>' +
     '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="../biblia/?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar">' + (ACC.rol === "dueno" ? '<button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button>' : "") + "</span></div>";
 
   $("f-nombre").onchange = (e) => { const v = e.target.value.trim(); if (!v) { e.target.value = P.nombre; return; } guardar({ nombre: v }); document.title = "Forja · " + v; };
@@ -733,6 +746,7 @@ async function irTecnica(id) {
     if (sec) secActual = sec.id;
   }
   if (dest === "pizarra" && dato) { const z = PIZ.find((y) => y.modo === dato); if (z) { pizSel = z.id; recordarPiz(z.id); } }
+  DESDE_RUTA = true;
   irA(dest);
   window.scrollTo({ top: $("tabs").getBoundingClientRect().top + scrollY - 12, behavior: "smooth" });
 }
@@ -1004,7 +1018,7 @@ let obs = null;
 function aplicarSoloLectura() {
   if (obs) { obs.disconnect(); obs = null; }
   if (!RO) return;
-  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fi-cajon:not(.nuevo), .fi-modo, .fi-estados, .fi-t, .fi-abrir, #fi-cerrar, [data-ir], #fi-q, .fx-tabs, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr, [data-mp], [data-mp-ir], [data-volver], [data-mod], [data-ir-m], #es-comp, [data-quitar-c]") || el.id === "h-foco";
+  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fi-cajon:not(.nuevo), .fi-modo, .fi-estados, .fi-t, .fi-abrir, #fi-cerrar, [data-ir], #fi-q, .fx-tabs, .mesa, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr, [data-mp], [data-mp-ir], [data-volver], [data-mod], [data-ir-m], #es-comp, [data-quitar-c]") || el.id === "h-foco";
   const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
   aplicar();
   obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });
@@ -1055,18 +1069,44 @@ function sobrantes() {
 // Con contenido pero fuera de la categoría actual: se muestran aparte en el índice.
 const fuera = (s) => !vacia(s) && DE_PLANTILLA.has(s.guia) && !sugeridas(P.tipo, P.formato).includes(s.guia);
 function avisarSecciones(silencio) { const n = faltantes().length + sobrantes().length; if (n && !silencio && pest !== "taller") toast("El Taller tiene secciones para ajustar a la nueva categoría."); }
+// Cinco partes arriba y, bajo cada una, su mesa: las herramientas para elegir, con un dato vivo de cada una.
+const DATO = {
+  mapa: () => { const l = MP.llenas(MP.normalEsquema(P.esquema), P.tipo); return l ? l + " de " + MP.nodos(P.tipo).length : ""; },
+  estructura: () => { const m = (P.estructura && P.estructura.m) || {}, l = Object.values(m).filter((v) => typeof v === "string" && v.trim()).length; return l ? l + " de 6" : ""; },
+  referentes: () => REFS.length || "", taller: () => (SECS.length ? avance(SECS) + "%" : ""), fichas: () => FICHAS.fichas.length || "",
+  pizarra: () => PIZ.length || "", bitacora: () => NOTAS.length || "", oportunidades: () => SEGS.length || "",
+  vitrina: () => (VIT && VIT.publicada ? "Publicada" : ""), costos: () => (COT ? "Cotizada" : ""),
+};
 function pintarTabs() {
-  const n = { taller: SECS.length ? avance(SECS) + "%" : "", referentes: REFS.length, pizarra: PIZ.length, bitacora: NOTAS.length, oportunidades: SEGS.length, vitrina: VIT && VIT.publicada ? "●" : "" };
-  const nuevas = faltantes().length + sobrantes().length;
-  $("tabs").innerHTML = visibles().map(([k, t]) => '<button role="tab" data-p="' + k + '" aria-selected="' + (k === pest || (k === "ruta" && !!HERR[pest])) + '">' + t + (n[k] ? '<span class="n">' + n[k] + "</span>" : "") + (k === "taller" && nuevas ? '<span class="punto" title="Secciones sugeridas nuevas"></span>' : "") + "</button>").join("");
-  $("tabs").querySelectorAll("[data-p]").forEach((b) => b.onclick = () => irA(b.dataset.p));
+  const nuevas = faltantes().length + sobrantes().length, ga = grupoAct();
+  $("tabs").innerHTML = HV.GRUPOS.filter((g) => herrsDe(g.k).length).map((g) => '<button role="tab" id="tab-' + g.k + '" data-g="' + g.k + '" aria-controls="panel" aria-selected="' + (g === ga) + '" title="' + esc(g.d) + '">' + g.n +
+    (g.k === "crear" && nuevas && pest !== "taller" ? '<span class="punto" title="Secciones sugeridas nuevas en el Taller"></span>' : "") + "</button>").join("");
+  $("tabs").querySelectorAll("[data-g]").forEach((b) => b.onclick = () => irGrupo(b.dataset.g));
+  const hs = ga.k === "ruta" ? [] : herrsDe(ga.k), m = $("mesa");
+  m.style.setProperty("--tc", tc(P.tipo));
+  m.hidden = !hs.length;
+  m.innerHTML = hs.length ? HV.mesaHTML(hs.map((k) => ({ k, n: esc(nombreDe(k)), d: esc(HV.LEMA[k] || (HV.vistaDe(k) || {}).d || ""), ico: icono(k, 20),
+    dato: nivelDe(k) === "ver" ? "Solo ver" : DATO[k] ? DATO[k]() : "", nota: k === "taller" && nuevas ? "Secciones sugeridas nuevas" : "" })), pest, "Herramientas de " + ga.n) : "";
+  m.querySelectorAll("[data-p]").forEach((b) => b.onclick = () => { if (b.dataset.p === pest) return; DESDE_RUTA = false; irA(b.dataset.p); });
+  // En pantallas angostas la mesa se desliza: la herramienta abierta queda a la vista.
+  const sel = m.querySelector('[aria-current="true"]'), fila = m.firstElementChild;
+  if (sel && fila && fila.scrollWidth > fila.clientWidth) fila.scrollLeft = sel.offsetLeft - fila.offsetLeft - (fila.clientWidth - sel.offsetWidth) / 2;
+}
+// Tocar una parte abre la última herramienta usada ahí (o la primera).
+function irGrupo(gk) {
+  const hs = herrsDe(gk); if (!hs.length) return;
+  if (grupoAct().k === gk && hs.includes(pest)) return;
+  const u = ULT()[gk]; DESDE_RUTA = false;
+  irA(hs.includes(u) ? u : hs[0]);
 }
 function irA(k) {
-  if (!nivelDe(k)) return;
+  if (!existe(k) || !nivelDe(k)) return;
+  if (k === "ruta") DESDE_RUTA = false;
   const antes = RO; pest = k; history.replaceState(null, "", "#" + k);
-  try { localStorage.setItem("forja-pest-" + P.id, k); } catch (e) {}
+  try { localStorage.setItem("forja-pest-" + P.id, k); const g = HV.grupoDe(k); if (g) localStorage.setItem("forja-grupos-" + P.id, JSON.stringify({ ...ULT(), [g.k]: k })); } catch (e) {}
   // Cada área puede tener su propio permiso: si cambia, se vuelve a armar la página con el nuevo modo.
   if (calcRO() !== antes) { armar(); return; }
+  $("panel").setAttribute("aria-labelledby", "tab-" + grupoAct().k);
   pintarTabs(); pintarPestana(); pintarSigue();
 }
 function calcRO() { return nivelDe(pest) !== "editar" || !editable(P, ACT, PL); }
@@ -1076,6 +1116,7 @@ function pintarPestana() {
   if (local) local(); else vistaModulo(pest);
   activarAvisame($("panel"));
   pista($("panel"), pest); // la primera vez en cada herramienta, una nota corta
+  if (!$("panel").querySelector(".ay-pista")) pista($("panel"), "proyecto"); // y una vez, cómo se ordena el proyecto en cinco partes
 }
 // Tarjetas "Próximamente" de Forja Más, por clave de planes.js.
 const pronto = (claves, titulo) => { const k = pendientes(claves); return k.length ? '<section class="pronto-fila" aria-label="' + (titulo || "Próximamente en Forja Más") + '"><div class="pronto-cab"><b>' + (titulo || "Próximamente en Forja Más") + '</b><a href="../planes/">Ver todo lo que trae</a></div><div class="pronto-grid">' +
@@ -1309,10 +1350,10 @@ function pintarHoja() {
 }
 
 /* ================= MAPA DE LA IDEA Y ESTRUCTURA (herramientas de la ruta) ================= */
-// Se abren desde la Ruta (técnicas «mapa» y «estructura») y viven en #mapa y #estructura; la pestaña marcada sigue siendo Ruta.
+// Viven en #mapa y #estructura, dentro de la parte Idea; la Ruta también lleva a ellas (técnicas «mapa» y «estructura») y entonces muestran «← Ruta».
 // Las vistas salen del registro común (herramientas.js): una herramienta nueva con `vista` y `modulo` se abre sola aquí.
 let HERR = Object.fromEntries(HV.vistas().map((h) => [h.vista, h.t]));
-const volverRuta = () => '<button type="button" class="btn chico es-volver" data-volver>← Ruta</button>';
+const volverRuta = () => (DESDE_RUTA && nivelDe("ruta") ? '<button type="button" class="btn chico es-volver" data-volver>← Ruta</button>' : "");
 const conVolver = () => { const b = $("panel").querySelector("[data-volver]"); if (b) b.onclick = () => irA("ruta"); };
 // Agrega bloques de texto al final de secciones del Taller (crea las que falten). bloques: [{ guia, texto }]. Devuelve cuántas secciones cambiaron.
 async function alTaller(bloques) {

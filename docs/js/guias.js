@@ -58,7 +58,7 @@ export const SECCIONES = {
   proceso: { t: "Materiales y proceso", p: ["¿Qué se necesita y en qué orden se hace?", "¿Qué parte se hace a mano y cuál se encarga?", "¿Cuánto tiempo toma una unidad?"] },
   precio: { t: "Precio", p: ["¿A cuánto se vende algo parecido?", "Usa Costos para saber cuánto cuesta realmente producirlo."] },
   presentacion: { t: "Presentación y empaque", p: ["¿Cómo se ve al recibirlo?", "¿Qué dice la etiqueta o el empaque?"] },
-  venta: { t: "Dónde se vende", p: ["¿Tienda propia, ferias, redes, tiendas de otros?", "Revisa la pestaña Oportunidades para ferias cercanas."] },
+  venta: { t: "Dónde se vende", p: ["¿Tienda propia, ferias, redes, tiendas de otros?", "Revisa Oportunidades (en Mostrar, dentro del proyecto) para ferias cercanas."] },
 
   capitulos: { t: "Capítulos", p: ["Haz una línea por capítulo: qué pasa y qué cambia.", "¿Dónde termina cada capítulo para que den ganas de seguir?"] },
   escaleta: { t: "Escaleta", p: ["Escena por escena: lugar, momento del día, quién está y qué pasa.", "¿Cuánto dura cada escena, más o menos?", "¿Qué escena se podría cortar sin perder la historia?"] },

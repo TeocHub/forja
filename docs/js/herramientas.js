@@ -27,6 +27,7 @@
 //   modulo  módulo que pinta la vista (relativo a js/), con export vista(ctx). Las vistas antiguas (mapa,
 //           estructura, lectores) se pintan desde proyecto/ y no lo necesitan.
 //   ayuda   tema de ayuda.js.
+//   grupo   parte del proyecto donde vive su vista (GRUPOS: idea, crear, probar, mostrar). Sin grupo, solo se abre desde la Ruta.
 //   equipo  true = en prueba: «pronto» para todos y «listo» solo para el equipo Digital Monster (abrirEquipo()).
 //
 // CTX que recibe vista(ctx): { P, SECS, REFS, PIZ, PL, panel, tc, ed, volver, conVolver, marcarHecho, alTaller,
@@ -43,11 +44,11 @@ export const HERRAMIENTAS = [
   { id: "estructuras", t: "Mapa de la idea y estructuras", estado: "listo", area: "escritura", etapa: "estructura", ayuda: "estructura",
     d: "La idea completa en una vista y tus momentos probados en modelos dibujados. Con Forja Más: todos los modelos, comparar dos lado a lado, llevar el mapa al Taller y pasar la estructura a la Escaleta.",
     libre: "Gratis: el mapa completo y dos modelos de estructura por categoría." },
-  { id: "mapa", t: "Mapa de la idea", estado: "listo", etapa: "mapa", ruta: "mapa", donde: "vista:mapa", vista: "mapa", ayuda: "mapa",
+  { id: "mapa", t: "Mapa de la idea", estado: "listo", etapa: "mapa", ruta: "mapa", donde: "vista:mapa", vista: "mapa", grupo: "idea", ayuda: "mapa",
     d: "La idea en el centro y sus ramas alrededor, en una sola vista." },
-  { id: "estructura", t: "Estructura", estado: "listo", etapa: "estructura", ruta: "estructura", donde: "vista:estructura", vista: "estructura", ayuda: "estructura",
+  { id: "estructura", t: "Estructura", estado: "listo", etapa: "estructura", ruta: "estructura", donde: "vista:estructura", vista: "estructura", grupo: "idea", ayuda: "estructura",
     d: "Seis momentos de tu proyecto probados en modelos dibujados." },
-  { id: "lectores", t: "Lectores beta", estado: "listo", area: "equipo", etapa: "revisar", ruta: "lectores", donde: "vista:lectores", vista: "lectores", ayuda: "lectores",
+  { id: "lectores", t: "Lectores beta", estado: "listo", area: "equipo", etapa: "revisar", ruta: "lectores", donde: "vista:lectores", vista: "lectores", grupo: "probar", ayuda: "lectores",
     d: "Rondas de prueba sobre una copia de tu proyecto: un enlace por persona, preguntas según tu categoría, comentarios por párrafo y las respuestas juntas, con lo que varias personas señalan destacado. Con Forja Más, varias rondas abiertas, preguntas propias y hasta 15 personas por ronda (40 con Forja Estudio).",
     libre: "Gratis: una ronda abierta a la vez, con 3 personas." },
   { id: "pizarra", t: "Pizarras sin límite", estado: "listo", area: "pizarras", donde: "pestana:pizarra", ayuda: "pizarra",
@@ -70,7 +71,7 @@ export const HERRAMIENTAS = [
     libre: "Gratis: 1 persona por proyecto." },
 
   // --- En prueba con el equipo Digital Monster (`equipo: true`): para el resto sigue «Próximamente» ---
-  { id: "fichas", t: "Fichas", estado: "pronto", equipo: true, area: "organizacion", etapa: "hacer", ruta: "fichas", donde: "vista:fichas", vista: "fichas", modulo: "fichas.js", ayuda: "fichas",
+  { id: "fichas", t: "Fichas", estado: "pronto", equipo: true, area: "organizacion", etapa: "hacer", ruta: "fichas", donde: "vista:fichas", vista: "fichas", grupo: "crear", modulo: "fichas.js", ayuda: "fichas",
     d: "Cartas, mecánicas, personajes, productos o pilares de tu canal, cada uno con sus datos, en tarjetas o en tabla, y unidos entre sí («abre», «necesita»). Con Forja Más: sin límite y con campos propios.",
     libre: "Gratis: 2 colecciones y 60 fichas por proyecto." },
 
@@ -125,3 +126,49 @@ export const rutaPronto = () => new Set(HERRAMIENTAS.filter((h) => h.ruta && !li
 // Vistas que se abren dentro del proyecto (#vista), con su título y módulo.
 export const vistas = () => HERRAMIENTAS.filter((h) => h.vista && lista(h));
 export const vistaDe = (k) => vistas().find((h) => h.vista === k) || null;
+
+// Las cinco partes de un proyecto (decisión del 2026-11-12): cada una muestra sus herramientas para elegir.
+// `h` = vistas de proyecto/ (#vista) en su orden. Una vista nueva del registro con `grupo` se suma sola al final de su parte.
+// Las direcciones siguen siendo las de cada herramienta (#taller, #mapa…); la parte se deduce de la herramienta.
+export const GRUPOS = [
+  { k: "ruta", n: "Ruta", d: "Las etapas de tu proyecto y qué podrías hacer ahora.", h: ["ruta"] },
+  { k: "idea", n: "Idea", d: "Entender qué es tu proyecto antes de construirlo.", h: ["mapa", "estructura", "brujula", "referentes"] },
+  { k: "crear", n: "Crear", d: "Donde el proyecto toma forma.", h: ["taller", "fichas", "pizarra"] },
+  { k: "probar", n: "Probar", d: "Que otras personas lo prueben y anotar lo que aprendes.", h: ["lectores", "bitacora"] },
+  { k: "mostrar", n: "Mostrar", d: "Llevarlo al mundo: su página, sus costos y dónde postular.", h: ["vitrina", "costos", "oportunidades"] },
+];
+// Para qué sirve cada herramienta, en pocas palabras (la mesa de cada parte y la guía).
+export const LEMA = {
+  ruta: "Etapas y técnicas", mapa: "La idea entera en una vista", estructura: "Tus momentos en modelos dibujados", brujula: "Con qué formatos calza",
+  referentes: "Lo que te inspira y las obras que estudias", taller: "Escribir por secciones", fichas: "Cada cosa con sus datos", pizarra: "Tarjetas, flechas y mapas",
+  lectores: "Rondas de prueba con otras personas", bitacora: "Tu diario del proyecto", vitrina: "Su página pública", costos: "Cuánto cuesta y a cuánto venderlo",
+  oportunidades: "Fondos, ferias y convocatorias",
+};
+export const grupo = (k) => GRUPOS.find((g) => g.k === k) || null;
+// Herramientas de una parte: las fijas y las vistas nuevas del registro que digan ese `grupo`.
+export const herrDe = (gk) => { const g = grupo(gk); if (!g) return []; return [...g.h, ...vistas().filter((v) => v.grupo === gk && !g.h.includes(v.vista)).map((v) => v.vista)]; };
+// La parte donde vive una herramienta (null = solo se abre desde la Ruta).
+export const grupoDe = (k) => GRUPOS.find((g) => herrDe(g.k).includes(k)) || null;
+
+// La mesa: las herramientas de una parte como fichas para elegir. items = [{ k, n, d, dato, ico, nota }].
+export const mesaHTML = (items, actual, etiqueta) => '<div class="mesa-in" role="group" aria-label="' + etiqueta + '">' + items.map((x) =>
+  '<button type="button" class="mesa-h" data-p="' + x.k + '" aria-current="' + (x.k === actual) + '"><span class="mesa-ico">' + (x.ico || "") + "</span>" +
+  '<span class="mesa-t"><b>' + x.n + (x.nota ? '<i class="mesa-p" title="' + x.nota + '"></i>' : "") + "</b><small>" + (x.d || "") + "</small></span>" +
+  (x.dato !== "" && x.dato != null ? '<span class="mesa-n">' + x.dato + "</span>" : "") + "</button>").join("") + "</div>";
+export const CSS_MESA = `
+.mesa-in{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr);gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 4px;scroll-snap-type:x proximity}
+.mesa-in::-webkit-scrollbar{display:none}
+.mesa-h{font:inherit;text-align:left;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:9px 12px 9px 9px;cursor:pointer;scroll-snap-align:start;transition:border-color .15s,background-color .15s}
+.mesa-h:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 60%,var(--line))}
+.mesa-ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--tc,var(--accent));background:color-mix(in srgb,var(--tc,var(--accent)) 10%,transparent)}
+.mesa-t{display:flex;flex-direction:column;min-width:0}
+.mesa-t b{font-family:var(--f-display);font-size:15px;line-height:1.2;display:flex;align-items:center;gap:5px}
+.mesa-t small{color:var(--muted);font-size:12.5px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mesa-n{font-family:var(--f-num);font-size:11.5px;color:var(--muted);white-space:nowrap}
+.mesa-p{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ember)}
+.mesa-h[aria-current="true"]{border-color:var(--tc,var(--accent));background:color-mix(in srgb,var(--tc,var(--accent)) 7%,var(--card));box-shadow:inset 0 -3px 0 var(--tc,var(--accent))}
+.mesa-h[aria-current="true"] .mesa-ico{background:var(--tc,var(--accent));color:var(--card)}
+.mesa-h[aria-current="true"] .mesa-n{color:var(--fg)}
+@media (max-width:640px){.mesa-in{grid-auto-columns:max-content}.mesa-h{grid-template-columns:auto auto auto;padding:6px 11px 6px 6px;gap:8px}.mesa-ico{width:30px;height:30px;border-radius:8px}.mesa-t small{display:none}}
+@media (prefers-reduced-motion:reduce){.mesa-h{transition:none}}
+`;
