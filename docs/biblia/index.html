@@ -98,6 +98,7 @@
 <script type="module">
 import { sb, $, esc, fecha, navApp, espacio, conSesion, accesoProyecto } from "../js/forja.js";
 import * as O from "../js/obras.js";
+import { textoCompleto } from "../js/cruces.js";
 import * as MP from "../js/mapa.js";
 import * as ES from "../js/estructura.js";
 import { TIPOS, ESTADOS, tc } from "../js/guias.js";
@@ -115,9 +116,11 @@ if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../proyectos/");
 else conSesion($("app"), async () => {
   await espacio();
   const acc = await accesoProyecto(ID); MAS = !!(acc && acc.mas);
-  const [pr, se, re, no, co, po, pz] = await Promise.all([
+  const [pr, se, el, re, no, co, po, pz] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
-    sb.from("secciones").select("id,titulo,texto,orden").eq("proyecto_id", ID).order("orden"),
+    sb.from("secciones").select("id,titulo,texto,orden,coleccion_id").eq("proyecto_id", ID).order("orden"),
+    // Hojas de Fichas conectadas a una sección del Taller (solo el equipo las puede leer; para el resto llega vacío).
+    sb.from("elementos").select("titulo,texto,coleccion_id,orden,creado_en").eq("proyecto_id", ID),
     sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en"),
     sb.from("notas").select("texto,creado_en").eq("proyecto_id", ID).order("creado_en"),
     sb.from("cotizaciones").select("datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
@@ -128,7 +131,7 @@ else conSesion($("app"), async () => {
   if (!P) { $("app").innerHTML = '<div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
   let OPS = [];
   if ((po.data || []).length) { const { data } = await sb.from("oportunidades").select("id,nombre,organiza,postul_fin,evento_inicio,evento_fin"); OPS = data || []; }
-  pintar(P, se.data || [], re.data || [], no.data || [], co.data, po.data || [], OPS, pz.data || []);
+  pintar(P, (se.data || []).map((s) => ({ ...s, texto: textoCompleto(s, el.data || []) })), re.data || [], no.data || [], co.data, po.data || [], OPS, pz.data || []);
 }, "La biblia reúne todo tu proyecto en un documento. Entra para generarla.");
 
 function parrafos(t) {

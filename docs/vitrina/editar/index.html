@@ -176,6 +176,7 @@ import { tarjetaFuncion } from "../../js/planes.js";
 import { pintarVitrina, normal, paraPublicar, nuevaVitrina, detectar, okUrl, okColor, uid, yt, TONOS, ACENTO_TIPO, CSS_VITRINA, SEGUIR_TEXTOS, LIM, esPago, cuentaPagos, normalRecompensas, ENVIOS, MAX_TIERS, BLOQUES, SECCIONES_VT, TAMANOS } from "../../js/vitrina.js";
 import { MODOS } from "../../js/pizarra.js";
 import { pista } from "../../js/ayuda.js";
+import { textoCompleto } from "../../js/cruces.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
 navApp("proyectos");
 const ID = new URLSearchParams(location.search).get("p");
@@ -199,17 +200,19 @@ else conSesion($("app"), async () => {
   const ESP = ACC.espacio;
   PL = { mas: !!ACC.mas, plan: ACC.plan || (ACC.mas ? "mas" : "libre") };
   const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
-  const [pr, se, re, pz, no, vi] = await Promise.all([
+  const [pr, se, re, pz, no, vi, el] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
-    sb.from("secciones").select("id,titulo,texto,orden").eq("proyecto_id", ID).order("orden"),
+    sb.from("secciones").select("id,titulo,texto,orden,coleccion_id").eq("proyecto_id", ID).order("orden"),
     sb.from("referentes").select("*").eq("proyecto_id", ID).neq("tipo", "obra").order("creado_en", { ascending: false }), // las obras analizadas no van a la galería
     sb.from("pizarras").select("id,nombre,modo,datos,creado_en").eq("proyecto_id", ID).order("creado_en"),
     sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
     sb.from("vitrinas").select("*").eq("proyecto_id", ID).maybeSingle(),
+    // Hojas de Fichas conectadas a una sección del Taller: se traen junto con su sección (solo el equipo las lee).
+    sb.from("elementos").select("titulo,texto,coleccion_id,orden,creado_en").eq("proyecto_id", ID),
   ]);
   P = pr.data;
   if (!P) { $("app").innerHTML = '<a class="vol" href="../../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
-  SECS = se.data || []; REFS = re.data || []; PIZ = pz.data || []; NOTAS = no.data || [];
+  SECS = (se.data || []).map((s) => ({ ...s, texto: textoCompleto(s, el.data || []) })); REFS = re.data || []; PIZ = pz.data || []; NOTAS = no.data || [];
   RO = !editable(P, ac.count || 0, PL);
   V = vi.data;
   if (!V) V = await crear(ESP);

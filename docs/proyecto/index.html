@@ -278,6 +278,51 @@ textarea.texto{width:100%;min-height:340px;resize:none;overflow:hidden;border:0;
 .hoja.foco textarea.texto{font-size:19px;min-height:70vh}
 .barra{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px}
 .barra .acc{display:flex;flex-wrap:wrap;gap:6px}
+/* Taller y Fichas: la oferta de conectar, las pestañas de hojas (el conjunto y una por ficha) y «Pasar a fichas» */
+.indice .sec-f{font-style:normal;font-family:var(--f-num);font-size:10.5px;font-weight:700;color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 45%,var(--line));border-radius:5px;padding:0 5px;margin-left:4px;vertical-align:1px}
+#hoja-w{display:flex;flex-direction:column;min-width:0}
+.hj-oferta{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:color-mix(in srgb,var(--tc) 6%,var(--card));border:1px dashed color-mix(in srgb,var(--tc) 50%,var(--line));border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.hj-oferta p{margin:2px 0 0;font-size:14px;color:var(--muted);max-width:62ch}
+.hj-oferta-b{display:flex;flex-direction:column;gap:6px}
+.hj-mazo{position:relative;width:38px;height:44px}
+.hj-mazo i{position:absolute;inset:4px 6px;border-radius:5px;border:1.5px solid var(--tc);background:var(--card)}
+.hj-mazo i:nth-child(1){transform:rotate(-10deg) translate(-3px,1px)}.hj-mazo i:nth-child(2){transform:rotate(6deg) translate(3px,0)}
+@media (max-width:640px){.hj-oferta{grid-template-columns:auto minmax(0,1fr)}.hj-oferta-b{grid-column:1/-1;flex-direction:row}}
+.hojas-w{display:flex;flex-direction:column;gap:6px}
+.hojas{display:flex;gap:4px;align-items:flex-end;overflow-x:auto;scrollbar-width:none;padding:0 10px;margin-bottom:-1px;position:relative;z-index:1}
+.hojas::-webkit-scrollbar{display:none}
+.hojas button{flex:none;font:inherit;text-align:left;display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-bottom:0;background:var(--field);color:var(--muted);border-radius:10px 10px 0 0;padding:7px 12px 6px;max-width:190px;cursor:pointer}
+.hojas button b{font-family:var(--f-display);font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hojas button small{font-family:var(--f-num);font-size:10.5px;color:var(--muted)}
+.hojas button:hover{color:var(--fg)}
+.hojas button[aria-selected="true"]{background:var(--card);color:var(--fg);padding-bottom:8px;box-shadow:inset 0 3px 0 var(--tc)}
+.hojas button.hj-conj b{font-style:italic}
+.hj-nueva{flex:none;align-self:center;margin-left:4px}
+.hj-nueva>button{font:inherit;font-size:13.5px;font-weight:700;color:var(--tc);background:none;border:1px dashed color-mix(in srgb,var(--tc) 55%,var(--line));border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap}
+.hj-form{display:flex;gap:6px;align-items:center}
+.hj-form input{font-size:14px;border:1px solid var(--line);background:var(--field);border-radius:8px;padding:5px 8px;width:170px}
+.hoja.con-hojas,.hoja.hoja-f{border-top-left-radius:6px}
+.hj-de{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;align-items:center;margin:8px 2px 0;font-size:13px;color:var(--muted)}
+.hj-ir{font:inherit;font-size:13px;background:none;border:0;padding:0;color:var(--accent);cursor:pointer;text-align:left}
+.hj-ir.suave{color:var(--muted)}
+.hj-aviso{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;background:var(--warn-soft);color:var(--fg);border-radius:10px;padding:7px 12px;font-size:14px;margin-bottom:6px}
+.hj-que{margin:-6px 0 0}
+.hf-cab{display:flex;align-items:center;gap:10px}
+.hf-est{flex:none;font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--tc);border:1.5px solid color-mix(in srgb,var(--tc) 50%,var(--line));border-radius:999px;padding:1px 10px}
+.hf-datos{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;border-left:3px solid var(--tc);padding:4px 0 4px 12px}
+.hf-dato{font-size:13.5px;background:var(--field);border-radius:8px;padding:3px 9px;max-width:100%;overflow-wrap:anywhere}
+.hf-dato i{font-style:normal;color:var(--muted);font-size:12px;margin-right:6px}
+.hoja.pasar h3{font-family:var(--f-display);font-size:22px;margin:0}
+.hoja.pasar p{margin:0;max-width:66ch}
+.pf-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.pf{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--card);box-shadow:inset 3px 0 0 var(--tc)}
+.pf:has(input[type=checkbox]:not(:checked)){opacity:.55;box-shadow:none}
+.pf-chk input{width:18px;height:18px;margin-top:4px;accent-color:var(--tc)}
+.pf-c{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pf-t{font-family:var(--f-display);font-weight:700;font-size:16px;border:1px solid transparent;border-radius:6px;background:transparent;padding:1px 4px;margin-left:-5px}
+.pf-t:hover,.pf-t:focus{border-color:var(--line)}
+.pf-d{font-size:12px;color:var(--tc);font-weight:700}
+.pf-cuerpo{font-size:13.5px;color:var(--muted);white-space:pre-line;overflow-wrap:anywhere}
 .est{font-family:var(--f-num);font-size:12px;color:var(--muted)}
 .menu-sec{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--accent);border-radius:14px;padding:14px}
 .menu-sec .ops{display:flex;flex-wrap:wrap;gap:6px}
@@ -582,6 +627,8 @@ import * as MP from "../js/mapa.js";
 import * as ES from "../js/estructura.js";
 import * as LB from "../js/lectores.js";
 import * as HV from "../js/herramientas.js";
+import * as CR from "../js/cruces.js";
+import { PLANTILLAS as FPL, sirve as fSirve, camposDe } from "../js/fichas-plantillas.js";
 navApp("proyectos");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + HV.CSS_MESA + "</style>");
 
@@ -603,7 +650,7 @@ const grupoAct = () => HV.grupoDe(pest) || HV.GRUPOS[0]; // una vista sin parte 
 let DESDE_RUTA = false; // «← Ruta» aparece solo si se llegó desde la Ruta o «Lo que sigue»
 const ULT = () => { try { return JSON.parse(localStorage.getItem("forja-grupos-" + P.id) || "{}"); } catch (e) { return {}; } };
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-let FICHAS = { cols: [], fichas: [] }, ESP, P, ACC = null, VER = false, PERS = null, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
+let EQ = false, FICHAS = { cols: [], fichas: [] }, ESP, P, ACC = null, VER = false, PERS = null, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../proyectos/");
 else conSesion($("app"), async (ses) => {
@@ -613,7 +660,7 @@ else conSesion($("app"), async (ses) => {
   if (!ACC) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no tienes acceso a él.</div>'; return; }
   ESP = ACC.espacio; PL = { mas: !!ACC.mas, plan: ACC.plan || (ACC.mas ? "mas" : "libre") }; VER = ACC.acceso !== "editar";
   // Herramientas en prueba (Fichas): solo para el equipo Digital Monster; la base revisa lo mismo.
-  const EQ = await equipo();
+  EQ = await equipo();
   if (EQ) { HV.abrirEquipo(); abrirTemasEquipo(); HERR = Object.fromEntries(HV.vistas().map((h) => [h.vista, h.t])); }
   EQS = ACC.invitado ? [] : (await espacios()).filter((x) => x.tipo === "equipo" && x.rol !== "lector");
   PERS = (await sb.rpc("proyecto_personas", { p: ID })).data || null;
@@ -622,7 +669,7 @@ else conSesion($("app"), async (ses) => {
   ACT = ac.count || 0;
   const [pr, se, re, no, co, po, pz, vi] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
-    sb.from("secciones").select("id,titulo,guia,texto,orden,avance,peso").eq("proyecto_id", ID).order("orden"),
+    sb.from("secciones").select("id,titulo,guia,texto,orden,avance,peso,coleccion_id").eq("proyecto_id", ID).order("orden"),
     sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
     sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
     sb.from("cotizaciones").select("id,nombre,datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
@@ -635,7 +682,7 @@ else conSesion($("app"), async (ses) => {
   if (!P) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
   SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || []; PIZ = pz.data || [];
   if (EQ) {
-    const [fc, fe] = await Promise.all([sb.from("colecciones").select("id,nombre,plantilla").eq("proyecto_id", ID).order("orden"), sb.from("elementos").select("id,titulo,coleccion_id,enlaces,orden").eq("proyecto_id", ID).order("orden")]);
+    const [fc, fe] = await Promise.all([sb.from("colecciones").select("id,nombre,plantilla").eq("proyecto_id", ID).order("orden"), sb.from("elementos").select("id,titulo,coleccion_id,enlaces,orden,texto,datos,estado,creado_en").eq("proyecto_id", ID).order("orden").order("creado_en")]);
     FICHAS = { cols: fc.data || [], fichas: fe.data || [] };
   }
   const h = location.hash.slice(1);
@@ -1018,7 +1065,7 @@ let obs = null;
 function aplicarSoloLectura() {
   if (obs) { obs.disconnect(); obs = null; }
   if (!RO) return;
-  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fi-cajon:not(.nuevo), .fi-modo, .fi-estados, .fi-t, .fi-abrir, #fi-cerrar, [data-ir], #fi-q, .fx-tabs, .mesa, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr, [data-mp], [data-mp-ir], [data-volver], [data-mod], [data-ir-m], #es-comp, [data-quitar-c]") || el.id === "h-foco";
+  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fi-cajon:not(.nuevo), .fi-modo, .fi-estados, .fi-t, .fi-abrir, #fi-cerrar, [data-ir], #fi-q, .fx-tabs, .mesa, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr, [data-mp], [data-mp-ir], [data-volver], [data-taller], .fi-ir-taller, .hojas, #hj-ir-col, #hf-ficha, [data-mod], [data-ir-m], #es-comp, [data-quitar-c]") || el.id === "h-foco";
   const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
   aplicar();
   obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });
@@ -1055,7 +1102,7 @@ async function elegirFormato(f) {
 }
 const DESC = () => { try { return JSON.parse(localStorage.getItem("forja-desc-" + P.id) || "[]"); } catch (e) { return []; } };
 const faltantes = () => { const d = DESC(); return sugeridas(P.tipo, P.formato).filter((g) => !SECS.some((s) => s.guia === g) && !d.includes(g)); };
-const vacia = (s) => !s.texto.trim() && !s.avance;
+const vacia = (s) => !s.texto.trim() && !s.avance && !s.coleccion_id; // una sección conectada con Fichas nunca está vacía
 // Secciones que vinieron de la plantilla de otra categoría o formato y siguen vacías (o repetidas y vacías): se pueden quitar sin perder nada.
 const DE_PLANTILLA = new Set([...Object.values(PLANTILLA).flat(), ...Object.values(PLANTILLA_FORMATO).flat()]);
 function sobrantes() {
@@ -1225,7 +1272,7 @@ function taller() {
     return;
   }
   if (!secActual || !SECS.some((s) => s.id === secActual)) secActual = SECS[0].id;
-  $("panel").innerHTML = '<div id="sugerencia"></div><div class="taller" style="margin-top:14px"><nav class="indice" id="indice" aria-label="Secciones"></nav><div id="hoja-w"></div></div>' +
+  $("panel").innerHTML = '<div id="sugerencia"></div><div class="taller" style="margin-top:14px;--tc:' + tc(P.tipo) + '"><nav class="indice" id="indice" aria-label="Secciones"></nav><div id="hoja-w"></div></div>' +
     (PL.mas ? "" : pronto(P.tipo === "comic" ? ["guion-comic", "vista-impresion", "historial"] : P.tipo === "historia" ? ["capitulos", "vista-impresion", "historial"] : ["historial", "metas", "notas-margen"], P.tipo === "comic" ? "Para hacer tu cómic, próximamente" : "Para escribir más, próximamente"));
   pintarSugerencia(); pintarIndice(); pintarHoja();
 }
@@ -1253,19 +1300,21 @@ function pintarSugerencia() {
 }
 async function crearSecciones(lista) {
   const base = SECS.length ? Math.max(...SECS.map((s) => s.orden)) + 1 : 0;
-  const { data, error } = await sb.from("secciones").insert(lista.map((x, i) => ({ espacio_id: ESP, proyecto_id: P.id, titulo: x.titulo, guia: x.guia, orden: base + i, peso: pesoDe(x.guia) }))).select("id,titulo,guia,texto,orden,avance,peso");
+  const { data, error } = await sb.from("secciones").insert(lista.map((x, i) => ({ espacio_id: ESP, proyecto_id: P.id, titulo: x.titulo, guia: x.guia, orden: base + i, peso: pesoDe(x.guia) }))).select("id,titulo,guia,texto,orden,avance,peso,coleccion_id");
   if (error) { toast(limite(error) || "No se pudo agregar."); return []; }
   SECS = SECS.concat(data); return data;
 }
 function pintarIndice() {
-  const total = SECS.reduce((a, s) => a + palabras(s.texto), 0);
-  const boton = (s) => { const w = palabras(s.texto); return '<button class="sec' + (w ? " lleno" : "") + (s.avance >= 100 ? " lista" : "") + '" data-s="' + s.id + '" aria-current="' + (s.id === secActual) + '" style="--av:' + s.avance + '%"><span>' + esc(s.titulo) + '</span><span class="w">' + (s.avance ? s.avance + "%" : "") + "</span></button>"; };
+  const total = SECS.reduce((a, s) => a + palabrasSec(s), 0) + hojasSueltas();
+  const boton = (s) => { const w = palabrasSec(s), col = colDe(s), n = col ? CR.hojasDe(s, FICHAS.fichas).length : 0;
+    return '<button class="sec' + (w ? " lleno" : "") + (s.avance >= 100 ? " lista" : "") + '" data-s="' + s.id + '" aria-current="' + (s.id === secActual) + '" style="--av:' + s.avance + '%"><span>' + esc(s.titulo) +
+      (col ? ' <i class="sec-f" title="Conectada con Fichas: ' + n + (n === 1 ? " hoja" : " hojas") + '">' + n + "</i>" : "") + '</span><span class="w">' + (s.avance ? s.avance + "%" : "") + "</span></button>"; };
   const aparte = SECS.filter(fuera);
   $("indice").innerHTML = SECS.filter((s) => !fuera(s)).map(boton).join("") +
     (aparte.length ? '<span class="aparte" title="Tienen texto, pero son de otra categoría o formato. Se conservan por si las necesitas.">Otras secciones</span>' + aparte.map(boton).join("") : "") +
     '<button class="btn chico mas" id="b-mas">+ Sección</button>' + (PL.mas ? '<div class="total">' + total.toLocaleString("es-CL") + " palabras en total</div>"
       : '<div class="total tope' + (total >= LIMITES.palabras * 0.9 ? " cerca" : "") + '"><span>' + total.toLocaleString("es-CL") + " de " + LIMITES.palabras.toLocaleString("es-CL") + ' palabras</span><div class="fx-avance"><i style="width:' + Math.min(100, total / LIMITES.palabras * 100) + '%"></i></div>' + (total >= LIMITES.palabras * 0.9 ? "<small>Cerca del límite del plan gratis. " + MAS_PRONTO + MAS_LINK + "</small>" : "") + "</div>");
-  $("indice").querySelectorAll("[data-s]").forEach((b) => b.onclick = () => { secActual = b.dataset.s; pintarIndice(); pintarHoja(); });
+  $("indice").querySelectorAll("[data-s]").forEach((b) => b.onclick = () => { if (secActual !== b.dataset.s) DESHACER = null; secActual = b.dataset.s; pintarIndice(); pintarHoja(); });
   $("b-mas").onclick = menuSeccion;
 }
 function menuSeccion() {
@@ -1284,10 +1333,18 @@ function menuSeccion() {
   $("f-libre-t").focus({ preventScroll: true });
 }
 function pintarHoja() {
-  const s = SECS.find((x) => x.id === secActual), i = SECS.indexOf(s), g = SECCIONES[s.guia];
-  $("hoja-w").innerHTML = '<article class="hoja" id="hoja">' +
+  const s = SECS.find((x) => x.id === secActual), col = colDe(s);
+  const f = col && hojaSel[s.id] ? FICHAS.fichas.find((x) => x.id === hojaSel[s.id] && x.coleccion_id === col.id) : null;
+  if (f) hojaFicha(s, col, f); else hojaSeccion(s, col);
+}
+function hojaSeccion(s, col) {
+  const i = SECS.indexOf(s), g = SECCIONES[s.guia], cr = col && CR.CRUCES[s.guia];
+  // Conectada con Fichas: las preguntas van a lo que las fichas no cubren (el conjunto; cada hoja tiene las suyas).
+  const pregs = cr ? cr.conjunto : g && g.p && s.guia !== "libre" ? g.p : null;
+  $("hoja-w").innerHTML = puente(s, col) + '<article class="hoja' + (col ? " con-hojas" : "") + '" id="hoja">' +
     '<label class="fx-sr" for="h-tit">Título de la sección</label><input class="tit" id="h-tit" maxlength="120" value="' + esc(s.titulo) + '">' +
-    (g && g.p && s.guia !== "libre" ? '<details class="guia"' + (s.texto ? "" : " open") + '><summary>Preguntas para empezar</summary><div class="pregs">' + g.p.map((q) => '<button type="button" class="preg" title="Agregar al texto">' + esc(q) + "</button>").join("") + '<span class="hint">Toca una pregunta para agregarla al texto y responderla debajo. Son una ayuda, no una obligación.</span></div></details>' : "") +
+    (col ? '<p class="hint hj-que">El texto sobre ' + esc(CR.varios(s.guia, col.plantilla)) + ' en conjunto. Lo de cada uno va en su propia hoja, arriba.</p>' : "") +
+    (pregs ? '<details class="guia"' + (s.texto ? "" : " open") + '><summary>' + (cr ? "Preguntas sobre el conjunto" : "Preguntas para empezar") + '</summary><div class="pregs">' + pregs.map((q) => '<button type="button" class="preg" title="Agregar al texto">' + esc(q) + "</button>").join("") + '<span class="hint">Toca una pregunta para agregarla al texto y responderla debajo. Son una ayuda, no una obligación.</span></div></details>' : "") +
     '<div class="etapa"><div class="etapa-top"><span class="hint">Avance de esta sección</span><b id="h-av">' + s.avance + "% · " + etapaDe(s.avance) + '</b></div>' +
     '<div class="etapas" role="group" aria-label="Etapa">' + ETAPAS.map(([v, n]) => '<button type="button" data-av="' + v + '" aria-pressed="' + (s.avance === v) + '">' + n + "</button>").join("") + "</div>" +
     '<div class="etapa-fina"><label class="fx-sr" for="h-rango">Avance exacto</label><input type="range" id="h-rango" min="0" max="100" step="5" value="' + s.avance + '">' +
@@ -1295,8 +1352,9 @@ function pintarHoja() {
     '<label class="fx-sr" for="h-txt">Texto</label><textarea class="texto" id="h-txt" maxlength="200000" placeholder="Escribe aquí. Se guarda solo.">' + esc(s.texto) + "</textarea>" +
     '<div class="barra"><span class="est" id="h-est">' + palabras(s.texto) + ' palabras</span><div class="acc">' +
     '<button class="btn chico" id="h-foco">Pantalla completa</button>' +
+    (col && puedeHojas(col) && s.texto.trim() ? '<button class="btn chico" id="h-pasar" title="Reparte en fichas las partes que hablan de cada uno">Pasar a fichas</button>' : "") +
     (i > 0 ? '<button class="btn chico" id="h-up" aria-label="Mover arriba">↑</button>' : "") + (i < SECS.length - 1 ? '<button class="btn chico" id="h-down" aria-label="Mover abajo">↓</button>' : "") +
-    '<span id="h-del"><button class="btn chico peligro" id="h-borrar">Borrar sección</button></span></div></div></article>';
+    '<span id="h-del"><button class="btn chico peligro" id="h-borrar">Borrar sección</button></span></div></div></article>' + pieHojas(col);
   const ta = $("h-txt"), crecer = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
   crecer();
   const subir = debounce(async () => {
@@ -1337,9 +1395,11 @@ function pintarHoja() {
     pintarIndice(); pintarHoja();
   };
   if ($("h-up")) $("h-up").onclick = () => mover(-1);
+  if ($("h-pasar")) $("h-pasar").onclick = () => pasarAFichas(s, col);
+  enlazarPuente(s, col);
   if ($("h-down")) $("h-down").onclick = () => mover(1);
   $("h-borrar").onclick = () => {
-    $("h-del").innerHTML = '<span class="hint">' + (s.texto ? "Tiene " + palabras(s.texto) + " palabras. " : "") + '¿Borrar?</span> <button class="btn chico peligro" id="h-si">Sí</button> <button class="btn chico" id="h-no">No</button>';
+    $("h-del").innerHTML = '<span class="hint">' + (s.texto ? "Tiene " + palabras(s.texto) + " palabras. " : "") + (col ? "Las hojas de cada " + esc(CR.nombrePl(col.plantilla).uno) + " quedan en Fichas. " : "") + '¿Borrar?</span> <button class="btn chico peligro" id="h-si">Sí</button> <button class="btn chico" id="h-no">No</button>';
     $("h-no").onclick = pintarHoja;
     $("h-si").onclick = async () => {
       const { error } = await sb.from("secciones").delete().eq("id", s.id);
@@ -1347,6 +1407,203 @@ function pintarHoja() {
       SECS = SECS.filter((x) => x.id !== s.id); secActual = null; document.body.style.overflow = ""; pintarTabs(); pintarAvance(); taller();
     };
   };
+}
+
+/* ================= TALLER Y FICHAS: un elemento, varias miradas (js/cruces.js) ================= */
+// Las secciones que se cruzan con Fichas (personajes, mundo, mecánicas, componentes, materiales y proceso) se conectan a su colección:
+// la sección guarda el texto del conjunto y cada ficha su hoja (elementos.texto). Solo el equipo, mientras Fichas esté en prueba.
+let hojaSel = {}, DESHACER = null;
+const capi = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+const colDe = (s) => (EQ && s && s.coleccion_id ? FICHAS.cols.find((c) => c.id === s.coleccion_id) || null : null);
+const palabrasSec = (s) => palabras(s.texto) + (colDe(s) ? CR.hojasDe(s, FICHAS.fichas).reduce((a, e) => a + palabras(e.texto), 0) : 0);
+// Hojas de colecciones sin sección conectada: también cuentan en el total de palabras del proyecto.
+const hojasSueltas = () => (EQ ? FICHAS.fichas.filter((e) => !SECS.some((s) => s.coleccion_id && s.coleccion_id === e.coleccion_id)).reduce((a, e) => a + palabras(e.texto), 0) : 0);
+const edTaller = () => nivelDe("taller") === "editar" && editable(P, ACT, PL);
+const puedeHojas = (col) => edTaller() && fSirve(col.plantilla, P.tipo);
+// Para lo que lee otra herramienta (lectores beta): cada sección conectada con sus hojas.
+const secsCompletas = () => SECS.map((s) => (colDe(s) ? { ...s, texto: CR.textoCompleto(s, FICHAS.fichas) } : s));
+const verFichas = (f, col) => { try { if (f) sessionStorage.setItem("forja-ficha-abrir", f.id); else if (col) sessionStorage.setItem("forja-coleccion-abrir", col.id); } catch (e) {} DESDE_RUTA = false; irA("fichas"); };
+const rechazos = () => { try { return JSON.parse(localStorage.getItem("forja-cruce-no-" + P.id) || "[]"); } catch (e) { return []; } };
+
+// Arriba de la hoja: la oferta de conectar, o las pestañas de hojas (el conjunto y una por cada ficha).
+function puente(s, col) {
+  if (!col) {
+    const cr = EQ && CR.cruce(s.guia, P.tipo); if (!cr || !edTaller() || rechazos().includes(s.id)) return "";
+    const pl = CR.nombrePl(cr.pl), hay = FICHAS.cols.find((c) => c.plantilla === cr.pl && !SECS.some((x) => x.coleccion_id === c.id));
+    const n = hay ? FICHAS.fichas.filter((e) => e.coleccion_id === hay.id).length : 0;
+    return '<div class="hj-oferta" style="--tc:' + tc(P.tipo) + '"><span class="hj-mazo" aria-hidden="true"><i></i><i></i><i></i></span><div><b>' + esc(s.titulo) + ' también vive en Fichas.</b><p>' +
+      (hay ? "Conéctala con «" + esc(hay.nombre) + "» (" + n + (n === 1 ? " " + esc(pl.uno) : " fichas") + ") para escribir una hoja por cada " + esc(pl.uno) + ", con los mismos datos que tiene en Fichas."
+        : "Conéctala para escribir una hoja por cada " + esc(pl.uno) + ". Se crea la colección «" + esc(pl.n) + "» en Fichas, y " + esc(CR.varios(s.guia, cr.pl)) + " que agregues aquí también estarán allá.") +
+      ' Lo que ya escribiste se queda aquí.</p></div><div class="hj-oferta-b"><button type="button" class="btn chico prim" id="hj-conectar">Conectar con Fichas</button><button type="button" class="btn chico" id="hj-ahora-no">Ahora no</button></div></div>';
+  }
+  const pl = CR.nombrePl(col.plantilla), hs = CR.hojasDe(s, FICHAS.fichas), sel = hojaSel[s.id] || null;
+  const otra = !fSirve(col.plantilla, P.tipo);
+  return '<div class="hojas-w" style="--tc:' + tc(P.tipo) + '">' +
+    (DESHACER && DESHACER.s === s.id ? '<div class="hj-aviso" role="status"><span>' + esc(DESHACER.msg) + '</span><button type="button" class="btn chico" id="hj-deshacer">Deshacer</button></div>' : "") +
+    (otra ? '<div class="hj-aviso" role="status"><span>«' + esc(col.nombre) + '» es de otra categoría: sus hojas quedan para leer.</span></div>' : "") +
+    '<div class="hojas" role="tablist" aria-label="Hojas de ' + esc(s.titulo) + '">' +
+    '<button type="button" role="tab" class="hj-conj" data-hj="" aria-selected="' + !sel + '"><b>El conjunto</b><small>' + palabras(s.texto) + " palabras</small></button>" +
+    hs.map((e) => { const w = palabras(e.texto); return '<button type="button" role="tab" data-hj="' + e.id + '" aria-selected="' + (sel === e.id) + '"><b>' + esc(e.titulo.length > 26 ? e.titulo.slice(0, 25) + "…" : e.titulo) + "</b><small>" + (w ? w + " palabras" : "en blanco") + "</small></button>"; }).join("") +
+    (puedeHojas(col) ? '<span class="hj-nueva" id="hj-nueva-w"><button type="button" id="hj-nueva">+ ' + esc(capi(pl.uno)) + "</button></span>" : "") + "</div></div>";
+}
+// Bajo la hoja: con qué colección está conectada y cómo desconectarla.
+const pieHojas = (col) => (col ? '<p class="hj-de"><span>Conectada con <button type="button" class="hj-ir" id="hj-ir-col">' + esc(col.nombre) + " en Fichas</button></span>" +
+  (puedeHojas(col) ? '<button type="button" class="hj-ir suave" id="hj-soltar">Desconectar</button>' : "") + "</p>" : "");
+function enlazarPuente(s, col) {
+  const w = $("hoja-w"), q = (x) => w.querySelector(x);
+  if (q("#hj-conectar")) q("#hj-conectar").onclick = () => conectar(s);
+  if (q("#hj-ahora-no")) q("#hj-ahora-no").onclick = () => { try { localStorage.setItem("forja-cruce-no-" + P.id, JSON.stringify([...rechazos(), s.id])); } catch (e) {} pintarHoja(); };
+  if (!col) return;
+  w.querySelectorAll("[data-hj]").forEach((b) => b.onclick = () => { const v = b.dataset.hj || null; if ((hojaSel[s.id] || null) === v) return; hojaSel[s.id] = v; pintarHoja(); });
+  const sel = w.querySelector('.hojas [aria-selected="true"]'), fila = q(".hojas");
+  if (sel && fila && fila.scrollWidth > fila.clientWidth) fila.scrollLeft = sel.offsetLeft - fila.offsetLeft - (fila.clientWidth - sel.offsetWidth) / 2;
+  if (q("#hj-ir-col")) q("#hj-ir-col").onclick = () => verFichas(null, col);
+  if (q("#hj-deshacer")) q("#hj-deshacer").onclick = deshacerPaso;
+  if (q("#hj-soltar")) q("#hj-soltar").onclick = () => {
+    q(".hj-de").innerHTML = '<span class="hint">Sus hojas siguen en Fichas y vuelven al conectarla otra vez. ¿Desconectar?</span><span><button type="button" class="btn chico" id="hj-soltar-si">Sí</button> <button type="button" class="btn chico" id="hj-soltar-no">No</button></span>';
+    q("#hj-soltar-no").onclick = pintarHoja;
+    q("#hj-soltar-si").onclick = async () => {
+      const { error } = await sb.from("secciones").update({ coleccion_id: null }).eq("id", s.id);
+      if (error) { toast(limite(error) || "No se pudo desconectar."); return; }
+      s.coleccion_id = null; delete hojaSel[s.id];
+      try { localStorage.setItem("forja-cruce-no-" + P.id, JSON.stringify([...rechazos(), s.id])); } catch (e) {}
+      pintarIndice(); pintarHoja();
+    };
+  };
+  const nv = q("#hj-nueva");
+  if (nv) nv.onclick = () => {
+    const pl = CR.nombrePl(col.plantilla);
+    $("hj-nueva-w").innerHTML = '<form class="hj-form" id="hj-form"><label class="fx-sr" for="hj-nombre">Nombre</label><input id="hj-nombre" maxlength="160" placeholder="Nombre"><button class="btn chico prim">Crear</button></form>';
+    $("hj-nombre").focus();
+    $("hj-form").onsubmit = async (e) => { e.preventDefault(); const t = $("hj-nombre").value.trim(); if (!t) return; await nuevaHoja(s, col, t); };
+    $("hj-nombre").onkeydown = (e) => { if (e.key === "Escape") pintarHoja(); };
+  };
+}
+// Conectar: usa una colección de esa plantilla que no tenga sección, o crea una.
+async function conectar(s) {
+  const cr = CR.cruce(s.guia, P.tipo); if (!cr) return;
+  const b = $("hj-conectar"); if (b) b.disabled = true;
+  let col = FICHAS.cols.find((c) => c.plantilla === cr.pl && !SECS.some((x) => x.coleccion_id === c.id));
+  if (!col) {
+    const { data, error } = await sb.from("colecciones").insert({ espacio_id: P.espacio_id, proyecto_id: P.id, plantilla: cr.pl, nombre: CR.nombrePl(cr.pl).n, orden: FICHAS.cols.length }).select("id,nombre,plantilla").single();
+    if (error) { toast(limite(error) || "No se pudo crear la colección en Fichas."); if (b) b.disabled = false; return; }
+    col = data; FICHAS.cols = [...FICHAS.cols, col];
+  }
+  const { error } = await sb.from("secciones").update({ coleccion_id: col.id }).eq("id", s.id);
+  if (error) { toast(limite(error) || "No se pudo conectar."); if (b) b.disabled = false; return; }
+  s.coleccion_id = col.id; hojaSel[s.id] = null;
+  const hay = CR.partir(s.texto).partes.length;
+  toast(hay ? "Conectada. Si tu texto ya habla de cada " + CR.nombrePl(col.plantilla).uno + ", usa «Pasar a fichas»." : "Conectada con «" + col.nombre + "».");
+  pintarIndice(); pintarHoja();
+}
+async function nuevaHoja(s, col, titulo) {
+  const pl = CR.nombrePl(col.plantilla), hs = FICHAS.fichas.filter((e) => e.coleccion_id === col.id);
+  const { data, error } = await sb.from("elementos").insert({ espacio_id: P.espacio_id, proyecto_id: P.id, coleccion_id: col.id, plantilla: col.plantilla, titulo: titulo.slice(0, 160), estado: pl.estados[0] || null, orden: Math.max(-1, ...hs.map((e) => e.orden)) + 1 })
+    .select("id,titulo,coleccion_id,enlaces,orden,texto,datos,estado,creado_en").single();
+  if (error) { toast(limite(error) || "No se pudo crear."); return null; }
+  FICHAS.fichas = [...FICHAS.fichas, data]; hojaSel[s.id] = data.id; marcarHecho("fichas");
+  pintarIndice(); pintarHoja(); const t = $("h-txt"); if (t) t.focus();
+  return data;
+}
+// La hoja de una ficha: su nombre, sus datos de Fichas (para mirar) y el texto largo, que es suyo.
+function hojaFicha(s, col, f) {
+  const cr = CR.CRUCES[s.guia], pl = CR.nombrePl(col.plantilla), ed = puedeHojas(col) && !RO, d = f.datos || {};
+  const datos = (pl.vista || []).map((k) => camposDe(col).find((x) => x.k === k)).filter((x) => x && x.t !== "c" && x.t !== "img" && String(d[x.k] ?? "").trim());
+  $("hoja-w").innerHTML = puente(s, col) + '<article class="hoja hoja-f" id="hoja">' +
+    '<div class="hf-cab"><label class="fx-sr" for="hf-tit">Nombre</label><input class="tit" id="hf-tit" maxlength="160" value="' + esc(f.titulo) + '"' + (ed ? "" : " disabled") + ">" + (f.estado ? '<span class="hf-est">' + esc(f.estado) + "</span>" : "") + "</div>" +
+    '<div class="hf-datos">' + (datos.length ? datos.map((x) => '<span class="hf-dato"><i>' + esc(x.n) + "</i>" + esc(String(d[x.k]).length > 90 ? String(d[x.k]).slice(0, 89) + "…" : d[x.k]) + "</span>").join("") : '<span class="hint">Sus datos (' + esc(pl.vista.map((k) => (camposDe(col).find((x) => x.k === k) || { n: k }).n.toLowerCase()).join(", ")) + ") se llenan en Fichas.</span>") +
+    '<button type="button" class="hj-ir" id="hf-ficha">Ver la ficha →</button></div>' +
+    (cr ? '<details class="guia"' + (f.texto ? "" : " open") + '><summary>Preguntas para ir más hondo</summary><div class="pregs">' + cr.uno.map((x) => '<button type="button" class="preg" title="Agregar al texto">' + esc(x) + "</button>").join("") + '<span class="hint">Lo que va en la ficha (los datos) ya está en Fichas: aquí escribes lo que no cabe en un dato.</span></div></details>' : "") +
+    '<label class="fx-sr" for="h-txt">Texto de ' + esc(f.titulo) + '</label><textarea class="texto" id="h-txt" maxlength="200000" placeholder="Escribe aquí sobre ' + esc(f.titulo) + '. Se guarda solo."' + (ed ? "" : " readonly") + ">" + esc(f.texto || "") + "</textarea>" +
+    '<div class="barra"><span class="est" id="h-est">' + palabras(f.texto) + ' palabras</span><div class="acc"><button class="btn chico" id="h-foco">Pantalla completa</button></div></div></article>' + pieHojas(col);
+  enlazarPuente(s, col);
+  const ta = $("h-txt"), crecer = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
+  crecer();
+  $("hf-ficha").onclick = () => verFichas(f, col);
+  const hoja = $("hoja");
+  $("h-foco").onclick = () => { const on = hoja.classList.toggle("foco"); $("h-foco").textContent = on ? "Salir de pantalla completa" : "Pantalla completa"; document.body.style.overflow = on ? "hidden" : ""; crecer(); ta.focus(); };
+  if (!ed) return;
+  const subir = debounce(async () => {
+    const texto = f.texto;
+    const { error } = await sb.from("elementos").update({ texto }).eq("id", f.id);
+    if ($("h-est") && hojaSel[s.id] === f.id) $("h-est").textContent = palabras(texto) + " palabras · " + (error ? (limite(error) ? "límite de palabras alcanzado: lo último no se guardó" : "no se pudo guardar") : "guardado");
+    if (error && limite(error)) toast(limite(error));
+    if (!error) { tocarProyecto(); pintarIndice(); const b = document.querySelector('.hojas [data-hj="' + f.id + '"] small'); if (b) b.textContent = palabras(texto) ? palabras(texto) + " palabras" : "en blanco"; }
+  }, 900);
+  ta.oninput = () => { f.texto = ta.value; crecer(); $("h-est").textContent = palabras(ta.value) + " palabras · guardando…"; subir(); };
+  $("hf-tit").onchange = async (e) => {
+    const t = e.target.value.trim(); if (!t) { e.target.value = f.titulo; return; }
+    const { error } = await sb.from("elementos").update({ titulo: t.slice(0, 160) }).eq("id", f.id);
+    if (error) { toast(limite(error) || "No se pudo cambiar el nombre."); e.target.value = f.titulo; return; }
+    f.titulo = t.slice(0, 160); pintarHoja();
+  };
+  document.querySelectorAll(".preg").forEach((b) => b.onclick = () => {
+    const sep = ta.value && !ta.value.endsWith("\n") ? "\n\n" : ta.value ? "\n" : "";
+    ta.value += sep + "— " + b.textContent + "\n"; ta.dispatchEvent(new Event("input")); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+  });
+}
+// «Pasar a fichas»: reparte en hojas las partes del texto que hablan de cada uno. Se elige qué pasar; lo demás queda en el conjunto.
+function pasarAFichas(s, col) {
+  const pl = CR.nombrePl(col.plantilla), { partes, lineas } = CR.partir(s.texto), hs = CR.hojasDe(s, FICHAS.fichas);
+  const norm = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  const yaEs = (t) => hs.find((e) => norm(e.titulo) === norm(t));
+  const destino = (t) => { const e = yaEs(t); return e ? "Se suma a la hoja de «" + esc(e.titulo) + "»" : "Nueva ficha"; };
+  $("hoja-w").innerHTML = '<article class="hoja pasar" id="hoja" style="--tc:' + tc(P.tipo) + '"><h3>Pasar a fichas</h3>' +
+    (partes.length ? '<p class="hint">Encontré ' + partes.length + (partes.length === 1 ? " parte con su propio nombre" : " partes, cada una con su propio nombre") + ". Cada una pasa a la hoja de su ficha; lo que no marques, y todo lo demás, queda en el texto del conjunto. No se borra nada.</p>" +
+      '<div class="pf-lista">' + partes.map((p, i) => '<div class="pf"><label class="pf-chk"><input type="checkbox" data-pf="' + i + '" checked><span class="fx-sr">Pasar esta parte</span></label><div class="pf-c">' +
+        '<label class="fx-sr" for="pf-t' + i + '">Nombre</label><input class="pf-t" id="pf-t' + i + '" data-pt="' + i + '" maxlength="160" value="' + esc(p.titulo) + '"><small class="pf-d" id="pf-d' + i + '">' + destino(p.titulo) + "</small>" +
+        '<p class="pf-cuerpo">' + (p.cuerpo ? esc(p.cuerpo.length > 220 ? p.cuerpo.slice(0, 219) + "…" : p.cuerpo) : '<span class="hint">Solo el nombre.</span>') + "</p></div></div>").join("") + "</div>" +
+      (FICHAS.fichas.length && tope(PL, "fichas") != null ? '<p class="hint">Plan gratis: ' + FICHAS.fichas.length + " de " + tope(PL, "fichas") + " fichas usadas en este proyecto.</p>" : "") +
+      '<div class="barra"><span class="hint">Si algo quedó mal, después puedes deshacerlo.</span><div class="acc"><button type="button" class="btn chico" id="pf-no">Cancelar</button><button type="button" class="btn chico prim" id="pf-si">Pasar ' + partes.length + "</button></div></div>"
+      : '<p>No encontré partes que hablen de cada ' + esc(pl.uno) + ' por separado.</p><p class="hint">Para que Forja las reconozca, empieza cada una con su nombre en una línea propia, por ejemplo «Lucía: la mayor de los hermanos…» o «## Lucía» y su texto debajo. También puedes crear cada hoja con «+ ' + esc(capi(pl.uno)) + '».</p><div class="barra"><span></span><button type="button" class="btn chico" id="pf-no">Volver</button></div>') +
+    "</article>";
+  const w = $("hoja-w");
+  $("pf-no").onclick = pintarHoja;
+  const contar = () => { const n = w.querySelectorAll("[data-pf]:checked").length; if ($("pf-si")) { $("pf-si").textContent = "Pasar " + n; $("pf-si").disabled = !n; } };
+  w.querySelectorAll("[data-pf]").forEach((c) => c.onchange = contar);
+  w.querySelectorAll("[data-pt]").forEach((x) => x.oninput = () => { $("pf-d" + x.dataset.pt).innerHTML = destino(x.value); });
+  if (!$("pf-si")) return;
+  $("pf-si").onclick = async () => {
+    $("pf-si").disabled = true;
+    const elegidas = partes.map((p, i) => ({ ...p, titulo: (w.querySelector('[data-pt="' + i + '"]').value.trim() || p.titulo).slice(0, 160), ok: w.querySelector('[data-pf="' + i + '"]').checked })).filter((p) => p.ok);
+    const paso = { s: s.id, antes: s.texto, creadas: [], sumadas: [] }, movidas = [];
+    for (const p of elegidas) {
+      const e = yaEs(p.titulo);
+      if (e) {
+        const nuevo = (e.texto && e.texto.trim() ? e.texto.replace(/\s+$/, "") + "\n\n" : "") + p.cuerpo;
+        const { error } = await sb.from("elementos").update({ texto: nuevo }).eq("id", e.id);
+        if (error) { toast(limite(error) || "No se pudo sumar a «" + e.titulo + "»."); break; }
+        paso.sumadas.push({ id: e.id, antes: e.texto || "" }); e.texto = nuevo; movidas.push(p);
+      } else {
+        const hsc = FICHAS.fichas.filter((x) => x.coleccion_id === col.id);
+        const { data, error } = await sb.from("elementos").insert({ espacio_id: P.espacio_id, proyecto_id: P.id, coleccion_id: col.id, plantilla: col.plantilla, titulo: p.titulo, texto: p.cuerpo, estado: pl.estados[0] || null, orden: Math.max(-1, ...hsc.map((x) => x.orden)) + 1 })
+          .select("id,titulo,coleccion_id,enlaces,orden,texto,datos,estado,creado_en").single();
+        if (error) { toast(limite(error) || "No se pudo crear «" + p.titulo + "»."); break; }
+        FICHAS.fichas = [...FICHAS.fichas, data]; hs.push(data); paso.creadas.push(data.id); movidas.push(p);
+      }
+    }
+    if (movidas.length) {
+      const resto = CR.sinPartes(lineas, movidas);
+      const { error } = await sb.from("secciones").update({ texto: resto }).eq("id", s.id);
+      if (error) toast("Las fichas quedaron listas, pero el texto del conjunto no se pudo actualizar: sigue completo.");
+      else s.texto = resto;
+      const n = paso.creadas.length, m = paso.sumadas.length;
+      paso.msg = "Pasé " + movidas.length + (movidas.length === 1 ? " parte" : " partes") + " a fichas" + (n && m ? ": " + n + (n === 1 ? " nueva" : " nuevas") + " y " + m + (m === 1 ? " sumada" : " sumadas") : m && !n ? ", sumadas a hojas que ya existían" : "") + ".";
+      DESHACER = paso; marcarHecho("fichas");
+    }
+    hojaSel[s.id] = null; tocarProyecto(); pintarIndice(); pintarAvance(); pintarHoja();
+  };
+}
+async function deshacerPaso() {
+  const d = DESHACER; if (!d) return; DESHACER = null;
+  const s = SECS.find((x) => x.id === d.s); if (!s) return;
+  const r1 = await sb.from("secciones").update({ texto: d.antes }).eq("id", s.id);
+  if (r1.error) { toast("No se pudo deshacer."); DESHACER = d; return; }
+  s.texto = d.antes;
+  for (const x of d.sumadas) { const e = FICHAS.fichas.find((y) => y.id === x.id); await sb.from("elementos").update({ texto: x.antes }).eq("id", x.id); if (e) e.texto = x.antes; }
+  if (d.creadas.length) { await sb.from("elementos").delete().in("id", d.creadas); FICHAS.fichas = FICHAS.fichas.filter((e) => !d.creadas.includes(e.id)); }
+  toast("Listo: el texto volvió a como estaba.");
+  pintarIndice(); pintarHoja();
 }
 
 /* ================= MAPA DE LA IDEA Y ESTRUCTURA (herramientas de la ruta) ================= */
@@ -1382,7 +1639,9 @@ async function vistaModulo(k) {
     const m = await import("../js/" + h.modulo);
     if (pest !== k) return; // la persona ya se fue a otra pestaña
     await m.vista({ P, SECS, REFS, PIZ, PL, panel: $("panel"), tc: tc(P.tipo), ed: puedeRuta() && nivelDe(k) === "editar", volver: volverRuta(), conVolver, marcarHecho, alTaller, guardar, toast, sb, u: (r) => "../" + r,
-      alCambiar: (D) => { FICHAS = { cols: D.cols, fichas: D.fichas }; } });
+      alCambiar: (D) => { FICHAS = { cols: D.cols, fichas: D.fichas }; },
+      // Fichas lleva a la hoja de un elemento en el Taller (o a la sección del conjunto).
+      irTaller: (secId, fichaId) => { secActual = secId; hojaSel[secId] = fichaId || null; DESDE_RUTA = false; irA("taller"); } });
   } catch (e) { console.error(e); $("panel").innerHTML = '<div class="fx-empty">No se pudo abrir ' + esc(h.t) + ". Revisa tu conexión y recarga la página.</div>"; }
 }
 const marcarHecho = (id) => { const h = R.estado(P.ruta).hechos; if (!h[id] && puedeRuta()) guardarRuta({ hechos: { ...h, [id]: new Date().toISOString().slice(0, 10) } }); };
@@ -1391,7 +1650,7 @@ const marcarHecho = (id) => { const h = R.estado(P.ruta).hechos; if (!h[id] && p
 let cssLB = false;
 function lectores() {
   if (!cssLB) { document.head.insertAdjacentHTML("beforeend", "<style>" + LB.CSS_LECTORES + "</style>"); cssLB = true; }
-  LB.vista({ P, SECS, PL, panel: $("panel"), tc: tc(P.tipo), ed: puedeRuta(), publica: !!(ACC && ACC.publica), tope: tope(PL, "lectores"),
+  LB.vista({ P, SECS: secsCompletas(), PL, panel: $("panel"), tc: tc(P.tipo), ed: puedeRuta(), publica: !!(ACC && ACC.publica), tope: tope(PL, "lectores"),
     volver: volverRuta(), conVolver,
     alAbrir: () => marcarHecho("lectores"),
     alCerrar: async () => { const { data } = await sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }); NOTAS = data || NOTAS; pintarTabs(); } });

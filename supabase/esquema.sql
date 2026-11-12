@@ -1,5 +1,5 @@
 -- Forja · esquema de la base (Supabase, proyecto "forja", id gfkiwldxxvffnkjcesws).
--- Sacado de la base en vivo el 2026-11-11: es la foto completa de la estructura y las reglas de acceso, sin ningún dato
+-- Sacado de la base en vivo el 2026-11-11 (y al día con la migración taller_fichas_enlazados del 2026-11-12): es la foto completa de la estructura y las reglas de acceso, sin ningún dato
 -- (ni oportunidades, ni cuentas, ni privado.config, que guarda la clave de la cola de correos y se genera dentro de la base).
 -- La fuente sigue siendo la base: todo cambio se aplica como migración y después se vuelve a sacar este archivo.
 -- Orden: extensiones y esquemas, tablas, funciones, restricciones, índices, triggers, reglas (RLS) y permisos.
@@ -96,7 +96,8 @@ create table public.elementos(
   orden integer default 0 not null,
   enlaces jsonb default '[]'::jsonb not null,
   creado_en timestamp with time zone default now() not null,
-  actualizado_en timestamp with time zone default now() not null
+  actualizado_en timestamp with time zone default now() not null,
+  texto text default ''::text not null
 );
 
 create table public.espacio_registro(
@@ -365,7 +366,8 @@ create table public.secciones(
   creado_en timestamp with time zone default now() not null,
   actualizado_en timestamp with time zone default now() not null,
   avance integer default 0 not null,
-  peso integer default 10 not null
+  peso integer default 10 not null,
+  coleccion_id uuid
 );
 
 create table public.seguidores(
@@ -1963,6 +1965,17 @@ AS $function$
 $function$
 ;
 
+CREATE OR REPLACE FUNCTION privado.palabras_proyecto(p uuid)
+ RETURNS integer
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select (coalesce((select sum(privado.palabras(s.texto)) from public.secciones s where s.proyecto_id = p), 0)
+        + coalesce((select sum(privado.palabras(e.texto)) from public.elementos e where e.proyecto_id = p), 0))::integer
+$function$
+;
+
 CREATE OR REPLACE FUNCTION privado.palabras(t text)
  RETURNS integer
  LANGUAGE sql
@@ -2261,14 +2274,21 @@ CREATE OR REPLACE FUNCTION privado.t_secciones()
 AS $function$
 declare otras int; antes int; despues int;
 begin
+  -- Enlazar una sección con una colección de Fichas: solo el equipo (mientras Fichas esté en prueba) y del mismo proyecto.
+  if new.coleccion_id is not null and (tg_op = 'INSERT' or new.coleccion_id is distinct from old.coleccion_id)
+     and coalesce(current_setting('forja.mover', true), '') <> '1' then
+    if not privado.herramientas_equipo() then raise exception 'FORJA_SOLO_EQUIPO'; end if;
+    if not exists(select 1 from public.colecciones c where c.id = new.coleccion_id and c.proyecto_id = new.proyecto_id) then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  end if;
   despues := privado.palabras(new.texto);
   antes := case when tg_op='UPDATE' then privado.palabras(old.texto) else 0 end;
-  if not privado.editable(new.proyecto_id) and despues >= antes and not (tg_op='UPDATE' and new.texto = old.texto and new.titulo = old.titulo and new.orden = old.orden and new.avance = old.avance and new.peso = old.peso) then
+  if not privado.editable(new.proyecto_id) and despues >= antes and not (tg_op='UPDATE' and new.texto = old.texto and new.titulo = old.titulo and new.orden = old.orden and new.avance = old.avance and new.peso = old.peso
+      and (new.coleccion_id is not distinct from old.coleccion_id or new.coleccion_id is null)) then
     raise exception 'FORJA_SOLO_LECTURA';
   end if;
   if privado.es_mas(new.espacio_id) then return new; end if;
   if despues > antes then
-    select coalesce(sum(privado.palabras(s.texto)),0) into otras from public.secciones s where s.proyecto_id=new.proyecto_id and s.id<>new.id;
+    otras := privado.palabras_proyecto(new.proyecto_id) - antes;
     if otras + despues > privado.limite('palabras') then
       raise exception 'FORJA_LIMITE_PALABRAS' using hint='El plan gratis permite 20.000 palabras por proyecto.';
     end if;
@@ -2429,13 +2449,21 @@ CREATE OR REPLACE FUNCTION privado.t_elementos()
  SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-declare c public.colecciones; tipo text; n int; t int; limpio jsonb;
+declare c public.colecciones; tipo text; n int; t int; limpio jsonb; antes int; despues int;
 begin
   if coalesce(current_setting('forja.mover', true), '') = '1' then return new; end if;
   if not privado.herramientas_equipo() then raise exception 'FORJA_SOLO_EQUIPO'; end if;
   select * into c from public.colecciones x where x.id = new.coleccion_id;
   if not found or c.proyecto_id <> new.proyecto_id then raise exception 'FORJA_NO_PERMITIDO'; end if;
   new.plantilla := c.plantilla;
+  despues := privado.palabras(new.texto);
+  antes := case when tg_op = 'UPDATE' then privado.palabras(old.texto) else 0 end;
+  -- En solo lectura (o de otra categoría) se puede recortar la hoja del Taller, nada más.
+  if tg_op = 'UPDATE' and despues <= antes and new.texto <> old.texto and new.titulo = old.titulo and new.datos = old.datos
+     and new.estado is not distinct from old.estado and new.fecha is not distinct from old.fecha and new.orden = old.orden
+     and new.enlaces = old.enlaces and new.coleccion_id = old.coleccion_id then
+    return new;
+  end if;
   select p.tipo into tipo from public.proyectos p where p.id = new.proyecto_id;
   if not privado.plantilla_ok(c.plantilla, tipo) then raise exception 'FORJA_OTRA_CATEGORIA'; end if;
   if not privado.editable(new.proyecto_id) then raise exception 'FORJA_SOLO_LECTURA'; end if;
@@ -2443,6 +2471,12 @@ begin
     t := privado.tope(new.espacio_id, 'fichas');
     select count(*) into n from public.elementos e where e.proyecto_id = new.proyecto_id;
     if t is not null and n >= t then raise exception 'FORJA_LIMITE_FICHAS'; end if;
+  end if;
+  -- Las hojas del Taller cuentan en el límite de palabras del plan gratis, igual que las secciones.
+  if despues > antes and not privado.es_mas(new.espacio_id) then
+    if privado.palabras_proyecto(new.proyecto_id) - antes + despues > privado.limite('palabras') then
+      raise exception 'FORJA_LIMITE_PALABRAS' using hint='El plan gratis permite 20.000 palabras por proyecto.';
+    end if;
   end if;
   if tg_op = 'INSERT' or new.enlaces is distinct from old.enlaces then
     select coalesce(jsonb_agg(jsonb_build_object('a', x.a, 't', x.t)), '[]'::jsonb) into limpio
@@ -2473,6 +2507,7 @@ alter table public.elementos add constraint elementos_datos_check CHECK (((jsonb
 alter table public.elementos add constraint elementos_enlaces_check CHECK (((jsonb_typeof(enlaces) = 'array'::text) AND (jsonb_array_length(enlaces) <= 30)));
 alter table public.elementos add constraint elementos_estado_check CHECK (((estado IS NULL) OR (char_length(estado) <= 40)));
 alter table public.elementos add constraint elementos_pkey PRIMARY KEY (id);
+alter table public.elementos add constraint elementos_texto_check CHECK ((char_length(texto) <= 200000));
 alter table public.elementos add constraint elementos_titulo_check CHECK (((char_length(titulo) >= 1) AND (char_length(titulo) <= 160)));
 alter table public.cotizaciones add constraint cotizaciones_pkey PRIMARY KEY (id);
 alter table public.espacio_registro add constraint espacio_registro_pkey PRIMARY KEY (id);
@@ -2592,6 +2627,7 @@ alter table public.avisos add constraint avisos_user_id_fkey FOREIGN KEY (user_i
 alter table public.correo_prefs add constraint correo_prefs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 alter table public.colecciones add constraint colecciones_espacio_id_fkey FOREIGN KEY (espacio_id) REFERENCES espacios(id) ON DELETE CASCADE;
 alter table public.colecciones add constraint colecciones_proyecto_id_fkey FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE;
+alter table public.secciones add constraint secciones_coleccion_id_fkey FOREIGN KEY (coleccion_id) REFERENCES colecciones(id) ON DELETE SET NULL;
 alter table public.elementos add constraint elementos_coleccion_id_fkey FOREIGN KEY (coleccion_id) REFERENCES colecciones(id) ON DELETE CASCADE;
 alter table public.elementos add constraint elementos_espacio_id_fkey FOREIGN KEY (espacio_id) REFERENCES espacios(id) ON DELETE CASCADE;
 alter table public.elementos add constraint elementos_proyecto_id_fkey FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE;
@@ -2657,6 +2693,7 @@ alter table privado.referidos add constraint referidos_user_id_fkey FOREIGN KEY 
 CREATE INDEX avisos_user ON public.avisos USING btree (user_id, creado_en DESC);
 CREATE INDEX colecciones_espacio_idx ON public.colecciones USING btree (espacio_id);
 CREATE INDEX colecciones_proyecto_idx ON public.colecciones USING btree (proyecto_id, orden);
+CREATE UNIQUE INDEX secciones_coleccion_uni ON public.secciones USING btree (coleccion_id) WHERE (coleccion_id IS NOT NULL);
 CREATE INDEX elementos_coleccion_idx ON public.elementos USING btree (coleccion_id, orden);
 CREATE INDEX elementos_espacio_idx ON public.elementos USING btree (espacio_id);
 CREATE INDEX elementos_proyecto_idx ON public.elementos USING btree (proyecto_id);
@@ -3190,6 +3227,7 @@ revoke all on function privado.maneja_rondas(p uuid) from public, anon, authenti
 revoke all on function privado.mi_lectura(t uuid) from public, anon, authenticated, service_role;
 -- privado.motivo_txt(m text): permisos por defecto (cualquiera puede ejecutarla)
 revoke all on function privado.palabras(t text) from public, anon, authenticated, service_role;
+revoke all on function privado.palabras_proyecto(p uuid) from public, anon, authenticated, service_role;
 grant execute on function privado.palabras(t text) to authenticated;
 revoke all on function privado.plan_de(e uuid) from public, anon, authenticated, service_role;
 revoke all on function privado.prefs(u uuid) from public, anon, authenticated, service_role;

@@ -4,6 +4,7 @@
 import { esc, debounce, limite, tope, LIMITES, MAS_LINK } from "./forja.js";
 import { PLANTILLAS, plantillasDe, sirve, camposDe, TIPOS_CAMPO, MAX_CAMPOS, ENLACES } from "./fichas-plantillas.js";
 import { pista } from "./ayuda.js";
+import { CRUCES } from "./cruces.js";
 
 const okUrl = (v) => /^https:\/\/[^\s"'<>]+$/i.test(String(v || "").trim());
 const okColor = (v) => (/^#[0-9a-f]{6}$/i.test(String(v || "")) ? v : "");
@@ -25,6 +26,8 @@ export async function vista(ctx) {
   try { const m = localStorage.getItem("forja-fichas-modo"); if (m === "tabla" || m === "tarjetas") S.modo = m; } catch (e) {}
   // Una ficha pedida desde la pizarra.
   try { const f = sessionStorage.getItem("forja-ficha-abrir"); if (f) { S.sel = f; sessionStorage.removeItem("forja-ficha-abrir"); } } catch (e) {}
+  // Una colección pedida desde el Taller.
+  try { const c = sessionStorage.getItem("forja-coleccion-abrir"); if (c) { S.col = c; S.sel = null; S.nueva = false; sessionStorage.removeItem("forja-coleccion-abrir"); } } catch (e) {}
 
   panel.innerHTML = '<div class="fx-empty">Abriendo tus fichas…</div>';
   const [c, e] = await Promise.all([
@@ -42,6 +45,11 @@ export async function vista(ctx) {
   const colActual = () => D.cols.find((x) => x.id === S.col) || null;
   const fichasDe = (id) => D.fichas.filter((f) => f.coleccion_id === id);
   const editaCol = (col) => ctx.ed && !!col && sirve(col.plantilla, P.tipo);
+  // La sección del Taller conectada con una colección (un elemento, varias miradas: ver cruces.js).
+  const secDe = (col) => (col && ctx.SECS ? ctx.SECS.find((s) => s.coleccion_id === col.id) : null) || null;
+  const palabras = (t) => ((t || "").trim().match(/\S+/g) || []).length;
+  // ¿Hay en el Taller una sección que podría conectarse con esta colección?
+  const secPosible = (col) => (ctx.SECS || []).find((s) => !s.coleccion_id && CRUCES[s.guia] && CRUCES[s.guia].pl === col.plantilla) || null;
 
   function pintar() {
     const col = colActual();
@@ -100,7 +108,11 @@ export async function vista(ctx) {
       ? "<b>Esta colección es de otra categoría.</b> Queda guardada para ver o borrar; para editarla, vuelve a la categoría en que la creaste."
       : !ctx.ed ? "Puedes ver estas fichas, pero no editarlas." : "";
     const estados = [...new Set([...pl.estados, ...fs.map((f) => f.estado).filter(Boolean)])];
+    const sec = secDe(col), posible = !sec && secPosible(col);
     return (motivo ? '<div class="fi-aviso" role="status">' + motivo + "</div>" : "") +
+      (sec ? '<p class="fi-taller">Se escribe en el Taller: <button type="button" class="fi-ir-taller" data-taller="">«' + esc(sec.titulo) + "» →</button> " +
+          '<span class="hint">El texto largo de cada ' + esc(pl.uno) + " está en su hoja del Taller; aquí van sus datos.</span></p>"
+        : posible ? '<p class="fi-taller"><span class="hint">Para escribir sobre cada ' + esc(pl.uno) + ", abre «" + esc(posible.titulo) + "» en el Taller y conéctala con Fichas.</span></p>" : "") +
       '<div class="fi-barra">' +
       (fs.length > 5 ? '<label class="fx-sr" for="fi-q">Buscar</label><input id="fi-q" type="search" placeholder="Buscar en ' + esc(col.nombre) + '" value="' + esc(S.q) + '">' : "") +
       (fs.length ? '<div class="fi-estados" role="group" aria-label="Filtrar por estado"><button type="button" data-est="" aria-pressed="' + !S.estado + '">Todas</button>' +
@@ -176,6 +188,7 @@ export async function vista(ctx) {
     const chip = (g, txt, quitar) => '<span class="fi-chip"><button type="button" data-ir="' + g.id + '">' + txt + "</button>" + (quitar && ed ? '<button type="button" class="fi-x" data-quitar="' + quitar + '" aria-label="Quitar enlace">×</button>' : "") + "</span>";
     return '<div class="fi-ed-cab"><label class="fx-sr" for="fi-titulo">Nombre</label><input id="fi-titulo" class="fi-titulo" maxlength="160" value="' + esc(f.titulo) + '"' + dis + '>' +
       '<button type="button" class="fi-x fi-cerrar" id="fi-cerrar" aria-label="Cerrar la ficha">×</button></div>' +
+      (secDe(col) ? '<div class="fi-hoja"><span>' + (palabras(f.texto) ? palabras(f.texto) + " palabras en su hoja del Taller" : "Su hoja del Taller está en blanco") + '</span><button type="button" class="btn chico" data-taller="' + f.id + '">' + (palabras(f.texto) ? "Seguir escribiendo" : "Escribir sobre " + esc(corta(f.titulo, 24))) + " →</button></div>" : "") +
       '<div class="fi-campos">' + camposDe(col).map((x) => campoHTML(x, d[x.k], ed)).join("") + "</div>" +
       '<div class="fi-fila"><label class="fi-c"><span>Estado</span><select id="fi-estado"' + dis + '><option value="">—</option>' + [...new Set([...pl.estados, f.estado].filter(Boolean))].map((o) => "<option" + (o === f.estado ? " selected" : "") + ">" + esc(o) + "</option>").join("") + "</select></label>" +
       '<label class="fi-c"><span>Fecha</span><input type="date" id="fi-fecha" value="' + esc(f.fecha || "") + '"' + dis + "></label></div>" +
@@ -271,6 +284,7 @@ export async function vista(ctx) {
     }
     const col = colActual(); if (!col) return;
     const ed = editaCol(col);
+    $$("[data-taller]").forEach((b) => b.onclick = async () => { const sec = secDe(col); if (!sec || !ctx.irTaller) return; if (D.fichas.some((x) => x._sucio)) await guardarYa(); ctx.irTaller(sec.id, b.dataset.taller || null); });
     $$("[data-modo]").forEach((b) => b.onclick = () => { S.modo = b.dataset.modo; try { localStorage.setItem("forja-fichas-modo", S.modo); } catch (e) {} pintar(); });
     $$("[data-est]").forEach((b) => b.onclick = () => { S.estado = b.dataset.est; pintar(); });
     const q = $q("#fi-q"); if (q) q.oninput = debounce(() => { S.q = q.value; const pos = q.selectionStart; pintar(); const q2 = $q("#fi-q"); if (q2) { q2.focus(); q2.setSelectionRange(pos, pos); } }, 250);
@@ -303,7 +317,8 @@ export async function vista(ctx) {
       const cb = $q("#fi-cborrar");
       if (cb) cb.onclick = () => {
         const n = fichasDe(col.id).length;
-        $q("#fi-cborrar-w").innerHTML = '<span class="hint">¿Borrar «' + esc(col.nombre) + "» y " + plural(n, "ficha", "fichas") + '? No se puede deshacer.</span> <button type="button" class="btn chico peligro" id="fi-csi">Sí, borrar</button> <button type="button" class="btn chico" id="fi-cno">Cancelar</button>';
+        const w = fichasDe(col.id).reduce((a, x) => a + palabras(x.texto), 0);
+        $q("#fi-cborrar-w").innerHTML = '<span class="hint">¿Borrar «' + esc(col.nombre) + "» y " + plural(n, "ficha", "fichas") + (w ? ", con " + plural(w, "palabra", "palabras") + " escritas en sus hojas del Taller" : "") + '? No se puede deshacer.</span> <button type="button" class="btn chico peligro" id="fi-csi">Sí, borrar</button> <button type="button" class="btn chico" id="fi-cno">Cancelar</button>';
         $q("#fi-cno").onclick = pintar;
         $q("#fi-csi").onclick = async () => {
           const { error } = await sb.from("colecciones").delete().eq("id", col.id);
@@ -345,7 +360,8 @@ export async function vista(ctx) {
   function borrarConConfirmar(f) {
     const b = panel.querySelector("#fi-borrar"); if (!b) return;
     b.onclick = () => {
-      panel.querySelector("#fi-borrar-w").innerHTML = '<span class="hint">¿Borrar «' + esc(corta(f.titulo, 40)) + '»?</span> <button type="button" class="btn chico peligro" id="fi-si">Sí, borrar</button> <button type="button" class="btn chico" id="fi-no">No</button>';
+      const w = palabras(f.texto);
+      panel.querySelector("#fi-borrar-w").innerHTML = '<span class="hint">¿Borrar «' + esc(corta(f.titulo, 40)) + "»" + (w ? " y su hoja del Taller (" + plural(w, "palabra", "palabras") + ")" : "") + '?</span> <button type="button" class="btn chico peligro" id="fi-si">Sí, borrar</button> <button type="button" class="btn chico" id="fi-no">No</button>';
       panel.querySelector("#fi-no").onclick = pintar;
       panel.querySelector("#fi-si").onclick = () => borrarFicha(f);
     };
@@ -357,6 +373,9 @@ export async function vista(ctx) {
 
 export const CSS_FICHAS = `
 .fi{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+.fi-taller{margin:-4px 0 0;font-size:14px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.fi-ir-taller{font:inherit;font-weight:700;background:none;border:0;padding:0;color:var(--tc);cursor:pointer}
+.fi-hoja{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;font-size:13.5px;color:var(--muted);border:1px dashed color-mix(in srgb,var(--tc) 45%,var(--line));border-radius:10px;padding:7px 10px;margin-bottom:10px}
 .fi-cab{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
 .fi-cab h2{font-family:var(--f-display);font-size:24px;margin:0}
 .fi-cab .hint{margin:2px 0 0;max-width:60ch}
