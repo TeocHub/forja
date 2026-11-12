@@ -1,7 +1,7 @@
 {
  "doc": "pagos",
  "titulo": "Planes, pagos y reembolsos",
- "simple": "El plan gratis no vence. Forja Más y Forja Estudio todavía no se pueden contratar; cuando se pueda, aquí están las reglas: puedes cancelar cuando quieras por el mismo medio, tienes 10 días para arrepentirte con devolución total, te avisamos 30 días antes de un cambio de precio y nunca se borra nada si dejas de pagar.",
+ "simple": "El plan gratis no vence. Forja Más y Forja Estudio todavía no se pueden contratar; cuando se pueda, aquí están las reglas: puedes cancelar cuando quieras por el mismo medio, tienes 10 días para arrepentirte (te devolvemos los días que no usaste, o todo si es dentro de 48 horas), te avisamos 30 días antes de un cambio de precio y nunca se borra nada si dejas de pagar.",
  "cambios": "Documento nuevo. Reúne las condiciones de los planes que antes estaban en los Términos y agrega cómo funcionarán la renovación, la cancelación, el derecho a retracto y los reembolsos cuando los planes pagados se puedan contratar.",
  "secciones": [
   {
@@ -37,7 +37,7 @@
   {
    "id": "retracto",
    "t": "7. Derecho a retracto",
-   "html": "<p>Conforme al artículo 3 bis de la Ley N° 19.496, la persona usuaria puede retractarse de la contratación dentro de los <b>10 días corridos</b> siguientes a ella, sin expresión de causa, comunicándolo desde Mi cuenta → Escríbenos o a <a href=\"mailto:forja@digitalmonster.cl\">forja@digitalmonster.cl</a>. Digital Monster no excluye este derecho y, aunque el servicio ya se haya comenzado a usar, devolverá <b>la totalidad</b> de lo pagado por esa contratación, por el mismo medio de pago y dentro de un plazo máximo de 45 días desde la comunicación del retracto.</p>"
+   "html": "<p>Conforme al artículo 3 bis de la Ley N° 19.496, la persona usuaria puede retractarse de la contratación dentro de los <b>10 días corridos</b> siguientes a ella, sin expresión de causa, desde su cuenta o comunicándolo por Mi cuenta → Escríbenos o a <a href=\"mailto:forja@digitalmonster.cl\">forja@digitalmonster.cl</a>. Digital Monster no excluye este derecho.</p>\n<p>Al retractarse, el plan termina de inmediato y se devuelve lo pagado por los días que quedaban sin usar del período contratado, conforme a la regla de la ley para los servicios, por el mismo medio de pago y dentro de un plazo máximo de 45 días desde la comunicación del retracto. Si el retracto se ejerce dentro de las primeras 48 horas, se devuelve la totalidad de lo pagado. El Contenido no se ve afectado: la cuenta pasa al plan gratis conforme a la <a href=\"#fin\">sección 9</a>.</p>"
   },
   {
    "id": "reembolsos",
