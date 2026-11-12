@@ -565,12 +565,12 @@ dialog.an-d::backdrop{background:rgba(10,12,20,.5)}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, tope, NOMBRE_PLAN, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen } from "../js/forja.js";
+import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, tope, NOMBRE_PLAN, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen , equipo } from "../js/forja.js";
 import { funcion, tarjetaFuncion, pendientes } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
 import { montar, MODOS, cuentaTarjetas, normal as normalPiz, CSS_PIZARRA } from "../js/pizarra.js";
-import { pista } from "../js/ayuda.js";
+import { pista, abrirTemasEquipo } from "../js/ayuda.js";
 import * as R from "../js/ruta.js";
 import * as O from "../js/obras.js";
 import * as MP from "../js/mapa.js";
@@ -590,7 +590,7 @@ const areaDe_ = (k) => AREA_DE[k] || (HV.vistaDe(k) ? HV.vistaDe(k).areaPermiso 
 const nivelDe = (k) => (ACC && ACC.areas ? ACC.areas[areaDe_(k)] : "editar");
 const visibles = () => PESTANAS.filter(([k]) => nivelDe(k));
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-let ESP, P, ACC = null, VER = false, PERS = null, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
+let FICHAS = { cols: [], fichas: [] }, ESP, P, ACC = null, VER = false, PERS = null, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../proyectos/");
 else conSesion($("app"), async (ses) => {
@@ -599,6 +599,9 @@ else conSesion($("app"), async (ses) => {
   ACC = await accesoProyecto(ID);
   if (!ACC) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no tienes acceso a él.</div>'; return; }
   ESP = ACC.espacio; PL = { mas: !!ACC.mas, plan: ACC.plan || (ACC.mas ? "mas" : "libre") }; VER = ACC.acceso !== "editar";
+  // Herramientas en prueba (Fichas): solo para el equipo Digital Monster; la base revisa lo mismo.
+  const EQ = await equipo();
+  if (EQ) { HV.abrirEquipo(); abrirTemasEquipo(); HERR = Object.fromEntries(HV.vistas().map((h) => [h.vista, h.t])); }
   EQS = ACC.invitado ? [] : (await espacios()).filter((x) => x.tipo === "equipo" && x.rol !== "lector");
   PERS = (await sb.rpc("proyecto_personas", { p: ID })).data || null;
   if (ACC.tipo === "equipo") try { localStorage.setItem("forja-espacio", ESP); } catch (e) {}
@@ -618,6 +621,10 @@ else conSesion($("app"), async (ses) => {
   if (P) try { localStorage.setItem("forja-ultimo-proyecto", P.id); } catch (e) {}
   if (!P) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
   SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || []; PIZ = pz.data || [];
+  if (EQ) {
+    const [fc, fe] = await Promise.all([sb.from("colecciones").select("id,nombre,plantilla").eq("proyecto_id", ID).order("orden"), sb.from("elementos").select("id,titulo,coleccion_id,enlaces,orden").eq("proyecto_id", ID).order("orden")]);
+    FICHAS = { cols: fc.data || [], fichas: fe.data || [] };
+  }
   const h = location.hash.slice(1);
   if ((PESTANAS.some(([k]) => k === h) || HERR[h]) && nivelDe(h)) pest = h;
   else {
@@ -997,7 +1004,7 @@ let obs = null;
 function aplicarSoloLectura() {
   if (obs) { obs.disconnect(); obs = null; }
   if (!RO) return;
-  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fx-tabs, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr, [data-mp], [data-mp-ir], [data-volver], [data-mod], [data-ir-m], #es-comp, [data-quitar-c]") || el.id === "h-foco";
+  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fi-cajon:not(.nuevo), .fi-modo, .fi-estados, .fi-t, .fi-abrir, #fi-cerrar, [data-ir], #fi-q, .fx-tabs, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr, [data-mp], [data-mp-ir], [data-volver], [data-mod], [data-ir-m], #es-comp, [data-quitar-c]") || el.id === "h-foco";
   const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
   aplicar();
   obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });
@@ -1124,6 +1131,8 @@ function pizarra() {
   EDITOR = montar($("pz-raiz"), {
     piz: z, editable: edz, max: PL.mas ? Infinity : LIMITES.tarjetas,
     secciones: SECS.slice().sort((a, b) => a.orden - b.orden).map((s) => ({ id: s.id, titulo: s.titulo })), referentes: REFS,
+    fichas: FICHAS.fichas.map((f) => ({ id: f.id, titulo: f.titulo, col: f.coleccion_id, enlaces: f.enlaces || [] })), colecciones: FICHAS.cols,
+    irFicha: (id) => { try { sessionStorage.setItem("forja-ficha-abrir", id); } catch (e) {} irA("fichas"); window.scrollTo({ top: 0, behavior: "smooth" }); },
     guardar: async (datos) => {
       const { error } = await sb.from("pizarras").update({ datos }).eq("id", z.id);
       if (error) return limite(error) || "No se pudo guardar la pizarra. Revisa tu conexión.";
@@ -1302,7 +1311,7 @@ function pintarHoja() {
 /* ================= MAPA DE LA IDEA Y ESTRUCTURA (herramientas de la ruta) ================= */
 // Se abren desde la Ruta (técnicas «mapa» y «estructura») y viven en #mapa y #estructura; la pestaña marcada sigue siendo Ruta.
 // Las vistas salen del registro común (herramientas.js): una herramienta nueva con `vista` y `modulo` se abre sola aquí.
-const HERR = Object.fromEntries(HV.vistas().map((h) => [h.vista, h.t]));
+let HERR = Object.fromEntries(HV.vistas().map((h) => [h.vista, h.t]));
 const volverRuta = () => '<button type="button" class="btn chico es-volver" data-volver>← Ruta</button>';
 const conVolver = () => { const b = $("panel").querySelector("[data-volver]"); if (b) b.onclick = () => irA("ruta"); };
 // Agrega bloques de texto al final de secciones del Taller (crea las que falten). bloques: [{ guia, texto }]. Devuelve cuántas secciones cambiaron.
@@ -1331,7 +1340,8 @@ async function vistaModulo(k) {
   try {
     const m = await import("../js/" + h.modulo);
     if (pest !== k) return; // la persona ya se fue a otra pestaña
-    await m.vista({ P, SECS, REFS, PIZ, PL, panel: $("panel"), tc: tc(P.tipo), ed: puedeRuta() && nivelDe(k) === "editar", volver: volverRuta(), conVolver, marcarHecho, alTaller, guardar, toast, sb, u: (r) => "../" + r });
+    await m.vista({ P, SECS, REFS, PIZ, PL, panel: $("panel"), tc: tc(P.tipo), ed: puedeRuta() && nivelDe(k) === "editar", volver: volverRuta(), conVolver, marcarHecho, alTaller, guardar, toast, sb, u: (r) => "../" + r,
+      alCambiar: (D) => { FICHAS = { cols: D.cols, fichas: D.fichas }; } });
   } catch (e) { console.error(e); $("panel").innerHTML = '<div class="fx-empty">No se pudo abrir ' + esc(h.t) + ". Revisa tu conexión y recarga la página.</div>"; }
 }
 const marcarHecho = (id) => { const h = R.estado(P.ruta).hechos; if (!h[id] && puedeRuta()) guardarRuta({ hechos: { ...h, [id]: new Date().toISOString().slice(0, 10) } }); };

@@ -6,7 +6,7 @@ import { ayudaImagenes } from "./forja.js";
 //   escaleta   escenas por actos que se reordenan arrastrando                (Forja Más)
 // Todo es texto y enlaces: la imagen del mapa o de un referente es un enlace, nunca un archivo.
 // Los datos de una pizarra viven en public.pizarras.datos:
-//   { tarjetas:[{id,x,y,titulo,sub,texto,color,enlace:{t:"s"|"r",id},acto,min}], flechas:[{id,de,a,texto,lazo,dir}],
+//   { tarjetas:[{id,x,y,titulo,sub,texto,color,enlace:{t:"s"|"r"|"f",id},acto,min}], flechas:[{id,de,a,texto,lazo,dir}],
 //     regiones:[{id,x,y,w,h,nombre,color}], actos:[{id,n}], fondo:{url,w} }
 
 export const MODOS = {
@@ -106,6 +106,9 @@ export function montar(raiz, o) {
   const T = (id) => D.tarjetas.find((t) => t.id === id);
   const SEC = (id) => (o.secciones || []).find((s) => s.id === id);
   const REF = (id) => (o.referentes || []).find((r) => r.id === id);
+  const FIC = (id) => (o.fichas || []).find((f) => f.id === id);
+  // Lo que enlaza una tarjeta: sección (s), referente (r) o ficha (f). Devuelve null si ya no existe.
+  const ENL = (e) => (!e ? null : e.t === "s" ? SEC(e.id) : e.t === "r" ? REF(e.id) : e.t === "f" ? FIC(e.id) : null);
 
   raiz.innerHTML = '<div class="pz" data-modo="' + modo + '"' + (ed ? "" : ' data-ro="1"') + ">" +
     '<div class="pz-barra" role="toolbar" aria-label="Herramientas de la pizarra"></div>' +
@@ -167,12 +170,15 @@ export function montar(raiz, o) {
     const w = btn.parentElement, ya = w.querySelector(".pz-menu");
     if (ya) { ya.remove(); btn.setAttribute("aria-expanded", "false"); return; }
     const usada = (t, id) => D.tarjetas.some((x) => x.enlace && x.enlace.t === t && x.enlace.id === id);
-    const secs = o.secciones || [], refs = o.referentes || [];
+    const secs = o.secciones || [], refs = o.referentes || [], fis = o.fichas || [];
     const op = (t, id, n, sub) => '<button type="button" data-tr="' + t + ":" + id + '"><span>' + esc(n) + "</span>" + (sub ? "<small>" + esc(sub) + "</small>" : "") + (usada(t, id) ? '<i aria-label="ya está en la pizarra">✓</i>' : "") + "</button>";
     w.insertAdjacentHTML("beforeend", '<div class="pz-menu" role="menu">' +
       (secs.length ? "<b>Del Taller</b>" + secs.map((s) => op("s", s.id, s.titulo)).join("") : "") +
       (refs.length ? "<b>Referentes</b>" + refs.map((r) => op("r", r.id, nombreRef(r), r.tipo)).join("") : "") +
-      (!secs.length && !refs.length ? '<p>Este proyecto aún no tiene secciones ni referentes.</p>' : "") + "</div>");
+      (o.colecciones || []).map((c) => { const fs = fis.filter((f) => f.col === c.id); return fs.length ? "<b>Fichas · " + esc(c.nombre) + "</b>" +
+        (ES ? "" : '<button type="button" data-trc="' + c.id + '"><span>Toda la colección</span><small>' + fs.length + (fs.some((f) => f.enlaces.length) ? " y sus flechas" : "") + "</small></button>") +
+        fs.map((f) => op("f", f.id, f.titulo)).join("") : ""; }).join("") +
+      (!secs.length && !refs.length && !fis.length ? '<p>Este proyecto aún no tiene secciones ni referentes.</p>' : "") + "</div>");
     btn.setAttribute("aria-expanded", "true");
     const cerrar = (e) => { if (!w.contains(e.target)) { const m = w.querySelector(".pz-menu"); if (m) m.remove(); btn.setAttribute("aria-expanded", "false"); document.removeEventListener("pointerdown", cerrar, true); } };
     document.addEventListener("pointerdown", cerrar, true);
@@ -180,11 +186,33 @@ export function montar(raiz, o) {
       const [t, id] = x.dataset.tr.split(":"); w.querySelector(".pz-menu").remove(); document.removeEventListener("pointerdown", cerrar, true);
       const extra = { enlace: { t, id } };
       if (t === "s") extra.titulo = (SEC(id) || {}).titulo || "";
+      else if (t === "f") extra.titulo = (FIC(id) || {}).titulo || "";
       else { const r = REF(id) || {}; extra.titulo = r.titulo || (r.tipo === "cita" ? "Cita" : nombreRef(r)); if (r.tipo === "cita") extra.texto = r.valor; if (r.tipo === "color") extra.color = okColor(r.valor); }
       if (ES) nuevaEscena(D.actos[D.actos.length - 1].id, extra);
       else { const c = centro(); crearTarjeta(c[0] - ANCHO[modo] / 2, c[1] - 30, extra); }
     });
+    w.querySelectorAll("[data-trc]").forEach((x) => x.onclick = () => { w.querySelector(".pz-menu").remove(); document.removeEventListener("pointerdown", cerrar, true); traerColeccion(x.dataset.trc); });
   }
+  // Trae todas las fichas de una colección en una grilla y dibuja sus enlaces («abre», «necesita») como flechas.
+  function traerColeccion(colId) {
+    if (!ed) return;
+    const fs = (o.fichas || []).filter((f) => f.col === colId && !usadaF(f.id));
+    if (!fs.length) { o.aviso && o.aviso("Esas fichas ya están en la pizarra."); return; }
+    const cabe = max === Infinity ? fs.length : Math.max(0, max - D.tarjetas.length);
+    if (!cabe) { puedeCrear(); return; }
+    antes();
+    const c = centro(), cols = Math.min(4, Math.ceil(Math.sqrt(fs.length))), W = ANCHO[modo] + 110, H = 170;
+    const x0 = c[0] - (cols * W) / 2, y0 = c[1] - 60;
+    fs.slice(0, cabe).forEach((f, i) => D.tarjetas.push({ id: uid(), x: Math.round(x0 + (i % cols) * W), y: Math.round(y0 + Math.floor(i / cols) * H), titulo: f.titulo, sub: "", texto: "", color: "", enlace: { t: "f", id: f.id } }));
+    const tarjetaDe = (fid) => D.tarjetas.find((t) => t.enlace && t.enlace.t === "f" && t.enlace.id === fid);
+    (o.fichas || []).forEach((f) => (f.enlaces || []).forEach((e) => {
+      const de = tarjetaDe(f.id), a = tarjetaDe(e.a);
+      if (de && a && !D.flechas.some((x) => x.de === de.id && x.a === a.id && x.texto === e.t)) D.flechas.push({ id: uid(), de: de.id, a: a.id, texto: e.t, dir: "a", ...(modo === "relaciones" ? { lazo: "otro" } : {}) });
+    }));
+    if (cabe < fs.length) puedeCrear();
+    sel = null; todo(); verTodo(); cambio();
+  }
+  const usadaF = (id) => D.tarjetas.some((x) => x.enlace && x.enlace.t === "f" && x.enlace.id === id);
   const nombreRef = (r) => r.titulo || (r.tipo === "color" ? r.valor : String(r.valor || "").replace(/^https?:\/\/(www\.)?/, "").slice(0, 48));
 
   /* ----- crear ----- */
@@ -237,9 +265,9 @@ export function montar(raiz, o) {
   function marcar() { root.querySelectorAll(".pz-sel").forEach((x) => x.classList.remove("pz-sel")); if (!sel) return; const q = sel.k === "f" ? '[data-f="' + sel.id + '"]' : sel.k === "a" ? '[data-acto="' + sel.id + '"]' : '[data-id="' + sel.id + '"]'; root.querySelectorAll(q).forEach((x) => x.classList.add("pz-sel")); }
   function chip(t) {
     if (!t.enlace) return "";
-    const s = t.enlace.t === "s" ? SEC(t.enlace.id) : REF(t.enlace.id);
-    if (!s) return '<span class="pz-chip roto" title="Ya no existe en el proyecto">enlace perdido</span>';
-    return '<button type="button" class="pz-chip" data-ir="' + t.enlace.t + ":" + t.enlace.id + '" tabindex="-1">' + (t.enlace.t === "s" ? "§ " + esc(s.titulo) : "✦ " + esc(nombreRef(s))) + "</button>";
+    const s = ENL(t.enlace);
+    if (!s) return t.enlace.t === "f" && !o.fichas ? "" : '<span class="pz-chip roto" title="Ya no existe en el proyecto">enlace perdido</span>';
+    return '<button type="button" class="pz-chip" data-ir="' + t.enlace.t + ":" + t.enlace.id + '" tabindex="-1">' + (t.enlace.t === "s" ? "§ " + esc(s.titulo) : t.enlace.t === "f" ? "▤ " + esc(s.titulo) : "✦ " + esc(nombreRef(s))) + "</button>";
   }
   function media(t) {
     const r = t.enlace && t.enlace.t === "r" ? REF(t.enlace.id) : null;
@@ -432,7 +460,7 @@ export function montar(raiz, o) {
     root.querySelector(".pz-zoom").onclick = (e) => { const b = e.target.closest("[data-z]"); if (!b) return; const r = lienzo.getBoundingClientRect(); if (b.dataset.z === "0") verTodo(); else zoomEn(r.left + r.width / 2, r.top + r.height / 2, b.dataset.z === "+" ? 1.25 : 0.8); };
     lienzo.addEventListener("focusin", (e) => { const t = e.target.closest(".pz-t"); if (t && !(sel && sel.id === t.dataset.id)) seleccionar({ k: "t", id: t.dataset.id }); });
   }
-  function irEnlace(v) { const [t, id] = v.split(":"); if (t === "s" && SEC(id)) o.irSeccion && o.irSeccion(id); else if (t === "r" && REF(id)) o.irReferente && o.irReferente(id); }
+  function irEnlace(v) { const [t, id] = v.split(":"); if (t === "s" && SEC(id)) o.irSeccion && o.irSeccion(id); else if (t === "r" && REF(id)) o.irReferente && o.irReferente(id); else if (t === "f" && FIC(id)) o.irFicha && o.irFicha(id); }
   function seleccionar(s) { if (JSON.stringify(s) === JSON.stringify(sel)) return; sel = s; marcar(); pintarInsp(); }
 
   /* ----- teclado ----- */
@@ -459,7 +487,7 @@ export function montar(raiz, o) {
     if (!s) { aside.innerHTML = inspGeneral(); enlazarInsp(); return; }
     if (s.k === "t") {
       const t = T(s.id); if (!t) { sel = null; pintarInsp(); return; }
-      const secs = o.secciones || [], refs = o.referentes || [], en = t.enlace ? t.enlace.t + ":" + t.enlace.id : "";
+      const secs = o.secciones || [], refs = o.referentes || [], fis = o.fichas || [], en = t.enlace ? t.enlace.t + ":" + t.enlace.id : "";
       const rel = D.flechas.filter((f) => f.de === t.id || f.a === t.id);
       aside.innerHTML = '<div class="pz-i-cab"><span>' + NOMBRE_T[modo] + (ES ? " " + (D.tarjetas.indexOf(t) + 1) : "") + '</span><button type="button" class="pz-x" data-i="cerrar" aria-label="Cerrar detalle">×</button></div>' +
         campo("titulo", modo === "relaciones" ? "Nombre" : "Título", t.titulo, ro) + campo("sub", SUB[modo], t.sub, ro) +
@@ -468,8 +496,9 @@ export function montar(raiz, o) {
         colores(t.color, ro) +
         '<label class="pz-c"><span>Enlazar con</span><select data-i="enlace"' + ro + '><option value="">Nada</option>' +
         (secs.length ? '<optgroup label="Taller">' + secs.map((x) => '<option value="s:' + x.id + '"' + (en === "s:" + x.id ? " selected" : "") + ">" + esc(x.titulo) + "</option>").join("") + "</optgroup>" : "") +
-        (refs.length ? '<optgroup label="Referentes">' + refs.map((x) => '<option value="r:' + x.id + '"' + (en === "r:" + x.id ? " selected" : "") + ">" + esc(nombreRef(x)) + "</option>").join("") + "</optgroup>" : "") + "</select></label>" +
-        (t.enlace && (t.enlace.t === "s" ? SEC(t.enlace.id) : REF(t.enlace.id)) ? '<button type="button" class="pz-b pz-libre" data-i="ir">Abrir ' + (t.enlace.t === "s" ? "en el Taller" : "en Referentes") + " →</button>" : "") +
+        (refs.length ? '<optgroup label="Referentes">' + refs.map((x) => '<option value="r:' + x.id + '"' + (en === "r:" + x.id ? " selected" : "") + ">" + esc(nombreRef(x)) + "</option>").join("") + "</optgroup>" : "") +
+        (fis.length ? '<optgroup label="Fichas">' + fis.map((x) => '<option value="f:' + x.id + '"' + (en === "f:" + x.id ? " selected" : "") + ">" + esc(x.titulo) + "</option>").join("") + "</optgroup>" : "") + "</select></label>" +
+        (ENL(t.enlace) ? '<button type="button" class="pz-b pz-libre" data-i="ir">Abrir ' + (t.enlace.t === "s" ? "en el Taller" : t.enlace.t === "f" ? "en Fichas" : "en Referentes") + " →</button>" : "") +
         (ES && ed ? '<div class="pz-mover" role="group" aria-label="Mover escena"><button type="button" class="pz-b" data-m="0,-1">↑ Antes</button><button type="button" class="pz-b" data-m="0,1">↓ Después</button><button type="button" class="pz-b" data-m="-1,0">← Acto</button><button type="button" class="pz-b" data-m="1,0">Acto →</button></div>' : "") +
         (!ES && rel.length ? '<div class="pz-rel"><span>' + (modo === "relaciones" ? "Lazos" : modo === "mapa" ? "Rutas" : "Flechas") + "</span>" + rel.map((f) => { const otro = T(f.de === t.id ? f.a : f.de), st = estiloFlecha(f, modo); return '<button type="button" data-sf="' + f.id + '"' + (st.color ? ' style="--lc:' + st.color + '"' : "") + '><i></i>' + (st.texto ? esc(st.texto) + " · " : "") + esc(otro.titulo || "sin título") + "</button>"; }).join("") + "</div>" : "") +
         (ed ? '<div class="pz-i-pie"><button type="button" class="pz-b" data-i="duplicar">Duplicar</button><button type="button" class="pz-b peligro" data-i="borrar">Borrar</button></div>' : "") +
@@ -554,7 +583,7 @@ export function montar(raiz, o) {
     const en = aside.querySelector("[data-i=enlace]");
     if (en) en.onchange = () => {
       const t = obj(); antes();
-      if (!en.value) delete t.enlace; else { const [k, id] = en.value.split(":"); t.enlace = { t: k, id }; if (!t.titulo) t.titulo = k === "s" ? (SEC(id) || {}).titulo || "" : nombreRef(REF(id) || {}); }
+      if (!en.value) delete t.enlace; else { const [k, id] = en.value.split(":"); t.enlace = { t: k, id }; if (!t.titulo) t.titulo = k === "s" ? (SEC(id) || {}).titulo || "" : k === "f" ? (FIC(id) || {}).titulo || "" : nombreRef(REF(id) || {}); }
       todo(); cambio();
     };
     aside.querySelectorAll("[data-i]").forEach((b) => { if (b.tagName === "BUTTON") b.onclick = () => {
@@ -773,7 +802,7 @@ html.pz-sin-scroll,html.pz-sin-scroll body{overflow:hidden}
 .pz-b[data-b=nueva]{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
 .pz-sep{width:1px;height:20px;background:var(--line);margin:0 2px}
 .pz-der{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-@media (max-width:640px){.pz-barra{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.pz-barra::-webkit-scrollbar{display:none}.pz-der{flex-wrap:nowrap;flex:none}.pz-traer-w{position:static}.pz-menu{position:fixed;left:16px;right:16px;top:auto;bottom:90px;width:auto;max-height:50vh}}
+@media (max-width:640px){.pz-barra{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.pz-barra::-webkit-scrollbar{display:none}.pz-der{flex-wrap:nowrap;flex:none}.pz-traer-w{position:static}.pz-traer-w .pz-menu{position:fixed;left:16px;right:16px;top:auto;bottom:90px;width:auto;max-height:50vh}}
 .pz-cuenta{font-family:var(--f-num);font-size:12px;color:var(--muted)}
 .pz-cuenta.cerca{color:var(--e-pausa,#c48a00);font-weight:700}
 .pz-estado{font-size:12px;color:var(--muted)}

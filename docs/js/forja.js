@@ -120,10 +120,10 @@ export function navApp(actual) {
 }
 
 /* --- plan y límites (los mismos que aplica la base de datos en privado.limite y privado.tope) --- */
-export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30, pizarras: 1, tarjetas: 20, ideas: 50, analisis: 3 };
+export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30, pizarras: 1, tarjetas: 20, ideas: 50, analisis: 3, colecciones: 2, fichas: 60 };
 // Topes que cambian por plan (privado.tope): null = sin límite. «lectores» = personas por ronda de Lectores beta.
 export const TOPES = {
-  libre: { proyectos: 3, invitados: 1, lectores: 3, ideas: 50 },
+  libre: { proyectos: 3, invitados: 1, lectores: 3, ideas: 50, colecciones: 2, fichas: 60 },
   mas: { proyectos: 15, invitados: 5, lectores: 15, ideas: 500 },
   estudio: { proyectos: null, invitados: 15, lectores: 40, ideas: null },
 };
@@ -153,6 +153,10 @@ const MSG = {
   FORJA_LIMITE_PIZARRAS: "El plan gratis incluye una pizarra por proyecto.",
   FORJA_LIMITE_TARJETAS: "El plan gratis permite " + LIMITES.tarjetas + " tarjetas por pizarra. Quita una para agregar otra.",
   FORJA_SOLO_MAS: "Esto es parte de Forja Más. Lo que ya tienes se puede ver y borrar.",
+  FORJA_LIMITE_COLECCIONES: "El plan gratis permite " + LIMITES.colecciones + " colecciones de fichas por proyecto. Borra una para crear otra.",
+  FORJA_LIMITE_FICHAS: "El plan gratis permite " + LIMITES.fichas + " fichas por proyecto. Borra alguna para agregar otra.",
+  FORJA_OTRA_CATEGORIA: "Esa colección es de otra categoría: queda para ver o borrar.",
+  FORJA_SOLO_EQUIPO: "Esta herramienta todavía está en prueba con el equipo de Forja.",
   FORJA_PIZARRA_GRANDE: "La pizarra es demasiado grande para guardarla. Divídela en dos.",
   FORJA_VITRINA_GRANDE: "La vitrina es demasiado grande para publicarla. Quita algunas piezas o pizarras.",
   FORJA_NO_PERMITIDO: "No tienes permiso para hacer eso.",
@@ -247,6 +251,12 @@ export const MAS_LINK = ' <a href="' + u("planes/") + '">Ver Forja Más</a>';
 // El espacio elegido se recuerda en este navegador; si ya no es miembro, vuelve al personal.
 // Se guarda la promesa (no el resultado): si varias partes de la página la piden a la vez, se consulta una sola vez.
 let espaciosCache = null, espacioCache = null;
+// Herramientas en prueba: solo las ve el equipo Digital Monster (la base lo revisa en privado.herramientas_equipo).
+let equipoP = null;
+export function equipo() {
+  if (!equipoP) equipoP = sb.rpc("herramientas_equipo").then(({ data }) => data === true, () => false);
+  return equipoP;
+}
 export function espacios() {
   if (!espaciosCache) espaciosCache = (async () => {
     const { data: { session } } = await sb.auth.getSession();

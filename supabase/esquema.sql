@@ -51,6 +51,18 @@ create table public.avisos(
   creado_en timestamp with time zone default now() not null
 );
 
+create table public.colecciones(
+  id uuid default gen_random_uuid() not null,
+  espacio_id uuid not null,
+  proyecto_id uuid not null,
+  plantilla text not null,
+  nombre text not null,
+  campos jsonb default '[]'::jsonb not null,
+  orden integer default 0 not null,
+  creado_en timestamp with time zone default now() not null,
+  actualizado_en timestamp with time zone default now() not null
+);
+
 create table public.correo_prefs(
   user_id uuid default auth.uid() not null,
   boletin boolean default false not null,
@@ -67,6 +79,22 @@ create table public.cotizaciones(
   proyecto_id uuid,
   nombre text default 'Sin nombre'::text not null,
   datos jsonb default '{}'::jsonb not null,
+  creado_en timestamp with time zone default now() not null,
+  actualizado_en timestamp with time zone default now() not null
+);
+
+create table public.elementos(
+  id uuid default gen_random_uuid() not null,
+  espacio_id uuid not null,
+  proyecto_id uuid not null,
+  coleccion_id uuid not null,
+  plantilla text not null,
+  titulo text not null,
+  datos jsonb default '{}'::jsonb not null,
+  estado text,
+  fecha date,
+  orden integer default 0 not null,
+  enlaces jsonb default '[]'::jsonb not null,
   creado_en timestamp with time zone default now() not null,
   actualizado_en timestamp with time zone default now() not null
 );
@@ -1034,6 +1062,8 @@ CREATE OR REPLACE FUNCTION public.mismo_espacio()
  SET search_path TO ''
 AS $function$
 begin
+  -- mover_proyecto cambia primero las filas hijas y después el proyecto: durante el traslado no se revisa.
+  if coalesce(current_setting('forja.mover', true), '') = '1' then return new; end if;
   if new.proyecto_id is not null and not exists(select 1 from public.proyectos p where p.id=new.proyecto_id and p.espacio_id=new.espacio_id) then
     raise exception 'El proyecto no pertenece a este espacio';
   end if;
@@ -1305,7 +1335,7 @@ begin
   if exists(select 1 from public.vitrinas v where v.proyecto_id = p and v.publicada) and not privado.es_dueno(destino) then raise exception 'FORJA_MOVER_PUBLICADA'; end if;
   if tp is not null and pr.estado <> 'archivado' and privado.activos(destino) >= tp then raise exception 'FORJA_LIMITE_PROYECTOS'; end if;
   perform set_config('forja.mover', '1', true);
-  foreach t in array array['secciones','referentes','pizarras','vitrinas','notas','proyecto_oportunidades','cotizaciones','rondas'] loop
+  foreach t in array array['secciones','referentes','pizarras','vitrinas','notas','proyecto_oportunidades','cotizaciones','rondas','colecciones','elementos'] loop
     execute format('update public.%I set espacio_id = $1 where proyecto_id = $2', t) using destino, p;
   end loop;
   update public.proyectos set espacio_id = destino, acceso = 'equipo' where id = p;
@@ -1873,7 +1903,7 @@ CREATE OR REPLACE FUNCTION privado.limite(clave text)
  SET search_path TO ''
 AS $function$
   select case clave when 'proyectos' then 3 when 'palabras' then 20000 when 'referentes' then 30 when 'pizarras' then 1 when 'tarjetas' then 20
-    when 'ideas' then 50 when 'analisis' then 3 end;
+    when 'ideas' then 50 when 'analisis' then 3 when 'colecciones' then 2 when 'fichas' then 60 end;
 $function$
 ;
 
@@ -2327,6 +2357,106 @@ $function$
 ;
 
 
+CREATE OR REPLACE FUNCTION privado.herramientas_equipo()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select exists(select 1 from auth.users u where u.id = (select auth.uid()) and u.email_confirmed_at is not null and privado.es_equipo(u.email));
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.herramientas_equipo()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$ select privado.herramientas_equipo(); $function$
+;
+
+CREATE OR REPLACE FUNCTION privado.plantilla_ok(pl text, tipo text)
+ RETURNS boolean
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO ''
+AS $function$
+  select case pl
+    when 'libre' then true
+    when 'mecanicas' then tipo in ('videojuego', 'otro')
+    when 'contenido' then tipo in ('videojuego', 'otro')
+    when 'cartas' then tipo in ('juegomesa', 'otro')
+    when 'componentes' then tipo in ('juegomesa', 'otro')
+    when 'personajes' then tipo in ('historia', 'comic', 'otro')
+    when 'lugares' then tipo in ('historia', 'comic', 'otro')
+    when 'pilares' then tipo in ('contenido', 'otro')
+    when 'series' then tipo in ('contenido', 'otro')
+    when 'producto' then tipo in ('producto', 'otro')
+    when 'variantes' then tipo in ('producto', 'otro')
+    else false end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION privado.t_colecciones()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare tipo text; n int; t int;
+begin
+  if coalesce(current_setting('forja.mover', true), '') = '1' then return new; end if;
+  if not privado.herramientas_equipo() then raise exception 'FORJA_SOLO_EQUIPO'; end if;
+  if tg_op = 'UPDATE' and new.plantilla <> old.plantilla then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  select p.tipo into tipo from public.proyectos p where p.id = new.proyecto_id;
+  if not privado.plantilla_ok(new.plantilla, tipo) then raise exception 'FORJA_OTRA_CATEGORIA'; end if;
+  if not privado.editable(new.proyecto_id) then raise exception 'FORJA_SOLO_LECTURA'; end if;
+  if tg_op = 'INSERT' then
+    t := privado.tope(new.espacio_id, 'colecciones');
+    select count(*) into n from public.colecciones c where c.proyecto_id = new.proyecto_id;
+    if t is not null and n >= t then raise exception 'FORJA_LIMITE_COLECCIONES'; end if;
+  end if;
+  if jsonb_array_length(new.campos) > 0 and (tg_op = 'INSERT' or new.campos is distinct from old.campos) and not privado.es_mas(new.espacio_id) then
+    raise exception 'FORJA_SOLO_MAS';
+  end if;
+  return new;
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION privado.t_elementos()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare c public.colecciones; tipo text; n int; t int; limpio jsonb;
+begin
+  if coalesce(current_setting('forja.mover', true), '') = '1' then return new; end if;
+  if not privado.herramientas_equipo() then raise exception 'FORJA_SOLO_EQUIPO'; end if;
+  select * into c from public.colecciones x where x.id = new.coleccion_id;
+  if not found or c.proyecto_id <> new.proyecto_id then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  new.plantilla := c.plantilla;
+  select p.tipo into tipo from public.proyectos p where p.id = new.proyecto_id;
+  if not privado.plantilla_ok(c.plantilla, tipo) then raise exception 'FORJA_OTRA_CATEGORIA'; end if;
+  if not privado.editable(new.proyecto_id) then raise exception 'FORJA_SOLO_LECTURA'; end if;
+  if tg_op = 'INSERT' then
+    t := privado.tope(new.espacio_id, 'fichas');
+    select count(*) into n from public.elementos e where e.proyecto_id = new.proyecto_id;
+    if t is not null and n >= t then raise exception 'FORJA_LIMITE_FICHAS'; end if;
+  end if;
+  if tg_op = 'INSERT' or new.enlaces is distinct from old.enlaces then
+    select coalesce(jsonb_agg(jsonb_build_object('a', x.a, 't', x.t)), '[]'::jsonb) into limpio
+    from (select distinct on (j->>'a', j->>'t') (j->>'a')::uuid as a, j->>'t' as t
+          from jsonb_array_elements(new.enlaces) j
+          where jsonb_typeof(j) = 'object' and j->>'t' in ('abre', 'necesita')
+            and (j->>'a') ~ '^[0-9a-f-]{36}$' and (j->>'a')::uuid <> new.id
+            and exists(select 1 from public.elementos e where e.id = (j->>'a')::uuid and e.proyecto_id = new.proyecto_id)) x;
+    new.enlaces := limpio;
+  end if;
+  return new;
+end $function$
+;
+
 -- ===================== LLAVES, ÚNICOS Y CHEQUEOS =====================
 
 alter table public.aceptaciones add constraint aceptaciones_pkey PRIMARY KEY (user_id, documento, version);
@@ -2335,6 +2465,15 @@ alter table public.aceptaciones add constraint aceptaciones_version_check CHECK 
 alter table public.avisos add constraint avisos_pkey PRIMARY KEY (id);
 alter table public.correo_prefs add constraint correo_prefs_token_key UNIQUE (token);
 alter table public.correo_prefs add constraint correo_prefs_pkey PRIMARY KEY (user_id);
+alter table public.colecciones add constraint colecciones_campos_check CHECK (((jsonb_typeof(campos) = 'array'::text) AND (jsonb_array_length(campos) <= 12) AND (char_length((campos)::text) <= 4000)));
+alter table public.colecciones add constraint colecciones_nombre_check CHECK (((char_length(nombre) >= 1) AND (char_length(nombre) <= 80)));
+alter table public.colecciones add constraint colecciones_pkey PRIMARY KEY (id);
+alter table public.colecciones add constraint colecciones_plantilla_check CHECK ((plantilla = ANY (ARRAY['libre'::text, 'mecanicas'::text, 'contenido'::text, 'cartas'::text, 'componentes'::text, 'personajes'::text, 'lugares'::text, 'pilares'::text, 'series'::text, 'producto'::text, 'variantes'::text])));
+alter table public.elementos add constraint elementos_datos_check CHECK (((jsonb_typeof(datos) = 'object'::text) AND (char_length((datos)::text) <= 20000)));
+alter table public.elementos add constraint elementos_enlaces_check CHECK (((jsonb_typeof(enlaces) = 'array'::text) AND (jsonb_array_length(enlaces) <= 30)));
+alter table public.elementos add constraint elementos_estado_check CHECK (((estado IS NULL) OR (char_length(estado) <= 40)));
+alter table public.elementos add constraint elementos_pkey PRIMARY KEY (id);
+alter table public.elementos add constraint elementos_titulo_check CHECK (((char_length(titulo) >= 1) AND (char_length(titulo) <= 160)));
 alter table public.cotizaciones add constraint cotizaciones_pkey PRIMARY KEY (id);
 alter table public.espacio_registro add constraint espacio_registro_pkey PRIMARY KEY (id);
 alter table public.espacios add constraint espacios_pkey PRIMARY KEY (id);
@@ -2451,6 +2590,11 @@ alter table privado.registro add constraint registro_pkey PRIMARY KEY (id);
 alter table public.aceptaciones add constraint aceptaciones_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 alter table public.avisos add constraint avisos_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 alter table public.correo_prefs add constraint correo_prefs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public.colecciones add constraint colecciones_espacio_id_fkey FOREIGN KEY (espacio_id) REFERENCES espacios(id) ON DELETE CASCADE;
+alter table public.colecciones add constraint colecciones_proyecto_id_fkey FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE;
+alter table public.elementos add constraint elementos_coleccion_id_fkey FOREIGN KEY (coleccion_id) REFERENCES colecciones(id) ON DELETE CASCADE;
+alter table public.elementos add constraint elementos_espacio_id_fkey FOREIGN KEY (espacio_id) REFERENCES espacios(id) ON DELETE CASCADE;
+alter table public.elementos add constraint elementos_proyecto_id_fkey FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE;
 alter table public.cotizaciones add constraint cotizaciones_espacio_id_fkey FOREIGN KEY (espacio_id) REFERENCES espacios(id) ON DELETE CASCADE;
 alter table public.cotizaciones add constraint cotizaciones_proyecto_id_fkey FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE SET NULL;
 alter table public.espacio_registro add constraint espacio_registro_espacio_id_fkey FOREIGN KEY (espacio_id) REFERENCES espacios(id) ON DELETE CASCADE;
@@ -2511,6 +2655,11 @@ alter table privado.referidos add constraint referidos_user_id_fkey FOREIGN KEY 
 -- ===================== ÍNDICES =====================
 
 CREATE INDEX avisos_user ON public.avisos USING btree (user_id, creado_en DESC);
+CREATE INDEX colecciones_espacio_idx ON public.colecciones USING btree (espacio_id);
+CREATE INDEX colecciones_proyecto_idx ON public.colecciones USING btree (proyecto_id, orden);
+CREATE INDEX elementos_coleccion_idx ON public.elementos USING btree (coleccion_id, orden);
+CREATE INDEX elementos_espacio_idx ON public.elementos USING btree (espacio_id);
+CREATE INDEX elementos_proyecto_idx ON public.elementos USING btree (proyecto_id);
 CREATE INDEX cotizaciones_espacio_idx ON public.cotizaciones USING btree (espacio_id);
 CREATE INDEX cotizaciones_proyecto_idx ON public.cotizaciones USING btree (proyecto_id);
 CREATE UNIQUE INDEX cotizaciones_un_proyecto ON public.cotizaciones USING btree (proyecto_id) WHERE (proyecto_id IS NOT NULL);
@@ -2568,6 +2717,14 @@ CREATE INDEX referidos_invitado_por_idx ON privado.referidos USING btree (invita
 -- ===================== TRIGGERS (incluye los de auth.users) =====================
 
 CREATE TRIGGER t_correo_prefs BEFORE INSERT OR UPDATE ON public.correo_prefs FOR EACH ROW EXECUTE FUNCTION privado.t_correo_prefs();
+CREATE TRIGGER colecciones_mismo BEFORE INSERT OR UPDATE ON public.colecciones FOR EACH ROW EXECUTE FUNCTION mismo_espacio();
+CREATE TRIGGER colecciones_reglas BEFORE INSERT OR UPDATE ON public.colecciones FOR EACH ROW EXECUTE FUNCTION privado.t_colecciones();
+CREATE TRIGGER colecciones_tocar BEFORE UPDATE ON public.colecciones FOR EACH ROW EXECUTE FUNCTION tocar_actualizado();
+CREATE TRIGGER espacio_fijo BEFORE UPDATE OF espacio_id ON public.colecciones FOR EACH ROW EXECUTE FUNCTION privado.t_espacio_fijo();
+CREATE TRIGGER elementos_mismo BEFORE INSERT OR UPDATE ON public.elementos FOR EACH ROW EXECUTE FUNCTION mismo_espacio();
+CREATE TRIGGER elementos_reglas BEFORE INSERT OR UPDATE ON public.elementos FOR EACH ROW EXECUTE FUNCTION privado.t_elementos();
+CREATE TRIGGER elementos_tocar BEFORE UPDATE ON public.elementos FOR EACH ROW EXECUTE FUNCTION tocar_actualizado();
+CREATE TRIGGER espacio_fijo BEFORE UPDATE OF espacio_id ON public.elementos FOR EACH ROW EXECUTE FUNCTION privado.t_espacio_fijo();
 CREATE TRIGGER cot_mismo BEFORE INSERT OR UPDATE ON public.cotizaciones FOR EACH ROW EXECUTE FUNCTION mismo_espacio();
 CREATE TRIGGER cotizaciones_lectura BEFORE INSERT OR UPDATE ON public.cotizaciones FOR EACH ROW EXECUTE FUNCTION privado.t_lectura();
 CREATE TRIGGER cotizaciones_tocar BEFORE UPDATE ON public.cotizaciones FOR EACH ROW EXECUTE FUNCTION tocar_actualizado();
@@ -2608,8 +2765,10 @@ CREATE TRIGGER al_crear_usuario AFTER INSERT ON auth.users FOR EACH ROW EXECUTE 
 
 alter table public.aceptaciones enable row level security;
 alter table public.avisos enable row level security;
+alter table public.colecciones enable row level security;
 alter table public.correo_prefs enable row level security;
 alter table public.cotizaciones enable row level security;
+alter table public.elementos enable row level security;
 alter table public.espacio_registro enable row level security;
 alter table public.espacios enable row level security;
 alter table public.ideas enable row level security;
@@ -2654,6 +2813,24 @@ create policy correo_prefs_crear on public.correo_prefs as PERMISSIVE for INSERT
   with check ((user_id = ( SELECT auth.uid() AS uid)));
 create policy correo_prefs_ver on public.correo_prefs as PERMISSIVE for SELECT to authenticated
   using ((user_id = ( SELECT auth.uid() AS uid)));
+create policy colecciones_borrar on public.colecciones as PERMISSIVE for DELETE to authenticated
+  using (((privado.acceso_area(proyecto_id, 'taller'::text) = 'editar'::text) AND privado.herramientas_equipo()));
+create policy colecciones_crear on public.colecciones as PERMISSIVE for INSERT to authenticated
+  with check ((privado.edita_area_en(proyecto_id, 'taller'::text, espacio_id) AND privado.herramientas_equipo()));
+create policy colecciones_editar on public.colecciones as PERMISSIVE for UPDATE to authenticated
+  using (((privado.acceso_area(proyecto_id, 'taller'::text) = 'editar'::text) AND privado.herramientas_equipo()))
+  with check (privado.edita_area_en(proyecto_id, 'taller'::text, espacio_id));
+create policy colecciones_ver on public.colecciones as PERMISSIVE for SELECT to authenticated
+  using (((privado.acceso_area(proyecto_id, 'taller'::text) IS NOT NULL) AND privado.herramientas_equipo()));
+create policy elementos_borrar on public.elementos as PERMISSIVE for DELETE to authenticated
+  using (((privado.acceso_area(proyecto_id, 'taller'::text) = 'editar'::text) AND privado.herramientas_equipo()));
+create policy elementos_crear on public.elementos as PERMISSIVE for INSERT to authenticated
+  with check ((privado.edita_area_en(proyecto_id, 'taller'::text, espacio_id) AND privado.herramientas_equipo()));
+create policy elementos_editar on public.elementos as PERMISSIVE for UPDATE to authenticated
+  using (((privado.acceso_area(proyecto_id, 'taller'::text) = 'editar'::text) AND privado.herramientas_equipo()))
+  with check (privado.edita_area_en(proyecto_id, 'taller'::text, espacio_id));
+create policy elementos_ver on public.elementos as PERMISSIVE for SELECT to authenticated
+  using (((privado.acceso_area(proyecto_id, 'taller'::text) IS NOT NULL) AND privado.herramientas_equipo()));
 create policy cotizaciones_borrar on public.cotizaciones as PERMISSIVE for DELETE to public
   using (
 CASE
@@ -2799,6 +2976,8 @@ create policy vitrinas_publicadas_ver on public.vitrinas_publicadas as PERMISSIV
 -- Supabase da todo a anon y authenticated por defecto; aquí se parte de cero y se deja solo lo que hay en la base.
 revoke all on all tables in schema public, privado from anon, authenticated;
 grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE on public.espacios to authenticated;
+grant DELETE, INSERT, SELECT, UPDATE on public.colecciones to authenticated;
+grant DELETE, INSERT, SELECT, UPDATE on public.elementos to authenticated;
 grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on public.cotizaciones to authenticated;
 grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on public.ideas to anon;
 grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on public.ideas to authenticated;
@@ -2904,6 +3083,13 @@ revoke all on function public.mis_anotadas() from public, anon, authenticated, s
 grant execute on function public.mis_anotadas() to authenticated, service_role;
 revoke all on function public.mis_compartidos() from public, anon, authenticated, service_role;
 grant execute on function public.mis_compartidos() to authenticated, service_role;
+revoke all on function public.herramientas_equipo() from public, anon, authenticated, service_role;
+grant execute on function public.herramientas_equipo() to authenticated, service_role;
+revoke all on function privado.herramientas_equipo() from public, anon, authenticated, service_role;
+grant execute on function privado.herramientas_equipo() to authenticated;
+revoke all on function privado.plantilla_ok(pl text, tipo text) from public, anon, authenticated, service_role;
+revoke all on function privado.t_colecciones() from public, anon, authenticated, service_role;
+revoke all on function privado.t_elementos() from public, anon, authenticated, service_role;
 revoke all on function public.mis_espacios() from public, anon, authenticated, service_role;
 grant execute on function public.mis_espacios() to authenticated, service_role;
 revoke all on function public.mis_lecturas() from public, anon, authenticated, service_role;

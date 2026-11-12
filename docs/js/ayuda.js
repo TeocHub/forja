@@ -27,13 +27,14 @@ const ICO = {
   equipo: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M15 14.4c2.6-.4 4.8 1.2 5.5 4.6"/>',
   privacidad: '<path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>',
   lectores: '<path d="M3 6.5C5 5.2 7.5 5 9.5 6v12.5c-2-1-4.5-.8-6.5.5z"/><path d="M9.5 6c2-1 4.5-.8 6.5.5v12.5c-2-1.3-4.5-1.5-6.5-.5"/><path d="M18.5 4.5l2 2-2 2"/><circle cx="20" cy="14" r="1.3"/>',
+  fichas: '<rect x="3.5" y="7" width="13" height="13" rx="2"/><path d="M7.5 7V5.5A1.5 1.5 0 0 1 9 4h10a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 19 17h-2.5"/><path d="M6.5 11.5h7M6.5 15h4.5"/>',
   app: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
 };
 export const icono = (k, tam = 22) => '<svg viewBox="0 0 24 24" width="' + tam + '" height="' + tam + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICO[k] || ICO.plantar) + "</svg>";
 
 // ctx = { p: id del último proyecto abierto (o null) }
 // Direcciones absolutas desde la raíz del sitio (la ayuda se abre desde páginas en distintas carpetas).
-import { RAIZ, u, esc } from "./forja.js";
+import { RAIZ, u, esc, equipo } from "./forja.js";
 import { PRECIOS } from "./planes.js";
 const clp = (n) => "$" + n.toLocaleString("es-CL");
 const enProyecto = (pest) => (ctx) => (ctx && ctx.p ? u("proyecto/?p=" + ctx.p + "#" + pest) : u("proyectos/"));
@@ -193,6 +194,20 @@ export const TEMAS = [
     consejo: "En el celular, la Pizarra y el Taller tienen modo pantalla completa.",
     plan: ["Incluido", "Incluido"], ir: null, claves: "instalar celular teléfono android iphone app pantalla de inicio" },
 ];
+// Temas de herramientas en prueba con el equipo Digital Monster: entran a TEMAS solo con abrirTemasEquipo().
+const TEMAS_EQUIPO = [
+  { id: "fichas", tras: "taller", n: "Fichas", donde: "Ruta → etapa 5 (Primera versión)",
+    corto: "Cartas, mecánicas, personajes o productos, cada uno con sus datos, en tarjetas o en tabla, y unidos entre sí.",
+    para: "Hay cosas que no caben en un texto: las cartas de un mazo, las mecánicas de un juego, los personajes de un cómic, las variantes de un producto. En Fichas cada cosa tiene su ficha con los datos que pide tu categoría, y puedes verlas como tarjetas o como tabla. Una ficha puede abrir o necesitar a otra, y en la Pizarra puedes traer una colección entera con sus enlaces dibujados como flechas.",
+    pasos: ["En la Ruta, ve a la etapa 5 y toca «Abrir Fichas».", "Crea una colección: la plantilla trae los campos que suele necesitar tu categoría.", "Agrega una ficha por cada cosa y llena lo que sepas; el resto puede esperar.", "Une las fichas que dependen entre sí con «abre» o «necesita».", "En la Pizarra, «Traer del proyecto» trae fichas sueltas o una colección completa."],
+    consejo: "Empieza con nombres y un dato por ficha. Ver todo junto en la tabla te muestra lo que falta antes que llenar cada ficha completa.",
+    plan: ["2 colecciones y 60 fichas por proyecto", "Sin límite y con campos propios en cada colección"],
+    ir: (ctx) => (ctx && ctx.p ? u("proyecto/?p=" + ctx.p + "#fichas") : u("proyectos/")),
+    claves: "fichas ficha cartas carta mazo mecánicas personajes personaje hoja componentes producto variantes pilares series colección tabla tarjetas enlaces abre necesita exit acertijos pistas" },
+];
+export function abrirTemasEquipo() {
+  TEMAS_EQUIPO.forEach((t) => { if (!TEMAS.some((x) => x.id === t.id)) { const i = TEMAS.findIndex((x) => x.id === t.tras); TEMAS.splice(i < 0 ? TEMAS.length : i + 1, 0, t); } });
+}
 export const tema = (id) => TEMAS.find((t) => t.id === id);
 
 // Qué tema explica la página donde está la persona.
@@ -251,6 +266,7 @@ export function abrirAyuda(id = temaDe()) {
   };
   pintar(id);
   if (!cajon.open) cajon.showModal();
+  equipo().then((eq) => { if (eq && !tema("fichas")) { abrirTemasEquipo(); if (cajon.open) pintar(id); } });
 }
 
 /* ---------- pistas: la primera vez que se abre cada herramienta ---------- */

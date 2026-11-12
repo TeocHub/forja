@@ -160,7 +160,7 @@ async function descargar() {
   $("descargar").disabled = true; $("descargar").textContent = "Preparando…";
   // Solo lo tuyo: tu espacio personal (los proyectos de un equipo son del equipo).
   const esp = ((await espacios()).find((x) => x.tipo === "personal") || {}).id || await espacio();
-  const TABLAS = ["proyectos", "secciones", "referentes", "pizarras", "notas", "cotizaciones", "proyecto_oportunidades", "vitrinas", "ideas", "rondas"];
+  const TABLAS = ["proyectos", "secciones", "referentes", "pizarras", "notas", "cotizaciones", "proyecto_oportunidades", "vitrinas", "ideas", "rondas", "colecciones", "elementos"];
   const out = { exportado_en: new Date().toISOString(), cuenta: { correo: SES.user.email, creada_en: SES.user.created_at } };
   const { data: e } = await sb.from("espacios").select("*").eq("id", esp).maybeSingle(); out.espacio = e;
   { const { data } = await sb.rpc("mis_seguidas"); out.proyectos_que_sigues = data || []; }

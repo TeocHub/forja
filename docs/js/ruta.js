@@ -112,6 +112,9 @@ export const TECNICAS = {
     { id: "prototipo", t: "Dejar el enlace del prototipo", esencial: true, min: 5, ir: "prototipo", solo: ["videojuego", "juegomesa", "producto"],
       d: "El prototipo vive fuera de Forja: en itch.io, en un video o en fotos. Déjalo enlazado para que la etapa cuente.",
       pasos: ["Sube el prototipo o una foto donde quieras.", "Pega aquí el enlace."] },
+    { id: "fichas", t: "Ordenarlo en fichas", esencial: true, min: 20, ir: "fichas",
+      d: "Las cartas, mecánicas, personajes o productos de tu proyecto, cada uno con sus datos y unido a los demás. Lo que cambias en una ficha se ve en todas partes.",
+      pasos: ["Crea una colección con la plantilla de tu categoría.", "Agrega una ficha por cada cosa, aunque falten datos.", "Une las que dependen entre sí: qué abre qué, qué necesita qué."] },
     { id: "avance-bitacora", t: "Anotar el avance", min: 5, ir: "bitacora",
       d: "Una línea en la Bitácora cada vez que avanzas. Cuando sientas que no avanzas, la Bitácora te mostrará lo contrario.",
       pasos: ["Anota qué hiciste y qué sigue."] },
@@ -164,7 +167,8 @@ export function tecnicasDe(etapa, tipo, creador) {
   return (TECNICAS[etapa] || []).filter((x) => (!x.solo || x.solo.includes(tipo)) && (creador === "plano" || x.esencial));
 }
 export const todasDe = (etapa, tipo) => (TECNICAS[etapa] || []).filter((x) => !x.solo || x.solo.includes(tipo));
-export const disponible = (x) => !PRONTO.has(x.ir);
+// Se calcula cada vez: una herramienta en prueba se abre para el equipo después de cargar la página (abrirEquipo).
+export const disponible = (x) => !rutaPronto().has(x.ir);
 
 // Estado guardado (proyectos.ruta), con valores por defecto.
 export function estado(ruta) {

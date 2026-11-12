@@ -232,8 +232,8 @@ body{font-size:16px;line-height:1.55}
   </main>
 </div>
 <script type="module">
-import { sb, nav, navApp } from "../js/forja.js";
-import { TEMAS, tema, temaHTML, buscar, icono, CSS_AYUDA } from "../js/ayuda.js";
+import { sb, nav, navApp, equipo } from "../js/forja.js";
+import { TEMAS, tema, temaHTML, buscar, icono, CSS_AYUDA, abrirTemasEquipo } from "../js/ayuda.js";
 import { TIPOS, SECCIONES, PLANTILLA, ETAPAS, etapaDe } from "../js/guias.js";
 import { EJES, radar, lectura, base, pct, CSS_BRUJULA } from "../js/brujula.js";
 import { montar } from "../js/pizarra.js";
@@ -245,13 +245,18 @@ import { nodos } from "../js/mapa.js";
 import { modelosDe, dibujo, momentos, LIBRES, CSS_ESTRUCTURA } from "../js/estructura.js";
 import { quienes, preguntasDe } from "../js/lectores.js";
 import { PRECIOS } from "../js/planes.js";
-document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_AYUDA + CSS_BRUJULA + CSS_VITRINA + CSS_ESTRUCTURA + "</style>");
+import { PLANTILLAS, ENLACES } from "../js/fichas-plantillas.js";
+import { CSS_FICHAS } from "../js/fichas.js";
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_AYUDA + CSS_BRUJULA + CSS_VITRINA + CSS_ESTRUCTURA + CSS_FICHAS + "</style>");
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 let SES = null, CTX = { p: null };
 try { CTX.p = localStorage.getItem("forja-ultimo-proyecto"); } catch (e) {}
 const { data } = await sb.auth.getSession(); SES = data.session;
 if (SES) navApp(null); else nav("guia");
+// Herramientas en prueba: su lámina solo aparece para el equipo Digital Monster.
+const EQ = SES ? await equipo() : false;
+if (EQ) abrirTemasEquipo();
 
 // Las siete etapas de la Ruta y las herramientas de cada una (los temas de ayuda.js).
 const ESTACIONES = [
@@ -259,7 +264,7 @@ const ESTACIONES = [
   { k: "sembrar", temas: ["semillero", "plantar"] },
   { k: "mapa", temas: ["mapa"] },
   { k: "estructura", temas: ["estructura", "pizarra"] },
-  { k: "hacer", temas: ["taller"] },
+  { k: "hacer", temas: ["taller", ...(EQ ? ["fichas"] : [])] },
   { k: "revisar", temas: ["lectores"] },
   { k: "pulir", temas: ["vitrina", "costos", "oportunidades", "biblia"] },
 ].map((e) => ({ ...e, ...ETAPAS_R.find((x) => x.k === e.k) }));
@@ -329,6 +334,49 @@ const DEMOS = {
       c.querySelectorAll("[data-cr]").forEach((b) => b.onclick = () => { cr = b.dataset.cr; pintar(); });
       c.querySelectorAll("[data-k]").forEach((b) => b.onclick = () => { tipo = b.dataset.k; pintar(); });
       c.querySelectorAll("[data-et]").forEach((b) => b.onclick = () => { et = b.dataset.et; pintar(); });
+    };
+    pintar();
+  },
+  fichas(c) {
+    // Ejemplos inventados para Forja: una colección por categoría, con enlaces entre fichas.
+    const EJ = {
+      juegomesa: ["cartas", "Mazo del naufragio", [["llave", "Llave oxidada", { palo: "Objeto", costo: "1", efecto: "Abre el cofre del capitán.", copias: 2, color: "#a86200" }, "Probada", [["abre", "cofre"]]],
+        ["cofre", "Cofre del capitán", { palo: "Lugar", costo: "—", efecto: "Dentro hay medio mapa.", copias: 1, color: "#0f7a4f" }, "Idea", [["abre", "mapa"]]],
+        ["mapa", "Mapa roto", { palo: "Pista", costo: "2", efecto: "Junta las dos mitades para leer la salida.", copias: 2, color: "#2a3fd1" }, "Idea", [["necesita", "llave"]]]]],
+      videojuego: ["mecanicas", "Verbos de Alba", [["planear", "Planear", { hace: "Abrir el abrigo y caer lento", control: "Mantener salto" }, "Probada", [["necesita", "viento"]]],
+        ["viento", "Ráfaga", { hace: "Empujar el aire hacia un lado", control: "Botón B" }, "Prototipo", []],
+        ["ancla", "Anclarse", { hace: "Clavar el bastón para no volar", control: "Gatillo" }, "Idea", [["abre", "planear"]]]]],
+      comic: ["personajes", "Elenco", [["ines", "Inés", { rol: "Protagonista", quiere: "Encontrar el faro que pintó su abuela.", color: "#0e6c82" }, "Definido", [["necesita", "tito"]]],
+        ["farero", "El farero", { rol: "Antagonista", quiere: "Que nadie vuelva a encender la luz.", color: "#5b6275" }, "Esbozo", []],
+        ["tito", "Tito", { rol: "Secundario", quiere: "Que Inés no se vaya del puerto.", color: "#c2366b" }, "Esbozo", []]]],
+      producto: ["variantes", "Taza esmaltada", [["azul", "Azul profundo", { atributo: "Azul", codigo: "TZ-AZ", precio: 9900, color: "#1d3557" }, "En venta", []],
+        ["arena", "Arena", { atributo: "Arena", codigo: "TZ-AR", precio: 9900, color: "#e9c46a" }, "En venta", []],
+        ["musgo", "Musgo", { atributo: "Verde musgo", codigo: "TZ-MU", precio: 10900, color: "#4f6d3a" }, "Prototipo", []]]],
+      contenido: ["pilares", "Pilares del canal", [["taller", "Detrás del taller", { que: "Cómo se hace cada pieza, sin cortes bonitos.", color: "#c2366b" }, "Funciona", []],
+        ["errores", "Errores que enseñan", { que: "Lo que salió mal y qué aprendí.", color: "#a86200" }, "Probando", [["abre", "preguntas"]]],
+        ["preguntas", "Preguntas de la comunidad", { que: "Respondo lo que me preguntan en los comentarios.", color: "#2a3fd1" }, "Probando", []]]],
+    };
+    const NOM = { juegomesa: "Juego de mesa", videojuego: "Videojuego", comic: "Cómic", producto: "Producto", contenido: "Redes" };
+    let tipo = "juegomesa", modo = "tarjetas", sel = null;
+    const pintar = () => {
+      const [pk, col, fs] = EJ[tipo], pl = PLANTILLAS[pk], porId = Object.fromEntries(fs.map((f) => [f[0], f]));
+      const vista = pl.vista.map((k) => pl.campos.find((x) => x.k === k)).filter(Boolean);
+      const tarjeta = (f) => '<button type="button" class="fi-t' + (sel === f[0] ? " fi-sel" : "") + '" data-f="' + f[0] + '"' + (f[2].color ? ' style="--fc:' + f[2].color + '"' : "") + '><span class="fi-t-tit">' + esc(f[1]) + "</span>" +
+        vista.filter((x) => f[2][x.k] != null).map((x) => '<span class="fi-t-dato"><i>' + esc(x.n) + "</i>" + esc(f[2][x.k]) + "</span>").join("") +
+        (f[4].length ? '<span class="fi-t-enl">' + f[4].map(([t, a]) => "<span>" + ENLACES[t][0] + " → " + esc(porId[a][1]) + "</span>").join("") + "</span>" : "") + '<span class="fi-t-est">' + esc(f[3]) + "</span></button>";
+      const cs = pl.campos.filter((x) => x.t !== "img" && x.t !== "c");
+      const tabla = '<div class="fi-tabla-w"><table class="fi-tabla"><thead><tr><th scope="col">Nombre</th>' + cs.map((x) => '<th scope="col">' + esc(x.n) + "</th>").join("") + '<th scope="col">Estado</th></tr></thead><tbody>' +
+        fs.map((f) => '<tr><th scope="row"><button type="button" class="fi-abrir" data-f="' + f[0] + '">' + esc(f[1]) + "</button></th>" + cs.map((x) => '<td><input value="' + esc(f[2][x.k] ?? "") + '" aria-label="' + esc(x.n) + '" readonly></td>').join("") + "<td>" + esc(f[3]) + "</td></tr>").join("") + "</tbody></table></div>";
+      const f = sel && porId[sel];
+      const total = pl.total ? fs.reduce((a, x) => a + (+x[2][pl.total] || 0), 0) : 0;
+      c.innerHTML = '<div class="fi" style="--tc:var(--t-' + tipo + ');margin-top:0"><div class="chips" role="group" aria-label="Categoría">' + Object.entries(NOM).map(([k, n]) => '<button type="button" data-k="' + k + '" aria-pressed="' + (k === tipo) + '">' + n + "</button>").join("") + "</div>" +
+        '<div class="fi-cajones"><button type="button" class="fi-cajon" aria-selected="true"><b>' + esc(col) + "</b><small>" + esc(pl.n) + " · " + fs.length + " fichas" + (total ? " · " + total + " en total" : "") + '</small></button></div>' +
+        '<div class="fi-barra"><div class="fi-modo" role="group" aria-label="Vista"><button type="button" data-modo="tarjetas" aria-pressed="' + (modo === "tarjetas") + '">Tarjetas</button><button type="button" data-modo="tabla" aria-pressed="' + (modo === "tabla") + '">Tabla</button></div></div>' +
+        (modo === "tabla" ? tabla : '<div class="fi-tarjetas">' + fs.map(tarjeta).join("") + "</div>") +
+        '<p class="d-nota">' + (f ? "<b>" + esc(f[1]) + ".</b> " + (f[4].length ? "Esta ficha " + f[4].map(([t, a]) => ENLACES[t][0] + " «" + esc(porId[a][1]) + "»").join(" y ") + ". En la Pizarra, la colección llega con estos enlaces dibujados como flechas." : "Toca otra ficha para ver con quién se une.") : "Toca una ficha para ver con qué otras se une. La plantilla cambia según la categoría: " + esc(pl.d)) + "</p></div>";
+      c.querySelectorAll("[data-k]").forEach((b) => b.onclick = () => { tipo = b.dataset.k; sel = null; pintar(); });
+      c.querySelectorAll("[data-modo]").forEach((b) => b.onclick = () => { modo = b.dataset.modo; pintar(); });
+      c.querySelectorAll("[data-f]").forEach((b) => b.onclick = () => { sel = sel === b.dataset.f ? null : b.dataset.f; pintar(); });
     };
     pintar();
   },

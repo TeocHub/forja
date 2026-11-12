@@ -27,6 +27,7 @@
 //   modulo  módulo que pinta la vista (relativo a js/), con export vista(ctx). Las vistas antiguas (mapa,
 //           estructura, lectores) se pintan desde proyecto/ y no lo necesitan.
 //   ayuda   tema de ayuda.js.
+//   equipo  true = en prueba: «pronto» para todos y «listo» solo para el equipo Digital Monster (abrirEquipo()).
 //
 // CTX que recibe vista(ctx): { P, SECS, REFS, PIZ, PL, panel, tc, ed, volver, conVolver, marcarHecho, alTaller,
 //   guardar, toast, sb, u } — P es el proyecto, ed dice si la persona puede editar, volver/conVolver ponen «← Ruta».
@@ -68,6 +69,11 @@ export const HERRAMIENTAS = [
     d: "Invita personas a un proyecto (5 con Forja Más, 15 con Forja Estudio) y decide qué puede hacer cada una en cada parte; ellas no necesitan pagar.",
     libre: "Gratis: 1 persona por proyecto." },
 
+  // --- En prueba con el equipo Digital Monster (`equipo: true`): para el resto sigue «Próximamente» ---
+  { id: "fichas", t: "Fichas", estado: "pronto", equipo: true, area: "organizacion", etapa: "hacer", ruta: "fichas", donde: "vista:fichas", vista: "fichas", modulo: "fichas.js", ayuda: "fichas",
+    d: "Cartas, mecánicas, personajes, productos o pilares de tu canal, cada uno con sus datos, en tarjetas o en tabla, y unidos entre sí («abre», «necesita»). Con Forja Más: sin límite y con campos propios.",
+    libre: "Gratis: 2 colecciones y 60 fichas por proyecto." },
+
   // --- Próximamente: catálogo de Forja Más («Avísame») ---
   { id: "capitulos", t: "Capítulos y conteo", estado: "pronto", area: "escritura", solo: ["historia", "comic", "contenido", "otro"], d: "Divide una sección en capítulos o escenas y cuenta palabras, páginas y tiempo de lectura de cada uno." },
   { id: "metas", t: "Metas y constancia", estado: "pronto", area: "escritura", d: "Meta de palabras por día o semana y un calendario de los días que escribiste." },
@@ -77,7 +83,6 @@ export const HERRAMIENTAS = [
   { id: "vista-impresion", t: "Vista de impresión", estado: "pronto", area: "impresion", solo: ["historia", "comic", "juegomesa", "producto"], d: "Tu texto en el tamaño de página elegido (A5, 14 × 21 cm, carta, cómic) y cuántas páginas sale." },
   { id: "paginas-costos", t: "De páginas a costos", estado: "pronto", area: "impresion", solo: ["historia", "comic", "juegomesa", "producto"], d: "Lleva las páginas, el tamaño y el papel a la cotización del libro sin escribirlos dos veces." },
   { id: "guion-comic", t: "Guion de cómic por páginas", estado: "pronto", area: "impresion", solo: ["comic"], d: "Página, viñeta, imagen y diálogo, con aviso si el total no calza con los pliegos de imprenta." },
-  { id: "fichas", t: "Fichas y línea de tiempo", estado: "pronto", area: "organizacion", d: "Personajes, lugares y objetos con sus campos, y la cronología de la historia." },
   { id: "tareas", t: "Tareas con recordatorios", estado: "pronto", area: "organizacion", d: "Qué falta para la feria o la postulación, con aviso por correo." },
   { id: "versiones-precio", t: "Precio por edición", estado: "pronto", area: "venta",
     d: "Un precio de venta distinto para cada edición (normal, deluxe, coleccionista) en la tienda o la feria, no solo en una campaña." },
@@ -97,6 +102,11 @@ export const HERRAMIENTAS = [
 ];
 
 const POR_ID = new Map(HERRAMIENTAS.map((h) => [h.id, h]));
+// Herramientas en prueba: una página que sabe que la cuenta es del equipo (equipo() de forja.js) las abre con abrirEquipo().
+// La base revisa lo mismo por su cuenta (privado.herramientas_equipo).
+let EQUIPO = false;
+export const equipoAbierto = () => EQUIPO;
+export function abrirEquipo() { EQUIPO = true; HERRAMIENTAS.forEach((h) => { if (h.equipo) h.estado = "listo"; }); }
 export const herramienta = (id) => POR_ID.get(id) || null;
 export const lista = (h) => !!h && h.estado === "listo";
 // ¿Sirve para esta categoría de proyecto? (sin `solo`, para todas)
