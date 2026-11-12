@@ -1,0 +1,73 @@
+{
+ "doc": "normas",
+ "titulo": "Normas de la comunidad y uso aceptable",
+ "simple": "Forja es para crear y mostrar proyectos con honestidad. No se permiten estafas, odio, contenido sexual explícito, obras ajenas como propias, datos personales de otros, spam ni ataques a la plataforma. Los reportes los revisa siempre una persona, nada se oculta solo, y reportar de mala fe tiene consecuencias. Las medidas van de un aviso a cerrar la cuenta, siempre con el motivo y con derecho a apelar.",
+ "cambios": "Las normas ahora incluyen el <a href=\"#plataforma\">uso aceptable de la plataforma</a> (seguridad, automatización y cómo avisarnos de una falla) y un procedimiento para <a href=\"#derechos\">reclamar por derechos de autor</a>. Ordenamos las medidas y los plazos de apelación con más precisión. Lo que se permite y lo que no se mantiene.",
+ "secciones": [
+  {
+   "id": "espiritu",
+   "t": "1. Objeto y alcance",
+   "html": "<p>Estas Normas forman parte de los <a href=\"~terminos/\">Términos de uso</a>. Tienen por objeto que quien mira una vitrina pueda confiar en lo que ve y que nadie use Forja para causar daño.</p>\n<p>Se aplican a todo lo que se publica o se comparte con otras personas: vitrinas, Explorar, nombres de proyectos, avisos a seguidores, rondas de lectores beta y sus respuestas, invitaciones, mensajes, sugerencias y reportes; y, en lo relativo al <a href=\"#plataforma\">uso aceptable</a>, a todo uso de Forja.</p>"
+  },
+  {
+   "id": "no",
+   "t": "2. Contenido prohibido",
+   "html": "<h3>Estafas y engaños</h3>\n<p>Prometer productos que no existen o no se piensan entregar, pedir pagos para proyectos falsos, inventar avances, copiar la vitrina de otra persona o hacerse pasar por otro creador, estudio o marca.</p>\n<h3>Odio, acoso y violencia real</h3>\n<p>Ataques, burlas o discriminación arbitraria contra personas o grupos por su origen, religión, género, orientación sexual, discapacidad u otra condición, en los términos de la Ley N° 20.609; amenazas; acoso a personas reales; y la glorificación de hechos de violencia real.</p>\n<h3>Contenido sexual explícito</h3>\n<p>No se permite contenido sexual explícito en vitrinas ni en contenido compartido. <b>Todo contenido que sexualice a personas menores de edad está absolutamente prohibido</b>: la cuenta se cierra de inmediato y los antecedentes se ponen a disposición de las autoridades.</p>\n<h3>Obras ajenas como propias</h3>\n<p>Usar imágenes, música, textos, personajes o marcas de terceros presentándolos como propios, o para vender, sin autorización. Se permite mostrar referentes, citar y hacer homenajes, siempre que se identifique al autor y no se comercialicen como propios.</p>\n<h3>Datos de otras personas</h3>\n<p>Publicar datos personales de terceros (teléfono, domicilio, RUT, imágenes privadas, información de salud u otros datos sensibles) sin su consentimiento.</p>\n<h3>Spam y enlaces dañinos</h3>\n<p>Vitrinas vacías o repetidas para promocionar otra cosa, publicidad engañosa y enlaces a sitios maliciosos o que solicitan datos mediante engaño.</p>\n<h3>Actividades ilegales</h3>\n<p>Ofrecer, vender o promover bienes o servicios cuya comercialización sea ilícita en Chile.</p>"
+  },
+  {
+   "id": "ficcion",
+   "t": "3. Ficción y temas difíciles",
+   "html": "<p>Las obras pueden tratar temas difíciles, como la guerra, el crimen, la violencia, la muerte o los conflictos políticos y religiosos. Eso es parte de crear y está permitido. Lo que se modera es el uso de Forja para dañar a personas reales, no los temas de una obra. Si un proyecto tiene contenido fuerte, debe advertirse en la portada o en la historia de su vitrina.</p>"
+  },
+  {
+   "id": "seguidores",
+   "t": "4. Avisos a seguidores",
+   "html": "<p>Quien tiene una vitrina con seguidores puede escribirles una vez cada 7 días. Esos mensajes llegan a su correo con el proyecto como remitente y se rigen por las mismas reglas que la vitrina, además de las siguientes: deben referirse solo al proyecto (avances, demos, fechas, lanzamientos, preventas reales); no pueden contener promesas falsas ni pedidos de pago por algo que no se entregará; y los enlaces de pago o apoyo deben pertenecer a quien crea el proyecto. No se permite comprar, importar ni inducir seguidores.</p>\n<p>Un aviso que infrinja estas reglas se modera como la vitrina, y además puede retirarse la posibilidad de escribir a los seguidores.</p>"
+  },
+  {
+   "id": "lectores",
+   "t": "5. Rondas de lectores beta",
+   "html": "<p>Una ronda de lectores beta es un espacio de confianza. Quien lee o prueba debe opinar sobre la obra y no sobre la persona: se admite la crítica directa, pero no los insultos, las burlas ni el acoso; y lo que se le muestra pertenece a quien lo invitó, por lo que no puede copiarlo, publicarlo ni compartir el enlace. Quien abre una ronda debe compartir solo lo que es suyo o puede mostrar, y no puede usarla para pedir dinero ni datos personales.</p>\n<p>Las infracciones en una ronda se informan desde Mi cuenta → Escríbenos, indicando el proyecto y lo ocurrido, y se revisan como cualquier reporte.</p>"
+  },
+  {
+   "id": "plataforma",
+   "t": "6. Uso aceptable de la plataforma",
+   "html": "<p>Además de lo anterior, en el uso de Forja no se permite:</p>\n<p><b>Acceso indebido.</b> Acceder o intentar acceder a cuentas, proyectos o datos ajenos, eludir las reglas de acceso o los límites de los planes, o usar credenciales, enlaces o invitaciones de otra persona sin su autorización.</p>\n<p><b>Ataques y sobrecarga.</b> Probar, escanear o vulnerar la seguridad de Forja o de sus proveedores, introducir código malicioso, o realizar solicitudes en un volumen que afecte el servicio para otras personas.</p>\n<p><b>Automatización.</b> Crear o manejar cuentas, reportes, seguimientos, invitaciones o mensajes mediante programas, y extraer de forma masiva el contenido de vitrinas, Explorar o el calendario de oportunidades.</p>\n<p><b>Uso para fines ilícitos.</b> Usar Forja para cometer delitos o infracciones, incluidas las conductas sancionadas por la Ley N° 21.459 sobre delitos informáticos.</p>\n<p><b>Aviso de fallas de seguridad.</b> Quien descubra una falla de seguridad debe informarla de buena fe y en forma reservada a <a href=\"mailto:forja@digitalmonster.cl\">forja@digitalmonster.cl</a>, sin acceder a datos ajenos más allá de lo indispensable para demostrarla ni divulgarla antes de que se corrija. Digital Monster agradece estos avisos y no adoptará medidas contra quien los realice en esos términos.</p>"
+  },
+  {
+   "id": "reportar",
+   "t": "7. Reportes",
+   "html": "<p>Cada vitrina tiene la opción «Reportar esta vitrina». Para reportar se requiere una cuenta con al menos un día de antigüedad y elegir un motivo; se admiten hasta 5 reportes por día y uno por vitrina, y no se puede reportar la propia. El reporte es confidencial: la persona reportada no conoce su autor. El resultado se informa en Mi cuenta.</p>"
+  },
+  {
+   "id": "derechos",
+   "t": "8. Reclamos por derechos de autor",
+   "html": "<p>Quien estime que una vitrina infringe sus derechos de propiedad intelectual puede reportarla con el motivo «Obras ajenas como propias» o escribir a <a href=\"mailto:forja@digitalmonster.cl\">forja@digitalmonster.cl</a> indicando la obra protegida, la dirección de la vitrina, el contenido que la infringiría y la calidad en que reclama. Digital Monster revisará el reclamo, informará a quien publicó y podrá suspender la vitrina mientras se resuelve, conforme a la Ley N° 17.336. Quien publicó puede responder por la vía de la <a href=\"#apelar\">apelación</a>.</p>"
+  },
+  {
+   "id": "revision",
+   "t": "9. Revisión",
+   "html": "<p><b>Todo reporte lo revisa una persona.</b> Ninguna vitrina se oculta ni se sanciona automáticamente por recibir reportes, cualquiera sea su número, que solo sirve para priorizar la revisión. Se examinan la vitrina, el motivo y el contexto, y se resuelve que no hay infracción, que la hay y corresponde una medida proporcional, o que el reporte fue de mala fe.</p>"
+  },
+  {
+   "id": "malafe",
+   "t": "10. Reportes de mala fe",
+   "html": "<p>Es de mala fe el reporte enviado a sabiendas de que el contenido no infringe las Normas, o como parte de una campaña contra una persona. Cada reporte calificado de mala fe queda registrado; <b>con dos, la cuenta pierde la posibilidad de reportar</b>, y las campañas organizadas de reportes falsos pueden dar lugar a la suspensión de las cuentas involucradas. Equivocarse de buena fe no es mala fe.</p>"
+  },
+  {
+   "id": "sanciones",
+   "t": "11. Medidas",
+   "html": "<p>Las medidas son proporcionales a la gravedad y a la reiteración: <b>(1) aviso</b>, con un cambio concreto que realizar; <b>(2) retiro de Explorar</b>, manteniéndose la vitrina visible para quien tenga su enlace; <b>(3) suspensión de la vitrina</b>, que deja de verse en público y no puede volver a publicarse mientras dure, sin afectar el proyecto ni lo privado; y <b>(4) suspensión o cierre de la cuenta</b>, para casos graves o reiterados.</p>\n<p>En los casos más graves, como estafas o contenido que pone en riesgo a personas menores de edad, puede aplicarse directamente la medida que corresponda y colaborarse con las autoridades. Toda medida se comunica dentro de Forja con su motivo y lo que puede hacerse, salvo que la ley lo impida o que informarlo ponga en riesgo a terceros.</p>"
+  },
+  {
+   "id": "apelar",
+   "t": "12. Apelación",
+   "html": "<p>Toda medida puede apelarse dentro de los <b>30 días corridos</b> siguientes a su comunicación, desde el editor de la vitrina suspendida (opción «Apelar») o desde <a href=\"~cuenta/\">Mi cuenta → Escríbenos</a>, explicando lo ocurrido y lo corregido, si corresponde. La apelación la revisa una persona, que procurará responder dentro de 7 días; si se acoge, la medida se deja sin efecto.</p>"
+  },
+  {
+   "id": "quien",
+   "t": "13. Quién modera",
+   "html": "<p>La moderación la ejerce el equipo de Digital Monster, que lleva un registro de cada decisión para revisarla si se apela. A medida que la comunidad crezca, se informará cómo evoluciona este proceso, mediante una versión nueva de estas Normas avisada conforme a los Términos.</p>"
+  }
+ ]
+}

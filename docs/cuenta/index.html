@@ -64,12 +64,11 @@ details.borrar[open] summary{margin-bottom:8px}
   <main id="app"><div class="fx-empty">Cargando…</div></main>
 </div>
 <script type="module">
-import { sb, $, esc, toast, hace, fecha, navApp, conSesion, plan, espacio, espacios, limite, avisos, u, fechaDocs } from "../js/forja.js";
+import { sb, $, esc, toast, hace, fecha, navApp, conSesion, plan, espacio, espacios, limite, avisos, u, fechaDocs, estadoLegal, DOCUMENTOS, NOMBRE_DOC } from "../js/forja.js";
 navApp(null);
 const TIPO = { contacto: "Contacto o consulta", privacidad: "Mis datos personales", apelacion: "Apelación" };
 const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
 const EST_REP = { pendiente: ["En revisión", ""], aceptado: ["Se tomaron medidas", "ok"], desestimado: ["No infringía las normas", ""], mala_fe: ["Revisado como de mala fe", ""] };
-const NOMBRE_DOC = { terminos: "Términos de uso", privacidad: "Política de privacidad", normas: "Normas de la comunidad" };
 let SES, PREFS, TIENE_PREFS = false;
 
 conSesion($("app"), async (ses) => {
@@ -83,6 +82,7 @@ conSesion($("app"), async (ses) => {
     sb.rpc("mis_seguidas"),
     sb.rpc("mis_lecturas"),
   ]);
+  const EL = await estadoLegal();
   const LECT = (lc.data || []).filter((x) => Object.keys(x.respuestas || {}).length || (x.comentarios || []).length);
   PREFS = pf.data || { boletin: false, funciones: true, vitrinas: true }; TIENE_PREFS = !!pf.data;
   const creada = ses.user.created_at ? fecha(ses.user.created_at) : "";
@@ -97,23 +97,24 @@ conSesion($("app"), async (ses) => {
     '<div class="acc"><button class="fx-primary" type="submit">Enviar</button><small class="vacio">Para apelar la suspensión de una vitrina, usa el botón "Apelar" en su editor.</small></div></form>' +
     '<div id="mensajes">' + ((ms.data || []).map((m) => '<div class="msj"><div class="fila"><b>' + TIPO[m.tipo] + '</b><span class="est' + (m.respuesta ? " ok" : "") + '">' + (m.respuesta ? "Respondido" : "Esperando respuesta") + "</span></div><small>" + hace(m.creado_en) + "</small><p>" + esc(m.texto) + "</p>" +
       (m.respuesta ? '<p class="resp"><b>Forja:</b> ' + esc(m.respuesta) + "</p>" : "") + "</div>").join("")) + "</div></section>" +
-    '<section class="blq" id="correos"><h2>Correos de Forja</h2><p>Solo te escribimos sobre lo que elijas aquí. Los correos para entrar a tu cuenta siempre llegan.</p><div class="prefs">' +
+    '<section class="blq" id="correos"><h2>Correos de Forja</h2><p>Solo te escribimos sobre lo que elijas aquí. Los correos para entrar a tu cuenta y los avisos de servicio (cambios en los documentos de Forja o una cuenta sin uso) siempre llegan.</p><div class="prefs">' +
       [["boletin", "Boletín de Forja", "Una vez al mes, como mucho: herramientas nuevas, oportunidades que abren o cierran pronto y proyectos de la comunidad."],
        ["funciones", "Herramientas que pediste", "Un aviso cuando esté lista una herramienta en la que tocaste «Avísame»."],
        ["vitrinas", "Proyectos que sigues", "Las novedades que envían los proyectos que sigues (cada uno puede escribir como mucho una vez por semana)."]]
         .map(([k, t, d]) => '<label class="pref"><input type="checkbox" data-pref="' + k + '"' + (PREFS[k] ? " checked" : "") + "><span><b>" + t + "</b><small>" + d + "</small></span></label>").join("") + "</div>" +
       '<h3 class="sub">Proyectos que sigues</h3>' + ((sg.data || []).length ? '<div class="seguidas">' + sg.data.map((x) => '<div class="seguida">' + (x.visible ? '<a href="../vitrina/?v=' + esc(x.slug) + '">' + esc(x.titulo || x.slug) + "</a>" : "<span>" + esc(x.titulo || x.slug) + " <small>(no publicada)</small></span>") + '<button type="button" class="btn" data-dejar="' + esc(x.slug) + '">Dejar de seguir</button></div>').join("") + "</div>" : '<p class="vacio">Aún no sigues ningún proyecto. En cada vitrina que tenga el botón, puedes seguirla para recibir sus novedades.</p>') + "</section>" +
     '<section class="blq"><h2>Mis reportes</h2>' + ((rp.data || []).length ? (rp.data.map((r) => { const e = EST_REP[r.estado] || [r.estado, ""]; return '<div class="msj"><div class="fila"><b>' + esc(MOTIVOS[r.motivo] || r.motivo) + '</b><span class="est ' + e[1] + '">' + e[0] + "</span></div><small>Enviado " + hace(r.creado_en) + "</small></div>"; }).join("")) : '<p class="vacio">No has reportado ninguna vitrina. Si ves algo que rompe las <a href="../normas/">normas</a>, usa "Reportar esta vitrina" al final de esa página.</p>') + "</section>" +
-    '<section class="blq"><h2>Documentos que aceptaste</h2><div class="docs">' + ["terminos", "privacidad", "normas"].map((d) => { const a = (ac.data || []).find((x) => x.documento === d); return '<a href="../' + d + '/"><b>' + NOMBRE_DOC[d] + "</b><small>" + (a ? "Versión del " + fechaDocs(a.version) + (a.aceptado_en ? ", aceptada el " + fecha(a.aceptado_en) : "") : "Sin aceptar") + "</small></a>"; }).join("") + "</div></section>" +
+    '<section class="blq"><h2>Documentos que aceptaste</h2><div class="docs">' + DOCUMENTOS.map((d) => { const a = (ac.data || []).find((x) => x.documento === d); return '<a href="../' + d + '/"><b>' + NOMBRE_DOC[d] + "</b><small>" + (a ? "Versión del " + fechaDocs(EL, a.version) + (a.aceptado_en ? ", aceptada el " + fecha(a.aceptado_en) : "") : "Sin aceptar") + "</small></a>"; }).join("") + "</div></section>" +
     (LECT.length ? '<section class="blq" id="lecturas"><h2>Lo que opinaste como lector beta</h2><p>Tus respuestas y comentarios en rondas de otras personas. Quien maneja cada ronda los ve con el nombre que te dio, nunca tu correo. Puedes borrarlos cuando quieras, también si ya te quitaron de la ronda.</p>' +
       LECT.map((x) => '<div class="seguida"><span><b>' + esc(x.proyecto) + "</b> · " + esc(x.titulo) + " <small>(" + ((n) => n + (n === 1 ? " opinión" : " opiniones"))(Object.keys(x.respuestas || {}).length + (x.comentarios || []).length) + (x.quitado ? " · ya no estás en la ronda" : x.abierta ? " · abierta" : " · cerrada") + ")</small></span>" +
         (x.abierta ? '<a class="btn" href="../prueba/?t=' + encodeURIComponent(x.token) + '">Abrir</a>' : "") + '<button type="button" class="btn" data-borrar-lect="' + esc(x.token) + '">Borrar lo que respondí</button></div>').join("") + "</section>" : "") +
-    '<section class="blq"><h2>Tus datos</h2><p>Todo lo que guardaste en Forja en un archivo JSON: proyectos, escritura, referentes y obras analizadas, pizarras, bitácora, ideas del Semillero, rondas de lectores beta (las tuyas y lo que respondiste en otras), cotizaciones, vitrinas, sugerencias, mensajes y reportes. Para tus proyectos, la <b>biblia</b> de cada uno es una copia más legible.</p><div class="acc"><button class="btn" type="button" id="descargar">Descargar mis datos</button></div></section>' +
+    '<section class="blq" id="datos"><h2>Tus datos</h2><p>Todo lo que guardaste en Forja en un archivo JSON: proyectos, escritura, referentes y obras analizadas, pizarras, bitácora, ideas del Semillero, rondas de lectores beta (las tuyas y lo que respondiste en otras), cotizaciones, vitrinas, sugerencias, mensajes y reportes. Para tus proyectos, la <b>biblia</b> de cada uno es una copia más legible.</p><div class="acc"><button class="btn" type="button" id="descargar">Descargar mis datos</button></div></section>' +
     '<section class="blq zona"><h2>Borrar mi cuenta</h2><p>Se borran de inmediato tu correo, tus proyectos (con sus ideas del Semillero, rondas de lectores beta y todo lo demás), vitrinas publicadas, cotizaciones, precios compartidos, lo que respondiste como lector beta, mensajes, sugerencias, reportes y avisos. No se puede deshacer. Si tienes proyectos importantes, descarga tus datos antes.</p>' +
     '<details class="borrar"><summary>Quiero borrar mi cuenta</summary><form class="forma" id="f-borrar"><label>Escribe BORRAR para confirmar<input id="b-conf" autocomplete="off" spellcheck="false"></label><div class="acc"><button class="btn peligro lleno" type="submit" id="b-si" disabled>Borrar mi cuenta para siempre</button></div></form></details></section>';
   const n = await avisos($("avisos"));
   $("sin-avisos").hidden = n > 0;
   if (location.hash === "#escribenos") $("escribenos").scrollIntoView();
+  else if (location.hash === "#datos") $("datos").scrollIntoView();
 
   $("f-msj").onsubmit = async (e) => {
     e.preventDefault();
@@ -161,7 +162,7 @@ async function descargar() {
   // Solo lo tuyo: tu espacio personal (los proyectos de un equipo son del equipo).
   const esp = ((await espacios()).find((x) => x.tipo === "personal") || {}).id || await espacio();
   const TABLAS = ["proyectos", "secciones", "referentes", "pizarras", "notas", "cotizaciones", "proyecto_oportunidades", "vitrinas", "ideas", "rondas", "colecciones", "elementos"];
-  const out = { exportado_en: new Date().toISOString(), cuenta: { correo: SES.user.email, creada_en: SES.user.created_at } };
+  const out = { exportado_en: new Date().toISOString(), cuenta: { correo: SES.user.email, creada_en: SES.user.created_at, ultimo_ingreso: (await sb.rpc("mi_ultimo_acceso")).data || null } };
   const { data: e } = await sb.from("espacios").select("*").eq("id", esp).maybeSingle(); out.espacio = e;
   { const { data } = await sb.rpc("mis_seguidas"); out.proyectos_que_sigues = data || []; }
   { const { data } = await sb.rpc("mis_anotadas"); out.recompensas_en_que_te_anotaste = data || []; }

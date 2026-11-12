@@ -1,0 +1,98 @@
+{
+ "doc": "terminos",
+ "titulo": "Términos de uso",
+ "simple": "Tu contenido es tuyo y lo puedes llevar o borrar cuando quieras. Forja es para personas de 14 años o más. Lo que publicas en una vitrina es tu responsabilidad y debe respetar las Normas de la comunidad. Forja no maneja pagos entre creadores y su público. Lo que compartes con lectores beta lo ven solo las personas a las que les das el enlace. Si algo cambia en estos términos, te avisamos antes.",
+ "cambios": "Agregamos cómo funcionan las rondas de <a href=\"#lectores\">lectores beta</a>, tanto si las abres como si lees en la de otra persona, y qué hacemos con las <a href=\"#sugerencias\">sugerencias</a> que nos dejas. Aclaramos que las citas que arma Forja al analizar una obra son una ayuda que conviene revisar, que una campaña puede llevar un enlace de pago en cada recompensa, además de los dos de la vitrina, y qué límites tiene cada plan. Lo demás sigue igual.",
+ "secciones": [
+  {
+   "id": "quienes",
+   "t": "Quiénes somos",
+   "html": "<p>Forja es una plataforma para crear y ordenar proyectos creativos: historias, videojuegos, juegos de mesa, contenido y productos. La desarrolla y opera <b>Digital Monster</b>, un emprendimiento chileno (en estos documentos, \"Forja\", \"nosotros\").</p>\n<p>Estos términos son el acuerdo entre tú y nosotros para usar Forja. Junto con la <a href=\"~privacidad/\">Política de privacidad</a> y las <a href=\"~normas/\">Normas de la comunidad</a>, que forman parte de ellos, explican qué puedes esperar de la plataforma y qué esperamos de ti.</p>"
+  },
+  {
+   "id": "aceptar",
+   "t": "Cómo se aceptan y cuándo cambian",
+   "html": "<p>Al crear tu cuenta te pedimos aceptarlos marcando una casilla, que nunca viene marcada de antemano. Guardamos qué versión aceptaste y cuándo.</p>\n<p>Si los cambiamos de forma importante, te avisaremos dentro de Forja al menos 15 días antes de que rija la nueva versión, y te pediremos aceptarla al entrar. Si no estás de acuerdo, puedes descargar tus datos y borrar tu cuenta en cualquier momento. Los cambios menores (redacción, correcciones) se publican con su fecha.</p>"
+  },
+  {
+   "id": "quien",
+   "t": "Quién puede usar Forja",
+   "html": "<p>Forja es para personas de <b>14 años o más</b>. Si tienes entre 14 y 17 años, úsala con conocimiento de tu madre, padre o tutor. Los pagos de planes, cuando existan, debe hacerlos una persona mayor de edad.</p>\n<p>Cada cuenta es de una persona, con un correo que controle. No se permiten cuentas creadas por programas automáticos ni cuentas para suplantar a otra persona o marca.</p>"
+  },
+  {
+   "id": "cuenta",
+   "t": "Tu cuenta",
+   "html": "<p>Entras con un enlace o código que llega a tu correo, sin contraseña. Cuida el acceso a tu correo: quien lo controle puede entrar a tu Forja. Si crees que alguien entró sin permiso, escríbenos desde <a href=\"~cuenta/\">Mi cuenta</a>.</p>\n<p>Desde Mi cuenta puedes descargar todos tus datos y borrar tu cuenta cuando quieras. Borrarla elimina tus proyectos, vitrinas y todo lo que creaste, y no se puede deshacer.</p>"
+  },
+  {
+   "id": "contenido",
+   "t": "Tu contenido es tuyo",
+   "html": "<p>Todo lo que escribes, ordenas y publicas en Forja sigue siendo tuyo. No adquirimos ningún derecho de propiedad sobre tus ideas, textos, diseños ni proyectos.</p>\n<p>Para que Forja funcione, nos das un permiso limitado, gratuito y no exclusivo para guardar tu contenido, mostrártelo en tus dispositivos, hacer copias de respaldo y, solo cuando tú lo publicas en una vitrina o en Explorar, mostrarlo públicamente. Ese permiso termina cuando borras el contenido o despublicas la vitrina (las copias de respaldo se eliminan en su ciclo normal).</p>\n<p><b>No vendemos tu contenido, no lo usamos para publicidad y no lo usamos para entrenar inteligencia artificial.</b></p>"
+  },
+  {
+   "id": "publicar",
+   "t": "Lo que publicas",
+   "html": "<p>Tus proyectos son privados. Solo se vuelve público lo que tú publicas en una <b>vitrina</b> (visible para quien tenga su enlace) y, si lo eliges, en <b>Explorar</b> (el directorio público de Forja).</p>\n<p>Al publicar, declaras que tienes derecho a mostrar ese contenido: que es tuyo, que tienes permiso de sus autores, o que lo usas como cita o referencia con su crédito. Eres responsable de lo que publicas y de lo que prometes en tu vitrina.</p>\n<p>Si muestras recompensas o una campaña en tu vitrina, eres responsable de lo que ofreces y de cumplirlo. Tocar «Me interesa» no es un pago ni un compromiso; el apoyo y los pagos ocurren en la plataforma que elijas (Kickstarter, una preventa propia u otra), con sus propias condiciones.</p>\n<p>Forja guarda enlaces, no archivos: las imágenes, videos y música que muestres vienen de otros sitios y siguen sus propias condiciones.</p>"
+  },
+  {
+   "id": "compartir",
+   "t": "Trabajar con otras personas",
+   "html": "<p>Puedes invitar a otras personas a un proyecto tuyo (1 en el plan gratis, hasta 5 con Forja Más y hasta 15 con Forja Estudio) y decidir qué puede hacer cada una en cada parte. Invita solo a quien conozcas y espere tu invitación: el correo llega a su nombre.</p>\n<p>El proyecto sigue siendo de quien lo creó. Lo que otras personas escriban o agreguen ahí queda en el proyecto aunque luego salgan o les quites el acceso; si hace falta, pónganse de acuerdo entre ustedes sobre la autoría y el uso de lo que hagan juntos. Publicar la vitrina, borrar o mover el proyecto e invitar es siempre de quien lo creó (o, en un equipo, de quien lo administra).</p>\n<p>Si quien creó el proyecto deja su plan pagado, la primera persona invitada sigue pudiendo editar y las demás quedan en solo lectura, sin que se borre nada.</p>"
+  },
+  {
+   "id": "lectores",
+   "t": "Lectores beta",
+   "html": "<p>Puedes abrir una <b>ronda de lectores beta</b> (o de testers o probadores, según tu proyecto) para que otras personas lean o prueben una copia de tu trabajo y te respondan. Tú eliges qué partes entran en la copia y a quién le das un enlace. Cada enlace queda ligado a la primera cuenta que lo abre, y puedes quitarle el acceso a una persona cuando quieras. La copia no cambia aunque sigas editando el proyecto, y Forja no la muestra a nadie más.</p>\n<p>Si lees en la ronda de otra persona, lo que te muestran es suyo y te lo comparten solo para que opines: no lo copies, publiques ni compartas fuera de la ronda. Quien maneja la ronda ve tus respuestas y comentarios con el nombre que te puso al invitarte, nunca tu correo. Al enviarlos le das permiso para usarlos para mejorar su proyecto, y eso no te hace autor de la obra. Puedes borrar lo que respondiste en cualquier momento, incluso si ya no estás en la ronda, desde Mi cuenta.</p>"
+  },
+  {
+   "id": "seguir",
+   "t": "Seguir proyectos y los correos de Forja",
+   "html": "<p>Con tu cuenta puedes <b>seguir</b> los proyectos que tengan ese botón en su vitrina. Quien creó el proyecto puede escribir a sus seguidores, a través de Forja, como mucho una vez cada 7 días. Ese mensaje lo escribe el creador, no Forja: es su responsabilidad y debe respetar las <a href=\"~normas/#seguidores\">Normas de la comunidad</a>. Nunca recibe tu correo, solo el número de personas que lo siguen.</p>\n<p>Forja solo te escribe lo que elijas: el aviso de una herramienta que pediste, las novedades de los proyectos que sigues y, si te suscribes, el boletín. Cada correo trae un enlace para dejar de recibirlo, y todo se ajusta en Mi cuenta. Los correos para entrar a tu cuenta siempre se envían.</p>"
+  },
+  {
+   "id": "normas",
+   "t": "Normas de la comunidad y moderación",
+   "html": "<p>Lo que publiques debe respetar las <a href=\"~normas/\">Normas de la comunidad</a>. Cualquier persona con cuenta puede reportar una vitrina; los reportes los revisa siempre una persona del equipo, nunca un sistema automático.</p>\n<p>Si una vitrina incumple las normas podemos pedirte un cambio, sacarla de Explorar, suspenderla o, en casos graves, cerrar la cuenta. Siempre te diremos el motivo dentro de Forja y podrás apelar. El detalle está en las normas.</p>"
+  },
+  {
+   "id": "sugerencias",
+   "t": "Sugerencias",
+   "html": "<p>En la página de Planes puedes dejarnos sugerencias sobre lo que le falta a Forja. Las lee una persona del equipo y en tu sugerencia verás en qué quedó, a veces con una respuesta. Si usamos una idea para mejorar Forja, no quedamos obligados a pagarte ni a nombrarte, y nunca publicamos tu nombre ni tu correo.</p>"
+  },
+  {
+   "id": "planes",
+   "t": "Planes y precios",
+   "html": "<p>El plan gratis no vence y tiene límites de uso (proyectos en curso, palabras, referentes, obras analizadas, pizarras, ideas del Semillero, personas invitadas, lectores beta por ronda y recompensas de campaña) que se muestran en la plataforma. Hay dos planes pagados, <b>Forja Más</b> y <b>Forja Estudio</b>, que aún no se pueden contratar: sus límites están en la página de Planes, y su forma de pago, renovación y cancelación se publicarán antes de que se puedan contratar. Tendrás que aceptarlas en ese momento.</p>\n<p>Los precios que mostramos son <b>precios de lanzamiento</b>: pueden cambiar, igual que lo que incluye cada plan. Si cambian cuando ya tengas un plan pagado, te avisaremos antes de que el cambio se aplique a tu siguiente pago.</p>\n<p>Si un día dejas de tener un plan pagado o pasas a uno con menos cupos, no se borra nada: lo que supere los límites del nuevo plan queda en solo lectura, y siempre puedes verlo, exportarlo, archivarlo o borrarlo.</p>"
+  },
+  {
+   "id": "pagos",
+   "t": "Forja no maneja pagos entre personas",
+   "html": "<p>Forja no recibe, guarda ni transfiere dinero entre creadores y su público. Una vitrina puede mostrar hasta dos enlaces de pago o apoyo (por ejemplo, Mercado Pago, PayPal, Ko-fi o una campaña de financiamiento) y, si tiene una campaña, un enlace de pago en cada recompensa. Si muestra enlaces de pago, preventas o formas de apoyo, el acuerdo es directamente entre el creador y quien paga, a través del medio de pago que el creador eligió. Forja no garantiza entregas ni puede devolver dinero de esos acuerdos. Si detectas un engaño, repórtalo.</p>"
+  },
+  {
+   "id": "info",
+   "t": "Información de referencia",
+   "html": "<p>El calendario de oportunidades (fondos, ferias, convocatorias) es información de referencia que revisamos con cuidado, pero las bases oficiales son las de cada organizador: confírmalas en su fuente. Una fecha marcada como \"estimada\" se calculó con ediciones anteriores.</p>\n<p>Los precios de proveedores que la comunidad comparte en el cotizador son anónimos y referenciales: no son ofertas de esos proveedores.</p>\n<p>Las citas y referencias que arma Forja cuando analizas una obra (APA, MLA o Chicago) salen de los datos que escribes: son una ayuda, revísalas antes de entregarlas en un trabajo. Lo mismo vale para los precios sugeridos del cotizador y las sugerencias de la Ruta: orientan, pero la decisión es tuya.</p>"
+  },
+  {
+   "id": "uso",
+   "t": "Uso correcto de la plataforma",
+   "html": "<p>No intentes acceder a datos de otras personas, saturar el servicio, automatizar cuentas o reportes, ni usar Forja para actividades ilegales. Podemos limitar o cerrar cuentas que lo hagan.</p>"
+  },
+  {
+   "id": "servicio",
+   "t": "Disponibilidad y responsabilidad",
+   "html": "<p>Hacemos un esfuerzo razonable para que Forja funcione bien y tus datos estén seguros y respaldados, pero es un servicio en desarrollo y puede tener fallas o interrupciones. Te recomendamos exportar la biblia de tus proyectos importantes de vez en cuando.</p>\n<p>En lo que la ley permita, no respondemos por pérdidas indirectas ni por acuerdos entre usuarios. Nada en estos términos limita los derechos que te da la ley chilena, incluida la Ley 19.496 sobre protección de los derechos de los consumidores.</p>"
+  },
+  {
+   "id": "fin",
+   "t": "Cuando termina la relación",
+   "html": "<p>Puedes dejar de usar Forja y borrar tu cuenta cuando quieras. Nosotros podemos cerrar una cuenta por incumplimientos graves o reiterados de estos términos o de las normas, avisándote el motivo salvo que la ley lo impida o avisar ponga en riesgo a otras personas. Si algún día Forja deja de funcionar, avisaremos con anticipación para que descargues tus datos.</p>"
+  },
+  {
+   "id": "ley",
+   "t": "Ley aplicable y contacto",
+   "html": "<p>Estos términos se rigen por las leyes de Chile. Ante cualquier duda o problema, escríbenos primero desde <a href=\"~cuenta/\">Mi cuenta → Escríbenos</a> o a <a href=\"mailto:forja@digitalmonster.cl\">forja@digitalmonster.cl</a>: preferimos resolver las cosas conversando.</p>"
+  }
+ ]
+}

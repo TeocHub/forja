@@ -763,7 +763,7 @@ begin
     with t as (
       select c.id from privado.correos c
       where c.enviado_en is null and c.intentos < 3 and (c.tomado_en is null or c.tomado_en < now() - interval '10 minutes')
-      order by case c.tipo when 'prueba' then 0 when 'invitacion' then 1 when 'funcion' then 2 when 'vitrina' then 3 else 4 end, c.id
+      order by case c.tipo when 'prueba' then 0 when 'legal' then 1 when 'inactiva' then 1 when 'invitacion' then 2 when 'funcion' then 3 when 'vitrina' then 4 else 5 end, c.id
       limit cupo for update skip locked)
     update privado.correos c set tomado_en = now(), intentos = c.intentos + 1 from t
       where c.id = t.id
@@ -2507,7 +2507,7 @@ end $function$
 -- ===================== LLAVES, ÚNICOS Y CHEQUEOS =====================
 
 alter table public.aceptaciones add constraint aceptaciones_pkey PRIMARY KEY (user_id, documento, version);
-alter table public.aceptaciones add constraint aceptaciones_documento_check CHECK ((documento = ANY (ARRAY['terminos'::text, 'privacidad'::text, 'normas'::text])));
+alter table public.aceptaciones add constraint aceptaciones_documento_check CHECK ((documento = ANY (ARRAY['terminos'::text, 'privacidad'::text, 'normas'::text, 'cookies'::text, 'pagos'::text])));
 alter table public.aceptaciones add constraint aceptaciones_version_check CHECK ((char_length(version) <= 20));
 alter table public.avisos add constraint avisos_pkey PRIMARY KEY (id);
 alter table public.correo_prefs add constraint correo_prefs_token_key UNIQUE (token);
@@ -2628,7 +2628,7 @@ alter table privado.admin_correos add constraint admin_correos_pkey PRIMARY KEY 
 alter table privado.config add constraint config_pkey PRIMARY KEY (clave);
 alter table privado.correos add constraint correos_pkey PRIMARY KEY (id);
 alter table privado.correos add constraint correos_destino_check CHECK (((user_id IS NOT NULL) OR (email IS NOT NULL)));
-alter table privado.correos add constraint correos_tipo_check CHECK ((tipo = ANY (ARRAY['funcion'::text, 'vitrina'::text, 'boletin'::text, 'prueba'::text, 'invitacion'::text])));
+alter table privado.correos add constraint correos_tipo_check CHECK ((tipo = ANY (ARRAY['funcion'::text, 'vitrina'::text, 'boletin'::text, 'prueba'::text, 'invitacion'::text, 'legal'::text, 'inactiva'::text])));
 alter table privado.envios_vitrina add constraint envios_vitrina_pkey PRIMARY KEY (id);
 alter table privado.referidos add constraint referidos_pkey PRIMARY KEY (user_id);
 alter table privado.registro add constraint registro_pkey PRIMARY KEY (id);
@@ -3276,3 +3276,207 @@ select cron.schedule('forja-limpieza', '17 4 * * 0', $$delete from cron.job_run_
 
 -- Clave de la cola de correos (la Edge Function enviar-correos la compara con el encabezado x-forja-clave):
 -- insert into privado.config(clave, valor) values ('cola_clave', encode(gen_random_bytes(24), 'hex'));
+
+-- ===================== DOCUMENTOS LEGALES Y CUENTAS INACTIVAS (2026-11-12) =====================
+-- Una versión de los documentos existe para el público solo si se avisó por correo a todas las cuentas (mod_legal_avisar)
+-- y rige 15 días después del aviso; aceptaciones solo admite la vigente. El texto vive en docs/legal/ del repositorio.
+create table public.legal_versiones(
+  version text primary key check (char_length(version) between 1 and 20),
+  base text,
+  resumen text not null default '' check (char_length(resumen) <= 1200),
+  documentos text[] not null default '{}',
+  inactivas boolean not null default false,
+  huella text check (char_length(huella) <= 80),
+  probada_en timestamptz,
+  avisada_en timestamptz,
+  avisada_por uuid,
+  rige date,
+  destinatarios int,
+  reemplazada_por text,
+  creada_en timestamptz not null default now()
+);
+alter table public.legal_versiones enable row level security;
+revoke all on public.legal_versiones from anon, authenticated;
+
+create table privado.accesos(
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  ultimo timestamptz not null default now(),
+  aviso1 timestamptz, correo1 bigint,
+  aviso2 timestamptz, correo2 bigint
+);
+create index if not exists correos_legal_idx on privado.correos ((datos->>'version')) where tipo = 'legal';
+
+create or replace function privado.hoy_chile() returns date language sql stable set search_path to '' as $$
+  select (now() at time zone 'America/Santiago')::date $$;
+create or replace function privado.legal_pendientes(v text) returns bigint language sql stable security definer set search_path to '' as $$
+  select count(*) from privado.correos c where c.tipo = 'legal' and c.datos->>'version' = v and c.enviado_en is null and c.intentos < 3 $$;
+create or replace function privado.legal_vigente() returns text language sql stable security definer set search_path to '' as $$
+  select l.version from public.legal_versiones l
+  where l.avisada_en is not null and l.reemplazada_por is null and l.rige <= privado.hoy_chile() and privado.legal_pendientes(l.version) = 0
+  order by l.rige desc, l.avisada_en desc limit 1 $$;
+create or replace function privado.legal_rige_para(n int) returns date language sql stable set search_path to '' as $$
+  select privado.hoy_chile() + 15 + greatest(ceil(coalesce(n, 0) / 80.0)::int - 1, 0) $$;
+create or replace function privado.legal_datos(l public.legal_versiones, rige date) returns jsonb language sql stable set search_path to '' as $$
+  select jsonb_build_object('version', l.version, 'resumen', l.resumen, 'documentos', to_jsonb(l.documentos), 'rige', rige, 'enlace', 'documentos/?v=' || l.version) $$;
+
+create or replace function public.legal_estado() returns jsonb language plpgsql stable security definer set search_path to '' as $$
+declare vig text := privado.legal_vigente();
+begin
+  return jsonb_build_object('hoy', privado.hoy_chile(), 'vigente', vig, 'versiones', coalesce((
+    select jsonb_agg(jsonb_build_object('version', l.version, 'base', l.base, 'resumen', l.resumen, 'documentos', l.documentos,
+      'avisada', (l.avisada_en at time zone 'America/Santiago')::date, 'rige', l.rige, 'reemplazada_por', l.reemplazada_por,
+      'estado', case when l.version = vig then 'vigente' when l.reemplazada_por is not null then 'reemplazada'
+                     when vig is null or l.rige > (select x.rige from public.legal_versiones x where x.version = vig) or (l.rige = (select x.rige from public.legal_versiones x where x.version = vig) and l.avisada_en > (select x.avisada_en from public.legal_versiones x where x.version = vig)) then 'proxima'
+                     else 'anterior' end) order by l.rige, l.avisada_en)
+    from public.legal_versiones l where l.avisada_en is not null), '[]'::jsonb));
+end $$;
+
+create or replace function privado.t_aceptaciones() returns trigger language plpgsql security definer set search_path to '' as $$
+begin
+  if new.version is distinct from privado.legal_vigente() then raise exception 'FORJA_VERSION_NO_VIGENTE'; end if;
+  return new;
+end $$;
+create trigger aceptar_solo_vigente before insert on public.aceptaciones for each row execute function privado.t_aceptaciones();
+
+create or replace function public.mod_legal_probar(version text, resumen text, documentos text[], inactivas boolean, huella text) returns date
+language plpgsql security definer set search_path to '' as $$
+#variable_conflict use_column
+declare l public.legal_versiones; n int; p_v text := mod_legal_probar.version; p_r text := btrim(coalesce(mod_legal_probar.resumen, ''));
+  p_d text[] := mod_legal_probar.documentos; p_i boolean := coalesce(mod_legal_probar.inactivas, false); p_h text := btrim(coalesce(mod_legal_probar.huella, ''));
+begin
+  if not privado.es_admin() then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  if p_r = '' or p_h = '' or coalesce(array_length(p_d, 1), 0) = 0 then raise exception 'FORJA_FALTA_MENSAJE'; end if;
+  select * into l from public.legal_versiones x where x.version = p_v;
+  if found and l.avisada_en is not null then raise exception 'FORJA_YA_AVISADA'; end if;
+  insert into public.legal_versiones as x(version, resumen, documentos, inactivas, huella, probada_en)
+    values (p_v, p_r, p_d, p_i, p_h, now())
+    on conflict (version) do update set resumen = excluded.resumen, documentos = excluded.documentos, inactivas = excluded.inactivas, huella = excluded.huella, probada_en = now()
+    returning * into l;
+  select count(*) into n from auth.users u where u.email is not null and u.deleted_at is null;
+  insert into privado.correos(user_id, tipo, datos) values (auth.uid(), 'prueba', privado.legal_datos(l, privado.legal_rige_para(n)) || jsonb_build_object('de', 'legal'));
+  return privado.legal_rige_para(n);
+end $$;
+
+create or replace function public.mod_legal_avisar(version text, huella text) returns jsonb
+language plpgsql security definer set search_path to '' as $$
+declare l public.legal_versiones; n int; r date; vig text := privado.legal_vigente();
+begin
+  if not privado.es_admin() then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  select * into l from public.legal_versiones x where x.version = mod_legal_avisar.version for update;
+  if not found then raise exception 'FORJA_NO_ENCONTRADA'; end if;
+  if l.avisada_en is not null then raise exception 'FORJA_YA_AVISADA'; end if;
+  if l.probada_en is null or l.huella is distinct from mod_legal_avisar.huella then raise exception 'FORJA_PROBAR_DE_NUEVO'; end if;
+  select count(*) into n from auth.users u where u.email is not null and u.deleted_at is null;
+  r := privado.legal_rige_para(n);
+  update public.legal_versiones x set reemplazada_por = l.version
+    where x.avisada_en is not null and x.reemplazada_por is null and x.version <> l.version and (vig is null or x.version <> vig) and x.rige > privado.hoy_chile();
+  update public.legal_versiones x set avisada_en = now(), avisada_por = auth.uid(), rige = r, base = vig, destinatarios = n where x.version = l.version returning * into l;
+  insert into privado.correos(user_id, tipo, datos)
+    select u.id, 'legal', privado.legal_datos(l, r) from auth.users u where u.email is not null and u.deleted_at is null;
+  insert into public.avisos(user_id, tipo, titulo, texto, enlace)
+    select u.id, 'info', 'Los documentos de Forja cambian el ' || to_char(r, 'DD/MM/YYYY'), left(l.resumen, 600), 'documentos/?v=' || l.version
+    from auth.users u where u.deleted_at is null;
+  insert into privado.registro(admin, accion, detalle) values (auth.uid(), 'documentos_aviso', jsonb_build_object('version', l.version, 'rige', r, 'destinatarios', n, 'base', vig));
+  return jsonb_build_object('rige', r, 'destinatarios', n);
+end $$;
+
+create or replace function privado.inactivas_desde() returns date language sql stable security definer set search_path to '' as $$
+  select case when (select l.inactivas from public.legal_versiones l where l.version = privado.legal_vigente()) then
+    (select min(l.rige) from public.legal_versiones l where l.inactivas and l.avisada_en is not null and l.reemplazada_por is null and l.rige <= privado.hoy_chile()) end $$;
+
+create or replace function public.mod_legal_panel() returns jsonb language plpgsql stable security definer set search_path to '' as $$
+begin
+  if not privado.es_admin() then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  return jsonb_build_object(
+    'hoy', privado.hoy_chile(), 'vigente', privado.legal_vigente(),
+    'cuentas', (select count(*) from auth.users u where u.email is not null and u.deleted_at is null),
+    'versiones', coalesce((select jsonb_agg(jsonb_build_object('version', l.version, 'base', l.base, 'resumen', l.resumen, 'documentos', l.documentos, 'inactivas', l.inactivas,
+        'huella', l.huella, 'probada_en', l.probada_en, 'avisada_en', l.avisada_en, 'rige', l.rige, 'destinatarios', l.destinatarios, 'reemplazada_por', l.reemplazada_por,
+        'enviados', (select count(*) from privado.correos c where c.tipo = 'legal' and c.datos->>'version' = l.version and c.enviado_en is not null and c.error is null),
+        'pendientes', privado.legal_pendientes(l.version),
+        'fallidos', (select count(*) from privado.correos c where c.tipo = 'legal' and c.datos->>'version' = l.version and c.enviado_en is null and c.intentos >= 3)) order by l.creada_en)
+      from public.legal_versiones l), '[]'::jsonb),
+    'inactivas', jsonb_build_object(
+      'desde', privado.inactivas_desde(),
+      'aviso1', (select count(*) from privado.accesos a where a.aviso1 is not null and a.aviso2 is null),
+      'aviso2', (select count(*) from privado.accesos a where a.aviso2 is not null),
+      'borradas', (select count(*) from privado.registro r where r.accion = 'cuenta_inactiva')));
+end $$;
+
+create or replace function public.marcar_acceso() returns void language plpgsql security definer set search_path to '' as $$
+begin
+  if auth.uid() is null then return; end if;
+  insert into privado.accesos(user_id, ultimo) values (auth.uid(), now())
+    on conflict (user_id) do update set ultimo = now(), aviso1 = null, correo1 = null, aviso2 = null, correo2 = null
+    where privado.accesos.ultimo < now() - interval '1 hour' or privado.accesos.aviso1 is not null;
+end $$;
+create or replace function public.mi_ultimo_acceso() returns timestamptz language sql stable security definer set search_path to '' as $$
+  select ultimo from privado.accesos where user_id = auth.uid() $$;
+
+create or replace function privado.exenta_inactividad(u uuid) returns boolean language sql stable security definer set search_path to '' as $$
+  select exists(select 1 from public.espacios e where e.creado_por = u and e.tipo = 'personal' and privado.plan_de(e.id) <> 'libre')
+      or exists(select 1 from public.miembros m join public.espacios e on e.id = m.espacio_id where m.user_id = u and e.tipo = 'equipo')
+      or exists(select 1 from auth.users x where x.id = u and x.email_confirmed_at is not null and privado.es_equipo(x.email))
+      or exists(select 1 from public.vitrinas_publicadas vp join public.vitrinas v on v.id = vp.vitrina_id join public.espacios e on e.id = v.espacio_id
+                where vp.visible and (e.creado_por = u or exists(select 1 from public.miembros m where m.espacio_id = e.id and m.user_id = u and m.rol = 'dueno'))) $$;
+
+create or replace function privado.revisar_inactivas() returns jsonb language plpgsql security definer set search_path to '' as $$
+declare desde date := privado.inactivas_desde(); r record; ult timestamptz; borra date; cid bigint; a1 int := 0; a2 int := 0; b int := 0;
+begin
+  if desde is null then return jsonb_build_object('activa', false); end if;
+  for r in select u.id, u.created_at, u.last_sign_in_at, a.ultimo, a.aviso1, a.correo1, a.aviso2, a.correo2
+           from auth.users u left join privado.accesos a on a.user_id = u.id where u.deleted_at is null loop
+    if privado.exenta_inactividad(r.id) then
+      -- Mientras está exenta cuenta como activa: si deja de estarlo, el conteo parte desde ahí.
+      insert into privado.accesos(user_id, ultimo) values (r.id, now())
+        on conflict (user_id) do update set ultimo = now(), aviso1 = null, correo1 = null, aviso2 = null, correo2 = null;
+      continue;
+    end if;
+    ult := greatest(r.created_at, r.last_sign_in_at, r.ultimo, (desde::timestamp at time zone 'America/Santiago'));
+    if r.aviso2 is not null and now() >= ult + interval '150 days' and now() >= r.aviso2 + interval '25 days'
+       and privado.hoy_chile() >= coalesce((select (c.datos->>'borra')::date from privado.correos c where c.id = r.correo2), 'infinity'::date)
+       and exists(select 1 from privado.correos c where c.id = r.correo1 and c.enviado_en is not null)
+       and exists(select 1 from privado.correos c where c.id = r.correo2 and c.enviado_en is not null) then
+      delete from public.espacios e where e.creado_por = r.id and e.tipo = 'personal';
+      delete from auth.users u where u.id = r.id;
+      insert into privado.registro(admin, accion, detalle) values (null, 'cuenta_inactiva', jsonb_build_object('fecha', privado.hoy_chile()));
+      b := b + 1;
+    elsif r.aviso1 is not null and r.aviso2 is null and now() >= ult + interval '120 days' and now() >= r.aviso1 + interval '25 days' then
+      borra := greatest((ult + interval '150 days'), now() + interval '25 days')::date + 1;
+      insert into privado.correos(user_id, tipo, datos) values (r.id, 'inactiva', jsonb_build_object('etapa', 2, 'borra', borra)) returning id into cid;
+      insert into public.avisos(user_id, tipo, titulo, texto, enlace) values (r.id, 'info', 'Segundo aviso: tu cuenta se borrará el ' || to_char(borra, 'DD/MM/YYYY'),
+        'No has entrado a Forja en 120 días. Entrar ahora basta para conservarla. Si prefieres irte, descarga antes tus datos.', 'cuenta/#datos');
+      update privado.accesos set aviso2 = now(), correo2 = cid where user_id = r.id;
+      a2 := a2 + 1;
+    elsif r.aviso1 is null and now() >= ult + interval '90 days' then
+      borra := greatest((ult + interval '150 days'), now() + interval '55 days')::date + 1;
+      insert into privado.correos(user_id, tipo, datos) values (r.id, 'inactiva', jsonb_build_object('etapa', 1, 'borra', borra)) returning id into cid;
+      insert into public.avisos(user_id, tipo, titulo, texto, enlace) values (r.id, 'info', 'Tu cuenta se borrará el ' || to_char(borra, 'DD/MM/YYYY') || ' si no entras',
+        'No has entrado a Forja en 90 días. Entrar ahora basta para conservarla. Si prefieres irte, descarga antes tus datos.', 'cuenta/#datos');
+      insert into privado.accesos(user_id, ultimo, aviso1, correo1) values (r.id, ult, now(), cid)
+        on conflict (user_id) do update set aviso1 = now(), correo1 = cid;
+      a1 := a1 + 1;
+    end if;
+  end loop;
+  return jsonb_build_object('activa', true, 'aviso1', a1, 'aviso2', a2, 'borradas', b);
+end $$;
+
+revoke all on function public.legal_estado() from public;
+grant execute on function public.legal_estado() to anon, authenticated, service_role;
+revoke all on function public.mod_legal_probar(text, text, text[], boolean, text) from public, anon;
+grant execute on function public.mod_legal_probar(text, text, text[], boolean, text) to authenticated, service_role;
+revoke all on function public.mod_legal_avisar(text, text) from public, anon;
+grant execute on function public.mod_legal_avisar(text, text) to authenticated, service_role;
+revoke all on function public.mod_legal_panel() from public, anon;
+grant execute on function public.mod_legal_panel() to authenticated, service_role;
+revoke all on function public.marcar_acceso() from public, anon;
+grant execute on function public.marcar_acceso() to authenticated;
+revoke all on function public.mi_ultimo_acceso() from public, anon;
+grant execute on function public.mi_ultimo_acceso() to authenticated;
+revoke all on function privado.revisar_inactivas() from public, anon, authenticated;
+revoke all on function privado.exenta_inactividad(uuid) from public, anon, authenticated;
+revoke all on function privado.inactivas_desde() from public, anon, authenticated;
+revoke all on function privado.legal_vigente() from public, anon, authenticated;
+revoke all on function privado.legal_pendientes(text) from public, anon, authenticated;
+revoke all on function privado.t_aceptaciones() from public, anon, authenticated;
+select cron.schedule('forja-inactivas', '23 9 * * *', $$select privado.revisar_inactivas()$$);

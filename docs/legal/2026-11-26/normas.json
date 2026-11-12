@@ -1,0 +1,63 @@
+{
+ "doc": "normas",
+ "titulo": "Normas de la comunidad",
+ "simple": "Forja es para crear y mostrar proyectos con honestidad. No se permiten estafas, odio, contenido sexual explícito, obras ajenas usadas como propias, datos personales de otros ni spam. Los reportes los revisa siempre una persona, nada se oculta automáticamente, y reportar de mala fe tiene consecuencias. Las sanciones van de un aviso a la suspensión, siempre con el motivo y con derecho a apelar.",
+ "cambios": "Las normas ahora también cubren las rondas de <a href=\"#lectores\">lectores beta</a> (lo que compartes y lo que respondes en ellas) y las sugerencias, y aclaramos que una campaña puede llevar un enlace de pago en cada recompensa. Lo demás sigue igual.",
+ "secciones": [
+  {
+   "id": "espiritu",
+   "t": "El espíritu de Forja",
+   "html": "<p>Forja nació para que más ideas lleguen a existir, especialmente desde Chile. Una vitrina es la cara de un proyecto y, cuando aparece en Explorar, también es la cara de esta comunidad. Estas normas existen para que quien mira una vitrina pueda confiar en lo que ve, y para que nadie use Forja para hacer daño.</p>\n<p>Aplican a todo lo que se publica o se comparte con otras personas: vitrinas, lo que aparece en Explorar, nombres de proyectos, avisos a seguidores, rondas de lectores beta y lo que se responde en ellas, mensajes, sugerencias y reportes.</p>"
+  },
+  {
+   "id": "no",
+   "t": "Lo que no se permite",
+   "html": "<h3>Estafas y engaños</h3>\n<p>Prometer productos que no existen o no se piensan entregar, pedir pagos para proyectos falsos, inventar avances, copiar la vitrina de otra persona o hacerse pasar por otro creador, estudio o marca.</p>\n<h3>Odio, acoso y violencia real</h3>\n<p>Ataques o burlas contra personas o grupos por su origen, religión, género, orientación sexual, discapacidad u otra condición; amenazas; acoso a personas reales; y glorificación de violencia real.</p>\n<h3>Contenido sexual explícito</h3>\n<p>No se permite contenido sexual explícito en vitrinas. <b>Cualquier contenido que sexualice a menores de edad está absolutamente prohibido</b>: la cuenta se cierra de inmediato y se entrega la información a las autoridades.</p>\n<h3>Obras ajenas como propias</h3>\n<p>Usar imágenes, música, textos, personajes o marcas de otras personas presentándolos como tuyos, o para vender algo, sin permiso. Puedes mostrar referentes e inspiraciones, citar y hacer homenajes siempre que quede claro de quién son y no se vendan como propios.</p>\n<h3>Datos de otras personas</h3>\n<p>Publicar datos personales de alguien (teléfono, dirección, RUT, fotos privadas, información de salud) sin su consentimiento.</p>\n<h3>Spam y enlaces dañinos</h3>\n<p>Vitrinas vacías o repetidas para promocionar otra cosa, publicidad engañosa y enlaces a sitios maliciosos o que piden datos con engaños.</p>\n<h3>Actividades ilegales</h3>\n<p>Vender o promover productos o servicios ilegales en Chile.</p>"
+  },
+  {
+   "id": "ficcion",
+   "t": "Sobre la ficción",
+   "html": "<p>Las historias pueden tratar temas difíciles: guerra, crimen, violencia, muerte, conflictos políticos o religiosos. Eso es parte de crear y está permitido. Lo que se modera es el uso de la vitrina para dañar a personas reales, no los temas de una obra. Si tu proyecto tiene contenido fuerte, avísalo en la portada o en la historia para que cada persona decida si seguir.</p>"
+  },
+  {
+   "id": "seguidores",
+   "t": "Avisos a quienes te siguen",
+   "html": "<p>Si tu vitrina tiene el botón para seguirla, puedes escribir a tus seguidores una vez cada 7 días. Esos mensajes llegan a su correo con tu proyecto como remitente, así que tienen las mismas reglas que la vitrina y algunas más:</p>\n<p><b>Solo sobre tu proyecto.</b> Avances, demos, fechas, lanzamientos, preventas reales. No se permite usarlos para promocionar otras cosas, vender listas o enviar cadenas.</p>\n<p><b>Sin engaños.</b> No prometas lo que no existe ni pidas pagos para algo que no vas a entregar. Los enlaces de pago o apoyo (hasta dos en la vitrina y uno por recompensa de tu campaña) siempre deben ser tuyos.</p>\n<p><b>Quien te sigue manda.</b> Cualquier persona puede dejar de seguirte con un toque. Forja nunca te entrega sus correos y no se pueden comprar ni importar seguidores.</p>\n<p>Si un aviso rompe estas reglas, se modera como cualquier vitrina: desde un aviso hasta la suspensión, y además podemos quitarte la posibilidad de escribir a tus seguidores.</p>"
+  },
+  {
+   "id": "lectores",
+   "t": "Lectores beta",
+   "html": "<p>Una ronda de lectores beta es un espacio de confianza: alguien te muestra un trabajo sin terminar para que lo mejores con tu mirada.</p>\n<p><b>Si lees o pruebas:</b> opina sobre la obra, no sobre la persona. Puedes ser directo y decir que algo no funciona; no se permiten insultos, burlas ni acoso. Lo que te muestran es de quien te invitó: no lo copies, publiques ni compartas el enlace.</p>\n<p><b>Si abres una ronda:</b> comparte solo lo que sea tuyo o puedas mostrar, y no uses la ronda para pedir dinero ni datos personales. Puedes quitar a una persona de la ronda cuando quieras.</p>\n<p>Si algo en una ronda rompe estas normas, escríbenos desde Mi cuenta → Escríbenos con el nombre del proyecto y qué pasó: lo revisa una persona, como cualquier reporte.</p>"
+  },
+  {
+   "id": "reportar",
+   "t": "Cómo reportar",
+   "html": "<p>En cada vitrina hay un enlace <b>\"Reportar esta vitrina\"</b>. Para reportar necesitas:</p>\n<p><b>Una cuenta de Forja con al menos un día de antigüedad.</b> Así evitamos que programas automáticos creen cuentas para reportar en masa.</p>\n<p><b>Elegir un motivo</b> y, si puedes, contar qué viste. Puedes enviar hasta <b>5 reportes por día</b> y uno por vitrina.</p>\n<p>Tu reporte es confidencial: la persona reportada no sabe quién la reportó. Cuando lo revisemos, te avisaremos el resultado en Mi cuenta.</p>"
+  },
+  {
+   "id": "revision",
+   "t": "Qué pasa con un reporte",
+   "html": "<p><b>Siempre lo revisa una persona.</b> Ninguna vitrina se oculta ni se sanciona automáticamente por recibir reportes, sin importar cuántos sean. La cantidad solo nos ayuda a revisar primero lo más urgente.</p>\n<p>Al revisar, miramos la vitrina, el motivo del reporte y el contexto. Las decisiones posibles son: no infringe las normas, infringe (y se aplica una medida proporcional) o el reporte fue de mala fe.</p>"
+  },
+  {
+   "id": "malafe",
+   "t": "Reportes de mala fe",
+   "html": "<p>Reportar sirve para cuidar la comunidad, no para atacar a la competencia, acosar a alguien o desquitarse. Un reporte es de mala fe cuando se envía sabiendo que la vitrina no incumple las normas, o como parte de una campaña contra una persona.</p>\n<p>Cuando un reporte se revisa como de mala fe, queda registrado. <b>Con dos reportes de mala fe, la cuenta pierde la posibilidad de reportar.</b> Las campañas organizadas de reportes falsos pueden llevar a la suspensión de las cuentas involucradas.</p>\n<p>Equivocarse de buena fe no es mala fe: si reportaste algo que te pareció dañino y resultó estar permitido, no pasa nada.</p>"
+  },
+  {
+   "id": "sanciones",
+   "t": "Sanciones",
+   "html": "<p>Las medidas son proporcionales a lo que pasó y a si se repite:</p>\n<p><b>1. Aviso.</b> Te pedimos un cambio concreto en tu vitrina.</p>\n<p><b>2. Fuera de Explorar.</b> La vitrina deja de aparecer en el directorio público, pero sigue visible para quien tenga su enlace.</p>\n<p><b>3. Vitrina suspendida.</b> Deja de verse en público y no se puede volver a publicar mientras dure la suspensión. Tu proyecto, tu borrador y todo lo privado siguen intactos.</p>\n<p><b>4. Cuenta suspendida o cerrada.</b> Para casos graves o reiterados.</p>\n<p>En los casos más graves (estafas, contenido que pone en riesgo a menores) podemos saltar directamente a la medida que corresponda y colaborar con las autoridades.</p>\n<p><b>Siempre te decimos el porqué</b>: recibirás un aviso en Forja con el motivo y lo que puedes hacer, salvo que la ley lo impida o avisar ponga en riesgo a otras personas.</p>"
+  },
+  {
+   "id": "apelar",
+   "t": "Cómo apelar",
+   "html": "<p>Si crees que una medida fue un error, puedes apelar dentro de los <b>30 días</b> siguientes: desde el editor de la vitrina suspendida (botón \"Apelar\") o desde <a href=\"~cuenta/\">Mi cuenta → Escríbenos</a>. Cuéntanos qué pasó y qué cambiaste, si corresponde.</p>\n<p>Una persona revisará tu apelación y te responderá en Forja. Nuestro objetivo es responder en un plazo de 7 días. Si la apelación se acepta, la medida se levanta.</p>"
+  },
+  {
+   "id": "quien",
+   "t": "Quién modera",
+   "html": "<p>Hoy la moderación la hace el equipo de Forja (Digital Monster). Llevamos un registro de cada decisión para poder revisarla si se apela. A medida que la comunidad crezca, publicaremos cómo evoluciona este proceso.</p>"
+  }
+ ]
+}

@@ -1,0 +1,63 @@
+{
+ "doc": "pagos",
+ "titulo": "Planes, pagos y reembolsos",
+ "simple": "El plan gratis no vence. Forja Más y Forja Estudio todavía no se pueden contratar; cuando se pueda, aquí están las reglas: puedes cancelar cuando quieras por el mismo medio, tienes 10 días para arrepentirte con devolución total, te avisamos 30 días antes de un cambio de precio y nunca se borra nada si dejas de pagar.",
+ "cambios": "Documento nuevo. Reúne las condiciones de los planes que antes estaban en los Términos y agrega cómo funcionarán la renovación, la cancelación, el derecho a retracto y los reembolsos cuando los planes pagados se puedan contratar.",
+ "secciones": [
+  {
+   "id": "objeto",
+   "t": "1. Objeto y estado actual",
+   "html": "<p>Estas Condiciones forman parte de los <a href=\"~terminos/\">Términos de uso</a> y regulan los planes de Forja y su contratación. Se aplican junto con la Ley N° 19.496 sobre protección de los derechos de los consumidores, cuyas normas prevalecen en todo lo que sea más favorable para la persona usuaria.</p>\n<p><b>A la fecha de esta versión, los planes pagados no pueden contratarse ni se realizan cobros.</b> Las reglas sobre pagos, renovación, cancelación, retracto y reembolsos comenzarán a aplicarse cuando se habiliten los cobros, lo que se informará en Forja. Si para entonces fuera necesario modificar estas Condiciones, se hará mediante una versión nueva avisada conforme a los Términos.</p>"
+  },
+  {
+   "id": "planes",
+   "t": "2. Planes",
+   "html": "<p><b>Gratis:</b> sin costo ni vencimiento, con los límites de uso que se informan en la <a href=\"~planes/\">página de Planes</a> y dentro de la plataforma.</p>\n<p><b>Forja Más</b> y <b>Forja Estudio:</b> planes pagados con las herramientas y los límites que informa la página de Planes, contratables por período mensual o anual.</p>\n<p>Las cuentas del equipo Digital Monster reciben Forja Más sin costo mientras formen parte de él. Digital Monster puede otorgar planes sin costo por tiempo determinado, lo que se informará a la persona beneficiada.</p>"
+  },
+  {
+   "id": "precios",
+   "t": "3. Precios",
+   "html": "<p>Los precios se expresan en pesos chilenos, incluyen los impuestos que correspondan y son los publicados en la página de Planes al momento de contratar. Los precios actuales son <b>de lanzamiento</b> y pueden cambiar para nuevas contrataciones.</p>\n<p>A quien ya tenga un plan pagado, todo cambio de precio o reducción relevante de lo que incluye el plan se le avisará por correo con al menos <b>30 días corridos</b> de anticipación a la renovación en que se aplique. Si no está de acuerdo, puede cancelar antes de esa renovación sin costo alguno.</p>"
+  },
+  {
+   "id": "contratar",
+   "t": "4. Contratación y comprobante",
+   "html": "<p>La contratación la realiza una persona mayor de edad, desde su cuenta, a través del proveedor de pagos que se informe en ese momento. Antes de pagar se mostrarán el plan, el precio total, el período y la fecha de renovación. Forja no almacena los datos de tarjetas ni de cuentas bancarias, que trata directamente el proveedor de pagos.</p>\n<p>Concluida la contratación, se enviará al correo de la cuenta una confirmación escrita con sus condiciones y el comprobante tributario que corresponda.</p>"
+  },
+  {
+   "id": "renovacion",
+   "t": "5. Renovación",
+   "html": "<p>Los planes se renuevan automáticamente al término de cada período, por igual período y al precio vigente informado, salvo cancelación previa. En los planes anuales se enviará un recordatorio por correo con al menos 7 días de anticipación a la renovación.</p>"
+  },
+  {
+   "id": "cancelar",
+   "t": "6. Cancelación",
+   "html": "<p>La persona usuaria puede cancelar su plan en cualquier momento, desde su cuenta y por el mismo medio en que lo contrató, sin expresión de causa ni costo. La cancelación surte efecto al término del período ya pagado, durante el cual se mantienen todas las funciones del plan.</p>"
+  },
+  {
+   "id": "retracto",
+   "t": "7. Derecho a retracto",
+   "html": "<p>Conforme al artículo 3 bis de la Ley N° 19.496, la persona usuaria puede retractarse de la contratación dentro de los <b>10 días corridos</b> siguientes a ella, sin expresión de causa, comunicándolo desde Mi cuenta → Escríbenos o a <a href=\"mailto:forja@digitalmonster.cl\">forja@digitalmonster.cl</a>. Digital Monster no excluye este derecho y, aunque el servicio ya se haya comenzado a usar, devolverá <b>la totalidad</b> de lo pagado por esa contratación, por el mismo medio de pago y dentro de un plazo máximo de 45 días desde la comunicación del retracto.</p>"
+  },
+  {
+   "id": "reembolsos",
+   "t": "8. Reembolsos",
+   "html": "<p>Fuera del retracto, los períodos pagados no son reembolsables en forma proporcional por la sola cancelación, ya que el plan se mantiene activo hasta su término.</p>\n<p>Si Forja no estuviera disponible por causas imputables a Digital Monster durante más de 72 horas continuas, o si se retirara una función esencial del plan contratado, la persona usuaria tendrá derecho, a su elección, a la devolución proporcional de lo pagado por el período afectado o a una extensión equivalente de su plan. Lo mismo se aplica si Digital Monster deja de operar Forja antes del término de un período pagado.</p>\n<p>Los cobros duplicados o erróneos se devolverán íntegramente una vez verificados. Ninguna de estas reglas limita los derechos que la ley otorga a la persona usuaria, incluida la garantía legal cuando sea aplicable.</p>"
+  },
+  {
+   "id": "fin",
+   "t": "9. Fin del plan",
+   "html": "<p>Al terminar un plan pagado, la cuenta pasa al plan gratis. <b>No se elimina Contenido</b>: lo que exceda los límites del plan gratis queda en solo lectura y siempre puede verse, exportarse, archivarse o eliminarse. Una cuenta con un plan pagado vigente nunca se elimina por inactividad.</p>"
+  },
+  {
+   "id": "suspension",
+   "t": "10. Suspensión por incumplimiento",
+   "html": "<p>Si una cuenta con plan pagado se cierra por un incumplimiento grave de los Documentos, se informará el motivo y se devolverá la parte proporcional no utilizada del período pagado, salvo en los casos de fraude en el pago.</p>"
+  },
+  {
+   "id": "reclamos",
+   "t": "11. Consultas y reclamos",
+   "html": "<p>Las consultas y reclamos sobre planes y cobros se reciben en Mi cuenta → Escríbenos o en forja@digitalmonster.cl, y se responden dentro de 10 días hábiles, sin perjuicio del derecho de la persona usuaria a recurrir al Servicio Nacional del Consumidor o a los tribunales competentes.</p>"
+  }
+ ]
+}

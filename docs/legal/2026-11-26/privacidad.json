@@ -1,0 +1,63 @@
+{
+ "doc": "privacidad",
+ "titulo": "Política de privacidad",
+ "simple": "Guardamos lo mínimo: tu correo y lo que creas. Tus proyectos son privados y solo se publica lo que tú publicas. No vendemos datos, no hay publicidad ni cookies de seguimiento, y nadie decide sobre ti con un algoritmo. Los datos viven en servidores de Supabase en Brasil. Puedes descargar todo o borrar tu cuenta desde Mi cuenta, cuando quieras.",
+ "cambios": "Nombramos todo lo que guardas al crear (ideas del Semillero, obras que analizas, el mapa y la estructura de tus proyectos) y explicamos qué datos se usan en las rondas de <a href=\"#lectores\">lectores beta</a>: quién ve las respuestas, que tu correo nunca se muestra y que puedes borrar lo que respondiste aunque ya no estés en la ronda. También sumamos esos datos a lo que se borra con tu cuenta. Lo demás sigue igual.",
+ "secciones": [
+  {
+   "id": "responsable",
+   "t": "Quién es responsable de tus datos",
+   "html": "<p>El responsable del tratamiento de tus datos personales en Forja es <b>Digital Monster</b>, emprendimiento chileno que opera la plataforma. Para cualquier solicitud sobre tus datos, usa <a href=\"~cuenta/\">Mi cuenta → Escríbenos</a> o escribe a <a href=\"mailto:forja@digitalmonster.cl\">forja@digitalmonster.cl</a> (tipo \"Mis datos personales\") o las opciones de descarga y borrado de esa misma página.</p>\n<p>Esta política sigue la Ley 19.628 sobre protección de la vida privada y adopta desde ya los estándares de la Ley 21.719, que la reemplaza (derechos de acceso, rectificación, supresión, oposición, portabilidad y bloqueo, y deber de información).</p>"
+  },
+  {
+   "id": "datos",
+   "t": "Qué datos guardamos",
+   "html": "<p><b>Tu correo electrónico</b>, para crear tu cuenta y enviarte el enlace de entrada.</p>\n<p><b>Lo que creas</b>: proyectos, escritura, ideas del Semillero, referentes (enlaces y colores) y las obras que analizas con sus fichas, el mapa de la idea y la estructura, la Ruta de cada proyecto, pizarras, bitácora, rondas de lectores beta, cotizaciones, oportunidades que sigues y vitrinas. Es contenido privado de tu cuenta.</p>\n<p><b>Si lees en una ronda de lectores beta</b>: que el enlace quedó ligado a tu cuenta, y tus respuestas y comentarios.</p>\n<p><b>Lo que haces en tu relación con Forja</b>: las versiones de estos documentos que aceptaste y cuándo, las herramientas en que marcaste \"Avísame\", los proyectos que sigues, qué correos aceptas recibir, los reportes, mensajes y sugerencias que envías, y los avisos que te mandamos.</p>\n<p><b>Datos técnicos</b> que nuestros proveedores registran para que el servicio funcione y sea seguro (dirección IP, navegador, fecha y hora de acceso).</p>\n<p><b>En tu navegador</b> guardamos preferencias simples (filtros, pistas vistas, posición de tus pizarras) y tu sesión. No usamos cookies de publicidad ni de seguimiento.</p>\n<p>No pedimos tu nombre real, teléfono, dirección, RUT ni datos sensibles. Te pedimos no publicar datos sensibles tuyos ni de otras personas en una vitrina.</p>"
+  },
+  {
+   "id": "para",
+   "t": "Para qué los usamos y con qué base",
+   "html": "<p><b>Darte el servicio</b> que pediste al crear tu cuenta: guardar y mostrarte tus proyectos, publicar lo que publiques y hacer llegar tus respuestas a quien te invitó a una ronda de lectores beta. Base: la relación que aceptas en los Términos de uso.</p>\n<p><b>Seguridad y cuidado de la comunidad</b>: evitar abusos, revisar reportes y aplicar las Normas. Base: interés legítimo en mantener la plataforma segura.</p>\n<p><b>Decidir qué construir</b>: contamos cuántas personas marcaron \"Avísame\" en cada herramienta. Base: tu consentimiento al tocar el botón, que puedes retirar tocándolo de nuevo.</p>\n<p><b>Escribirte solo lo que pediste</b>: el aviso de una herramienta en la que tocaste \"Avísame\", las novedades de los proyectos que sigues y, si te suscribes, el boletín mensual de Forja. Base: tu consentimiento, que das al tocar \"Avísame\", al seguir un proyecto o al marcar el boletín (que viene desmarcado). Lo retiras cuando quieras desde Mi cuenta → Correos de Forja o con el enlace que va al pie de cada correo, sin necesidad de entrar.</p>\n<p><b>Cumplir la ley</b> cuando una autoridad lo exija conforme a derecho.</p>\n<p>No vendemos ni arrendamos tus datos, no hacemos publicidad, no armamos perfiles para terceros y no usamos tu contenido para entrenar inteligencia artificial. <b>No tomamos decisiones automatizadas sobre ti</b>: los límites del plan se aplican igual a todos, y la moderación la hace siempre una persona.</p>"
+  },
+  {
+   "id": "quien",
+   "t": "Quién más procesa tus datos",
+   "html": "<p>Usamos proveedores que procesan datos por encargo nuestro, solo para hacer funcionar Forja:</p>\n<p><b>Supabase</b> guarda la base de datos y las cuentas. Todos los correos salen de forja@digitalmonster.cl. Los de entrada se envían por <b>Titan</b>, el servicio de correo de nuestro proveedor de hosting (HostGator); los avisos y el boletín, por <b>Resend</b>, un servicio de envío de correos de Estados Unidos que recibe solo tu dirección y el mensaje. Para enviarlos, una función de Supabase lee tu dirección solo en el momento del envío. Sus servidores para Forja están en <b>São Paulo, Brasil</b>, por lo que tus datos se transfieren fuera de Chile; Brasil cuenta con una ley general de protección de datos (LGPD). Resend procesa los envíos en esa misma región.</p>\n<p><b>GitHub Pages</b> (GitHub) aloja las páginas del sitio y registra datos técnicos de acceso. <b>Cloudflare</b> administra el dominio digitalmonster.cl (DNS). <b>Google Fonts</b> entrega las tipografías, y <b>jsDelivr</b> y <b>cdnjs</b> entregan bibliotecas de código: al cargar la página, tu navegador les pide archivos y ven tu dirección IP.</p>\n<p>Cuando tú o un visitante abre contenido de terceros enlazado en un proyecto o vitrina (imágenes de otros sitios, videos de YouTube o Vimeo, música de Spotify o SoundCloud), ese sitio recibe la visita según sus propias políticas. Los videos y la música solo se cargan cuando se tocan.</p>"
+  },
+  {
+   "id": "publico",
+   "t": "Qué es público",
+   "html": "<p>Por defecto, nada. Solo es público lo que publicas en una vitrina (para quien tenga su enlace) y lo que eliges mostrar en Explorar. Los precios que compartes en el cotizador se muestran a otros usuarios <b>sin tu nombre ni tu proyecto</b>. Tu correo nunca se muestra a otras personas, tampoco a quien reportas ni a quien te reporta; la única excepción son los equipos: si eres parte de uno (hoy, solo el equipo de Digital Monster), las demás personas del equipo ven tu correo y tu rol, y los proyectos del equipo los ven sus miembros según su rol. Mientras estás en un proyecto del equipo, quienes también están ahí ven el nombre de tu correo y en qué parte estás. Lo mismo vale para un proyecto compartido: si invitas a alguien o te invitan, las personas de ese proyecto ven el correo y lo que puede hacer cada una. Cuando invitas a alguien, guardamos su correo para enviarle la invitación (vence en 14 días) y, si la acepta, quién la invitó. Si sigues un proyecto, quien lo creó solo ve cuántas personas lo siguen, nunca quiénes son ni sus correos; sus avisos te llegan a través de Forja. Lo mismo si tocas «Me interesa» en una recompensa: se cuenta, pero nadie ve quién eres; si la vitrina permite seguirla, además la sigues para que te avise cuando abra.</p>"
+  },
+  {
+   "id": "lectores",
+   "t": "Lectores beta",
+   "html": "<p>Cuando abres una ronda, guardamos la copia que elegiste compartir, el nombre con que identificas a cada persona y su enlace. Ese nombre lo escribes tú: usa uno que esa persona reconozca y no agregues datos que no hacen falta.</p>\n<p>Cuando lees en la ronda de otra persona, ella ve tus respuestas y comentarios con el nombre que te puso, nunca tu correo. Tu correo aparece al pie de la copia solo para ti, para recordarte que es personal. Puedes ver todo lo que respondiste en «Descargar mis datos» y borrarlo desde Mi cuenta en cualquier momento, también si ya te quitaron de la ronda o si la ronda cerró.</p>"
+  },
+  {
+   "id": "tiempo",
+   "t": "Cuánto tiempo los guardamos",
+   "html": "<p>Mientras tengas tu cuenta. Al borrarla desde Mi cuenta, se eliminan de inmediato tu correo, tus proyectos (con sus ideas del Semillero, obras analizadas y rondas de lectores beta), vitrinas, lo que respondiste en rondas de otras personas, precios compartidos, proyectos que sigues, preferencias de correo, correos pendientes de envío, reportes, mensajes, sugerencias y avisos. Las copias de respaldo del proveedor se eliminan en su ciclo normal, en un plazo de hasta 30 días.</p>\n<p>El registro interno de moderación conserva qué decisión se tomó sobre qué vitrina y cuándo, sin tu correo, para poder responder apelaciones y reclamos.</p>"
+  },
+  {
+   "id": "derechos",
+   "t": "Tus derechos y cómo ejercerlos",
+   "html": "<p>Tienes derecho a <b>acceder</b> a tus datos, <b>rectificarlos</b>, pedir su <b>supresión</b>, <b>oponerte</b> a un tratamiento, recibirlos en un formato que puedas llevarte (<b>portabilidad</b>) y pedir su <b>bloqueo</b> temporal mientras se resuelve una solicitud. Puedes retirar tu consentimiento cuando quieras, tan fácil como lo diste.</p>\n<p>Lo más rápido está en <a href=\"~cuenta/\">Mi cuenta</a>: <b>Descargar mis datos</b> te entrega todo en un archivo, y <b>Borrar mi cuenta</b> elimina todo. Tus proyectos y textos los rectificas tú mismo en cualquier momento. Para lo demás, escríbenos desde Mi cuenta con el tipo \"Mis datos personales\".</p>\n<p>Respondemos en un plazo máximo de <b>30 días corridos</b> (prorrogable una vez por otros 30 si es necesario, avisándote), y las solicitudes de bloqueo en <b>2 días hábiles</b>. Ejercer estos derechos es gratuito. Si no estás conforme con la respuesta, puedes reclamar ante la autoridad competente: hoy, los tribunales; cuando entre en funciones, la Agencia de Protección de Datos Personales.</p>"
+  },
+  {
+   "id": "menores",
+   "t": "Menores de edad",
+   "html": "<p>Forja es para personas de 14 años o más. Si sabemos que una cuenta pertenece a alguien menor de 14 años, la eliminaremos. Si eres madre, padre o tutor y crees que eso pasó, escríbenos.</p>"
+  },
+  {
+   "id": "seguridad",
+   "t": "Cómo los protegemos",
+   "html": "<p>Las conexiones van cifradas. La base de datos aplica reglas por las que cada persona solo puede leer y modificar lo suyo, y lo público se guarda aparte de lo privado. No hay contraseñas que se puedan filtrar. Quienes operamos Forja accedemos a la base de datos solo cuando es necesario para mantenerla, resolver un problema que nos pidas, revisar un reporte o cumplir la ley.</p>\n<p>Si ocurriera una brecha de seguridad que pueda afectarte, la comunicaremos a la autoridad cuando corresponda y te avisaremos por los medios más rápidos disponibles, con lo que pasó y qué hacer.</p>"
+  },
+  {
+   "id": "cambios",
+   "t": "Cambios a esta política",
+   "html": "<p>Publicamos cada versión con su fecha. Si un cambio es importante, te lo avisaremos dentro de Forja antes de que rija y te pediremos aceptarlo.</p>"
+  }
+ ]
+}

@@ -1,0 +1,61 @@
+{
+ "docs": [
+  {
+   "id": "terminos",
+   "t": "Términos de uso",
+   "corto": "Términos"
+  },
+  {
+   "id": "privacidad",
+   "t": "Política de privacidad",
+   "corto": "Privacidad"
+  },
+  {
+   "id": "normas",
+   "t": "Normas de la comunidad y uso aceptable",
+   "corto": "Normas"
+  },
+  {
+   "id": "cookies",
+   "t": "Política de cookies y almacenamiento",
+   "corto": "Cookies"
+  },
+  {
+   "id": "pagos",
+   "t": "Planes, pagos y reembolsos",
+   "corto": "Pagos"
+  }
+ ],
+ "versiones": [
+  {
+   "id": "2026-11-06",
+   "docs": [
+    "terminos",
+    "privacidad",
+    "normas"
+   ],
+   "resumen": "Primera versión de los documentos de Forja."
+  },
+  {
+   "id": "2026-11-26",
+   "docs": [
+    "terminos",
+    "privacidad",
+    "normas"
+   ],
+   "resumen": "Suma las rondas de lectores beta, las sugerencias, los enlaces de pago por recompensa, las citas de obras analizadas y los límites de cada plan."
+  },
+  {
+   "id": "2026-11-12",
+   "docs": [
+    "terminos",
+    "privacidad",
+    "normas",
+    "cookies",
+    "pagos"
+   ],
+   "inactivas": true,
+   "resumen": "Reescribimos todos los documentos con un lenguaje más preciso y al día con la Ley 19.628 y la nueva Ley 21.719 de protección de datos. Lo nuevo: las cuentas inactivas se avisan a los 90 y 120 días sin entrar y se borran a los 150 (nunca con plan pagado, del equipo Digital Monster o con vitrina publicada); todo cambio a los documentos se avisa por correo a todas las cuentas y rige 15 días después; y se suman la Política de cookies y almacenamiento y las Condiciones de planes, pagos y reembolsos."
+  }
+ ]
+}

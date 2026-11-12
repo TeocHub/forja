@@ -1,5 +1,5 @@
 // Forja · enviar-correos
-// Vacía la cola privado.correos (avisos de herramientas, boletín, novedades de vitrinas seguidas, invitaciones a proyectos).
+// Vacía la cola privado.correos (avisos de servicio —cambios a los documentos y cuentas inactivas, a todas las cuentas—, avisos de herramientas, boletín, novedades de vitrinas seguidas, invitaciones a proyectos).
 // Envía con la API de Resend (plan gratis: 100 por día, 3.000 al mes) como "Forja <forja@digitalmonster.cl>".
 // La llama pg_cron cada 10 minutos (privado.despachar) solo si hay correos pendientes; public.cola_tomar
 // entrega como máximo 40 por hora y 90 por día, bajo el límite del plan.
@@ -29,6 +29,8 @@ function marco(cuerpo: string, pie: string, aviso = "") {
     '<hr style="border:0;border-top:1px solid #e3e1da;margin:26px 0 14px"><div style="font-size:12.5px;color:#6b7080;line-height:1.55">' + pie +
     "<br>Forja · Digital Monster, Chile · " + '<a href="' + SITIO + '/" style="color:#6b7080">forja.digitalmonster.cl</a></div></div></body></html>';
 }
+const NOMBRE_DOC: Record<string, string> = { terminos: "Términos de uso", privacidad: "Política de privacidad", normas: "Normas de la comunidad y uso aceptable", cookies: "Política de cookies y almacenamiento", pagos: "Planes, pagos y reembolsos" };
+const fechaLarga = (f: unknown) => new Date(String(f) + "T12:00:00Z").toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 const enlaceBaja = (t: string | null, q: string, slug = "") => SITIO + "/correo/?t=" + t + "&q=" + q + (slug ? "&v=" + encodeURIComponent(slug) : "");
 
 function armar(f: Fila): Correo {
@@ -44,6 +46,35 @@ function armar(f: Fila): Correo {
         boton(ir, "Ver la invitación") + '<p style="font-size:13px;color:#6b7080;margin:0">La invitación vence el ' + esc(hasta) + ". Solo funciona con este correo.</p>",
         "Si no conoces a quien te invitó, ignora este correo: no se creó ninguna cuenta y no volverás a recibir nada.", aviso),
       texto: d.de + " te invitó a " + (d.rol === "lector" ? "ver" : "trabajar en") + " «" + d.proyecto + "» en Forja.\n\nVer la invitación: " + ir + "\n\nVence el " + hasta + " y solo funciona con este correo. Si no conoces a quien te invitó, ignora este correo.",
+    };
+  }
+  if (tipo === "legal") {
+    // Aviso de servicio: llega a todas las cuentas, sin enlace de baja. Sin este aviso ninguna versión nueva de los documentos se publica.
+    const ir = SITIO + "/" + String(d.enlace || "documentos/"), cuando = fechaLarga(d.rige);
+    const nombres = (d.documentos || []).map((k: string) => NOMBRE_DOC[k] || k).join(", ");
+    return {
+      asunto: "Cambian los documentos de Forja: rigen el " + cuando, baja: "",
+      html: marco('<p style="font-size:14px;color:#6b7080;margin:0 0 6px">Aviso de servicio</p><h1 style="font-size:24px;margin:0 0 14px">Los documentos de Forja cambian el ' + esc(cuando) + "</h1>" +
+        parrafos(d.resumen) + '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#4a4f5c">Documentos de esta versión: ' + esc(nombres) + ".</p>" +
+        boton(ir, "Ver qué cambia") +
+        parrafos("Hasta el " + cuando + " sigue rigiendo la versión actual. Desde ese día, Forja te pedirá aceptar la nueva al entrar. Si no estás de acuerdo, puedes descargar tus datos y borrar tu cuenta cuando quieras, desde Mi cuenta."),
+        "Este es un aviso de servicio: llega a todas las cuentas de Forja, aunque no recibas otros correos, porque cambia el acuerdo entre tú y nosotros. ¿Dudas? Escríbenos desde Mi cuenta → Escríbenos.", aviso),
+      texto: "Los documentos de Forja cambian el " + cuando + ".\n\n" + d.resumen + "\n\nDocumentos de esta versión: " + nombres + ".\n\nVer qué cambia: " + ir +
+        "\n\nHasta el " + cuando + " sigue rigiendo la versión actual. Desde ese día, Forja te pedirá aceptar la nueva al entrar. Si no estás de acuerdo, puedes descargar tus datos y borrar tu cuenta desde Mi cuenta.\n\nEste es un aviso de servicio: llega a todas las cuentas de Forja.",
+    };
+  }
+  if (tipo === "inactiva") {
+    // Aviso de servicio por inactividad (90 y 120 días sin entrar). Entrar basta para conservar la cuenta.
+    const entrar = SITIO + "/entrar/?siguiente=" + encodeURIComponent("cuenta/#datos"), cuando = fechaLarga(d.borra), dias = d.etapa === 2 ? 120 : 90;
+    const titulo = (d.etapa === 2 ? "Segundo aviso: " : "") + "tu cuenta de Forja se borrará el " + cuando;
+    return {
+      asunto: titulo.charAt(0).toUpperCase() + titulo.slice(1), baja: "",
+      html: marco('<p style="font-size:14px;color:#6b7080;margin:0 0 6px">Aviso de servicio</p><h1 style="font-size:24px;margin:0 0 14px">' + esc(titulo.charAt(0).toUpperCase() + titulo.slice(1)) + "</h1>" +
+        parrafos("Hace " + dias + " días que no entras a Forja. Como dicen nuestros Términos de uso, las cuentas sin uso se borran a los 150 días, con todo lo que guardan.\n\nPara conservarla, basta con entrar una vez. Si prefieres irte, puedes descargar antes todos tus datos.") +
+        boton(entrar, "Entrar y descargar mis datos") +
+        '<p style="font-size:13px;color:#6b7080;margin:0">Nunca borramos cuentas con un plan pagado, del equipo Digital Monster o con una vitrina publicada.</p>',
+        "Este es un aviso de servicio: llega aunque no recibas otros correos de Forja. Si no creaste esta cuenta, ignóralo y se borrará sola.", aviso),
+      texto: titulo + ".\n\nHace " + dias + " días que no entras a Forja. Las cuentas sin uso se borran a los 150 días, con todo lo que guardan. Para conservarla, basta con entrar una vez. Si prefieres irte, descarga antes tus datos:\n" + entrar,
     };
   }
   if (tipo === "funcion") {

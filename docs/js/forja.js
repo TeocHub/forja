@@ -86,7 +86,7 @@ export function navApp(actual) {
     '<details class="fx-cuenta" id="fx-cuenta"><summary aria-label="Mi cuenta"><span class="fx-ini" id="fx-ini">·</span></summary><div class="fx-pop">' +
     '<span class="fx-mail" id="fx-mail2"></span><span class="fx-planb" id="fx-planb">Plan gratis</span><div class="fx-espacios" id="fx-espacios" hidden></div>' +
     '<a href="' + u("cuenta/") + '">Mi cuenta <span class="fx-nav-n" id="fx-avisos-n" hidden></span></a><a href="' + u("admin/") + '" id="fx-admin" hidden>Moderación</a>' +
-    '<a href="' + u("guia/") + '">Guía de Forja</a><a href="' + u("boletin/") + '">Boletín de Forja</a><button type="button" class="fx-link" id="fx-pistas">Volver a ver las pistas</button><a href="' + u() + '">Ver el sitio público</a><a href="' + u("oportunidades/") + '">Calendario de oportunidades</a><span class="fx-legal"><a href="' + u("terminos/") + '">Términos</a> · <a href="' + u("privacidad/") + '">Privacidad</a> · <a href="' + u("normas/") + '">Normas</a></span><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
+    '<a href="' + u("guia/") + '">Guía de Forja</a><a href="' + u("boletin/") + '">Boletín de Forja</a><button type="button" class="fx-link" id="fx-pistas">Volver a ver las pistas</button><a href="' + u() + '">Ver el sitio público</a><a href="' + u("oportunidades/") + '">Calendario de oportunidades</a><span class="fx-legal"><a href="' + u("terminos/") + '">Términos</a> · <a href="' + u("privacidad/") + '">Privacidad</a> · <a href="' + u("normas/") + '">Normas</a> · <a href="' + u("documentos/") + '">Todos los documentos</a></span><button type="button" class="fx-link" id="fx-salir">Cerrar sesión</button></div></details>';
   document.body.classList.add("fx-con-app");
   sb.auth.getSession().then(async ({ data }) => {
     const ses = data.session; if (!ses) return;
@@ -294,44 +294,60 @@ export async function accesoProyecto(id) {
 export async function conSesion(caja, listo) {
   const { data } = await sb.auth.getSession();
   if (!data.session) { location.replace(u("entrar/?siguiente=" + encodeURIComponent(location.href.slice(RAIZ.length)))); return; }
-  if (!(await aceptado())) { await pedirAceptacion(); }
+  if (!(await aceptado(data.session))) { await pedirAceptacion(); }
+  marcarAcceso(data.session); avisoProxima();
   caja.innerHTML = "";
   try { await listo(data.session); } catch (e) { console.error(e); caja.innerHTML = '<div class="fx-empty">No se pudieron cargar tus datos. Revisa tu conexión y recarga la página.</div>'; }
 }
 
-/* --- documentos: términos, privacidad y normas --- */
-// Un cambio importante se publica con 15 días de aviso (CLAUDE.md): `version`/`fecha` es la nueva, `rige` el día en que
-// empieza a regir y `anterior` la que sigue vigente hasta entonces. Antes de `rige` se pide aceptar la anterior; desde
-// ese día, la nueva (sin otra publicación). Pasada la fecha, en el siguiente cambio `anterior` pasa a ser esta.
-export const DOCS = { version: "2026-11-26", fecha: "26 de noviembre de 2026", rige: "2026-11-26", publicada: "11 de noviembre de 2026",
-  anterior: { version: "2026-11-06", fecha: "6 de noviembre de 2026" } };
-const hoyChile = () => { try { return new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" }); } catch (e) { return new Date().toISOString().slice(0, 10); } };
-// La versión que hay que aceptar hoy.
-export const docsVigentes = () => (DOCS.anterior && DOCS.rige && hoyChile() < DOCS.rige ? DOCS.anterior : DOCS);
-export const docsPorRegir = () => DOCS.anterior && DOCS.rige && hoyChile() < DOCS.rige;
-export const fechaDocs = (v) => (v === DOCS.version ? DOCS.fecha : DOCS.anterior && v === DOCS.anterior.version ? DOCS.anterior.fecha : v);
+/* --- documentos: términos, privacidad, normas, cookies y pagos --- */
+// Las versiones las decide la base (rpc legal_estado), no esta página: una versión existe solo si Moderación la avisó por
+// correo a todas las cuentas, y rige 15 días después del aviso (no se puede activar antes; la base solo deja aceptar la vigente).
+// El texto vive en legal/<versión>/<documento>.json y el índice en legal/versiones.json (ver legal.js y CLAUDE.md).
+export const DOCUMENTOS = ["terminos", "privacidad", "normas", "cookies", "pagos"];
+export const NOMBRE_DOC = { terminos: "Términos de uso", privacidad: "Política de privacidad", normas: "Normas de la comunidad y uso aceptable", cookies: "Política de cookies y almacenamiento", pagos: "Planes, pagos y reembolsos" };
+const LEMA_DOC = { terminos: "Tu contenido es tuyo. Qué puedes esperar de Forja y qué esperamos de ti.", privacidad: "Qué datos guardamos, para qué, quién más los procesa y tus derechos.",
+  normas: "Qué se puede publicar, cómo se usa la plataforma, los reportes y las medidas.", cookies: "Qué guarda Forja en tu navegador y para qué.", pagos: "Cómo funcionarán los planes pagados, la cancelación y los reembolsos." };
+export const hoyChile = () => { try { return new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" }); } catch (e) { return new Date().toISOString().slice(0, 10); } };
+// Respaldo si la base no responde: la última versión vigente conocida (nunca adelanta una nueva).
+const LEGAL_RESPALDO = { respaldo: true, vigente: "2026-11-06", versiones: [{ version: "2026-11-06", rige: "2026-11-06", estado: "vigente", documentos: ["terminos", "privacidad", "normas"] }] };
+let legalP = null;
+export function estadoLegal(fresco = false) {
+  if (legalP && !fresco) return legalP;
+  legalP = (async () => {
+    try { const c = JSON.parse(sessionStorage.getItem("forja-legal") || "null"); if (!fresco && c && Date.now() - c.t < 15 * 60e3 && c.d.hoy === hoyChile()) return c.d; } catch (e) {}
+    const { data, error } = await sb.rpc("legal_estado");
+    if (error || !data || !data.vigente) return LEGAL_RESPALDO;
+    try { sessionStorage.setItem("forja-legal", JSON.stringify({ t: Date.now(), d: data })); } catch (e) {}
+    return data;
+  })();
+  return legalP;
+}
+export const fechaDia = (f) => { try { return new Date(String(f).slice(0, 10) + "T12:00:00Z").toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }); } catch (e) { return f; } };
+export const versionDe = (E, v) => (E.versiones || []).find((x) => x.version === v) || null;
+export const proximaLegal = (E) => (E.versiones || []).find((x) => x.estado === "proxima") || null;
+// "del 6 de noviembre de 2026": las versiones se nombran por el día en que rigen.
+export const fechaDocs = (E, v) => { const x = versionDe(E, v); return x && x.rige ? fechaDia(x.rige) : v; };
 // Se recuerda en este navegador cuando la versión vigente ya está aceptada, para no consultarlo en cada página.
-async function aceptado() {
-  const { data: { session } } = await sb.auth.getSession();
-  const V = docsVigentes();
-  const llave = "forja-acepta-" + (session ? session.user.id : "") + "-" + V.version;
+async function aceptado(session) {
+  const E = await estadoLegal(), V = versionDe(E, E.vigente);
+  const llave = "forja-acepta-" + session.user.id + "-" + E.vigente;
   try { if (localStorage.getItem(llave) === "1") return true; } catch (e) {}
-  const { data, error } = await sb.from("aceptaciones").select("documento").eq("version", V.version);
+  const { data, error } = await sb.from("aceptaciones").select("documento").eq("version", E.vigente);
   if (error) return true; // si falla la consulta no se bloquea el uso; se vuelve a pedir en la próxima visita
   const d = new Set((data || []).map((x) => x.documento));
-  const ok = ["terminos", "privacidad", "normas"].every((k) => d.has(k));
+  const ok = (V ? V.documentos : DOCUMENTOS.slice(0, 3)).every((k) => d.has(k));
   if (ok) try { localStorage.setItem(llave, "1"); } catch (e) {}
   return ok;
 }
-function pedirAceptacion() {
+async function pedirAceptacion() {
+  const E = await estadoLegal(), V = versionDe(E, E.vigente), docs = V ? V.documentos : DOCUMENTOS.slice(0, 3);
   return new Promise((listo) => {
     const dl = document.createElement("dialog"); dl.className = "fx-acepta"; dl.setAttribute("aria-labelledby", "fx-acepta-t");
     dl.innerHTML = '<form method="dialog" class="fx-acepta-c"><h2 id="fx-acepta-t">Antes de seguir</h2>' +
       "<p>Forja es un lugar para crear. Para usarla necesitamos que leas y aceptes cómo funciona: qué es tuyo, qué hacemos con tus datos y qué se permite publicar.</p>" +
-      '<div class="fx-acepta-docs"><a href="' + u("terminos/") + '" target="_blank" rel="noopener"><b>Términos de uso</b><span>Tu contenido es tuyo. Qué puedes esperar de Forja y qué esperamos de ti.</span></a>' +
-      '<a href="' + u("privacidad/") + '" target="_blank" rel="noopener"><b>Política de privacidad</b><span>Qué datos guardamos, para qué, quién más los procesa y tus derechos.</span></a>' +
-      '<a href="' + u("normas/") + '" target="_blank" rel="noopener"><b>Normas de la comunidad</b><span>Qué se puede publicar, cómo funcionan los reportes y las sanciones.</span></a></div>' +
-      '<label class="fx-acepta-ok"><input type="checkbox" id="fx-acepta-chk"> <span>Tengo 14 años o más, leí y acepto los Términos de uso, la Política de privacidad y las Normas de la comunidad (versión del ' + docsVigentes().fecha + ").</span></label>" +
+      '<div class="fx-acepta-docs">' + docs.map((k) => '<a href="' + u(k + "/") + '" target="_blank" rel="noopener"><b>' + NOMBRE_DOC[k] + "</b><span>" + LEMA_DOC[k] + "</span></a>").join("") + "</div>" +
+      '<label class="fx-acepta-ok"><input type="checkbox" id="fx-acepta-chk"> <span>Tengo 14 años o más, leí y acepto ' + (docs.length > 3 ? "los documentos de Forja" : "los Términos de uso, la Política de privacidad y las Normas de la comunidad") + " (versión del " + fechaDocs(E, E.vigente) + ").</span></label>" +
       '<div class="fx-acepta-pie"><button type="button" class="fx-link" id="fx-acepta-no">No acepto, salir</button><button type="button" class="fx-primary" id="fx-acepta-si" disabled>Aceptar y seguir</button></div></form>';
     document.body.appendChild(dl);
     dl.addEventListener("cancel", (e) => e.preventDefault()); // no se puede cerrar con Escape
@@ -340,11 +356,31 @@ function pedirAceptacion() {
     $("fx-acepta-no").onclick = async () => { await sb.auth.signOut(); location.href = u(); };
     $("fx-acepta-si").onclick = async () => {
       $("fx-acepta-si").disabled = true;
-      const { error } = await sb.from("aceptaciones").insert(["terminos", "privacidad", "normas"].map((documento) => ({ documento, version: docsVigentes().version })));
+      const { error } = await sb.from("aceptaciones").insert(docs.map((documento) => ({ documento, version: E.vigente })));
+      if (error && /FORJA_VERSION_NO_VIGENTE/.test(error.message)) { try { sessionStorage.removeItem("forja-legal"); } catch (e) {} location.reload(); return; } // cambió la versión vigente mientras tanto
       if (error && !/duplicate|23505/i.test(error.message + (error.code || ""))) { toast("No se pudo guardar. Revisa tu conexión e intenta de nuevo."); $("fx-acepta-si").disabled = false; return; }
       dl.close(); dl.remove(); listo();
     };
   });
+}
+// Mientras corre el plazo de una versión nueva, las cuentas que entran ven la fecha y el enlace a lo que cambia.
+async function avisoProxima() {
+  const E = await estadoLegal(), P = proximaLegal(E);
+  if (!P) return;
+  const llave = "forja-legal-visto-" + P.version;
+  try { if (localStorage.getItem(llave)) return; } catch (e) {}
+  const el = document.createElement("div"); el.className = "fx-legal-prox"; el.setAttribute("role", "status");
+  el.innerHTML = "<span><b>Los documentos de Forja cambian el " + esc(fechaDia(P.rige)) + ".</b> Hasta entonces rige la versión actual.</span>" +
+    '<a href="' + u("documentos/?v=" + encodeURIComponent(P.version)) + '">Ver qué cambia</a><button type="button" class="fx-link">Entendido</button>';
+  el.querySelector("button").onclick = () => { try { localStorage.setItem(llave, "1"); } catch (e) {} el.remove(); };
+  const cab = document.querySelector("header");
+  if (cab) cab.insertAdjacentElement("afterend", el); else document.body.prepend(el);
+}
+// Último ingreso (regla de cuentas inactivas): una vez al día por cuenta.
+function marcarAcceso(session) {
+  const llave = "forja-acceso-" + session.user.id, hoy = hoyChile();
+  try { if (localStorage.getItem(llave) === hoy) return; } catch (e) {}
+  sb.rpc("marcar_acceso").then(({ error }) => { if (!error) try { localStorage.setItem(llave, hoy); } catch (e) {} });
 }
 
 /* --- avisos: lo que Forja te explica (moderación, respuestas a tus mensajes) --- */
@@ -375,7 +411,7 @@ export function pintarEntrada(caja, texto) {
     '<input id="fx-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required placeholder="Código del correo"><button class="fx-primary" type="submit">Entrar</button>' +
     '<button class="fx-link" type="button" id="fx-otro">Usar otro correo</button></form>' +
     '<p class="fx-hint" id="fx-msg">Sin contraseñas: te llega un enlace al correo y al tocarlo quedas dentro. La primera vez se crea tu cuenta.</p>' +
-    '<p class="fx-hint fx-legal-e">Al crear tu cuenta te pediremos aceptar los <a href="' + u("terminos/") + '">Términos</a>, la <a href="' + u("privacidad/") + '">Política de privacidad</a> y las <a href="' + u("normas/") + '">Normas de la comunidad</a>.</p>' +
+    '<p class="fx-hint fx-legal-e">Al crear tu cuenta te pediremos aceptar los <a href="' + u("terminos/") + '">Términos</a>, la <a href="' + u("privacidad/") + '">Política de privacidad</a> y los <a href="' + u("documentos/") + '">demás documentos de Forja</a>.</p>' +
     "</section>";
   let mail = "";
   $("fx-f1").onsubmit = async (e) => {

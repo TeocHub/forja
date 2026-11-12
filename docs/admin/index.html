@@ -65,7 +65,7 @@ dialog.ver::backdrop{background:rgba(10,12,20,.6)}
 </div>
 <dialog class="ver" id="ver"><div class="ver-cab"><span id="ver-t">Vista de moderación</span><button type="button" id="ver-x" aria-label="Cerrar">×</button></div><div id="ver-c"></div></dialog>
 <script type="module">
-import { sb, $, esc, toast, navApp, conSesion, limite, hace } from "../js/forja.js";
+import { sb, $, esc, toast, navApp, conSesion, limite, hace, u, NOMBRE_DOC, fechaDia } from "../js/forja.js";
 import { pintarVitrina, CSS_VITRINA } from "../js/vitrina.js";
 import { FUNCIONES, AREAS, AREAS_SUGERENCIA } from "../js/planes.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
@@ -93,13 +93,13 @@ async function cargar() {
   if (error) { $("app").innerHTML = '<div class="vacio">No se pudo cargar el panel: ' + esc(error.message) + "</div>"; return; }
   D = data; pintar();
 }
-const TABS = [["reportes", "Reportes"], ["mensajes", "Mensajes y apelaciones"], ["sugerencias", "Sugerencias"], ["suspendidas", "Suspendidas"], ["explorar", "En Explorar"], ["correos", "Correos"], ["registro", "Registro"]];
+const TABS = [["reportes", "Reportes"], ["mensajes", "Mensajes y apelaciones"], ["sugerencias", "Sugerencias"], ["suspendidas", "Suspendidas"], ["explorar", "En Explorar"], ["correos", "Correos"], ["documentos", "Documentos"], ["registro", "Registro"]];
 function pintar() {
   const n = { reportes: D.reportes.length, mensajes: D.mensajes.length, sugerencias: (D.sugerencias || []).length };
   $("app").innerHTML = "<h1>Moderación</h1><p class=\"lead\">Cada decisión la toma una persona y queda en el registro. Al suspender, explica siempre el porqué: el dueño lo recibe como aviso y puede apelar.</p>" +
     '<div class="tabs" role="tablist">' + TABS.map(([k, t]) => '<button type="button" role="tab" data-t="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? "<b>" + n[k] + "</b>" : "") + "</button>").join("") + '</div><div id="lista"></div>';
   $("app").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { pest = b.dataset.t; pintar(); });
-  ({ reportes, mensajes, sugerencias, suspendidas, explorar, correos, registro })[pest]();
+  ({ reportes, mensajes, sugerencias, suspendidas, explorar, correos, documentos, registro })[pest]();
 }
 const verBtn = (id, t) => '<button type="button" class="btn" data-ver="' + id + '" data-tt="' + esc(t || "") + '">Ver vitrina</button>';
 function enlazarVer() {
@@ -275,8 +275,66 @@ async function correos() {
     toast(data + " boletines en la cola. Salen de a poco."); correos();
   };
 }
+/* --- Documentos: versiones de los documentos legales ---
+   Una versión nueva vive como borrador en el repositorio (legal/<versión>/ y legal/versiones.json) y no existe para nadie
+   hasta que se avisa aquí a TODAS las cuentas (correo de servicio por Resend, en tandas, más un aviso en Forja).
+   Rige 15 días después del aviso y la base no deja activarla antes. La huella (SHA-256 del texto) amarra el aviso al texto
+   probado: si el texto cambia después de la prueba hay que probar de nuevo, y una versión ya avisada no se puede cambiar. */
+async function huellaDe(version, docs) {
+  const textos = await Promise.all(docs.map((d) => fetch(u("legal/" + version + "/" + d + ".json"), { cache: "no-store" }).then((r) => r.text())));
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(docs.join(",") + "\n" + textos.join("\n")));
+  return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+async function documentos() {
+  $("lista").innerHTML = '<div class="vacio">Cargando…</div>';
+  const [pn, M] = await Promise.all([sb.rpc("mod_legal_panel"), fetch(u("legal/versiones.json"), { cache: "no-store" }).then((r) => r.json())]);
+  if (pn.error) { $("lista").innerHTML = '<div class="vacio">' + esc(pn.error.message) + "</div>"; return; }
+  const P = pn.data, db = new Map(P.versiones.map((v) => [v.version, v]));
+  const huellas = await Promise.all(M.versiones.map((m) => huellaDe(m.id, m.docs).catch(() => "")));
+  const fila = (m, i) => {
+    const v = db.get(m.id), h = huellas[i];
+    const estado = !v || !v.avisada_en ? "Borrador sin avisar" : v.reemplazada_por ? "Avisada, reemplazada por " + v.reemplazada_por + " (no rigió)" : v.version === P.vigente ? "Vigente desde el " + fechaDia(v.rige) : v.rige > P.hoy || v.pendientes ? "Avisada: rige el " + fechaDia(v.rige) : "Anterior (rigió desde el " + fechaDia(v.rige) + ")";
+    let cuerpo = '<p class="texto">' + esc(m.resumen) + "</p><p class=\"lead\">Documentos: " + m.docs.map((d) => esc(NOMBRE_DOC[d] || d)).join(", ") + (m.inactivas ? " · incluye la regla de cuentas inactivas" : "") + "</p>" +
+      '<div class="acc" style="border:0;padding:0"><a class="btn" href="' + u("documentos/?v=" + encodeURIComponent(m.id)) + '" target="_blank" rel="noopener">Revisar lo que cambia</a><a class="btn" href="' + u("terminos/?v=" + encodeURIComponent(m.id) + "&comparar=1") + '" target="_blank" rel="noopener">Comparar los Términos</a></div>';
+    if (v && v.avisada_en) {
+      if (v.huella && h && v.huella !== h) cuerpo += '<p class="texto" style="color:var(--bad)">El texto de esta versión cambió después de avisarla. Una versión avisada no se puede cambiar: devuelve el texto en el repositorio y, si hace falta un cambio, crea una versión nueva y avísala.</p>';
+      if (v.destinatarios != null) cuerpo += '<p class="texto">Aviso por correo: ' + v.enviados + " de " + v.destinatarios + " enviados · " + v.pendientes + " en la cola · " + v.fallidos + " fallidos" +
+        (v.pendientes ? "\nMientras queden avisos en la cola, esta versión no se activa aunque llegue su fecha." : "") + (v.fallidos ? "\nLos fallidos no se reintentan solos: revisa el error en la pestaña Correos." : "") + "</p>";
+    } else {
+      const probada = v && v.probada_en && v.huella === h;
+      cuerpo += '<div class="forma"><b>Para publicarla</b><p class="lead">1. Revisa lo que cambia y los cinco documentos. 2. Envíate la prueba del aviso y léela en tu correo. 3. Avisa a todas las cuentas (' + P.cuentas + "). Rige 15 días después del aviso" + (P.cuentas > 80 ? ", más los días que tarda la cola en enviarlo a todas" : "") + ", y no se puede activar antes.</p>" +
+        (v && v.probada_en && v.huella !== h ? '<p class="texto" style="color:var(--warn)">El texto cambió después de la última prueba: envíate otra antes de avisar.</p>' : "") +
+        '<div class="acc" style="border:0;padding:0"><button type="button" class="btn" data-probar="' + esc(m.id) + '">' + (probada ? "Enviarme otra prueba" : "Enviarme una prueba del aviso") + "</button>" +
+        '<button type="button" class="btn prim" data-avisar="' + esc(m.id) + '"' + (probada ? "" : " disabled") + ">Avisar a todas las cuentas</button></div>" +
+        (probada ? '<p class="lead">Prueba enviada ' + hace(v.probada_en) + ". Si avisas hoy, rige el " + fechaDia(new Date(Date.now() + (15 + Math.max(Math.ceil(P.cuentas / 80) - 1, 0)) * 864e5).toLocaleDateString("en-CA", { timeZone: "America/Santiago" })) + ".</p>" : '<p class="lead">El botón para avisar se activa después de enviarte la prueba.</p>') + "</div>";
+    }
+    return '<article class="caso"><div class="caso-cab"><h2>Versión ' + esc(m.id) + '</h2><span class="tag' + (!v || !v.avisada_en ? " mal" : "") + '">' + esc(estado) + "</span></div>" + cuerpo + "</article>";
+  };
+  const I = P.inactivas;
+  $("lista").innerHTML = '<p class="lead" style="margin-bottom:12px">Ninguna versión nueva se publica sin avisarla antes a todas las cuentas por correo, como aviso de servicio. La vigente hoy es la ' + esc(P.vigente || "—") + ".</p>" +
+    M.versiones.map((m, i) => [m, i]).reverse().map(([m, i]) => fila(m, i)).join("") +
+    '<article class="caso"><div class="caso-cab"><h2>Cuentas inactivas</h2><span class="tag">' + (I.desde ? "Regla activa desde el " + esc(fechaDia(I.desde)) : "Regla aún no vigente") + "</span></div>" +
+    '<p class="texto">' + I.aviso1 + " con el primer aviso (90 días) · " + I.aviso2 + " con el segundo (120 días) · " + I.borradas + " borradas (150 días)</p>" +
+    '<p class="lead">Se revisa sola cada día. Nunca toca cuentas con plan pagado, del equipo Digital Monster o con una vitrina publicada, y solo borra si los dos avisos salieron. Entrar a Forja reinicia el conteo.</p></article>';
+  const vers = (id) => M.versiones.find((x) => x.id === id), hDe = (id) => huellas[M.versiones.findIndex((x) => x.id === id)];
+  $("lista").querySelectorAll("[data-probar]").forEach((b) => b.onclick = async () => {
+    const m = vers(b.dataset.probar); b.disabled = true;
+    const { data, error } = await sb.rpc("mod_legal_probar", { version: m.id, resumen: m.resumen, documentos: m.docs, inactivas: !!m.inactivas, huella: hDe(m.id) });
+    b.disabled = false; if (error) { toast(limite(error) || error.message); return; }
+    toast("Prueba en la cola: te llega en unos minutos. Si avisas hoy, rige el " + fechaDia(data) + "."); documentos();
+  });
+  $("lista").querySelectorAll("[data-avisar]").forEach((b) => b.onclick = async () => {
+    const m = vers(b.dataset.avisar);
+    if (b.dataset.seguro !== "1") { b.dataset.seguro = "1"; b.textContent = "¿Avisar a las " + P.cuentas + " cuentas? No se puede deshacer. Toca de nuevo"; return; }
+    b.disabled = true;
+    const { data, error } = await sb.rpc("mod_legal_avisar", { version: m.id, huella: hDe(m.id) });
+    if (error) { b.disabled = false; toast(/PROBAR_DE_NUEVO/.test(error.message) ? "El texto cambió desde la prueba: envíate otra antes de avisar." : /YA_AVISADA/.test(error.message) ? "Esta versión ya se avisó." : error.message); return; }
+    try { sessionStorage.removeItem("forja-legal"); } catch (e) {}
+    toast("Aviso en la cola para " + data.destinatarios + " cuentas. Rige el " + fechaDia(data.rige) + "."); documentos();
+  });
+}
 function registro() {
-  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje", sugerencia: "Revisó una sugerencia", anunciar_funcion: "Anunció una herramienta", boletin: "Envió el boletín" };
+  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje", sugerencia: "Revisó una sugerencia", anunciar_funcion: "Anunció una herramienta", boletin: "Envió el boletín", documentos_aviso: "Avisó una versión nueva de los documentos", cuenta_inactiva: "Se borró una cuenta inactiva" };
   $("lista").innerHTML = D.registro.length ? '<div class="caso"><div class="reg">' + D.registro.map((r) => "<span>" + esc(String(r.en).slice(0, 16).replace("T", " ")) + "</span><div><b>" + esc(A[r.accion] || r.accion) + "</b>" + (r.detalle && (r.detalle.mensaje || r.detalle.motivo) ? " · " + esc(MOTIVOS[r.detalle.motivo] || "") + " " + esc((r.detalle.mensaje || "").slice(0, 120)) : "") + "</div>").join("") + "</div></div>" : '<div class="vacio">Aún no hay decisiones registradas.</div>';
 }
 </script>

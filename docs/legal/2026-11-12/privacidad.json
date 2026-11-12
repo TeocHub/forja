@@ -1,0 +1,78 @@
+{
+ "doc": "privacidad",
+ "titulo": "Política de privacidad",
+ "simple": "Guardamos lo mínimo: tu correo, lo que creas y la fecha de tu último ingreso. Tus proyectos son privados y solo se publica lo que tú publicas. No vendemos datos, no hay publicidad, no usamos cookies de seguimiento y nadie decide sobre ti con un algoritmo. Los datos se guardan en servidores en Brasil. Puedes descargar todo o borrar tu cuenta desde Mi cuenta, y te respondemos cualquier solicitud en 30 días como máximo.",
+ "cambios": "Reescribimos la política según la Ley 19.628 y la Ley 21.719, que la modifica y que a la fecha está fijada para regir el 1 de diciembre de 2026. Ahora detalla, por cada finalidad, su <a href=\"#para\">base de licitud</a>; informa las <a href=\"#transferencias\">transferencias internacionales</a> y sus garantías; agrega la <a href=\"#tiempo\">fecha de tu último ingreso</a>, que usamos para la regla de cuentas inactivas, y cómo <a href=\"#reclamos\">reclamar</a> ante la Agencia de Protección de Datos Personales.",
+ "secciones": [
+  {
+   "id": "responsable",
+   "t": "1. Responsable del tratamiento",
+   "html": "<p>El responsable del tratamiento de los datos personales que se tratan en Forja es <b>Digital Monster</b>, emprendimiento con domicilio en Chile que opera la plataforma. Su canal de contacto en materia de datos personales es <a href=\"~cuenta/\">Mi cuenta → Escríbenos</a>, eligiendo el tipo «Mis datos personales», o el correo <a href=\"mailto:forja@digitalmonster.cl\">forja@digitalmonster.cl</a>.</p>\n<p>Esta Política forma parte de los <a href=\"~terminos/\">Términos de uso</a> y cumple el deber de información que establece la Ley N° 19.628 sobre protección de la vida privada. Digital Monster aplica desde ya los principios, derechos y estándares que incorpora a esa ley la Ley N° 21.719, cuya entrada en vigencia está fijada, a la fecha de esta versión, para el 1 de diciembre de 2026: licitud y lealtad, finalidad, proporcionalidad, calidad, responsabilidad, seguridad, transparencia e información, y confidencialidad.</p>"
+  },
+  {
+   "id": "datos",
+   "t": "2. Datos que se tratan",
+   "html": "<p><b>Datos de la cuenta:</b> la dirección de correo electrónico, la fecha de creación de la cuenta y la fecha del último ingreso a Forja.</p>\n<p><b>Contenido:</b> proyectos, escritura, fichas, ideas del Semillero, referentes, obras analizadas, mapa de la idea, estructura, Ruta, pizarras, bitácora, rondas de lectores beta, cotizaciones, oportunidades seguidas y vitrinas. Se trata como información privada de la cuenta.</p>\n<p><b>Datos de la relación con Forja:</b> versiones de los Documentos aceptadas y su fecha, plan contratado, herramientas en que se tocó «Avísame», proyectos seguidos e interés en recompensas, preferencias de correo, reportes, mensajes, apelaciones y sugerencias enviadas, avisos recibidos y, en los proyectos compartidos, el rol y los permisos de cada persona.</p>\n<p><b>Datos de terceros ingresados por la persona usuaria:</b> el correo de quien se invita a un proyecto y el nombre con que se identifica a cada lector beta. Quien los ingresa debe contar con una razón legítima para hacerlo y no agregar más datos de los necesarios.</p>\n<p><b>Datos técnicos:</b> dirección IP, tipo de navegador, fecha y hora de las solicitudes, registrados por los proveedores de infraestructura para operar y proteger el servicio.</p>\n<p>Forja no solicita nombre real, teléfono, domicilio, RUT ni datos sensibles. Se pide no ingresar datos sensibles propios ni de terceros en el Contenido publicado.</p>"
+  },
+  {
+   "id": "para",
+   "t": "3. Finalidades y bases de licitud",
+   "html": "<p><b>Prestar el servicio contratado:</b> crear y mantener la cuenta, permitir el acceso, guardar y mostrar el Contenido, publicar lo que la persona usuaria publica, hacer funcionar los proyectos compartidos y las rondas de lectores beta. Base: la ejecución del contrato que la persona usuaria celebra al aceptar los Términos.</p>\n<p><b>Avisos de servicio:</b> comunicar los cambios a los Documentos, los avisos de cuenta inactiva, las invitaciones y las comunicaciones exigidas por la ley. Base: la ejecución del contrato y el cumplimiento de obligaciones legales.</p>\n<p><b>Gestionar la inactividad de las cuentas:</b> registrar la fecha del último ingreso para aplicar la regla de cuentas inactivas y no conservar datos más allá de lo necesario. Base: la ejecución del contrato y el principio de proporcionalidad.</p>\n<p><b>Seguridad y moderación:</b> prevenir abusos, revisar reportes, aplicar las Normas y responder apelaciones. Base: el interés legítimo de Digital Monster y de la comunidad en una plataforma segura, que la persona usuaria puede conocer y objetar conforme a la <a href=\"#derechos\">sección 9</a>.</p>\n<p><b>Comunicaciones optativas:</b> el aviso de una herramienta en que se tocó «Avísame», las novedades de los proyectos seguidos y el boletín. Base: el consentimiento, que se otorga con una acción positiva (el boletín viene desmarcado) y se retira en cualquier momento, sin necesidad de ingresar, con el enlace al pie de cada correo o desde Mi cuenta.</p>\n<p><b>Decidir qué construir:</b> contar cuántas personas pidieron cada herramienta y leer las sugerencias. Base: el consentimiento expresado al tocar «Avísame» o al enviar una sugerencia.</p>\n<p><b>Cumplimiento legal:</b> atender requerimientos de autoridades competentes conforme a derecho. Base: la obligación legal respectiva.</p>\n<p>Digital Monster no vende ni arrienda datos personales, no realiza publicidad, no elabora perfiles para terceros y no usa el Contenido para entrenar sistemas de inteligencia artificial.</p>"
+  },
+  {
+   "id": "automatizadas",
+   "t": "4. Decisiones automatizadas",
+   "html": "<p>Forja no adopta decisiones basadas únicamente en el tratamiento automatizado de datos personales que produzcan efectos jurídicos o afecten significativamente a la persona usuaria. Los límites de cada plan se aplican por igual a todas las cuentas; la moderación la realiza siempre una persona; y la eliminación por inactividad opera solo en los supuestos objetivos y con los avisos previos que establecen los <a href=\"~terminos/#inactivas\">Términos</a>, pudiendo la persona usuaria evitarla con solo ingresar a Forja.</p>"
+  },
+  {
+   "id": "quien",
+   "t": "5. Destinatarios y encargados",
+   "html": "<p>Los datos se comunican únicamente a proveedores que los tratan por encargo de Digital Monster y solo para operar Forja: <b>Supabase</b> (base de datos, autenticación y funciones del servidor), <b>Resend</b> (envío de avisos y del boletín, que recibe solo la dirección de destino y el mensaje), <b>Titan</b>, servicio de correo de HostGator (envío de los correos de acceso), <b>GitHub Pages</b> (alojamiento de las páginas del sitio) y <b>Cloudflare</b> (gestión del dominio).</p>\n<p>Al cargar las páginas, el navegador solicita archivos a <b>Google Fonts</b>, <b>jsDelivr</b> y <b>cdnjs</b>, que reciben la dirección IP. Cuando una persona abre contenido de terceros enlazado en un proyecto o una vitrina (imágenes de otros sitios, videos de YouTube o Vimeo, música de Spotify o SoundCloud), ese sitio recibe la visita conforme a sus propias políticas; los videos y la música solo se cargan al tocarlos.</p>\n<p>Dentro de Forja, los datos solo son visibles para otras personas en los casos descritos en la <a href=\"#publico\">sección 6</a>.</p>"
+  },
+  {
+   "id": "publico",
+   "t": "6. Qué ven otras personas",
+   "html": "<p>Por defecto, nada. Es público únicamente lo que la persona usuaria publica en una vitrina y lo que elige mostrar en Explorar. Los precios compartidos en el cotizador se muestran sin nombre ni proyecto. El correo nunca se muestra a quien se reporta ni a quien reporta.</p>\n<p>Las excepciones son las que exige el trabajo en conjunto: en un equipo, sus miembros ven el correo y el rol de los demás, y quienes están a la vez en un proyecto del equipo ven el nombre del correo y la parte en que trabaja cada uno; en un proyecto compartido, las personas del proyecto ven el correo y los permisos de cada una. Quien crea un proyecto solo ve cuántas personas lo siguen o se interesan en sus recompensas, nunca quiénes son. En las rondas de lectores beta, quien maneja la ronda ve las respuestas con el nombre que asignó, nunca el correo.</p>"
+  },
+  {
+   "id": "transferencias",
+   "t": "7. Transferencias internacionales",
+   "html": "<p>Los servidores de Supabase y de Resend usados por Forja se encuentran en <b>São Paulo, Brasil</b>, y las páginas se sirven desde la red de GitHub, por lo que los datos se transfieren fuera de Chile. Brasil cuenta con la Ley General de Protección de Datos (LGPD). Estas transferencias se realizan para ejecutar el contrato con la persona usuaria y al amparo de los términos de tratamiento de datos de cada proveedor, que incluyen cláusulas contractuales de protección, obligaciones de confidencialidad y medidas de seguridad. Digital Monster revisará estas garantías conforme a los criterios que establezca la Agencia de Protección de Datos Personales.</p>"
+  },
+  {
+   "id": "tiempo",
+   "t": "8. Plazos de conservación",
+   "html": "<p>Los datos se conservan mientras la cuenta exista. Al eliminarse, por decisión de la persona usuaria o por inactividad conforme a los Términos, se borran de inmediato el correo, la fecha del último ingreso, el espacio personal con todos sus proyectos y su Contenido, las vitrinas, lo respondido en rondas ajenas, los precios compartidos, los proyectos seguidos, las preferencias, los correos pendientes de envío, los reportes, los mensajes, las sugerencias y los avisos. Las copias de respaldo del proveedor se eliminan en su ciclo ordinario, dentro de un plazo máximo de 30 días.</p>\n<p>La fecha del último ingreso se registra una vez al día como máximo, y se usa solo para la regla de cuentas inactivas. Los correos enviados se conservan en la cola de envío como registro de cumplimiento del deber de aviso mientras la cuenta exista.</p>\n<p>Se conservan sin el correo ni otro dato identificatorio: el registro interno de las decisiones de moderación, para responder apelaciones y reclamos, y el hecho de haberse eliminado una cuenta por inactividad, con su fecha.</p>"
+  },
+  {
+   "id": "derechos",
+   "t": "9. Derechos de la persona titular",
+   "html": "<p>La persona titular de los datos tiene derecho de <b>acceso</b>, <b>rectificación</b>, <b>supresión</b>, <b>oposición</b>, <b>portabilidad</b> y <b>bloqueo</b> temporal, y a retirar en cualquier momento el consentimiento otorgado, con la misma facilidad con que lo dio, sin afectar la licitud del tratamiento previo.</p>\n<p>La vía más rápida está en <a href=\"~cuenta/\">Mi cuenta</a>: «Descargar mis datos» entrega toda la información de la cuenta en un archivo estructurado y de uso común, y «Borrar mi cuenta» la elimina. El Contenido puede rectificarse directamente en la plataforma. Para cualquier otra solicitud, se debe escribir desde Mi cuenta con el tipo «Mis datos personales» o a forja@digitalmonster.cl.</p>\n<p>Digital Monster responderá dentro de <b>30 días corridos</b> desde la recepción de la solicitud, plazo prorrogable por una sola vez hasta por 30 días corridos, informándolo con su fundamento. Las solicitudes de bloqueo temporal se resolverán dentro de <b>2 días hábiles</b>. El ejercicio de estos derechos es gratuito, y toda denegación será fundada.</p>"
+  },
+  {
+   "id": "reclamos",
+   "t": "10. Reclamos ante la autoridad",
+   "html": "<p>Si la solicitud es denegada o no recibe respuesta dentro de plazo, la persona titular puede reclamar ante la <b>Agencia de Protección de Datos Personales</b> en los plazos que fija la ley, una vez que ésta entre en funciones. Mientras tanto, puede ejercer la acción que la Ley N° 19.628 otorga ante los tribunales de justicia.</p>"
+  },
+  {
+   "id": "menores",
+   "t": "11. Niñas, niños y adolescentes",
+   "html": "<p>Forja está dirigida a personas de 14 años o más. Los datos de adolescentes se tratan conforme a las reglas generales, atendiendo siempre a su interés superior; Forja no les solicita datos sensibles. Si Digital Monster toma conocimiento de que una cuenta pertenece a una persona menor de 14 años, la eliminará junto con sus datos. Madres, padres y tutores pueden informarlo por los canales de la <a href=\"#responsable\">sección 1</a>.</p>"
+  },
+  {
+   "id": "seguridad",
+   "t": "12. Seguridad y confidencialidad",
+   "html": "<p>Las comunicaciones viajan cifradas. La base de datos aplica reglas de acceso por fila, de modo que cada cuenta solo puede leer y modificar lo propio o lo que se le compartió, y lo público se almacena separado de lo privado. No existen contraseñas que puedan filtrarse. Las personas que operan Forja acceden a los datos solo cuando es necesario para mantener el servicio, atender una solicitud, revisar un reporte o cumplir la ley, y quedan sujetas al deber de confidencialidad incluso después de terminada su relación con Digital Monster.</p>\n<p>Ante una vulneración de seguridad que represente un riesgo razonable para los derechos de las personas titulares, Digital Monster la comunicará sin dilación indebida a la Agencia de Protección de Datos Personales y, además, avisará a las personas afectadas por correo y dentro de Forja, en lenguaje claro, con lo ocurrido y las medidas recomendadas.</p>"
+  },
+  {
+   "id": "almacenamiento",
+   "t": "13. Cookies y almacenamiento local",
+   "html": "<p>Forja no usa cookies de publicidad ni de seguimiento. Usa el almacenamiento del navegador para mantener la sesión y recordar preferencias, según se detalla en la <a href=\"~cookies/\">Política de cookies y almacenamiento</a>.</p>"
+  },
+  {
+   "id": "cambios",
+   "t": "14. Cambios a esta Política",
+   "html": "<p>Esta Política se modifica conforme al procedimiento de los <a href=\"~terminos/#cambios\">Términos</a>: toda versión nueva se avisa por correo a todas las cuentas y rige 15 días después del aviso. Cada versión indica su fecha, y las anteriores permanecen disponibles para consulta y comparación.</p>"
+  }
+ ]
+}

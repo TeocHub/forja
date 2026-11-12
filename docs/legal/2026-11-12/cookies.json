@@ -1,0 +1,38 @@
+{
+ "doc": "cookies",
+ "titulo": "Política de cookies y almacenamiento",
+ "simple": "Forja no pone cookies propias ni usa cookies de publicidad o seguimiento. Usa el almacenamiento de tu navegador para mantener tu sesión abierta y recordar cosas simples, como tus filtros o las pistas que ya viste. Todo eso queda en tu equipo y lo puedes borrar cuando quieras.",
+ "cambios": "Documento nuevo. Explica qué guarda Forja en tu navegador, para qué, y qué ven los servicios de terceros que cargan las páginas.",
+ "secciones": [
+  {
+   "id": "objeto",
+   "t": "1. Objeto",
+   "html": "<p>Esta Política forma parte de los <a href=\"~terminos/\">Términos de uso</a> y de la <a href=\"~privacidad/\">Política de privacidad</a>. Informa qué tecnologías de almacenamiento en el dispositivo de la persona usuaria emplea Forja, con qué finalidad y cómo puede gestionarlas.</p>"
+  },
+  {
+   "id": "cookies",
+   "t": "2. Cookies",
+   "html": "<p>Forja <b>no instala cookies propias</b> y no usa cookies de publicidad, de analítica ni de seguimiento entre sitios. Sus páginas no incluyen herramientas de medición de audiencia.</p>"
+  },
+  {
+   "id": "local",
+   "t": "3. Almacenamiento local del navegador",
+   "html": "<p>Forja usa el almacenamiento local y de sesión del navegador (<i>localStorage</i> y <i>sessionStorage</i>) para lo siguiente:</p>\n<p><b>Necesario para el servicio.</b> La sesión de la cuenta, gestionada por Supabase, y el registro de que la versión vigente de los Documentos ya fue aceptada en ese navegador. Sin ellos no es posible usar la cuenta.</p>\n<p><b>Preferencias y continuidad.</b> El espacio de trabajo elegido, el último proyecto y la última herramienta abiertos, los filtros y el orden de las listas, la vista de cada pizarra, las pistas y avisos ya vistos, el estilo de cita preferido y borradores breves que aún no se envían. Su finalidad es que la plataforma recuerde dónde quedó la persona usuaria.</p>\n<p><b>Funcionamiento sin conexión.</b> La aplicación instalable guarda en la caché del navegador las páginas y archivos ya visitados, para abrir más rápido y funcionar sin conexión.</p>\n<p>Esta información permanece en el dispositivo, no se usa para identificar a la persona usuaria frente a terceros y no se comparte con nadie. Por ser necesaria para prestar el servicio o para recordar preferencias solicitadas por la propia persona usuaria, no requiere un consentimiento separado.</p>"
+  },
+  {
+   "id": "terceros",
+   "t": "4. Servicios de terceros",
+   "html": "<p>Al cargar las páginas, el navegador solicita tipografías a <b>Google Fonts</b> y bibliotecas de código a <b>jsDelivr</b> y <b>cdnjs</b>, que reciben la dirección IP y los datos técnicos de la solicitud conforme a sus propias políticas. Forja no les entrega otros datos.</p>\n<p>Los videos de YouTube se insertan desde su dominio sin cookies (youtube-nocookie.com), y los de Vimeo y la música de Spotify o SoundCloud desde sus reproductores oficiales. Ninguno se carga hasta que la persona lo toca; desde ese momento, ese servicio puede usar sus propias cookies según sus políticas.</p>"
+  },
+  {
+   "id": "gestion",
+   "t": "5. Cómo borrarlo",
+   "html": "<p>Cerrar sesión elimina la sesión del navegador. Las preferencias pueden borrarse desde la configuración del navegador, eliminando los datos del sitio forja.digitalmonster.cl, y la opción «Volver a ver las pistas» del menú de la cuenta restablece las pistas vistas. Borrar estos datos no afecta el Contenido guardado en la cuenta.</p>"
+  },
+  {
+   "id": "cambios",
+   "t": "6. Cambios a esta Política",
+   "html": "<p>Si Forja incorpora una tecnología que requiera consentimiento, como una herramienta de medición, lo pedirá antes de activarla, y esta Política se modificará conforme al procedimiento de los <a href=\"~terminos/#cambios\">Términos</a>.</p>"
+  }
+ ]
+}

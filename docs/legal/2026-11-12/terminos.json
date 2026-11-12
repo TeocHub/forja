@@ -1,0 +1,113 @@
+{
+ "doc": "terminos",
+ "titulo": "Términos de uso",
+ "simple": "Tu contenido es tuyo y lo puedes descargar o borrar cuando quieras. Forja es para personas de 14 años o más. Lo que publicas en una vitrina es tu responsabilidad. Si no entras a Forja por 150 días, te avisamos dos veces y luego borramos la cuenta, salvo que tengas un plan pagado, seas del equipo Digital Monster o tengas una vitrina publicada. Todo cambio a estos documentos te llega por correo y rige 15 días después.",
+ "cambios": "Reescribimos los términos por completo, con un lenguaje más preciso y ordenados por materias. Lo nuevo: la regla de <a href=\"#inactivas\">cuentas inactivas</a> (avisos a los 90 y 120 días sin entrar y borrado a los 150, con excepciones), el <a href=\"#cambios\">procedimiento para cambiar estos documentos</a> (aviso por correo a todas las cuentas y vigencia 15 días después) y dos documentos nuevos que forman parte del acuerdo: la <a href=\"~cookies/\">Política de cookies y almacenamiento</a> y las <a href=\"~pagos/\">Condiciones de planes, pagos y reembolsos</a>.",
+ "secciones": [
+  {
+   "id": "quienes",
+   "t": "1. Partes y objeto",
+   "html": "<p>Estos Términos de uso (en adelante, los «Términos») regulan el acceso y uso de Forja, plataforma en línea disponible en forja.digitalmonster.cl, destinada a crear, organizar, probar y mostrar proyectos creativos, tales como historias, cómics, videojuegos, juegos de mesa, contenido para redes y productos (en adelante, «Forja» o la «plataforma»).</p>\n<p>Forja es desarrollada y operada por <b>Digital Monster</b>, emprendimiento con domicilio en Chile (en adelante, «Digital Monster», «nosotros»). Para efectos de estos Términos, «persona usuaria» o «tú» es quien crea una cuenta o usa la plataforma, y «Contenido» es todo texto, dato, enlace, imagen enlazada o material que una persona usuaria ingresa en Forja.</p>\n<p>El uso de Forja implica la celebración de un contrato entre la persona usuaria y Digital Monster, regido por estos Términos y por los documentos que forman parte de ellos según la <a href=\"#documentos\">sección 2</a>.</p>"
+  },
+  {
+   "id": "documentos",
+   "t": "2. Documentos que forman el acuerdo",
+   "html": "<p>Forman parte integrante de estos Términos, con el mismo valor: la <a href=\"~privacidad/\">Política de privacidad</a>, las <a href=\"~normas/\">Normas de la comunidad y uso aceptable</a>, la <a href=\"~cookies/\">Política de cookies y almacenamiento</a> y las <a href=\"~pagos/\">Condiciones de planes, pagos y reembolsos</a> (en conjunto, los «Documentos»).</p>\n<p>En caso de contradicción, prevalece la norma más específica sobre la materia: la Política de privacidad en lo relativo al tratamiento de datos personales, las Condiciones de planes, pagos y reembolsos en lo relativo a cobros, y las Normas de la comunidad en lo relativo a la moderación del contenido. Ninguna disposición de los Documentos limita los derechos irrenunciables que la ley chilena reconoce a las personas usuarias.</p>"
+  },
+  {
+   "id": "aceptar",
+   "t": "3. Aceptación",
+   "html": "<p>Los Documentos se aceptan de forma expresa al crear la cuenta, mediante una casilla que nunca viene marcada de antemano. Digital Monster registra la versión aceptada, la fecha y la hora de la aceptación, registro que constituye prueba suficiente de ella conforme a la Ley N° 19.799 sobre documentos electrónicos.</p>\n<p>Quien no acepte los Documentos no puede crear una cuenta. Las páginas públicas de Forja (portada, guía, oportunidades, planes, vitrinas y Explorar) pueden visitarse sin cuenta; su uso queda sujeto a estos Términos en lo que resulte aplicable.</p>"
+  },
+  {
+   "id": "quien",
+   "t": "4. Capacidad y edad mínima",
+   "html": "<p>Forja está dirigida a personas de <b>14 años o más</b>. Al aceptar, la persona usuaria declara tener esa edad. Las personas entre 14 y 17 años deben usar Forja con conocimiento de su madre, padre o tutor legal. La contratación de planes pagados está reservada a personas mayores de edad.</p>\n<p>Si Digital Monster toma conocimiento de que una cuenta pertenece a una persona menor de 14 años, la eliminará junto con sus datos, conforme a la <a href=\"~privacidad/#menores\">Política de privacidad</a>.</p>"
+  },
+  {
+   "id": "cuenta",
+   "t": "5. Cuenta y acceso",
+   "html": "<p>Cada cuenta es personal e intransferible y se asocia a una dirección de correo electrónico que la persona usuaria controla. El acceso se realiza sin contraseña, mediante un enlace o un código de un solo uso enviado a ese correo. La persona usuaria es responsable de resguardar el acceso a su correo y de la actividad realizada desde su cuenta.</p>\n<p>No se permite crear cuentas mediante procesos automatizados, crear cuentas para suplantar a otra persona, empresa o marca, ni mantener cuentas con el fin de eludir una medida de moderación. Si la persona usuaria sospecha de un acceso no autorizado, debe informarlo de inmediato desde <a href=\"~cuenta/\">Mi cuenta → Escríbenos</a> o a <a href=\"mailto:forja@digitalmonster.cl\">forja@digitalmonster.cl</a>.</p>\n<p>Desde Mi cuenta, la persona usuaria puede en todo momento descargar sus datos en un formato estructurado y eliminar su cuenta. La eliminación es definitiva: borra su espacio personal con todos sus proyectos, vitrinas y Contenido, sin posibilidad de recuperación.</p>"
+  },
+  {
+   "id": "inactivas",
+   "t": "6. Cuentas inactivas",
+   "html": "<p>Una cuenta se considera <b>inactiva</b> cuando no registra ningún ingreso a Forja con la sesión iniciada durante el período que se indica en esta sección. Cualquier ingreso reinicia el cómputo desde cero.</p>\n<p><b>Primer aviso.</b> Al cumplirse 90 días corridos de inactividad, Digital Monster enviará un aviso al correo de la cuenta y otro dentro de Forja, informando la fecha en que la cuenta sería eliminada.</p>\n<p><b>Segundo aviso.</b> Al cumplirse 120 días corridos de inactividad, se enviará un segundo aviso por los mismos medios.</p>\n<p><b>Eliminación.</b> Al cumplirse 150 días corridos de inactividad, y siempre que ambos avisos hayan sido enviados, la cuenta se eliminará con los mismos efectos de la eliminación voluntaria descritos en la <a href=\"#cuenta\">sección 5</a>. Ambos avisos ofrecerán descargar los datos de la cuenta antes de su eliminación, mediante un enlace directo a esa opción.</p>\n<p><b>Excepciones.</b> Nunca se eliminan por inactividad: (a) las cuentas con un plan pagado vigente (Forja Más o Forja Estudio); (b) las cuentas que forman parte del equipo Digital Monster; y (c) las cuentas que tienen al menos una vitrina publicada. Una cuenta que deja de estar en alguna de estas situaciones comienza a computar su inactividad desde ese momento, y en ningún caso se eliminará sin haber recibido los dos avisos.</p>\n<p>Esta regla rige desde la entrada en vigencia de la versión de los Documentos que la incorpora; la inactividad anterior a esa fecha no se computa.</p>"
+  },
+  {
+   "id": "contenido",
+   "t": "7. Propiedad del Contenido y licencia de uso",
+   "html": "<p>La persona usuaria conserva la totalidad de los derechos, incluidos los de propiedad intelectual, sobre su Contenido. Digital Monster no adquiere derecho alguno de propiedad sobre las ideas, textos, diseños ni proyectos que se crean en Forja.</p>\n<p>Con el solo objeto de prestar el servicio, la persona usuaria otorga a Digital Monster una licencia no exclusiva, gratuita, mundial, intransferible y revocable para almacenar, reproducir técnicamente, respaldar y mostrar su Contenido a ella misma y a las personas con quienes decida compartirlo, y para comunicarlo públicamente únicamente cuando ella lo publique en una vitrina o en Explorar. La licencia se extingue al eliminarse el Contenido o despublicarse la vitrina, sin perjuicio de las copias de respaldo, que se eliminan en su ciclo ordinario.</p>\n<p><b>Digital Monster no vende el Contenido, no lo usa con fines publicitarios y no lo usa para entrenar sistemas de inteligencia artificial.</b></p>\n<p>Forja, su código, su diseño, sus textos, sus técnicas de la Ruta, sus plantillas y sus marcas son de Digital Monster o se usan con autorización. Su uso no concede licencia alguna sobre ellos más allá de lo necesario para usar la plataforma.</p>"
+  },
+  {
+   "id": "publicar",
+   "t": "8. Contenido publicado",
+   "html": "<p>Los proyectos son privados por defecto. Solo se vuelve público lo que la persona usuaria publica en una <b>vitrina</b>, visible para quien tenga su enlace, y, si así lo elige, en <b>Explorar</b>, el directorio público de Forja. Nada del Taller, la bitácora ni las pizarras se publica de forma automática: la vitrina guarda copias que la persona usuaria decide traer y publicar.</p>\n<p>Al publicar, la persona usuaria declara y garantiza que es titular del Contenido o cuenta con autorización suficiente para comunicarlo públicamente, o que lo utiliza dentro de los límites que la Ley N° 17.336 sobre propiedad intelectual permite, como la cita con mención de su autor. Es la única responsable del Contenido que publica, de las promesas que formula en su vitrina y de su cumplimiento.</p>\n<p>Forja almacena enlaces y no archivos: las imágenes, videos y audios mostrados en un proyecto o una vitrina se cargan desde sitios de terceros, cuyas condiciones son aplicables.</p>"
+  },
+  {
+   "id": "compartir",
+   "t": "9. Trabajo colaborativo y equipos",
+   "html": "<p>La persona usuaria puede invitar a otras personas a un proyecto, dentro de los límites de su plan, y definir qué puede ver o editar cada una en cada parte del proyecto. Solo debe invitar a personas que conozca y que esperen la invitación, ya que el correo se envía a su dirección.</p>\n<p>El proyecto pertenece al espacio en que fue creado. Lo que otras personas aporten a un proyecto queda en él aunque luego dejen de participar; la autoría y el uso de las obras creadas en conjunto deben acordarse entre las personas que participan, y Digital Monster no interviene en esos acuerdos. Publicar la vitrina, borrar o trasladar el proyecto e invitar corresponde a quien administra el espacio.</p>\n<p>Los espacios de equipo funcionan con roles (administración, edición y lectura). Hoy el único equipo es el de Digital Monster, al que se integran como lectoras las cuentas con un correo confirmado del dominio digitalmonster.cl.</p>"
+  },
+  {
+   "id": "lectores",
+   "t": "10. Rondas de lectores beta",
+   "html": "<p>La persona usuaria puede abrir rondas de lectores beta (o de testers o probadores, según la categoría del proyecto) para que otras personas lean o prueben una copia de su trabajo y le respondan. Ella decide qué partes integran la copia y a quién entrega un enlace, que queda ligado a la primera cuenta que lo abre, y puede revocar el acceso en cualquier momento. La copia no cambia aunque el proyecto siga editándose, y Forja no la muestra a terceros.</p>\n<p>Quien participa como lector recibe el Contenido solo para opinar sobre él: no puede copiarlo, publicarlo ni compartirlo fuera de la ronda. Al enviar respuestas y comentarios, autoriza a quien maneja la ronda a usarlos para mejorar su proyecto, sin que ello le confiera autoría sobre la obra. Puede eliminar lo que respondió en cualquier momento desde Mi cuenta, incluso si la ronda cerró o se le quitó el acceso.</p>"
+  },
+  {
+   "id": "seguir",
+   "t": "11. Seguidores, recompensas y comunicaciones",
+   "html": "<p>Con una cuenta es posible seguir los proyectos cuya vitrina lo permita y marcar interés en sus recompensas. Quien crea un proyecto puede escribir a sus seguidores, a través de Forja, como máximo una vez cada 7 días; ese mensaje es de su exclusiva responsabilidad y debe respetar las <a href=\"~normas/#seguidores\">Normas de la comunidad</a>. Nunca recibe los correos de sus seguidores, solo su número.</p>\n<p>Forja envía a la persona usuaria tres clases de correos: (a) los de acceso a la cuenta; (b) los <b>avisos de servicio</b>, que son los cambios a los Documentos, los avisos de cuenta inactiva, las invitaciones y las comunicaciones exigidas por la ley, y que se envían a todas las cuentas porque son necesarios para la relación contractual; y (c) las comunicaciones optativas, que son el aviso de una herramienta en la que tocó «Avísame», las novedades de los proyectos que sigue y el boletín. Las comunicaciones optativas solo se envían con su consentimiento y pueden cancelarse en cualquier momento desde Mi cuenta o con el enlace al pie de cada correo.</p>"
+  },
+  {
+   "id": "sugerencias",
+   "t": "12. Sugerencias",
+   "html": "<p>La persona usuaria puede enviar sugerencias sobre Forja. Al hacerlo, autoriza a Digital Monster a usar libremente las ideas que contengan para mejorar la plataforma, sin obligación de pago ni de mención. Digital Monster nunca publica el nombre ni el correo de quien sugiere.</p>"
+  },
+  {
+   "id": "normas",
+   "t": "13. Normas de la comunidad y moderación",
+   "html": "<p>Todo Contenido que se publica o se comparte con otras personas debe respetar las <a href=\"~normas/\">Normas de la comunidad y uso aceptable</a>. Los reportes y las decisiones de moderación los revisa siempre una persona: ningún Contenido se oculta ni se sanciona de forma automática.</p>\n<p>Ante un incumplimiento, Digital Monster puede pedir un cambio, retirar una vitrina de Explorar, suspenderla o, en casos graves o reiterados, suspender o cerrar la cuenta, en forma proporcional y con indicación del motivo, salvo que la ley lo impida o que informarlo ponga en riesgo a terceros. Toda medida puede apelarse conforme a las Normas.</p>"
+  },
+  {
+   "id": "planes",
+   "t": "14. Planes",
+   "html": "<p>Forja ofrece un plan gratis, sin vencimiento y con límites de uso informados en la plataforma, y dos planes pagados, Forja Más y Forja Estudio. Sus precios, renovación, cancelación, derecho de retracto y reembolsos se rigen por las <a href=\"~pagos/\">Condiciones de planes, pagos y reembolsos</a>.</p>\n<p>Al terminar un plan pagado o al pasar a uno con menos cupos no se elimina Contenido: lo que excede los límites del nuevo plan queda en modo de solo lectura y siempre puede verse, exportarse, archivarse o eliminarse.</p>"
+  },
+  {
+   "id": "pagos",
+   "t": "15. Pagos entre personas usuarias",
+   "html": "<p>Forja no recibe, custodia ni transfiere dinero entre personas usuarias ni entre creadores y su público. Las vitrinas pueden mostrar enlaces de pago o apoyo, dentro de los límites que fija la plataforma, y marcar «Me interesa» en una recompensa no constituye pago ni compromiso alguno.</p>\n<p>Todo acuerdo de pago, preventa, aporte o entrega se celebra directamente entre el creador y quien paga, a través del medio que el creador eligió, y se rige por las condiciones de ese medio. Digital Monster no es parte de esos acuerdos, no garantiza su cumplimiento y no puede efectuar devoluciones respecto de ellos. Los engaños deben reportarse conforme a las Normas.</p>"
+  },
+  {
+   "id": "info",
+   "t": "16. Información de referencia",
+   "html": "<p>El calendario de oportunidades, los precios compartidos por la comunidad en el cotizador, los precios sugeridos, las citas bibliográficas generadas al analizar una obra, la Brújula de formatos y las sugerencias de la Ruta son herramientas de apoyo. Se elaboran con cuidado, pero no sustituyen las bases oficiales de cada organizador, las ofertas efectivas de los proveedores ni el criterio de la persona usuaria, quien debe verificarlos antes de tomar decisiones o entregar trabajos.</p>"
+  },
+  {
+   "id": "uso",
+   "t": "17. Uso aceptable de la plataforma",
+   "html": "<p>La persona usuaria se obliga a usar Forja conforme a la ley, a los Documentos y a la buena fe. En particular, no debe acceder ni intentar acceder a datos o cuentas ajenas, vulnerar o probar las medidas de seguridad sin autorización, sobrecargar el servicio, automatizar cuentas, reportes o envíos, ni usar Forja para cometer delitos, incluidos los tipificados en la Ley N° 21.459 sobre delitos informáticos. El detalle está en las <a href=\"~normas/#plataforma\">Normas de la comunidad y uso aceptable</a>.</p>"
+  },
+  {
+   "id": "servicio",
+   "t": "18. Disponibilidad y responsabilidad",
+   "html": "<p>Digital Monster emplea un cuidado razonable para que Forja funcione de forma continua y para que el Contenido esté seguro y respaldado. Forja es un servicio en desarrollo y puede presentar fallas, interrupciones o cambios en sus funciones; Digital Monster puede agregar, modificar o retirar herramientas, avisando con anticipación razonable cuando el cambio afecte de forma relevante lo que la persona usuaria ya guardó.</p>\n<p>En la medida en que la ley lo permita, Digital Monster no responde por daños indirectos ni por los acuerdos celebrados entre personas usuarias o con terceros. Nada de lo anterior excluye ni limita la responsabilidad que corresponda por dolo o culpa grave, ni los derechos que la Ley N° 19.496 sobre protección de los derechos de los consumidores reconoce a las personas usuarias.</p>"
+  },
+  {
+   "id": "fin",
+   "t": "19. Término",
+   "html": "<p>La persona usuaria puede poner término a la relación en cualquier momento eliminando su cuenta. Digital Monster puede ponerle término por incumplimiento grave o reiterado de los Documentos, informando el motivo salvo que la ley lo impida o que informarlo ponga en riesgo a terceros, o por inactividad conforme a la <a href=\"#inactivas\">sección 6</a>.</p>\n<p>Si Digital Monster decide dejar de operar Forja, lo avisará a todas las cuentas por correo con al menos 60 días de anticipación, para que puedan descargar sus datos.</p>"
+  },
+  {
+   "id": "cambios",
+   "t": "20. Modificación de los Documentos",
+   "html": "<p>Toda modificación de los Documentos, cualquiera sea su alcance, se publica como una versión nueva y se rige por el siguiente procedimiento:</p>\n<p><b>Aviso a todas las cuentas.</b> Antes de que una versión nueva se publique, Digital Monster la comunica por correo electrónico a todas las cuentas existentes, como aviso de servicio, con independencia de sus preferencias de correo, y además dentro de Forja. El aviso indica la fecha de entrada en vigencia, resume los cambios y enlaza a una comparación con la versión vigente.</p>\n<p><b>Plazo.</b> La versión nueva entra en vigencia <b>15 días corridos</b> después del aviso y no puede activarse antes. Mientras tanto, sigue rigiendo la versión vigente, y Forja muestra la fecha de cambio a las cuentas que ingresan durante ese período.</p>\n<p><b>Comparación y versiones.</b> Forja conserva y publica la versión vigente, la próxima y las anteriores. Cada documento indica, sección por sección, qué es nuevo, qué cambió y qué se mantiene, y permite ver la versión anterior al lado con los cambios destacados.</p>\n<p><b>Aceptación.</b> Desde su entrada en vigencia, la versión nueva se solicitará al ingresar a Forja. Quien no la acepte puede, antes o después de esa fecha, descargar sus datos y eliminar su cuenta sin costo.</p>"
+  },
+  {
+   "id": "ley",
+   "t": "21. Ley aplicable, reclamos y contacto",
+   "html": "<p>Estos Términos se rigen por las leyes de la República de Chile. Las consultas y reclamos pueden dirigirse a <a href=\"~cuenta/\">Mi cuenta → Escríbenos</a> o a <a href=\"mailto:forja@digitalmonster.cl\">forja@digitalmonster.cl</a>, y serán respondidos dentro de un plazo de 10 días hábiles. Lo anterior no impide a la persona usuaria ejercer sus derechos ante el Servicio Nacional del Consumidor, los tribunales competentes conforme a la Ley N° 19.496 o, en materia de datos personales, ante la autoridad que indica la <a href=\"~privacidad/#reclamos\">Política de privacidad</a>.</p>"
+  }
+ ]
+}
