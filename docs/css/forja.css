@@ -29,6 +29,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
   --t-historia:#B993FF; --t-comic:#5EC5DB; --t-videojuego:#8C9BFF; --t-juegomesa:#4FD19A; --t-contenido:#FF8FB6; --t-producto:#F0B35A; --t-otro:#A8A8A4; color-scheme:dark}
 /* Títulos: Mona Sans ancha. La palabra «forja» va en minúscula y un poco más ancha. */
 :where(h1,h2,h3,h4){font-stretch:var(--ancho)}
+:where(h1,h2,h3){font-weight:800;letter-spacing:-.015em}
 
 /* --- marca: la F-regla (siete marcas = siete etapas) con la chispa del color del proyecto --- */
 .fx-f{display:block;flex:none;overflow:visible}
@@ -49,6 +50,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 @media (max-width:620px){.fx-nav{gap:8px 16px}.fx-mods{order:3;flex-basis:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.fx-mods a{white-space:nowrap}}
 
 .fx-entrada{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:520px;display:flex;flex-direction:column;gap:12px}
+.fx-entrada .fx-f{--f-hueco:var(--card)}
 .fx-entrada h2{font-family:var(--f-display);font-weight:800;font-size:24px;margin:0}
 .fx-entrada p{margin:0}
 .fx-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -85,9 +87,10 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .fx-entrar.lleno{background:var(--btn);color:var(--btn-tx)}
 .fx-app{display:flex;align-items:center;gap:18px;padding-bottom:12px;margin-bottom:16px;border-bottom:1px solid var(--line)}
 .fx-app .fx-logo{flex:none}
-.fx-menu{display:flex;gap:2px;flex:1;min-width:0}
+.fx-menu{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.fx-menu::-webkit-scrollbar{display:none}
 .fx-menu a{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--muted);text-decoration:none;font-size:15px;white-space:nowrap}
-.fx-menu a svg{width:19px;height:19px}
+.fx-menu a svg{width:19px;height:19px;display:none}
 .fx-menu a:hover{color:var(--fg)}
 .fx-menu a[aria-current="page"]{color:var(--fg);background:var(--suave);font-weight:700}
 .fx-menu a.m-plan svg{color:var(--cat)}
@@ -106,12 +109,12 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .fx-pop a{color:var(--fg);text-decoration:none}
 .fx-pop a:hover{text-decoration:underline}
 .fx-pop .fx-link{align-self:flex-start;padding:0;font-size:14px}
-@media (min-width:721px) and (max-width:1020px){.fx-app{gap:10px}.fx-menu a{padding:0 9px;font-size:14px}.fx-menu a svg{display:none}}
+@media (min-width:721px) and (max-width:1020px){.fx-app{gap:10px}.fx-menu a{padding:0 9px;font-size:14px}}
 @media (max-width:720px){
   .fx-app{gap:10px}
-  .fx-menu{position:fixed;left:0;right:0;bottom:0;z-index:55;justify-content:space-around;gap:0;background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+  .fx-menu{position:fixed;left:0;right:0;bottom:0;z-index:55;justify-content:space-around;gap:0;overflow:visible;background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
   .fx-menu a{flex-direction:column;justify-content:center;gap:2px;font-size:11px;min-height:48px;padding:4px 6px;border-radius:10px;flex:1;max-width:96px}
-  .fx-menu a svg{width:22px;height:22px}
+  .fx-menu a svg{width:22px;height:22px;display:block}
   body.fx-con-app{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   body.fx-con-app .fx-toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 }

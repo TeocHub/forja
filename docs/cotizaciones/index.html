@@ -24,7 +24,8 @@ h2{font-family:var(--f-display);font-size:19px;margin:28px 0 10px}
 .cot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-decoration:none;color:var(--fg);display:flex;flex-direction:column;gap:7px;border-top:4px solid var(--tc)}
 .cot:hover{border-color:var(--tc)}
 .cot h3{font-family:var(--f-display);font-size:17px;margin:0;line-height:1.2}
-.cot .k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tc);font-weight:700}
+.cot .fx-etq,.nueva .fx-etq{align-self:flex-start;font-size:12.5px;padding:3px 12px 3px 22px}
+.cot .fx-etq::before,.nueva .fx-etq::before{left:8px}
 .chips{display:flex;flex-wrap:wrap;gap:4px}
 .chips span{font-size:12px;border-radius:6px;padding:1px 7px;background:var(--field);border:1px solid var(--line)}
 .chips span.ok{border-color:var(--good);background:var(--good-soft)}
@@ -42,7 +43,7 @@ h2{font-family:var(--f-display);font-size:19px;margin:28px 0 10px}
   <main id="app"><div class="fx-empty">Cargando…</div></main>
 </div>
 <script type="module">
-import { sb, $, esc, toast, hace, navApp, espacio, conSesion, limite, proximamente, activarAvisame } from "../js/forja.js";
+import { sb, $, esc, toast, hace, navApp, espacio, conSesion, limite, proximamente, activarAvisame, etiqueta } from "../js/forja.js";
 import { TIPOS, tc } from "../js/guias.js";
 import { funcion, tarjetaFuncion, pendientes } from "../js/planes.js";
 navApp("cotizaciones");
@@ -59,14 +60,14 @@ conSesion($("app"), async () => {
   const tarjeta = (k) => {
     const pr = PROYS.find((x) => x.id === k.proyecto_id), d = k.datos || {}, comps = d.componentes || [], qs = d.cotizaciones || [];
     return '<a class="cot" href="../cotizador/?c=' + k.id + '" style="--tc:' + (pr ? tc(pr.tipo) : "var(--line)") + '">' +
-      '<span class="k">' + (pr ? esc(TIPOS[pr.tipo]) : "Sin proyecto") + "</span><h3>" + esc(pr ? pr.nombre : k.nombre) + "</h3>" +
+      (pr ? etiqueta(pr.tipo, TIPOS[pr.tipo]) : '<span class="fx-etq" style="--tc:var(--muted)">Sin proyecto</span>') + "<h3>" + esc(pr ? pr.nombre : k.nombre) + "</h3>" +
       (comps.length ? '<div class="chips">' + comps.slice(0, 6).map((x) => '<span class="' + (qs.some((q) => q.compId === x.id) ? "ok" : "") + '">' + esc(x.nombre) + "</span>").join("") + (comps.length > 6 ? "<span>+" + (comps.length - 6) + "</span>" : "") + "</div>" : '<span style="font-size:13px;color:var(--muted)">Sin piezas todavía</span>') +
       "<small>" + qs.length + (qs.length === 1 ? " precio de proveedor" : " precios de proveedores") + " · " + hace(k.actualizado_en) + "</small></a>";
   };
   $("app").innerHTML =
     '<header><h1>Cotizaciones</h1><p class="lead">Una por proyecto: lo que cuesta producirlo pieza por pieza y a cuánto venderlo. Las piezas en verde ya tienen precio.</p></header>' +
     (COTS.length || sin.length ? '<div class="cots">' + COTS.map(tarjeta).join("") +
-      sin.map((x) => '<button type="button" class="nueva" data-p="' + x.id + '"><span>' + esc(TIPOS[x.tipo]) + "</span><b>" + esc(x.nombre) + "</b><span>+ Crear su cotización</span></button>").join("") + "</div>"
+      sin.map((x) => '<button type="button" class="nueva" data-p="' + x.id + '">' + etiqueta(x.tipo, TIPOS[x.tipo]) + "<b>" + esc(x.nombre) + "</b><span>+ Crear su cotización</span></button>").join("") + "</div>"
       : '<div class="vacio">Aún no tienes proyectos. Planta uno en <a href="../proyectos/">Proyectos</a> y aquí aparecerá su cotización.</div>') +
     '<h2>Más para tus costos</h2><div class="extras">' + tarjetaFuncion("campanas", COTS[0] ? "../cotizador/?c=" + COTS[0].id + "#campana" : null) + pendientes(["versiones-precio", "presupuesto-fondos"]).map((k) => tarjetaFuncion(k)).join("") + "</div>";
   activarAvisame($("app"));

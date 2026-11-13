@@ -31,11 +31,14 @@ const ICO = {
   proyecto: '<rect x="3" y="4" width="18" height="4" rx="1.5"/><rect x="3" y="11" width="5" height="9" rx="1.5"/><rect x="10" y="11" width="5" height="9" rx="1.5"/><rect x="17" y="11" width="4" height="9" rx="1.5"/>',
   app: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
 };
-export const icono = (k, tam = 22) => '<svg viewBox="0 0 24 24" width="' + tam + '" height="' + tam + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICO[k] || ICO.plantar) + "</svg>";
+// Con la identidad nueva, las herramientas usan los íconos de taller de forja.js (ICONOS); los demás temas siguen con su dibujo propio.
+const NUEVO = { plantar: "chispa", semillero: "semilla", obras: "lupa", ruta: "regla", mapa: "mapa", estructura: "curva", taller: "pluma", referentes: "chinche", brujula: "brujula", pizarra: "pizarra",
+  costos: "moneda", oportunidades: "calendario", eventos: "calendario", vitrina: "vitrina", bitacora: "cuaderno", lectores: "ojo", fichas: "fichas", equipo: "persona", invitar: "persona", proyecto: "martillo", idea: "chispa", crear: "martillo", probar: "lupa", mostrar: "vitrina" };
+export const icono = (k, tam = 22) => '<svg class="fx-ico" viewBox="0 0 24 24" width="' + tam + '" height="' + tam + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (NUEVO[k] ? '<path d="' + ICONOS[NUEVO[k]] + '"/>' : ICO[k] || ICO.plantar) + "</svg>";
 
 // ctx = { p: id del último proyecto abierto (o null) }
 // Direcciones absolutas desde la raíz del sitio (la ayuda se abre desde páginas en distintas carpetas).
-import { RAIZ, u, esc, equipo } from "./forja.js";
+import { RAIZ, u, esc, equipo, ICONOS } from "./forja.js";
 import { PRECIOS } from "./planes.js";
 const clp = (n) => "$" + n.toLocaleString("es-CL");
 const enProyecto = (pest) => (ctx) => (ctx && ctx.p ? u("proyecto/?p=" + ctx.p + "#" + pest) : u("proyectos/"));
@@ -358,7 +361,7 @@ export const CSS_AYUDA = `
 .ay-nada{margin:0;color:var(--muted)}
 .ay-otros>span{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px}
 .ay-otros>div{display:flex;flex-wrap:wrap;gap:6px}
-.ay-otros button{font:inherit;font-size:13px;display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:999px;padding:4px 10px 4px 8px;cursor:pointer}
+.ay-otros button{font:inherit;font-size:13px;display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:10px;padding:4px 10px 4px 8px;cursor:pointer}
 .ay-otros button:hover{border-color:var(--accent)}
 .ay-otros svg{color:var(--muted)}
 .ay-guia{font-size:14px;text-decoration:none;color:var(--accent);font-weight:700;border-top:1px solid var(--line);padding-top:14px}
@@ -383,7 +386,7 @@ export const CSS_AYUDA = `
 .ay-hito-t{display:flex;flex-direction:column;gap:2px;margin-top:4px}
 .ay-hito b{font-size:13.5px;line-height:1.25}
 .ay-hito small{font-size:12px;color:var(--muted);line-height:1.3}
-.ay-hito.hecho .ay-punto{background:var(--good);border-color:var(--good);color:#fff}
+.ay-hito.hecho .ay-punto{background:var(--good);border-color:var(--good);color:var(--card)}
 .ay-hito.siguiente .ay-punto{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 5px var(--accent-soft)}
 .ay-hito.siguiente b{color:var(--accent)}
 .ay-s-pie{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:14px}

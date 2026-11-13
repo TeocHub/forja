@@ -11,26 +11,14 @@
 <link rel="icon" href="../icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&family=Familjen+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&display=swap">
 <style>
 /* Layout: cartelera de convocatorias — resumen arriba, filtros, lista de fichas con dos contadores (postulación / evento) */
-:root{
-  --bg:#f3f4f7; --card:#ffffff; --fg:#161a26; --muted:#5b6275; --line:#dfe2ea;
-  --accent:#2a3fd1; --accent-soft:#e6e9fb;
-  --open:#0f7a4f; --open-soft:#dff3ea; --soon:#b4330e; --soon-soft:#fbe6dc; --closed:#7a8091; --closed-soft:#eceef2; --wait:#8a5a00; --wait-soft:#fbf0d6;
-  --f-display:"Familjen Grotesk",system-ui,sans-serif; --f-body:"Atkinson Hyperlegible",system-ui,sans-serif; --f-num:"JetBrains Mono",ui-monospace,monospace;
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e;
-  --accent:#8c9bff; --accent-soft:#232a52;
-  --open:#4fd19a; --open-soft:#123a2a; --soon:#ff8a63; --soon-soft:#40211a; --closed:#8a90a2; --closed-soft:#23262f; --wait:#e8b84a; --wait-soft:#3a2e12; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e;
-  --accent:#8c9bff; --accent-soft:#232a52;
-  --open:#4fd19a; --open-soft:#123a2a; --soon:#ff8a63; --soon-soft:#40211a; --closed:#8a90a2; --closed-soft:#23262f; --wait:#e8b84a; --wait-soft:#3a2e12; color-scheme:dark}
+/* Colores de estado de cada convocatoria; el resto (grafito, letras) viene de forja.css */
+:root{--open:var(--good); --open-soft:var(--good-soft); --soon:var(--bad); --soon-soft:color-mix(in srgb,var(--bad) 12%,var(--card)); --closed:var(--muted); --closed-soft:var(--suave); --wait:var(--warn); --wait-soft:var(--warn-soft)}
 
 .wrap{max-width:900px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
-header h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0;text-wrap:balance}
+header h1{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,5vw,44px);line-height:1.02;letter-spacing:-.03em;margin:0;text-wrap:balance}
 header p{margin:6px 0 0;color:var(--muted)}
 .meta{font-size:13px;color:var(--muted)}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -39,7 +27,7 @@ header p{margin:6px 0 0;color:var(--muted)}
 .stat span{font-size:13px;color:var(--muted)}
 .stat.hot b{color:var(--soon)} .stat.open b{color:var(--open)}
 .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:6px 12px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
 .chip:focus-visible,select:focus-visible,summary:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 select{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:6px 8px}
@@ -123,22 +111,22 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
 
   function postul(it){
     var a=pd(it.postul_inicio),b=pd(it.postul_fin),est=it.fechas_estimadas?"≈ ":"";
-    if(!a&&!b) return {cls:"closed",big:it.postul_texto||"Sin convocatoria publicada",dates:"",k:"none"};
+    if(!a&!b) return {cls:"closed",big:it.postul_texto||"Sin convocatoria publicada",dates:"",k:"none"};
     var dates=(a?fmt(a):"?")+" → "+(b?fmt(b):"?");
-    if(a&&diff(a)>0) return {cls:"wait",big:est+"Abre en "+dias(diff(a)),dates:dates,k:"wait",next:a};
-    if(b&&diff(b)>=0){var n=diff(b);return {cls:n<=14?"soon":"open",big:(n===0?"Cierra hoy":"Abierta · quedan "+dias(n)),dates:dates,k:"open",next:b,left:n};}
+    if(a&diff(a)>0) return {cls:"wait",big:est+"Abre en "+dias(diff(a)),dates:dates,k:"wait",next:a};
+    if(b&diff(b)>=0){var n=diff(b);return {cls:n<=14?"soon":"open",big:(n===0?"Cierra hoy":"Abierta · quedan "+dias(n)),dates:dates,k:"open",next:b,left:n};}
     if(b) return {cls:"closed",big:"Cerrada",dates:dates,k:"closed"};
     return {cls:"open",big:"Abierta",dates:dates,k:"open"};
   }
   function evento(it){
     var a=pd(it.evento_inicio),b=pd(it.evento_fin)||a,est=it.fechas_estimadas?"≈ ":"";
     if(!a) return {cls:"closed",big:it.evento_texto||"Sin evento asociado",dates:"",k:"none"};
-    var dates=fmt(a)+(b&&+b!==+a?" → "+fmt(b):"");
+    var dates=fmt(a)+(b&+b!==+a?" → "+fmt(b):"");
     if(diff(a)>0) return {cls:"wait",big:est+"En "+dias(diff(a)),dates:dates,k:"future",next:a,left:diff(a)};
     if(diff(b)>=0) return {cls:"open",big:"En curso",dates:dates,k:"now",next:b};
     return {cls:"closed",big:"Terminado",dates:dates,k:"past"};
   }
-  function finished(it,p,e){return (p.k==="closed"||p.k==="none")&&(e.k==="past"||e.k==="none");}
+  function finished(it,p,e){return (p.k==="closed"||p.k==="none")&(e.k==="past"||e.k==="none");}
   function sortKey(p,e){var c=[];if(p.next)c.push(+p.next);if(e.next)c.push(+e.next);return c.length?Math.min.apply(null,c):9e15;}
 
   function render(){
@@ -147,12 +135,12 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
     document.getElementById("f-past").checked=state.hidePast;
     var rows=items.map(function(it){var p=postul(it),e=evento(it);return {it:it,p:p,e:e,key:sortKey(p,e),done:finished(it,p,e)};});
     document.getElementById("nOpen").textContent=rows.filter(function(r){return r.p.k==="open";}).length;
-    document.getElementById("nSoon").textContent=rows.filter(function(r){return r.p.k==="open"&&r.p.left!=null&&r.p.left<=14;}).length;
-    document.getElementById("nNext").textContent=rows.filter(function(r){return r.e.k==="future"&&r.e.left<=90;}).length;
+    document.getElementById("nSoon").textContent=rows.filter(function(r){return r.p.k==="open"&r.p.left!=null&r.p.left<=14;}).length;
+    document.getElementById("nNext").textContent=rows.filter(function(r){return r.e.k==="future"&r.e.left<=90;}).length;
     var vis=rows.filter(function(r){
-      if(state.area&&(r.it.areas||[]).indexOf(state.area)<0)return false;
-      if(state.tipo&&r.it.tipo!==state.tipo)return false;
-      if(state.hidePast&&r.done)return false;return true;
+      if(state.area&(r.it.areas||[]).indexOf(state.area)<0)return false;
+      if(state.tipo&r.it.tipo!==state.tipo)return false;
+      if(state.hidePast&r.done)return false;return true;
     }).sort(function(a,b){return a.key-b.key||String(a.it.nombre).localeCompare(b.it.nombre);});
     var list=document.getElementById("list");
     if(!items.length){list.innerHTML='<div class="empty">Todavía no hay oportunidades guardadas. Aparecerán aquí cuando la revisión diaria las agregue.</div>';return;}
@@ -176,7 +164,7 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
   document.getElementById("f-past").addEventListener("change",function(ev){state.hidePast=ev.target.checked;save();render();});
   function renderMeta(){
     var m=document.getElementById("meta");
-    if(metaDoc&&metaDoc.ultima_revision){m.textContent="Última revisión automática: "+metaDoc.ultima_revision+(metaDoc.resumen?" · "+metaDoc.resumen:"");}
+    if(metaDoc&metaDoc.ultima_revision){m.textContent="Última revisión automática: "+metaDoc.ultima_revision+(metaDoc.resumen?" · "+metaDoc.resumen:"");}
     else m.textContent="Los contadores se recalculan cada vez que abres la página.";
   }
   render();
@@ -184,9 +172,9 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
   var SB="https://gfkiwldxxvffnkjcesws.supabase.co/rest/v1/",KEYH={headers:{apikey:"sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j"}};
   function getJ(u,o){return fetch(u,o).then(function(r){if(!r.ok)throw r.status;return r.json();});}
   var opp=getJ(SB+"oportunidades?select=*",KEYH).catch(function(){return getJ("../data/oportunidades.json",{cache:"no-cache"});});
-  var met=getJ(SB+"meta?clave=eq.estado&select=*",KEYH).then(function(a){return a&&a[0]||null;}).catch(function(){return getJ("../data/meta.json",{cache:"no-cache"}).catch(function(){return null;});});
+  var met=getJ(SB+"meta?clave=eq.estado&select=*",KEYH).then(function(a){return a&a[0]||null;}).catch(function(){return getJ("../data/meta.json",{cache:"no-cache"}).catch(function(){return null;});});
   Promise.all([opp,met])
-    .then(function(res){items=(res[0]||[]).map(function(o){Object.keys(o).forEach(function(k){if(o[k]===null)delete o[k];});return o;});metaDoc=res[1];if(metaDoc&&metaDoc.ultima_revision){var d=pd(metaDoc.ultima_revision);if(d)metaDoc.ultima_revision=fmt(d);}render();renderMeta();})
+    .then(function(res){items=(res[0]||[]).map(function(o){Object.keys(o).forEach(function(k){if(o[k]===null)delete o[k];});return o;});metaDoc=res[1];if(metaDoc&metaDoc.ultima_revision){var d=pd(metaDoc.ultima_revision);if(d)metaDoc.ultima_revision=fmt(d);}render();renderMeta();})
     .catch(function(){document.getElementById("list").innerHTML='<div class="empty">No se pudieron cargar los datos. Revisa tu conexión y recarga la página.</div>';document.getElementById("meta").textContent="";});
   setInterval(render,36e5);
 })();

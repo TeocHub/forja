@@ -11,23 +11,10 @@
 <link rel="icon" href="../icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&family=Familjen+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&display=swap">
 <style>
 /* Layout: hoja de trabajo — parámetros del proyecto arriba, resumen de costo por unidad, y una ficha por componente con sus cotizaciones */
-:root{
-  --bg:#f3f4f7; --card:#ffffff; --fg:#161a26; --muted:#5b6275; --line:#dfe2ea; --field:#f7f8fb;
-  --accent:#2a3fd1; --accent-soft:#e6e9fb;
-  --good:#0f7a4f; --good-soft:#dff3ea; --warn:#8a5a00; --warn-soft:#fbf0d6; --bad:#b4330e;
-  --f-display:"Familjen Grotesk",system-ui,sans-serif; --f-body:"Atkinson Hyperlegible",system-ui,sans-serif; --f-num:"JetBrains Mono",ui-monospace,monospace;
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e; --field:#141722;
-  --accent:#8c9bff; --accent-soft:#232a52;
-  --good:#4fd19a; --good-soft:#123a2a; --warn:#e8b84a; --warn-soft:#3a2e12; --bad:#ff8a63; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#10121a; --card:#191c27; --fg:#e8eaf2; --muted:#9aa1b5; --line:#2a2f3e; --field:#141722;
-  --accent:#8c9bff; --accent-soft:#232a52;
-  --good:#4fd19a; --good-soft:#123a2a; --warn:#e8b84a; --warn-soft:#3a2e12; --bad:#ff8a63; color-scheme:dark}
+/* Colores, letras y piezas: forja.css (identidad «Grafito con color propio»). */
 
 .wrap{max-width:980px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
 .logo{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em}
@@ -164,9 +151,9 @@ details summary{cursor:pointer;color:var(--accent);font-size:14px}
 .c-prod,.c-tier{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--field)}
 .c-prod .name,.c-tier .name{font:inherit;font-family:var(--f-display);font-weight:700;font-size:16px;border:0;border-bottom:1px dashed var(--line);background:transparent;color:var(--fg);padding:2px 0;flex:1 1 160px;min-width:0}
 .c-chips,.c-items{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.c-chip{display:inline-flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 10px;font-size:13px}
+.c-chip{display:inline-flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:2px 4px 2px 10px;font-size:13px}
 .c-chip button{border:0;background:none;padding:0 6px;color:var(--muted)}
-.c-chips select,.c-item select{font:inherit;font-size:13px;border:1px dashed var(--line);border-radius:999px;padding:3px 8px;background:var(--card);color:var(--fg)}
+.c-chips select,.c-item select{font:inherit;font-size:13px;border:1px dashed var(--line);border-radius:10px;padding:3px 8px;background:var(--card);color:var(--fg)}
 .c-item{display:inline-flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px 6px;font-size:13px}
 .c-item input{width:52px;font:inherit;font-size:13px;padding:2px 4px}
 .c-pres{margin:0;font-size:13.5px;color:var(--muted)}.c-pres b{color:var(--fg);font-family:var(--f-num)}

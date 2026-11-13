@@ -22,11 +22,11 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16
 #caja .fx-entrada{max-width:none}
 .dentro{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .cuarto{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
-.cuarto svg{color:var(--accent)}
-.cuarto.plan svg{color:var(--ember)}
-.cuarto b{font-family:var(--f-display);font-size:16px}
+.cuarto svg{color:var(--fg)}
+.cuarto.plan svg{color:var(--cat)}
+.cuarto b{font-family:var(--f-display);font-weight:800;font-size:17px}
 .cuarto span{font-size:14px;color:var(--muted)}
-.dentro-t{font-family:var(--f-num);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ember);margin:0 0 10px}
+.dentro-t{font-family:var(--f-num);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
 .ya{font-size:14px;color:var(--muted);margin-top:12px}
 </style>
 </head>
@@ -38,10 +38,10 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16
     <section aria-labelledby="dentro-t">
       <p class="dentro-t" id="dentro-t">Con tu cuenta</p>
       <div class="dentro">
-        <div class="cuarto"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h6l2 2h8v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-10.5a1 1 0 0 1 1-1z"/></svg><b>Proyectos</b><span>Escritura guiada, referentes, brújula y bitácora de cada idea.</span></div>
-        <div class="cuarto"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><b>Eventos</b><span>Las ferias y fondos que sigues, con cuenta regresiva.</span></div>
-        <div class="cuarto"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14.5 3v4.5H19M9 12h7M9 16h5"/></svg><b>Cotizaciones</b><span>Lo que cuesta producir cada proyecto y a cuánto venderlo.</span></div>
-        <div class="cuarto plan"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/></svg><b>Tu plan</b><span>Gratis para empezar; Forja Más llega pronto.</span></div>
+        <div class="cuarto"><svg class="fx-ico" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M8 3.5h11v14H8z M5 6.5v14h11"/></svg><b>Proyectos</b><span>Escritura guiada, referentes, brújula y bitácora de cada idea.</span></div>
+        <div class="cuarto"><svg class="fx-ico" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5"/></svg><b>Eventos</b><span>Las ferias y fondos que sigues, con cuenta regresiva.</span></div>
+        <div class="cuarto"><svg class="fx-ico" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z M14.5 9.5c0-1.2-1.1-1.8-2.5-1.8s-2.5.7-2.5 1.8 1.1 1.6 2.5 1.9 2.5.8 2.5 2-1.1 1.9-2.5 1.9-2.5-.6-2.5-1.9 M12 6.5v11"/></svg><b>Cotizaciones</b><span>Lo que cuesta producir cada proyecto y a cuánto venderlo.</span></div>
+        <div class="cuarto plan"><svg class="fx-ico" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 3 Q13.2 10.8 21 12 Q13.2 13.2 12 21 Q10.8 13.2 3 12 Q10.8 10.8 12 3 Z"/></svg><b>Tu plan</b><span>Gratis para empezar; Forja Más llega pronto.</span></div>
       </div>
       <p class="ya">Tus proyectos son privados: solo los ves tú, desde cualquier dispositivo.</p>
     </section>

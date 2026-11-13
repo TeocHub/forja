@@ -28,7 +28,7 @@ section{margin-top:30px;display:flex;flex-direction:column;gap:12px}
 .hito{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
 .hito::before{content:"";position:absolute;left:-23px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--card);border:2.5px solid var(--hc)}
 .hito.cierre{--hc:var(--ember)} .hito.evento{--hc:var(--accent)}
-.hito.pronto{border-color:var(--ember);background:color-mix(in srgb,var(--ember) 6%,var(--card))}
+.hito.pronto{border-color:var(--fg);box-shadow:inset 3px 0 0 var(--fg)}
 .dia{text-align:center;line-height:1.05}
 .dia b{display:block;font-family:var(--f-num);font-size:22px}
 .dia small{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
@@ -37,7 +37,7 @@ section{margin-top:30px;display:flex;flex-direction:column;gap:12px}
 .hito .para{font-size:13px;color:var(--muted)}
 .hito .para a{color:inherit}
 .faltan{font-family:var(--f-num);font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
-.hito.pronto .faltan{color:var(--ember);font-weight:700}
+.hito.pronto .faltan{color:var(--fg);font-weight:700}
 @media (max-width:560px){.hito{grid-template-columns:52px minmax(0,1fr)}.faltan{grid-column:2;text-align:left}}
 .vacio{border:1.5px dashed var(--line);border-radius:16px;padding:24px;color:var(--muted);text-align:center}
 .grupo{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;border-left:5px solid var(--tc)}

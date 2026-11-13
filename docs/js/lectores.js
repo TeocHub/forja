@@ -60,7 +60,7 @@ const enlaceSeguro = (v) => /^https:\/\/[^\s"'<>]+$/i.test(String(v || "").trim(
 export const CSS_LECTORES = `
 .lb{display:flex;flex-direction:column;gap:18px}
 .lb-rondas{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.lb-rondas button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:5px 12px;cursor:pointer}
+.lb-rondas button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:5px 12px;cursor:pointer}
 .lb-rondas button[aria-pressed="true"]{border-color:var(--fg);background:var(--fg);color:var(--bg)}
 .lb-rondas button small{opacity:.7;margin-left:4px}
 .lb-vacia{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:22px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px}
@@ -125,7 +125,7 @@ export const CSS_LECTORES = `
 .lb-voz .quien{font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
 .lb-voz q{display:block;font-size:13px;color:var(--muted);font-style:italic;quotes:"«" "»"}
 .lb-marcas{display:flex;gap:4px;flex-wrap:wrap}
-.lb-marcas button{font:inherit;font-size:12px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:2px 9px;cursor:pointer}
+.lb-marcas button{font:inherit;font-size:12px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:2px 9px;cursor:pointer}
 .lb-marcas button[aria-pressed="true"]{color:var(--fg);border-color:var(--fg);background:var(--field)}
 .lb-senal{font:700 10.5px var(--f-num);letter-spacing:.06em;text-transform:uppercase;color:var(--ember)}
 .lb-sin{color:var(--muted);font-size:14px;margin:0;border:1.5px dashed var(--line);border-radius:12px;padding:14px}
@@ -140,7 +140,7 @@ export const CSS_LECTORES = `
 .sala-p{position:relative;margin:0;padding:6px 10px;border-radius:8px;font-size:17px;line-height:1.7;cursor:pointer;white-space:pre-wrap}
 .sala-p:hover{background:var(--field)}
 .sala-p.con{background:color-mix(in srgb,var(--ember) 8%,transparent)}
-.sala-p.con::after{content:attr(data-n);position:absolute;right:4px;top:-6px;font:700 11px var(--f-num);color:#fff;background:var(--ember);border-radius:999px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 5px}
+.sala-p.con::after{content:attr(data-n);position:absolute;right:4px;top:-6px;font:700 11px var(--f-num);color:var(--card);background:var(--ember);border-radius:999px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 5px}
 .sala.leer .sala-p{cursor:default}
 .sala-com{margin:4px 10px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .sala-com textarea{font:inherit;font-size:15px;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:10px;padding:8px 10px;min-height:64px;resize:vertical}

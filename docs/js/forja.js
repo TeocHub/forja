@@ -445,7 +445,7 @@ export async function avisos(caja) {
 export function pintarEntrada(caja, texto) {
   caja.innerHTML =
     '<section class="fx-entrada">' +
-    '<h2>Entrar a Forja</h2>' +
+    marca(44) + '<h2>Entrar a Forja</h2>' +
     '<p>' + esc(texto || "Tus proyectos y cotizaciones son privados: solo los ves tú, desde cualquier dispositivo.") + "</p>" +
     '<form id="fx-f1" class="fx-row"><label class="fx-sr" for="fx-mail">Correo</label>' +
     '<input id="fx-mail" type="email" autocomplete="email" required placeholder="tu@correo.cl"><button class="fx-primary" type="submit">Enviarme el enlace</button></form>' +

@@ -40,12 +40,12 @@ button{cursor:pointer}
 /* anotar + detonante */
 .arriba{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px;align-items:stretch}
 @media (max-width:760px){.arriba{grid-template-columns:minmax(0,1fr)}}
-.anotar{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
-.anotar:focus-within{border-color:var(--good)}
-.anotar .k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.anotar{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.anotar:focus-within{border-color:var(--fg)}
+.anotar .k{font-family:var(--f-num);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .anotar .linea{display:flex;gap:10px;align-items:center}
-.anotar input{flex:1;min-width:0;font-family:var(--f-display);font-size:clamp(18px,2.6vw,21px);font-weight:500;border:0;border-bottom:1.5px dashed var(--line);background:transparent;padding:6px 2px}
-.anotar input:focus-visible{outline:none;border-bottom-color:var(--good)}
+.anotar input{flex:1;min-width:0;font-family:var(--f-display);font-size:clamp(18px,2.6vw,22px);font-weight:700;font-stretch:110%;border:0;border-bottom:1.5px dashed var(--line);background:transparent;padding:6px 2px}
+.anotar input:focus-visible{outline:none;border-bottom-color:var(--fg)}
 .anotar input::placeholder{color:var(--muted);font-weight:400}
 .anillo{width:30px;height:30px;flex:none}
 .anillo circle{fill:none;stroke-width:3}
@@ -54,21 +54,21 @@ button{cursor:pointer}
 .anillo.cerca .v{stroke:var(--warn)}
 .anillo.lleno .v{stroke:var(--bad)}
 .anillo text{font-family:var(--f-num);font-size:9px;fill:var(--muted);text-anchor:middle;dominant-baseline:central}
-.sembrar{font-weight:700;border:1px solid var(--good);background:var(--good);color:var(--card);border-radius:10px;padding:8px 15px}
+.sembrar{font-weight:700;border:1px solid var(--btn);background:var(--btn);color:var(--btn-tx);border-radius:10px;padding:0 18px;min-height:44px}
 .sembrar:disabled{opacity:.5;cursor:default}
 .anotar .pie{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .tope{display:flex;align-items:center;gap:8px}
 .tope .fx-avance{width:90px}
 
 .detona{position:relative;border-radius:16px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:8px;
-  background:var(--ember-soft);border:1px solid color-mix(in srgb,var(--ember) 30%,var(--line))}
-.detona .k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ember);font-weight:700;display:flex;justify-content:space-between;gap:8px;align-items:center}
-.detona select{font-size:12px;border:1px solid color-mix(in srgb,var(--ember) 35%,var(--line));background:var(--card);border-radius:8px;padding:3px 6px;text-transform:none;letter-spacing:0;font-weight:400}
+  background:var(--mesa);border:1px solid var(--line);border-left:3px dashed var(--line)}
+.detona .k{font-family:var(--f-num);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.detona select{font-size:12px;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:3px 6px;text-transform:none;letter-spacing:0;font-weight:400}
 .detona b{font-family:var(--f-display);font-size:18px;line-height:1.25}
 .detona p{margin:0;font-size:14.5px}
 .detona .acc{display:flex;gap:6px;margin-top:auto;padding-top:4px}
-.detona .acc button{font-size:13px;border:1px solid color-mix(in srgb,var(--ember) 40%,var(--line));background:var(--card);border-radius:8px;padding:5px 11px}
-.detona .acc button:hover{border-color:var(--ember)}
+.detona .acc button{font-size:14px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 12px;min-height:38px}
+.detona .acc button:hover{border-color:var(--fg)}
 .detona .carta{display:flex;flex-direction:column;gap:6px;animation:barajar .35s ease}
 @keyframes barajar{from{opacity:0;transform:translateY(6px) rotate(-.6deg)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.detona .carta{animation:none}}
@@ -133,11 +133,11 @@ dialog.pl::backdrop{background:rgba(10,12,20,.45)}
 .pl input[type=text],.pl select{width:100%;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:9px 11px}
 .pl input[type=text]{font-family:var(--f-display);font-size:18px}
 .pl .tipos{display:flex;flex-wrap:wrap;gap:6px}
-.pl .tipo{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 11px 3px 9px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.pl .tipo{border:1px solid var(--line);background:transparent;border-radius:10px;padding:3px 11px 3px 9px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
 .pl .tipo::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--tc)}
 .pl .tipo[aria-pressed="true"]{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent);font-weight:700}
 .pl .como{display:flex;flex-wrap:wrap;gap:6px}
-.pl .como button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 11px;font-size:13px}
+.pl .como button{border:1px solid var(--line);background:transparent;border-radius:10px;padding:3px 11px;font-size:13px}
 .pl .como button[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
 .pl .como-d{font-size:13px;color:var(--muted);margin:4px 0 0}
 .pl .aviso{font-size:13.5px;background:var(--warn-soft);color:var(--fg);border-radius:10px;padding:8px 11px;margin:0}

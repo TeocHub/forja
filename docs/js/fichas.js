@@ -420,7 +420,7 @@ export const CSS_FICHAS = `
 .fi-barra{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .fi-barra input[type=search]{flex:1 1 200px;width:auto}
 .fi-estados,.fi-modo{display:flex;gap:4px;flex-wrap:wrap}
-.fi-estados button,.fi-modo button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:5px 11px;cursor:pointer}
+.fi-estados button,.fi-modo button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:5px 11px;cursor:pointer}
 .fi-estados button small{color:var(--muted);margin-left:2px}
 .fi-estados button[aria-pressed="true"],.fi-modo button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .fi-estados button[aria-pressed="true"] small{color:inherit;opacity:.7}
@@ -468,7 +468,7 @@ export const CSS_FICHAS = `
 .fi-enl-t{font-size:12.5px;color:var(--muted);font-weight:700}
 .fi-enl .hint{margin:0;font-size:13px}
 .fi-chips{display:flex;flex-wrap:wrap;gap:6px}
-.fi-chip{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 10px;font-size:13px;background:var(--field)}
+.fi-chip{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:10px;padding:2px 4px 2px 10px;font-size:13px;background:var(--field)}
 .fi-chip>button:first-child,.fi-chip>span{font:inherit;color:var(--fg);background:none;border:0;padding:2px 0;cursor:pointer}
 .fi-chip>span{cursor:default}
 .fi-chip small{color:var(--muted)}
