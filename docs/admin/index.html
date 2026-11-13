@@ -153,6 +153,8 @@ import { sb, $, esc, toast, navApp, conSesion, limite, hace, u, NOMBRE_DOC, fech
 import { pintarVitrina, CSS_VITRINA } from "../js/vitrina.js";
 import { FUNCIONES, AREAS, AREAS_SUGERENCIA } from "../js/planes.js";
 import { armar } from "../js/correos.js";
+import { MOTIVO_PRECIO, dinero, porUnidad } from "../js/precios.js";
+import { nombrePieza } from "../js/piezas.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
 navApp(null);
 const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
@@ -172,7 +174,7 @@ const MI = { bandera: "M5 21V4 M5 4h11l-2 4 2 4H5", sobre: "M3 6h18v12H3z M3 6l9
 Object.assign(ICONOS, MI);
 // Las ocho pestañas: nombre, ícono y para qué sirve.
 const TABS = [
-  ["reportes", "Reportes", "bandera", "Vitrinas que alguien reportó. Nada se oculta solo: mira las pruebas y decide."],
+  ["reportes", "Reportes", "bandera", "Vitrinas y precios compartidos que alguien reportó. Nada se oculta solo: mira las pruebas y decide."],
   ["mensajes", "Mensajes y apelaciones", "sobre", "Lo que escriben desde Mi cuenta y las apelaciones de vitrinas suspendidas. La respuesta les llega como aviso."],
   ["sugerencias", "Sugerencias", "papeleta", "Ideas de la comunidad desde la casilla de Planes. Tímbralas y, si quieres, responde."],
   ["suspendidas", "Suspendidas", "pausa", "Vitrinas que no se pueden ver ni publicar hasta que se restauren."],
@@ -196,7 +198,7 @@ async function cargar() {
 const vacio = (i, t, x) => '<div class="vacio">' + ico(i, 30) + "<b>" + esc(t) + "</b>" + (x ? "<span>" + esc(x) + "</span>" : "") + "</div>";
 const num = (n) => String(n).padStart(2, "0");
 function pintar() {
-  const n = { reportes: D.reportes.length, mensajes: D.mensajes.length, sugerencias: (D.sugerencias || []).length };
+  const n = { reportes: D.reportes.length + (D.precios || []).length, mensajes: D.mensajes.length, sugerencias: (D.sugerencias || []).length };
   const t = TABS.find((x) => x[0] === pest);
   $("app").innerHTML = '<div class="mod"><aside class="m-lado" aria-label="Pestañas de moderación"><div class="m-tit"><small>Forja</small><b>Moderación</b></div>' +
     '<div class="m-tabs" role="tablist" aria-orientation="vertical">' + TABS.map(([k, nombre, i]) => '<button type="button" role="tab" id="tab-' + k + '" aria-controls="lista" data-t="' + k + '" aria-selected="' + (k === pest) + '">' + ico(i, 21) + '<span class="lg">' + nombre + '</span><span class="co">' + nombre.split(" ").pop() .replace(/^apelaciones$/, "Mensajes") + "</span>" + (n[k] ? '<span class="n" aria-label="' + n[k] + ' pendientes">' + n[k] + "</span>" : "") + "</button>").join("") + "</div></aside>" +
@@ -217,8 +219,9 @@ $("ver-x").onclick = () => $("ver").close();
 
 /* ---------- reportes: cada vitrina es un expediente con sus papeletas ---------- */
 function reportes() {
-  if (!D.reportes.length) { $("lista").innerHTML = vacio("bandera", "No hay reportes pendientes", "Cuando alguien reporte una vitrina, aparece aquí."); return; }
-  $("lista").innerHTML = '<div class="mesa">' + D.reportes.map((c, i) =>
+  const P = D.precios || [];
+  if (!D.reportes.length && !P.length) { $("lista").innerHTML = vacio("bandera", "No hay reportes pendientes", "Cuando alguien reporte una vitrina o un precio compartido, aparece aquí."); return; }
+  $("lista").innerHTML = (D.reportes.length ? '<div class="mesa">' + D.reportes.map((c, i) =>
     '<article class="caso" data-v="' + c.vitrina_id + '"><div class="caso-cab"><div><span class="ficha">Expediente N.º ' + num(i + 1) + " · " + esc(c.slug) + " · " + c.reportes.length + (c.reportes.length === 1 ? " reporte" : " reportes") + "</span><h2>" + esc(c.titulo || "Sin título") + "</h2></div>" +
       (c.suspendida ? '<span class="timbre mal">Suspendida</span>' : c.en_explorar ? '<span class="timbre tinta">En Explorar</span>' : '<span class="timbre">Solo enlace</span>') + "</div>" +
       '<div class="papeles">' + c.reportes.map((r) => { const h = r.historial || {}, sosp = (h.mala_fe || 0) > 0 || (h.desestimados || 0) >= 3 || (r.cuenta_dias || 0) < 3;
@@ -226,8 +229,10 @@ function reportes() {
           "<small>Cuenta " + esc(r.autor) + "… de " + (r.cuenta_dias ?? "?") + " días · " + hace(r.creado_en) + "</small><small>Antes: " + (h.aceptados || 0) + " aceptados, " + (h.desestimados || 0) + " desestimados, " + (h.mala_fe || 0) + " de mala fe</small>" +
           (sosp ? '<small class="sosp">Ojo: cuenta nueva o con reportes desestimados. Revisa con cuidado.</small>' : "") + "</div>"; }).join("") + "</div>" +
       '<div class="acc">' + verBtn(c.vitrina_id, c.titulo) + '<button type="button" class="btn" data-res="desestimado">No infringe</button><button type="button" class="btn" data-res="mala_fe">Reportes de mala fe</button>' +
-      (c.en_explorar ? '<button type="button" class="btn" data-fuera>Sacar de Explorar…</button>' : "") + '<button type="button" class="btn peligro" data-susp>Suspender…</button></div><div class="f"></div></article>').join("") + "</div>";
+      (c.en_explorar ? '<button type="button" class="btn" data-fuera>Sacar de Explorar…</button>' : "") + '<button type="button" class="btn peligro" data-susp>Suspender…</button></div><div class="f"></div></article>').join("") + "</div>" : "") +
+    (P.length ? '<h2 class="h2s">Precios compartidos</h2><div class="mesa">' + P.map(casoPrecio).join("") + "</div>" : "");
   enlazarVer();
+  enlazarPrecios();
   $("lista").querySelectorAll("[data-res]").forEach((b) => b.onclick = async () => {
     const v = b.closest("[data-v]").dataset.v;
     if (b.dataset.res === "mala_fe" && b.dataset.seguro !== "1") { b.dataset.seguro = "1"; b.textContent = "¿Todos de mala fe? Toca de nuevo"; return; }
@@ -237,6 +242,55 @@ function reportes() {
   });
   $("lista").querySelectorAll("[data-susp]").forEach((b) => b.onclick = () => formSuspender(b.closest("[data-v]")));
   $("lista").querySelectorAll("[data-fuera]").forEach((b) => b.onclick = () => formExplorar(b.closest("[data-v]")));
+}
+/* Un precio de la comunidad reportado: su talón (copia guardada al reportar) y las papeletas. */
+const papeletas = (rs, motivos) => '<div class="papeles">' + rs.map((r) => { const h = r.historial || {}, sosp = (h.mala_fe || 0) > 0 || (h.desestimados || 0) >= 3 || (r.cuenta_dias || 0) < 3;
+  return '<div class="papeleta"><b>' + esc(motivos[r.motivo] || r.motivo) + "</b>" + (r.detalle ? "<p>" + esc(r.detalle) + "</p>" : "") +
+    "<small>Cuenta " + esc(r.autor) + "… de " + (r.cuenta_dias ?? "?") + " días · " + hace(r.creado_en) + "</small><small>Antes: " + (h.aceptados || 0) + " aceptados, " + (h.desestimados || 0) + " desestimados, " + (h.mala_fe || 0) + " de mala fe</small>" +
+    (sosp ? '<small class="sosp">Ojo: cuenta nueva o con reportes desestimados. Revisa con cuidado.</small>' : "") + "</div>"; }).join("") + "</div>";
+function casoPrecio(c, i) {
+  const x = c.copia || {};
+  return '<article class="caso" data-precio="' + esc(c.precio) + '"><div class="caso-cab"><div><span class="ficha">Precio N.º ' + num(i + 1) + " · " + esc(nombrePieza(x.componente)) + " · " + c.reportes.length + (c.reportes.length === 1 ? " reporte" : " reportes") + "</span><h2>" + esc(x.proveedor || "Sin nombre") + "</h2></div>" +
+    (c.existe ? '<span class="timbre tinta">Se muestra</span>' : '<span class="timbre">Ya no está</span>') + "</div>" +
+    '<div class="carta">' + esc(Number(x.cantidad || 0).toLocaleString("es-CL")) + " u. por " + esc(dinero(x.moneda, x.precio)) + " (" + esc(porUnidad(x)) + " c/u)" + (Number(x.envio) ? " + envío " + esc(dinero(x.moneda, x.envio)) : "") +
+      " · " + (x.origen === "chile" ? "Chile" : "Extranjero") + (x.plazo ? " · " + esc(x.plazo) : "") + (x.especificaciones ? "\n" + esc(x.especificaciones) : "") + (x.enlace ? "\nEnlace (sin abrir): " + esc(x.enlace) : "") + "</div>" +
+    "<small style=\"color:var(--muted)\">Quien lo compartió: cuenta de " + (c.autor_dias ?? "?") + " días, que tiene " + (c.autor_comparte || 0) + " precios compartidos.</small>" +
+    papeletas(c.reportes, MOTIVO_PRECIO) +
+    '<div class="acc">' + (c.existe ? '<button type="button" class="btn" data-pres="desestimado">No infringe</button><button type="button" class="btn" data-pres="mala_fe">Reportes de mala fe</button><button type="button" class="btn peligro" data-pquitar>Quitar precio…</button>'
+      : '<button type="button" class="btn prim" data-pres="cerrar">Cerrar: ya no se muestra</button><button type="button" class="btn" data-pres="mala_fe">Reportes de mala fe</button>') + '</div><div class="f"></div></article>';
+}
+const PLANTILLA_PRECIO = {
+  falso: "No pudimos confirmar ese precio con el proveedor y parece puesto para confundir. Si es real, puedes compartirlo de nuevo con el detalle de lo que incluye.",
+  estafa: "El proveedor o el enlace no parecen reales o llevan a otro sitio. No compartas enlaces que no sean del proveedor.",
+  spam: "El precio parecía publicidad o estaba repetido. Comparte solo precios que te hayan cotizado.",
+  datos: "El precio mostraba datos personales de una persona. Comparte solo el nombre del proveedor y su página.",
+  ofensivo: "El precio incluía texto ofensivo. Recuerda respetar las normas de la comunidad.",
+  otro: "",
+};
+function enlazarPrecios() {
+  $("lista").querySelectorAll("[data-pres]").forEach((b) => b.onclick = async () => {
+    const p = b.closest("[data-precio]").dataset.precio;
+    if (b.dataset.pres === "mala_fe" && b.dataset.seguro !== "1") { b.dataset.seguro = "1"; b.textContent = "¿Todos de mala fe? Toca de nuevo"; return; }
+    const { error } = await sb.rpc("mod_precio", { p, decision: b.dataset.pres });
+    if (error) { toast(limite(error) || error.message); return; }
+    toast(b.dataset.pres === "mala_fe" ? "Marcados como de mala fe." : "Listo. Se avisó a quien reportó."); await cargar();
+  });
+  $("lista").querySelectorAll("[data-pquitar]").forEach((b) => b.onclick = () => {
+    const caso = b.closest("[data-precio]"), f = caso.querySelector(".f"), c = (D.precios || []).find((x) => x.precio === caso.dataset.precio);
+    const m0 = (c && c.reportes[0] || {}).motivo || "otro";
+    f.innerHTML = '<div class="forma"><label>Motivo<select id="pq-m">' + Object.entries(MOTIVO_PRECIO).map(([k, n]) => '<option value="' + k + '"' + (k === m0 ? " selected" : "") + ">" + n + "</option>").join("") + "</select></label>" +
+      '<label>Mensaje para quien lo compartió <small>Lo recibe como aviso, junto a «Quitamos un precio que compartiste».</small><textarea id="pq-t">' + esc(PLANTILLA_PRECIO[m0]) + "</textarea></label>" +
+      '<div class="acc sin"><button type="button" class="btn" id="pq-no">Cancelar</button><button type="button" class="btn peligro" id="pq-si">Quitar y avisar</button></div></div>';
+    f.querySelector("#pq-m").onchange = (e) => { f.querySelector("#pq-t").value = PLANTILLA_PRECIO[e.target.value]; };
+    f.querySelector("#pq-no").onclick = () => { f.innerHTML = ""; };
+    f.querySelector("#pq-si").onclick = async () => {
+      const mensaje = f.querySelector("#pq-t").value.trim(); if (!mensaje) { toast("Explica el motivo a quien lo compartió."); return; }
+      const { error } = await sb.rpc("mod_precio", { p: caso.dataset.precio, decision: "quitar", mensaje });
+      if (error) { toast(limite(error) || error.message); return; }
+      toast("Precio quitado. Se avisó a quien lo compartió y a quien reportó."); await cargar();
+    };
+    f.querySelector("#pq-t").focus();
+  });
 }
 function formSuspender(caso) {
   const f = caso.querySelector(".f"), motivoInicial = (D.reportes.find((c) => c.vitrina_id === caso.dataset.v)?.reportes[0] || {}).motivo || "otro";
@@ -509,11 +563,12 @@ async function documentos() {
 }
 /* ---------- registro: una bitácora por día ---------- */
 function registro() {
-  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje", sugerencia: "Revisó una sugerencia", anunciar_funcion: "Anunció una herramienta", boletin: "Envió el boletín", documentos_aviso: "Avisó una versión nueva de los documentos", cuenta_inactiva: "Se borró una cuenta inactiva (150 días)", inactiva_aviso: "Aviso por inactividad", inactiva_vuelve: "Una cuenta avisada volvió a entrar", inactiva_error: "No se pudo revisar una cuenta inactiva" };
+  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje", sugerencia: "Revisó una sugerencia", anunciar_funcion: "Anunció una herramienta", boletin: "Envió el boletín", documentos_aviso: "Avisó una versión nueva de los documentos", cuenta_inactiva: "Se borró una cuenta inactiva (150 días)", inactiva_aviso: "Aviso por inactividad", inactiva_vuelve: "Una cuenta avisada volvió a entrar", inactiva_error: "No se pudo revisar una cuenta inactiva", precio_quitado: "Quitó un precio compartido", precio_cerrado: "Cerró reportes de un precio que ya no estaba", precio_desestimado: "Desestimó reportes de un precio", precio_mala_fe: "Marcó mala fe (precio)" };
   const extra = (r) => { const d = r.detalle || {};
     if (r.accion === "inactiva_aviso") return " · " + (d.etapa === 2 ? "segundo (120 días)" : "primero (90 días)") + (d.borra ? ", se borraría el " + esc(fechaDia(d.borra)) : "");
     if (r.accion === "inactiva_vuelve") return " · tenía el " + (d.etapa === 2 ? "segundo" : "primer") + " aviso; todo se reinició";
     if (r.accion === "inactiva_error") return " · código " + esc(d.error || "");
+    if (/^precio_/.test(r.accion)) return " · " + esc(d.proveedor || "") + (d.mensaje ? " · " + esc(d.mensaje.slice(0, 120)) : "");
     return d.mensaje || d.motivo ? " · " + esc(MOTIVOS[d.motivo] || "") + " " + esc((d.mensaje || "").slice(0, 120)) : ""; };
   if (!D.registro.length) { $("lista").innerHTML = vacio("reloj", "Aún no hay decisiones registradas", ""); return; }
   let dia = "";

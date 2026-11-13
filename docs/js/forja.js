@@ -214,6 +214,7 @@ const MSG = {
   FORJA_REPORTE_LIMITE: "Llegaste al máximo de 5 reportes por día. Si es urgente, escríbenos desde Mi cuenta.",
   FORJA_REPORTE_REPETIDO: "Ya reportaste esta vitrina. Una persona la va a revisar.",
   FORJA_NO_ENCONTRADA: "No encontramos eso. Puede que ya no esté disponible.",
+  FORJA_LIMITE_APARTE: "Llegaste al máximo de 30 cotizaciones aparte en este espacio. Borra alguna que ya no uses o lígala a un proyecto.",
   FORJA_MENSAJES_LIMITE: "Enviaste varios mensajes hoy. Espera nuestra respuesta o escribe mañana.",
   FORJA_FALTA_MENSAJE: "Escribe el mensaje para la persona.",
   FORJA_CONFIRMAR: "Escribe BORRAR para confirmar.",

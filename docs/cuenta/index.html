@@ -66,6 +66,7 @@ details.borrar[open] summary{margin-bottom:8px}
 </div>
 <script type="module">
 import { sb, $, esc, toast, hace, fecha, navApp, conSesion, plan, espacio, espacios, limite, avisos, u, fechaDocs, estadoLegal, DOCUMENTOS, NOMBRE_DOC } from "../js/forja.js";
+import { MOTIVO_PRECIO } from "../js/precios.js";
 navApp(null);
 const TIPO = { contacto: "Contacto o consulta", privacidad: "Mis datos personales", apelacion: "Apelación" };
 const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
@@ -74,7 +75,7 @@ let SES, PREFS, TIENE_PREFS = false;
 
 conSesion($("app"), async (ses) => {
   SES = ses;
-  const [pl, ms, rp, ac, pf, sg, lc] = await Promise.all([
+  const [pl, ms, rp, ac, pf, sg, lc, rpp] = await Promise.all([
     plan(),
     sb.from("mensajes").select("id,tipo,texto,estado,respuesta,creado_en,respondido_en").order("creado_en", { ascending: false }).limit(30),
     sb.from("reportes").select("id,motivo,estado,creado_en,revisado_en").order("creado_en", { ascending: false }).limit(30),
@@ -82,7 +83,12 @@ conSesion($("app"), async (ses) => {
     sb.from("correo_prefs").select("boletin,funciones,vitrinas,boletin_desde").maybeSingle(),
     sb.rpc("mis_seguidas"),
     sb.rpc("mis_lecturas"),
+    sb.from("reportes_precios").select("id,motivo,estado,creado_en,copia").order("creado_en", { ascending: false }).limit(30),
   ]);
+  // Reportes de vitrinas y de precios compartidos, juntos y del más nuevo al más viejo.
+  const REPS = [...(rp.data || []).map((r) => ({ ...r, que: "Vitrina", m: MOTIVOS[r.motivo] })),
+    ...(rpp.data || []).map((r) => ({ ...r, que: "Precio de " + ((r.copia || {}).proveedor || "un proveedor"), m: MOTIVO_PRECIO[r.motivo] }))]
+    .sort((a, b) => String(b.creado_en).localeCompare(String(a.creado_en)));
   const EL = await estadoLegal();
   const LECT = (lc.data || []).filter((x) => Object.keys(x.respuestas || {}).length || (x.comentarios || []).length);
   PREFS = pf.data || { boletin: false, funciones: true, vitrinas: true }; TIENE_PREFS = !!pf.data;
@@ -104,7 +110,7 @@ conSesion($("app"), async (ses) => {
        ["vitrinas", "Proyectos que sigues", "Las novedades que envían los proyectos que sigues (cada uno puede escribir como mucho una vez por semana)."]]
         .map(([k, t, d]) => '<label class="pref"><input type="checkbox" data-pref="' + k + '"' + (PREFS[k] ? " checked" : "") + "><span><b>" + t + "</b><small>" + d + "</small></span></label>").join("") + "</div>" +
       '<h3 class="sub">Proyectos que sigues</h3>' + ((sg.data || []).length ? '<div class="seguidas">' + sg.data.map((x) => '<div class="seguida">' + (x.visible ? '<a href="../vitrina/?v=' + esc(x.slug) + '">' + esc(x.titulo || x.slug) + "</a>" : "<span>" + esc(x.titulo || x.slug) + " <small>(no publicada)</small></span>") + '<button type="button" class="btn" data-dejar="' + esc(x.slug) + '">Dejar de seguir</button></div>').join("") + "</div>" : '<p class="vacio">Aún no sigues ningún proyecto. En cada vitrina que tenga el botón, puedes seguirla para recibir sus novedades.</p>') + "</section>" +
-    '<section class="blq"><h2>Mis reportes</h2>' + ((rp.data || []).length ? (rp.data.map((r) => { const e = EST_REP[r.estado] || [r.estado, ""]; return '<div class="msj"><div class="fila"><b>' + esc(MOTIVOS[r.motivo] || r.motivo) + '</b><span class="est ' + e[1] + '">' + e[0] + "</span></div><small>Enviado " + hace(r.creado_en) + "</small></div>"; }).join("")) : '<p class="vacio">No has reportado ninguna vitrina. Si ves algo que rompe las <a href="../normas/">normas</a>, usa "Reportar esta vitrina" al final de esa página.</p>') + "</section>" +
+    '<section class="blq"><h2>Mis reportes</h2>' + (REPS.length ? (REPS.map((r) => { const e = EST_REP[r.estado] || [r.estado, ""]; return '<div class="msj"><div class="fila"><b>' + esc(r.m || r.motivo) + '</b><span class="est ' + e[1] + '">' + e[0] + "</span></div><small>" + esc(r.que) + " · enviado " + hace(r.creado_en) + "</small></div>"; }).join("")) : '<p class="vacio">No has reportado nada. Si ves algo que rompe las <a href="../normas/">normas</a>, usa "Reportar esta vitrina" al final de esa página, o "Reportar" en un precio de la comunidad.</p>') + "</section>" +
     '<section class="blq"><h2>Documentos que aceptaste</h2><div class="docs">' + DOCUMENTOS.map((d) => { const a = (ac.data || []).find((x) => x.documento === d); return '<a href="../' + d + '/"><b>' + NOMBRE_DOC[d] + "</b><small>" + (a ? "Versión del " + fechaDocs(EL, a.version) + (a.aceptado_en ? ", aceptada el " + fecha(a.aceptado_en) : "") : "Sin aceptar") + "</small></a>"; }).join("") + "</div></section>" +
     (LECT.length ? '<section class="blq" id="lecturas"><h2>Lo que opinaste como lector beta</h2><p>Tus respuestas y comentarios en rondas de otras personas. Quien maneja cada ronda los ve con el nombre que te dio, nunca tu correo. Puedes borrarlos cuando quieras, también si ya te quitaron de la ronda.</p>' +
       LECT.map((x) => '<div class="seguida"><span><b>' + esc(x.proyecto) + "</b> · " + esc(x.titulo) + " <small>(" + ((n) => n + (n === 1 ? " opinión" : " opiniones"))(Object.keys(x.respuestas || {}).length + (x.comentarios || []).length) + (x.quitado ? " · ya no estás en la ronda" : x.abierta ? " · abierta" : " · cerrada") + ")</small></span>" +
@@ -169,7 +175,7 @@ async function descargar() {
   { const { data } = await sb.rpc("mis_anotadas"); out.recompensas_en_que_te_anotaste = data || []; }
   { const { data } = await sb.rpc("mis_lecturas"); out.rondas_en_que_lees_o_pruebas = (data || []).map(({ token, ...x }) => x); }
   for (const t of TABLAS) { const { data, error } = await sb.from(t).select("*").eq("espacio_id", esp); out[t] = error ? { error: error.message } : data; }
-  for (const [t, c] of [["mensajes", "id,tipo,texto,estado,respuesta,creado_en,respondido_en"], ["reportes", "motivo,detalle,estado,creado_en,revisado_en"], ["avisos", "tipo,titulo,texto,leido,creado_en"], ["aceptaciones", "documento,version,aceptado_en"], ["interes_funciones", "funcion,creado_en,avisado_en"], ["sugerencias", "area,texto,estado,respuesta,creado_en,revisado_en"], ["correo_prefs", "boletin,funciones,vitrinas,boletin_desde"]]) {
+  for (const [t, c] of [["mensajes", "id,tipo,texto,estado,respuesta,creado_en,respondido_en"], ["reportes", "motivo,detalle,estado,creado_en,revisado_en"], ["reportes_precios", "motivo,detalle,estado,creado_en,revisado_en,copia"], ["avisos", "tipo,titulo,texto,leido,creado_en"], ["aceptaciones", "documento,version,aceptado_en"], ["interes_funciones", "funcion,creado_en,avisado_en"], ["sugerencias", "area,texto,estado,respuesta,creado_en,revisado_en"], ["correo_prefs", "boletin,funciones,vitrinas,boletin_desde"]]) {
     const { data } = await sb.from(t).select(c); out[t] = data || [];
   }
   const a = document.createElement("a");

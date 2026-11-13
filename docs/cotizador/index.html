@@ -89,7 +89,7 @@ details summary{cursor:pointer;color:var(--accent);font-size:14px}
 .ref-p b{font-size:14px;overflow-wrap:anywhere}
 .ref-p .cif{font-family:var(--f-num);font-size:13px}
 .ref-p .sp{color:var(--muted);overflow-wrap:anywhere}
-.ref-p .pie{display:flex;justify-content:space-between;gap:6px;align-items:center;margin-top:4px;color:var(--muted);font-size:12px}
+.ref-p .pie{display:flex;justify-content:space-between;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;color:var(--muted);font-size:12px}
 .compartido{font-size:12px;color:var(--good);white-space:nowrap}
 /* precio de venta */
 .venta{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start}
@@ -271,44 +271,13 @@ details summary{cursor:pointer;color:var(--accent);font-size:14px}
 
 <script type="module">
 import { sb, espacio, accesoProyecto, conSesion, navApp, debounce, plan, editable, limite, LIMITES, tope, NOMBRE_PLAN } from "../js/forja.js";
+import { TIPOS as PIEZAS } from "../js/piezas.js";
+import { CAMPOS_PRECIO, reportarPrecio, misReportados, estilosPrecios } from "../js/precios.js";
+estilosPrecios();
 navApp("cotizaciones");
 (function(){
   var KEY="forja-cotizador-v1";
-  var BG=["BoardGamesMaker","https://boardgamesmaker.com/"],TGC=["The Game Crafter","https://www.thegamecrafter.com/"],PANDA=["Panda Game Manufacturing","https://pandagm.com/"],
-      PN=["PrintNinja","https://printninja.com/"],QIN=["QinPrinting","https://www.qinprinting.com/"];
-  // Catálogo de componentes. g: grupo en el selector; c: ejemplos para cada especificación; s: dónde cotizar.
-  var TIPOS={
-    tablero:{g:"Juego de mesa",nombre:"Tablero",c:{medida:"Ej.: 50 × 50 cm, plegado en 4",cantidad:"Ej.: 1 por unidad",material:"Ej.: cartón gris 2 mm con papel impreso",impresion:"Ej.: 4/0",acabado:"Ej.: laminado mate, bordes envueltos"},s:[BG,TGC,PANDA]},
-    cartas:{g:"Juego de mesa",nombre:"Cartas",c:{medida:"Ej.: 63 × 88 mm (póker)",cantidad:"Ej.: 90 cartas por unidad",material:"Ej.: cartulina 300 g con núcleo negro",impresion:"Ej.: 4/4",acabado:"Ej.: esquinas redondeadas, laminado lino"},s:[["MakePlayingCards","https://www.makeplayingcards.com/"],BG,TGC]},
-    fichas:{g:"Juego de mesa",nombre:"Fichas y troquelados",c:{medida:"Ej.: círculos de 2,5 cm",cantidad:"Ej.: 60 fichas por unidad",material:"Ej.: cartón gris 2 mm",impresion:"Ej.: 4/4",acabado:"Ej.: troquelado en planchas"},s:[BG,TGC,PANDA]},
-    figuras:{g:"Juego de mesa",nombre:"Figuras o miniaturas",c:{medida:"Ej.: 28 mm de alto",cantidad:"Ej.: 8 figuras por unidad",material:"Ej.: plástico PVC, resina o madera (meeples)",impresion:"Ej.: sin pintar / un color",acabado:"Ej.: molde propio o de catálogo"},s:[BG,PANDA]},
-    dados:{g:"Juego de mesa",nombre:"Dados",c:{medida:"Ej.: 16 mm, 6 caras",cantidad:"Ej.: 5 por unidad",material:"Ej.: acrílico o madera",impresion:"Ej.: grabado con tinta",acabado:"Ej.: caras personalizadas"},s:[BG,TGC]},
-    caja:{g:"Juego de mesa",nombre:"Caja",c:{medida:"Ej.: 15 × 22 × 4 cm",cantidad:"Ej.: 1 por unidad",material:"Ej.: cartón rígido 2 mm con papel impreso",impresion:"Ej.: 4/0",acabado:"Ej.: tapa y fondo, laminado mate, termoencogible"},s:[BG,TGC,["LongPack Games","https://www.longpackgames.com/"]]},
-    libreto:{g:"Juego de mesa",nombre:"Reglamento o libreto",c:{medida:"Ej.: A5 (14,8 × 21 cm)",cantidad:"Ej.: 16 páginas",material:"Ej.: couché 150 g",impresion:"Ej.: 4/4",acabado:"Ej.: corchetes"},s:[PN,QIN,BG]},
-    inserto:{g:"Juego de mesa",nombre:"Inserto o separador",c:{medida:"Ej.: a la medida de la caja",cantidad:"Ej.: 1 por unidad",material:"Ej.: cartón, plástico termoformado o EVA",impresion:"Ej.: sin impresión",acabado:"Ej.: compartimentos para cartas y fichas"},s:[BG,PANDA]},
-    hojas:{g:"Juego de mesa",nombre:"Hojas o planillas",c:{medida:"Ej.: carta (21,6 × 27,9 cm)",cantidad:"Ej.: block de 50 hojas",material:"Ej.: bond 90 g",impresion:"Ej.: 1/0",acabado:"Ej.: encolado en block, prepicado"},s:[BG,TGC]},
-    libro:{g:"Libro y cómic",nombre:"Impresión del libro",c:{medida:"Ej.: 14 × 21 cm",cantidad:"Ej.: 240 páginas",material:"Ej.: interior bond ahuesado 80 g, tapa 300 g",impresion:"Ej.: interior 1/1, tapa 4/0",acabado:"Ej.: tapa blanda, encuadernación hotmelt, solapas"},s:[PN,QIN]},
-    comic:{g:"Libro y cómic",nombre:"Impresión del cómic o fanzine",c:{medida:"Ej.: 17 × 26 cm",cantidad:"Ej.: 48 páginas",material:"Ej.: couché 115 g, tapa 250 g",impresion:"Ej.: 4/4",acabado:"Ej.: corchetes o tapa dura"},s:[PN,QIN]},
-    ilustracion:{g:"Libro y cómic",nombre:"Ilustración o arte",c:{medida:"Ej.: portada + 10 ilustraciones interiores",cantidad:"Ej.: por pieza o por paquete",material:"Ej.: digital, archivo en alta resolución",impresion:"Ej.: a color / blanco y negro",acabado:"Ej.: derechos de uso comercial"},s:[]},
-    correccion:{g:"Libro y cómic",nombre:"Corrección o diagramación",c:{medida:"Ej.: 60.000 palabras",cantidad:"Ej.: una revisión completa",material:"Ej.: corrección de estilo y ortotipográfica",impresion:"Ej.: diagramación en InDesign",acabado:"Ej.: entrega en PDF para imprenta"},s:[]},
-    marcapaginas:{g:"Libro y cómic",nombre:"Marcapáginas, láminas o postales",c:{medida:"Ej.: 5 × 15 cm",cantidad:"Ej.: 1 por libro",material:"Ej.: cartulina 300 g",impresion:"Ej.: 4/4",acabado:"Ej.: laminado mate"},s:[]},
-    envase:{g:"Producto",nombre:"Envase",c:{medida:"Ej.: frasco de vidrio 200 ml",cantidad:"Ej.: 1 por producto",material:"Ej.: vidrio ámbar, lata, cartón",impresion:"Ej.: serigrafía o sin impresión",acabado:"Ej.: tapa metálica"},s:[]},
-    etiqueta:{g:"Producto",nombre:"Etiqueta",c:{medida:"Ej.: 6 × 4 cm",cantidad:"Ej.: 1 por producto",material:"Ej.: papel adhesivo o vinilo",impresion:"Ej.: 4/0",acabado:"Ej.: troquelado, resistente al agua"},s:[]},
-    empaque:{g:"Producto",nombre:"Empaque o caja",c:{medida:"Ej.: 10 × 10 × 12 cm",cantidad:"Ej.: 1 por producto",material:"Ej.: cartulina kraft",impresion:"Ej.: 1/0 o timbre",acabado:"Ej.: con ventana, cinta"},s:[]},
-    materia:{g:"Producto",nombre:"Materia prima",c:{medida:"Ej.: cera de abeja",cantidad:"Ej.: 150 g por producto",material:"Ej.: calidad, origen",impresion:"",acabado:"Ej.: proveedor local o importado"},s:[]},
-    sticker:{g:"Merch",nombre:"Stickers",c:{medida:"Ej.: 7 × 7 cm",cantidad:"Ej.: 1 hoja de 6",material:"Ej.: vinilo",impresion:"Ej.: 4/0",acabado:"Ej.: troquel al contorno, laminado"},s:[]},
-    pin:{g:"Merch",nombre:"Pines o llaveros",c:{medida:"Ej.: 3 cm",cantidad:"Ej.: 1",material:"Ej.: metal esmaltado o acrílico",impresion:"Ej.: esmalte duro",acabado:"Ej.: cierre mariposa"},s:[]},
-    peluche:{g:"Merch",nombre:"Peluches",c:{medida:"Ej.: 20 cm de alto",cantidad:"Ej.: 1",material:"Ej.: minky o felpa, relleno de poliéster",impresion:"Ej.: bordado, sin piezas pequeñas",acabado:"Ej.: etiqueta cosida, bolsa individual"},s:[]},
-    mousepad:{g:"Merch",nombre:"Mousepads",c:{medida:"Ej.: 25 × 21 cm o 80 × 30 cm",cantidad:"Ej.: 1",material:"Ej.: tela con base de goma 3 mm",impresion:"Ej.: sublimación a todo color",acabado:"Ej.: bordes cosidos"},s:[]},
-    taza:{g:"Merch",nombre:"Tazas o vasos",c:{medida:"Ej.: 11 oz",cantidad:"Ej.: 1",material:"Ej.: cerámica blanca o enlozada",impresion:"Ej.: sublimación",acabado:"Ej.: caja individual"},s:[]},
-    lamina:{g:"Merch",nombre:"Láminas o prints",c:{medida:"Ej.: A4 o A3",cantidad:"Ej.: 1",material:"Ej.: papel fotográfico o hilado 250 g",impresion:"Ej.: inyección de tinta",acabado:"Ej.: firmada y numerada"},s:[]},
-    polera:{g:"Merch",nombre:"Poleras o textiles",c:{medida:"Ej.: tallas S a XL",cantidad:"Ej.: 1",material:"Ej.: algodón 180 g",impresion:"Ej.: serigrafía 2 colores, DTF",acabado:"Ej.: etiqueta propia"},s:[]},
-    servicio:{g:"Servicios",nombre:"Servicio",c:{medida:"Ej.: música original, doblaje, programación",cantidad:"Ej.: 5 temas de 2 minutos",material:"Ej.: qué se entrega",impresion:"Ej.: formato de entrega",acabado:"Ej.: derechos de uso"},s:[]},
-    stand:{g:"Servicios",nombre:"Stand o exhibición",c:{medida:"Ej.: mesa de 2 × 1 m",cantidad:"Ej.: 1 por feria",material:"Ej.: pendón roller, mantel impreso",impresion:"Ej.: 4/0",acabado:"Ej.: estructura reutilizable"},s:[]},
-    otro:{g:"Otros",nombre:"Componente",c:{medida:"Medidas o formato",cantidad:"Cuántos por unidad",material:"Material",impresion:"Impresión o técnica",acabado:"Acabado o detalle"},s:[]}
-  };
-  // Viejos tipos que ya no existen en el catálogo se muestran como el más parecido.
-  TIPOS.disco={g:"Juego de mesa",nombre:"Disco decodificador",c:TIPOS.fichas.c,s:[BG,TGC,PANDA],oculto:true};
+  var TIPOS=PIEZAS;
   // Componentes con los que empieza la cotización según el proyecto.
   var INICIO={juegomesa:["tablero","cartas","fichas","caja","libreto"],historia:["libro"],comic:["comic","ilustracion"],producto:["envase","etiqueta","empaque"],videojuego:[],contenido:[],otro:[]};
   var CAMPOS=[["medida","Medidas o formato"],["cantidad","Cantidad por unidad"],["material","Material"],["impresion","Impresión o técnica"],["acabado","Acabado o detalle"]];
@@ -332,7 +301,7 @@ navApp("cotizaciones");
     var av=document.createElement("div");av.id="ro-aviso";av.className="ro-aviso";av.setAttribute("role","status");
     av.innerHTML='<b>Solo lectura</b> '+(sinPermiso?"Puedes ver los costos de este proyecto, pero no cambiarlos. Pídeselo a quien lo creó o administra.":p.estado==="archivado"?"El proyecto está archivado; cámbialo a otro estado para editar su cotización.":"Hay "+act+" proyectos en curso y "+(pl.mas?NOMBRE_PLAN[pl.plan]:"el plan gratis")+" permite "+tope(pl,"proyectos")+". Archiva alguno para seguir editando.");
     $("contenido").insertBefore(av,$("contenido").firstChild);
-    var aplicar=function(){$("contenido").querySelectorAll("input,select,textarea,button").forEach(function(el){if(!el.closest(".fx-tabs, .pasos"))el.disabled=true;});};
+    var aplicar=function(){$("contenido").querySelectorAll("input,select,textarea,button").forEach(function(el){if(!el.closest(".fx-tabs, .pasos")&&!el.dataset.reportar)el.disabled=true;});};
     aplicar();obsRO=new MutationObserver(aplicar);obsRO.observe($("contenido"),{childList:true,subtree:true});
   }
   var subir=debounce(function(){
@@ -451,7 +420,7 @@ navApp("cotizaciones");
         '<label class="f" style="grid-column:1/-1">Notas<textarea data-c="'+c.id+'" data-spec="notas" id="s-'+c.id+'-notas" placeholder="Detalles para el proveedor">'+esc((c.specs||{}).notas)+'</textarea></label>';
       var tabla=qs.length?'<div class="tablewrap"><table><thead><tr><th>Proveedor</th><th class="num">Cantidad</th><th class="num">Precio + envío</th><th class="num">Total en Chile</th><th class="num">Por unidad</th><th>Plazo</th><th></th></tr></thead><tbody>'+
         qs.map(function(q){var L=landed(q),u=L.total!=null&&num(q.cantidad)?L.total/num(q.cantidad):null;
-          return '<tr><td>'+(q.enlace?'<a href="'+esc(q.enlace)+'" target="_blank" rel="noopener">'+esc(q.proveedor||"Sin nombre")+'</a>':esc(q.proveedor||"Sin nombre"))+'<span class="sub">'+(q.origen==="extranjero"?"Extranjero":"Chile")+(q.fecha?" · "+esc(q.fecha):"")+(q.notas?" · "+esc(q.notas):"")+'</span></td>'+
+          return '<tr><td>'+(q.enlace?'<a href="'+esc(q.enlace)+'" target="_blank" rel="noopener">'+esc(q.proveedor||"Sin nombre")+'</a>':esc(q.proveedor||"Sin nombre"))+'<span class="sub">'+(q.origen==="extranjero"?"Extranjero":"Chile")+(q.fecha?" · "+esc(q.fecha):"")+(q.notas?" · "+esc(q.notas):"")+'</span>'+(q.contacto?'<span class="sub">Contacto: '+esc(q.contacto)+'</span>':'')+'</td>'+
           '<td class="num">'+num(q.cantidad).toLocaleString("es-CL")+'</td>'+
           '<td class="num">'+(q.moneda==="USD"?"USD "+(num(q.precio)+num(q.envio)).toLocaleString("es-CL",{maximumFractionDigits:2}):clp(num(q.precio)+num(q.envio)))+'</td>'+
           '<td class="num">'+clp(L.total)+'<span class="sub">'+esc(L.detalle)+'</span></td>'+
@@ -473,9 +442,10 @@ navApp("cotizaciones");
           '<label class="f">Envío a Chile<input name="envio" id="q-'+c.id+'-envio" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label>'+
           '<label class="f">Plazo<input name="plazo" id="q-'+c.id+'-plazo" placeholder="Ej.: 4 semanas"></label>'+
           '<label class="f">Enlace<input name="enlace" id="q-'+c.id+'-link" type="url" placeholder="https://"></label>'+
+          '<label class="f" title="Solo lo ves tú (y tu equipo): nunca se comparte">Contacto<input name="contacto" id="q-'+c.id+'-contacto" maxlength="120" placeholder="Solo para ti: correo, WhatsApp…"></label>'+
           '<label class="f" style="grid-column:1/-1">Notas<input name="notas" id="q-'+c.id+'-notas" placeholder="Ej.: precio de calculadora en línea, incluye muestra"></label>'+
           '<label class="check" style="grid-column:1/-1"><input type="checkbox" name="incluyeIva" id="q-'+c.id+'-iva"> El precio ya incluye IVA (solo para proveedores en Chile)</label>'+
-          '<label class="check" style="grid-column:1/-1"><input type="checkbox" name="compartir" id="q-'+c.id+'-share"><span>Compartir este precio con la comunidad, para que otros sepan dónde cotizar <span class="hint">(se muestra el proveedor, el enlace, la cantidad, el precio y las especificaciones; nunca tu nombre ni tu proyecto)</span></span></label>'+
+          '<label class="check" style="grid-column:1/-1"><input type="checkbox" name="compartir" id="q-'+c.id+'-share"><span>Compartir este precio con la comunidad, para que otros sepan dónde cotizar <span class="hint">(se muestra el proveedor, el enlace, la cantidad, el precio y las especificaciones; nunca tu nombre, tu proyecto ni el contacto)</span></span></label>'+
           '<div class="row" style="grid-column:1/-1"><button type="submit" class="primary">Guardar precio</button></div>'+
         '</form></details>'+
         ''+(sug?'<div class="sugs"><span class="hint">Dónde cotizar:</span>'+sug+'</div>':'')+''+comunidadHTML(c)+
@@ -520,7 +490,7 @@ navApp("cotizaciones");
   document.addEventListener("submit",function(e){
     var f=e.target;if(!f.dataset.addq)return;e.preventDefault();
     var q={id:uid(),compId:f.dataset.addq,proveedor:f.proveedor.value.trim(),origen:f.origen.value,moneda:f.moneda.value,cantidad:num(f.cantidad.value),
-      precio:num(f.precio.value),envio:num(f.envio.value),plazo:f.plazo.value.trim(),enlace:f.enlace.value.trim(),notas:f.notas.value.trim(),incluyeIva:f.incluyeIva.checked,fecha:new Date().toLocaleDateString("es-CL")};
+      precio:num(f.precio.value),envio:num(f.envio.value),plazo:f.plazo.value.trim(),enlace:f.enlace.value.trim(),contacto:f.contacto.value.trim(),notas:f.notas.value.trim(),incluyeIva:f.incluyeIva.checked,fecha:new Date().toLocaleDateString("es-CL")};
     if(!q.cantidad){toast("Indica la cantidad de unidades.");return;}
     if(q.moneda==="USD"&&!S.dolar)toast("Guardada. Ingresa el dólar para calcular el costo en pesos.");else toast("Precio guardado");
     var quiere=f.compartir&&f.compartir.checked;
@@ -532,6 +502,7 @@ navApp("cotizaciones");
     if(t.dataset.share){compartir(S.cotizaciones.filter(function(q){return q.id===t.dataset.share;})[0]);return;}
     if(t.dataset.noshare){dejarDeCompartir(S.cotizaciones.filter(function(q){return q.id===t.dataset.noshare;})[0]);return;}
     if(t.dataset.usar){usarReferencia(t.dataset.usar,t.dataset.comp);return;}
+    if(t.dataset.reportar){reportarPrecio(t.dataset.reportar,t.dataset.prov).then(function(ok){if(ok){YA_REP.add(t.dataset.reportar);renderComps();}});return;}
     if(t.dataset.delq){var qd=S.cotizaciones.filter(function(q){return q.id===t.dataset.delq;})[0];if(qd&&qd.compartido)dejarDeCompartir(qd,true);S.cotizaciones=S.cotizaciones.filter(function(q){return q.id!==t.dataset.delq;});save();renderResumen();renderComps();toast("Precio eliminado");}
     if(t.dataset.delc){
       if(t.dataset.armed!=="1"){t.dataset.armed="1";t.textContent="¿Quitar con sus cotizaciones?";setTimeout(function(){if(t.isConnected){t.dataset.armed="";t.textContent="Quitar";}},4000);return;}
@@ -564,13 +535,13 @@ navApp("cotizaciones");
   });
 
   /* --- precios de la comunidad --- */
-  var COMU=[],COMU_TIPOS={};
+  var COMU=[],COMU_TIPOS={},YA_REP=new Set();
   function cargarComunidad(){
     var tipos=Array.from(new Set(S.componentes.map(function(c){return c.tipo;}))).filter(function(t){return !COMU_TIPOS[t];});
     if(!tipos.length)return Promise.resolve();
     tipos.forEach(function(t){COMU_TIPOS[t]=1;});
-    return sb.from("precios_comunidad").select("id,componente,proveedor,enlace,origen,moneda,cantidad,precio,envio,incluye_iva,especificaciones,plazo,creado_en").in("componente",tipos).order("creado_en",{ascending:false}).limit(200)
-      .then(function(r){if(!r.error&&r.data){var ids={};COMU.forEach(function(x){ids[x.id]=1;});COMU=COMU.concat(r.data.filter(function(x){return !ids[x.id];}));
+    return Promise.all([sb.from("precios_comunidad").select(CAMPOS_PRECIO).in("componente",tipos).order("creado_en",{ascending:false}).limit(200),misReportados()])
+      .then(function(x){var r=x[0];YA_REP=x[1];if(!r.error&&r.data){var ids={};COMU.forEach(function(x){ids[x.id]=1;});COMU=COMU.concat(r.data.filter(function(x){return !ids[x.id];}));
         // no redibujar mientras alguien escribe en un componente; se verá en el próximo cambio
         if(!$("comps").contains(document.activeElement))renderComps();}});
   }
@@ -584,7 +555,7 @@ navApp("cotizaciones");
       var nom=r.enlace&&/^https:\/\//.test(r.enlace)?'<a href="'+esc(r.enlace)+'" target="_blank" rel="noopener noreferrer nofollow">'+esc(r.proveedor)+'</a>':esc(r.proveedor);
       return '<div class="ref-p"><b>'+nom+'</b><span class="cif">'+num(r.cantidad).toLocaleString("es-CL")+' u. · '+bruto+(u!=null?' · ≈ '+clp2(u)+' c/u en Chile':'')+'</span>'+
         (r.especificaciones?'<span class="sp">'+esc(r.especificaciones)+'</span>':'')+
-        '<span class="pie"><span>'+(r.origen==="chile"?"Chile":"Extranjero")+(r.plazo?' · '+esc(r.plazo):'')+' · '+new Date(r.creado_en).toLocaleDateString("es-CL",{month:"short",year:"numeric"})+'</span><button type="button" class="link" data-usar="'+r.id+'" data-comp="'+c.id+'">Usar proveedor</button></span></div>';
+        '<span class="pie"><span>'+(r.origen==="chile"?"Chile":"Extranjero")+(r.plazo?' · '+esc(r.plazo):'')+' · '+new Date(r.creado_en).toLocaleDateString("es-CL",{month:"short",year:"numeric"})+'</span><span>'+(YA_REP.has(r.id)?'<span class="pr-mio pr-ya">Reportado</span>':'<button type="button" class="link" data-reportar="'+r.id+'" data-prov="'+esc(r.proveedor)+'">Reportar</button> ')+'<button type="button" class="link" data-usar="'+r.id+'" data-comp="'+c.id+'">Usar proveedor</button></span></span></div>';
     }).join("")+'</div></div>';
   }
   function usarReferencia(id,compId){
@@ -607,6 +578,15 @@ navApp("cotizaciones");
     sb.from("precios_comunidad").insert(fila).select("id").single().then(function(r){
       if(r.error){toast("No se pudo compartir.");return;}
       q.compartido=r.data.id;save();renderComps();toast("Compartido. ¡Gracias por aportar!");
+    });
+  }
+  // Un precio compartido que ya no está (lo quitó moderación) deja de marcarse como compartido.
+  function revisarCompartidos(){
+    var ids=S.cotizaciones.map(function(q){return q.compartido;}).filter(Boolean);if(!ids.length)return;
+    sb.from("precios_comunidad").select("id").in("id",ids).then(function(r){
+      if(r.error)return;var hay={};(r.data||[]).forEach(function(x){hay[x.id]=1;});
+      var cambio=false;S.cotizaciones.forEach(function(q){if(q.compartido&&!hay[q.compartido]){delete q.compartido;cambio=true;}});
+      if(cambio){renderComps();if(!$("ro-aviso"))save();}
     });
   }
   function dejarDeCompartir(q,silencio){
@@ -1034,8 +1014,8 @@ navApp("cotizaciones");
     var p=PROYS.filter(function(x){return HOJA&&x.id===HOJA.proyecto_id;})[0];
     if(p){$("h-de").innerHTML='<span class="hint">Cotización del proyecto</span><br><a href="../proyecto/?p='+p.id+'#costos" style="font-family:var(--f-display);font-weight:700;font-size:18px">← '+esc(p.nombre)+'</a>';return;}
     var libres=PROYS.filter(function(x){return !LISTA.some(function(c){return c.proyecto_id===x.id;});});
-    $("h-de").innerHTML='<label class="f">Esta cotización no está ligada a un proyecto<select id="h-ligar"><option value="">Elegir proyecto…</option>'+libres.map(function(x){return '<option value="'+x.id+'">'+esc(x.nombre)+'</option>';}).join("")+'</select></label>';
-    $("h-ligar").onchange=function(e){var v=e.target.value;if(!v)return;
+    $("h-de").innerHTML='<span class="hint">Cotización aparte, sin proyecto</span><br><b style="font-family:var(--f-display);font-size:18px">'+esc(S.nombre||HOJA.nombre||"Sin nombre")+'</b>'+(libres.length?'<label class="f" style="margin-top:8px">Ligarla a un proyecto (opcional)<select id="h-ligar"><option value="">Elegir proyecto…</option>'+libres.map(function(x){return '<option value="'+x.id+'">'+esc(x.nombre)+'</option>';}).join("")+'</select></label>':'');
+    if($("h-ligar"))$("h-ligar").onchange=function(e){var v=e.target.value;if(!v)return;
       sb.from("cotizaciones").update({proyecto_id:v}).eq("id",HOJA.id).then(function(r){if(r.error){toast("No se pudo ligar al proyecto.");return;}HOJA.proyecto_id=v;LISTA.forEach(function(c){if(c.id===HOJA.id)c.proyecto_id=v;});pintarHoja();toast("Ligada al proyecto");});};
   }
   function abrir(id){
@@ -1054,7 +1034,7 @@ navApp("cotizaciones");
       var pr=PROYS.filter(function(x){return x.id===HOJA.proyecto_id;})[0];
       if(valida(HOJA.datos))S=HOJA.datos;else{S=defaults(pr&&pr.tipo,pr&&pr.formato);S.nombre=pr?pr.nombre:(HOJA.nombre!=="Sin nombre"?HOJA.nombre:"");save();}
       history.replaceState(null,"","?c="+HOJA.id+location.hash);
-      $("h-estado").textContent="";pintarHoja();renderAll();cargarComunidad();soloLectura();
+      $("h-estado").textContent="";pintarHoja();renderAll();cargarComunidad();soloLectura();revisarCompartidos();
       verTab(location.hash==="#venta"?"venta":location.hash==="#campana"?"camp":"prod");
   }
   function nueva(datos,proyecto){

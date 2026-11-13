@@ -1,5 +1,5 @@
 -- Forja · esquema de la base (Supabase, proyecto "forja", id gfkiwldxxvffnkjcesws).
--- Sacado de la base en vivo el 2026-11-11 (y al día con las migraciones taller_fichas_enlazados y pizarra_fichas_enlazadas del 2026-11-12): es la foto completa de la estructura y las reglas de acceso, sin ningún dato
+-- Sacado de la base en vivo el 2026-11-11 (y al día con las migraciones taller_fichas_enlazados y pizarra_fichas_enlazadas del 2026-11-12, y reportes_precios_y_cotizaciones_aparte, mod_panel_precios y mod_precio_cerrar del 2026-11-13): es la foto completa de la estructura y las reglas de acceso, sin ningún dato
 -- (ni oportunidades, ni cuentas, ni privado.config, que guarda la clave de la cola de correos y se genera dentro de la base).
 -- La fuente sigue siendo la base: todo cambio se aplica como migración y después se vuelve a sacar este archivo.
 -- Orden: extensiones y esquemas, tablas, funciones, restricciones, índices, triggers, reglas (RLS) y permisos.
@@ -299,6 +299,19 @@ create table public.reportes(
   id uuid default gen_random_uuid() not null,
   vitrina_id uuid not null,
   autor uuid not null,
+  motivo text not null,
+  detalle text,
+  estado text default 'pendiente'::text not null,
+  creado_en timestamp with time zone default now() not null,
+  revisado_en timestamp with time zone
+);
+
+create table public.reportes_precios(
+  id uuid default gen_random_uuid() not null,
+  precio_ref uuid not null,
+  copia jsonb not null,
+  precio_autor uuid,
+  autor uuid default auth.uid() not null,
   motivo text not null,
   detalle text,
   estado text default 'pendiente'::text not null,
@@ -1178,10 +1191,11 @@ begin
         'ultimo', max(r.creado_en), 'reportes', jsonb_agg(jsonb_build_object('id', r.id, 'motivo', r.motivo, 'detalle', r.detalle, 'creado_en', r.creado_en,
           'autor', left(r.autor::text, 8),
           'historial', (select jsonb_build_object('aceptados', count(*) filter (where q.estado = 'aceptado'), 'desestimados', count(*) filter (where q.estado = 'desestimado'), 'mala_fe', count(*) filter (where q.estado = 'mala_fe'))
-                        from public.reportes q where q.autor = r.autor and q.id <> r.id),
+                        from (select estado, autor, id from public.reportes union all select estado, autor, id from public.reportes_precios) q where q.autor = r.autor and q.id <> r.id),
           'cuenta_dias', (select extract(day from now() - u.created_at)::int from auth.users u where u.id = r.autor)) order by r.creado_en)) g
       from public.reportes r join public.vitrinas x on x.id = r.vitrina_id left join public.vitrinas_publicadas p on p.vitrina_id = x.id
       where r.estado = 'pendiente' group by x.id, x.slug, p.titulo, x.borrador, x.suspendida, p.en_explorar) t), '[]'::jsonb),
+    'precios', privado.mod_precios(),
     'mensajes', coalesce((select jsonb_agg(jsonb_build_object('id', m.id, 'tipo', m.tipo, 'texto', m.texto, 'creado_en', m.creado_en, 'autor', left(m.autor::text, 8),
         'vitrina', (select jsonb_build_object('id', x.id, 'slug', x.slug, 'suspendida', x.suspendida, 'suspension', x.suspension) from public.vitrinas x where x.id = m.vitrina_id)) order by m.creado_en)
       from public.mensajes m where m.estado = 'abierto'), '[]'::jsonb),
@@ -1523,16 +1537,13 @@ CREATE OR REPLACE FUNCTION public.reportar_vitrina(slug text, motivo text, detal
  SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-declare uid uuid := auth.uid(); v public.vitrinas; creado timestamptz;
+declare uid uuid := auth.uid(); v public.vitrinas;
 begin
   if uid is null then raise exception 'FORJA_REPORTE_SIN_CUENTA'; end if;
   select x.* into v from public.vitrinas x join public.vitrinas_publicadas p on p.vitrina_id = x.id where p.slug = reportar_vitrina.slug and p.visible;
   if not found then raise exception 'FORJA_NO_ENCONTRADA'; end if;
   if privado.es_miembro(v.espacio_id) then raise exception 'FORJA_REPORTE_PROPIO'; end if;
-  select u.created_at into creado from auth.users u where u.id = uid;
-  if creado > now() - interval '1 day' then raise exception 'FORJA_REPORTE_CUENTA_NUEVA'; end if;
-  if (select count(*) from public.reportes r where r.autor = uid and r.estado = 'mala_fe') >= 2 then raise exception 'FORJA_REPORTE_BLOQUEADO'; end if;
-  if (select count(*) from public.reportes r where r.autor = uid and r.creado_en > now() - interval '1 day') >= 5 then raise exception 'FORJA_REPORTE_LIMITE'; end if;
+  perform privado.puede_reportar(uid);
   if exists(select 1 from public.reportes r where r.autor = uid and r.vitrina_id = v.id) then raise exception 'FORJA_REPORTE_REPETIDO'; end if;
   insert into public.reportes(vitrina_id, autor, motivo, detalle) values (v.id, uid, reportar_vitrina.motivo, nullif(btrim(coalesce(reportar_vitrina.detalle, '')), ''));
 end $function$
@@ -2504,6 +2515,127 @@ begin
 end $function$
 ;
 
+-- Reportes de precios de la comunidad y cotizaciones aparte (2026-11-13)
+CREATE OR REPLACE FUNCTION privado.mod_precios()
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select coalesce(jsonb_agg(g order by g->>'ultimo' desc), '[]'::jsonb) from (
+    select jsonb_build_object('precio', r0.precio_ref, 'copia', (array_agg(r0.copia order by r0.creado_en desc))[1],
+      'existe', exists(select 1 from public.precios_comunidad c where c.id = r0.precio_ref),
+      'autor_dias', (select extract(day from now() - u.created_at)::int from auth.users u where u.id = (array_agg(r0.precio_autor))[1]),
+      'autor_comparte', (select count(*) from public.precios_comunidad c where c.autor = (array_agg(r0.precio_autor))[1]),
+      'ultimo', max(r0.creado_en),
+      'reportes', jsonb_agg(jsonb_build_object('id', r0.id, 'motivo', r0.motivo, 'detalle', r0.detalle, 'creado_en', r0.creado_en, 'autor', left(r0.autor::text, 8),
+        'historial', (select jsonb_build_object(
+            'aceptados', count(*) filter (where q.estado = 'aceptado'), 'desestimados', count(*) filter (where q.estado = 'desestimado'), 'mala_fe', count(*) filter (where q.estado = 'mala_fe'))
+          from (select estado, autor, id from public.reportes union all select estado, autor, id from public.reportes_precios) q where q.autor = r0.autor and q.id <> r0.id),
+        'cuenta_dias', (select extract(day from now() - u.created_at)::int from auth.users u where u.id = r0.autor)) order by r0.creado_en)) g
+    from public.reportes_precios r0 where r0.estado = 'pendiente' group by r0.precio_ref) t;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION privado.puede_reportar(uid uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare creado timestamptz;
+begin
+  if uid is null then raise exception 'FORJA_REPORTE_SIN_CUENTA'; end if;
+  select u.created_at into creado from auth.users u where u.id = uid;
+  if creado > now() - interval '1 day' then raise exception 'FORJA_REPORTE_CUENTA_NUEVA'; end if;
+  if (select count(*) from public.reportes r where r.autor = uid and r.estado = 'mala_fe')
+   + (select count(*) from public.reportes_precios r where r.autor = uid and r.estado = 'mala_fe') >= 2 then raise exception 'FORJA_REPORTE_BLOQUEADO'; end if;
+  if (select count(*) from public.reportes r where r.autor = uid and r.creado_en > now() - interval '1 day')
+   + (select count(*) from public.reportes_precios r where r.autor = uid and r.creado_en > now() - interval '1 day') >= 5 then raise exception 'FORJA_REPORTE_LIMITE'; end if;
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION privado.t_cot_aparte()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  if new.proyecto_id is null and (tg_op = 'INSERT' or old.proyecto_id is not null)
+     and (select count(*) from public.cotizaciones c where c.espacio_id = new.espacio_id and c.proyecto_id is null) >= 30 then
+    raise exception 'FORJA_LIMITE_APARTE';
+  end if;
+  return new;
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION public.mod_precio(p uuid, decision text, mensaje text DEFAULT NULL::text)
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare n int; dueno uuid; prov text;
+begin
+  if not privado.es_admin() then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  if decision not in ('quitar','cerrar','desestimado','mala_fe') then raise exception 'FORJA_DECISION'; end if;
+  select r.precio_autor, r.copia->>'proveedor' into dueno, prov from public.reportes_precios r where r.precio_ref = p order by r.creado_en limit 1;
+  if decision = 'quitar' then
+    if nullif(btrim(coalesce(mensaje, '')), '') is null then raise exception 'FORJA_FALTA_MENSAJE'; end if;
+    delete from public.precios_comunidad c where c.id = p;
+    if not found then raise exception 'FORJA_NO_ENCONTRADA'; end if;
+    if dueno is not null then
+      insert into public.avisos(user_id, tipo, titulo, texto, enlace)
+      values (dueno, 'moderacion', 'Quitamos un precio que compartiste', 'El precio de «' || coalesce(prov, 'un proveedor') || '» ya no se muestra a la comunidad. ' || btrim(mensaje), 'normas/');
+    end if;
+    insert into public.avisos(user_id, tipo, titulo, texto)
+      select distinct r.autor, 'reporte', 'Tomamos medidas', 'Revisamos el precio que reportaste y lo quitamos. Gracias por ayudar a cuidar la comunidad.'
+      from public.reportes_precios r where r.precio_ref = p and r.estado = 'pendiente';
+    update public.reportes_precios set estado = 'aceptado', revisado_en = now() where precio_ref = p and estado = 'pendiente';
+  elsif decision = 'cerrar' then
+    -- quien lo compartió ya lo quitó: se cierra sin culpar a nadie
+    if exists(select 1 from public.precios_comunidad c where c.id = p) then raise exception 'FORJA_DECISION'; end if;
+    insert into public.avisos(user_id, tipo, titulo, texto)
+      select r.autor, 'reporte', 'Revisamos tu reporte', 'El precio que reportaste ya no se muestra a la comunidad. Gracias por ayudar a cuidar la comunidad.'
+      from public.reportes_precios r where r.precio_ref = p and r.estado = 'pendiente';
+    update public.reportes_precios set estado = 'aceptado', revisado_en = now() where precio_ref = p and estado = 'pendiente';
+  else
+    if decision = 'desestimado' then
+      insert into public.avisos(user_id, tipo, titulo, texto)
+        select r.autor, 'reporte', 'Revisamos tu reporte', 'Una persona del equipo revisó el precio que reportaste y no encontró que infrinja las normas de Forja. Gracias por ayudar a cuidar la comunidad.'
+        from public.reportes_precios r where r.precio_ref = p and r.estado = 'pendiente';
+    end if;
+    update public.reportes_precios set estado = decision, revisado_en = now() where precio_ref = p and estado = 'pendiente';
+  end if;
+  get diagnostics n = row_count;
+  insert into privado.registro(admin, accion, detalle) values (auth.uid(),
+    case decision when 'quitar' then 'precio_quitado' when 'cerrar' then 'precio_cerrado' else 'precio_' || decision end,
+    jsonb_build_object('cantidad', n, 'proveedor', prov) || case when decision = 'quitar' then jsonb_build_object('mensaje', btrim(mensaje)) else '{}'::jsonb end);
+  return n;
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION public.reportar_precio(p uuid, motivo text, detalle text DEFAULT NULL::text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare uid uuid := auth.uid(); x public.precios_comunidad;
+begin
+  if uid is null then raise exception 'FORJA_REPORTE_SIN_CUENTA'; end if;
+  select * into x from public.precios_comunidad c where c.id = p;
+  if not found then raise exception 'FORJA_NO_ENCONTRADA'; end if;
+  if x.autor = uid then raise exception 'FORJA_REPORTE_PROPIO'; end if;
+  perform privado.puede_reportar(uid);
+  if exists(select 1 from public.reportes_precios r where r.autor = uid and r.precio_ref = p) then raise exception 'FORJA_REPORTE_REPETIDO'; end if;
+  insert into public.reportes_precios(precio_ref, copia, precio_autor, autor, motivo, detalle)
+  values (p, to_jsonb(x) - 'autor', x.autor, uid, reportar_precio.motivo, nullif(btrim(coalesce(reportar_precio.detalle, '')), ''));
+end $function$
+;
+
+
 -- ===================== LLAVES, ÚNICOS Y CHEQUEOS =====================
 
 alter table public.aceptaciones add constraint aceptaciones_pkey PRIMARY KEY (user_id, documento, version);
@@ -2588,6 +2720,11 @@ alter table public.reportes add constraint reportes_pkey PRIMARY KEY (id);
 alter table public.reportes add constraint reportes_detalle_check CHECK ((char_length(detalle) <= 1000));
 alter table public.reportes add constraint reportes_estado_check CHECK ((estado = ANY (ARRAY['pendiente'::text, 'aceptado'::text, 'desestimado'::text, 'mala_fe'::text])));
 alter table public.reportes add constraint reportes_motivo_check CHECK ((motivo = ANY (ARRAY['estafa'::text, 'ofensivo'::text, 'derechos'::text, 'datos'::text, 'menores'::text, 'spam'::text, 'otro'::text])));
+alter table public.reportes_precios add constraint reportes_precios_pkey PRIMARY KEY (id);
+alter table public.reportes_precios add constraint reportes_precios_precio_ref_autor_key UNIQUE (precio_ref, autor);
+alter table public.reportes_precios add constraint reportes_precios_detalle_check CHECK ((char_length(detalle) <= 1000));
+alter table public.reportes_precios add constraint reportes_precios_estado_check CHECK ((estado = ANY (ARRAY['pendiente'::text, 'aceptado'::text, 'desestimado'::text, 'mala_fe'::text])));
+alter table public.reportes_precios add constraint reportes_precios_motivo_check CHECK ((motivo = ANY (ARRAY['falso'::text, 'estafa'::text, 'ofensivo'::text, 'datos'::text, 'spam'::text, 'otro'::text])));
 alter table public.ronda_comentarios add constraint ronda_comentarios_pkey PRIMARY KEY (id);
 alter table public.ronda_comentarios add constraint ronda_comentarios_cita_check CHECK ((char_length(cita) <= 200));
 alter table public.ronda_comentarios add constraint ronda_comentarios_marca_check CHECK ((marca = ANY (ARRAY['opinion'::text, 'mejora'::text, 'resuelta'::text])));
@@ -2680,6 +2817,7 @@ alter table public.referentes add constraint referentes_espacio_id_fkey FOREIGN 
 alter table public.referentes add constraint referentes_proyecto_id_fkey FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE;
 alter table public.reportes add constraint reportes_autor_fkey FOREIGN KEY (autor) REFERENCES auth.users(id) ON DELETE CASCADE;
 alter table public.reportes add constraint reportes_vitrina_id_fkey FOREIGN KEY (vitrina_id) REFERENCES vitrinas(id) ON DELETE CASCADE;
+alter table public.reportes_precios add constraint reportes_precios_autor_fkey FOREIGN KEY (autor) REFERENCES auth.users(id) ON DELETE CASCADE;
 alter table public.ronda_comentarios add constraint ronda_comentarios_lector_id_fkey FOREIGN KEY (lector_id) REFERENCES ronda_lectores(id) ON DELETE CASCADE;
 alter table public.ronda_comentarios add constraint ronda_comentarios_ronda_id_fkey FOREIGN KEY (ronda_id) REFERENCES rondas(id) ON DELETE CASCADE;
 alter table public.ronda_lectores add constraint ronda_lectores_ronda_id_fkey FOREIGN KEY (ronda_id) REFERENCES rondas(id) ON DELETE CASCADE;
@@ -2744,6 +2882,8 @@ CREATE INDEX referentes_espacio_idx ON public.referentes USING btree (espacio_id
 CREATE INDEX referentes_proyecto_idx ON public.referentes USING btree (proyecto_id);
 CREATE INDEX reportes_autor_idx ON public.reportes USING btree (autor);
 CREATE INDEX reportes_pendientes ON public.reportes USING btree (estado, creado_en) WHERE (estado = 'pendiente'::text);
+CREATE INDEX reportes_precios_autor_idx ON public.reportes_precios USING btree (autor);
+CREATE INDEX reportes_precios_pendientes ON public.reportes_precios USING btree (estado, creado_en) WHERE (estado = 'pendiente'::text);
 CREATE INDEX ronda_comentarios_lector_idx ON public.ronda_comentarios USING btree (lector_id);
 CREATE INDEX ronda_comentarios_ronda ON public.ronda_comentarios USING btree (ronda_id, parte, parrafo);
 CREATE INDEX ronda_lectores_ronda ON public.ronda_lectores USING btree (ronda_id);
@@ -2779,6 +2919,7 @@ CREATE TRIGGER elementos_tocar BEFORE UPDATE ON public.elementos FOR EACH ROW EX
 CREATE TRIGGER espacio_fijo BEFORE UPDATE OF espacio_id ON public.elementos FOR EACH ROW EXECUTE FUNCTION privado.t_espacio_fijo();
 CREATE TRIGGER cot_mismo BEFORE INSERT OR UPDATE ON public.cotizaciones FOR EACH ROW EXECUTE FUNCTION mismo_espacio();
 CREATE TRIGGER cotizaciones_lectura BEFORE INSERT OR UPDATE ON public.cotizaciones FOR EACH ROW EXECUTE FUNCTION privado.t_lectura();
+CREATE TRIGGER cotizaciones_aparte BEFORE INSERT OR UPDATE OF proyecto_id ON public.cotizaciones FOR EACH ROW EXECUTE FUNCTION privado.t_cot_aparte();
 CREATE TRIGGER cotizaciones_tocar BEFORE UPDATE ON public.cotizaciones FOR EACH ROW EXECUTE FUNCTION tocar_actualizado();
 CREATE TRIGGER espacio_fijo BEFORE UPDATE OF espacio_id ON public.cotizaciones FOR EACH ROW EXECUTE FUNCTION privado.t_espacio_fijo();
 CREATE TRIGGER ideas_limites BEFORE INSERT OR UPDATE ON public.ideas FOR EACH ROW EXECUTE FUNCTION privado.t_ideas();
@@ -2839,6 +2980,7 @@ alter table public.proyectos enable row level security;
 alter table public.recompensa_interes enable row level security;
 alter table public.referentes enable row level security;
 alter table public.reportes enable row level security;
+alter table public.reportes_precios enable row level security;
 alter table public.ronda_comentarios enable row level security;
 alter table public.ronda_lectores enable row level security;
 alter table public.ronda_respuestas enable row level security;
@@ -2999,6 +3141,8 @@ create policy referentes_ver on public.referentes as PERMISSIVE for SELECT to pu
   using ((privado.acceso_area(proyecto_id, 'referentes'::text) IS NOT NULL));
 create policy reportes_ver on public.reportes as PERMISSIVE for SELECT to authenticated
   using ((autor = ( SELECT auth.uid() AS uid)));
+create policy reportes_precios_ver on public.reportes_precios as PERMISSIVE for SELECT to authenticated
+  using ((autor = ( SELECT auth.uid() AS uid)));
 create policy rondas_ver on public.rondas as PERMISSIVE for SELECT to authenticated
   using ((privado.acceso_area(proyecto_id, 'taller'::text) IS NOT NULL));
 create policy secciones_borrar on public.secciones as PERMISSIVE for DELETE to public
@@ -3070,6 +3214,7 @@ grant SELECT (aceptado_en, documento, version) on public.aceptaciones to authent
 grant SELECT (actualizado_en, boletin, boletin_desde, funciones, vitrinas) on public.correo_prefs to authenticated;
 grant SELECT (cantidad, componente, creado_en, enlace, envio, especificaciones, id, incluye_iva, moneda, origen, plazo, precio, proveedor) on public.precios_comunidad to authenticated;
 grant SELECT (creado_en, detalle, estado, id, motivo, revisado_en, vitrina_id) on public.reportes to authenticated;
+grant SELECT (copia, creado_en, detalle, estado, id, motivo, precio_ref, revisado_en) on public.reportes_precios to authenticated;
 grant SELECT (creado_en, enlace, id, leido, texto, tipo, titulo) on public.avisos to authenticated;
 grant SELECT (creado_en, estado, id, respondido_en, respuesta, texto, tipo, vitrina_id) on public.mensajes to authenticated;
 grant UPDATE (boletin, funciones, vitrinas) on public.correo_prefs to authenticated;
@@ -3140,6 +3285,9 @@ grant execute on function public.herramientas_equipo() to authenticated, service
 revoke all on function privado.herramientas_equipo() from public, anon, authenticated, service_role;
 grant execute on function privado.herramientas_equipo() to authenticated;
 revoke all on function privado.plantilla_ok(pl text, tipo text) from public, anon, authenticated, service_role;
+revoke all on function privado.mod_precios() from public, anon, authenticated, service_role;
+revoke all on function privado.puede_reportar(uid uuid) from public, anon, authenticated, service_role;
+revoke all on function privado.t_cot_aparte() from public, anon, authenticated, service_role;
 revoke all on function privado.t_colecciones() from public, anon, authenticated, service_role;
 revoke all on function privado.t_elementos() from public, anon, authenticated, service_role;
 revoke all on function public.mis_espacios() from public, anon, authenticated, service_role;
@@ -3166,6 +3314,8 @@ revoke all on function public.mod_probar(tipo text, datos jsonb) from public, an
 grant execute on function public.mod_probar(tipo text, datos jsonb) to authenticated, service_role;
 revoke all on function public.mod_resolver(v uuid, decision text) from public, anon, authenticated, service_role;
 grant execute on function public.mod_resolver(v uuid, decision text) to authenticated, service_role;
+revoke all on function public.mod_precio(p uuid, decision text, mensaje text) from public, anon, authenticated, service_role;
+grant execute on function public.mod_precio(p uuid, decision text, mensaje text) to authenticated, service_role;
 revoke all on function public.mod_responder(m uuid, respuesta text, avisar boolean) from public, anon, authenticated, service_role;
 grant execute on function public.mod_responder(m uuid, respuesta text, avisar boolean) to authenticated, service_role;
 revoke all on function public.mod_restaurar(v uuid, mensaje text) from public, anon, authenticated, service_role;
@@ -3196,6 +3346,8 @@ revoke all on function public.recompensas_de(v uuid) from public, anon, authenti
 grant execute on function public.recompensas_de(v uuid) to authenticated, service_role;
 revoke all on function public.reportar_vitrina(slug text, motivo text, detalle text) from public, anon, authenticated, service_role;
 grant execute on function public.reportar_vitrina(slug text, motivo text, detalle text) to authenticated, service_role;
+revoke all on function public.reportar_precio(p uuid, motivo text, detalle text) from public, anon, authenticated, service_role;
+grant execute on function public.reportar_precio(p uuid, motivo text, detalle text) to authenticated, service_role;
 revoke all on function public.responder_ronda(t uuid, respuestas jsonb) from public, anon, authenticated, service_role;
 grant execute on function public.responder_ronda(t uuid, respuestas jsonb) to authenticated, service_role;
 revoke all on function public.ronda_panel(r uuid) from public, anon, authenticated, service_role;

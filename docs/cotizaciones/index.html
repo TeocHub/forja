@@ -13,28 +13,66 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&display=swap">
 <link rel="stylesheet" href="../css/forja.css">
 <style>
-/* Layout: cotizaciones — una tarjeta por proyecto con sus piezas; los proyectos sin cotizar, como tarjetas punteadas para empezar */
+/* Layout: cotizaciones — dos mesas de tarjetas (las de tus proyectos y las que haces aparte, sin proyecto) y, debajo,
+   los precios de la comunidad: un estante de piezas que se tocan para ver sus talones, con buscador por proveedor. */
 
 .wrap{max-width:1040px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1{font-family:var(--f-display);font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0}
-h2{font-family:var(--f-display);font-size:19px;margin:28px 0 10px}
+h2{font-family:var(--f-display);font-size:20px;margin:0}
 .lead{margin:6px 0 0;color:var(--muted);max-width:62ch}
 :where(button,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.cots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:18px}
+.mesa{margin-top:26px}
+.mesa-cab{display:flex;align-items:baseline;justify-content:space-between;gap:4px 14px;flex-wrap:wrap}
+.mesa-cab p{margin:2px 0 0;color:var(--muted);font-size:14px;max-width:60ch}
+.cots{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:12px}
 .cot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-decoration:none;color:var(--fg);display:flex;flex-direction:column;gap:7px;border-top:4px solid var(--tc)}
 .cot:hover{border-color:var(--tc)}
-.cot h3{font-family:var(--f-display);font-size:17px;margin:0;line-height:1.2}
+.cot.aparte{--tc:var(--fg);border-top-style:dotted}
+.cot h3{font-family:var(--f-display);font-size:17px;margin:0;line-height:1.2;overflow-wrap:anywhere}
 .cot .fx-etq,.nueva .fx-etq{align-self:flex-start;font-size:12.5px;padding:3px 12px 3px 22px}
 .cot .fx-etq::before,.nueva .fx-etq::before{left:8px}
 .chips{display:flex;flex-wrap:wrap;gap:4px}
 .chips span{font-size:12px;border-radius:6px;padding:1px 7px;background:var(--field);border:1px solid var(--line)}
 .chips span.ok{border-color:var(--good);background:var(--good-soft)}
 .cot small{color:var(--muted);font-size:12px;margin-top:auto}
-.nueva{font:inherit;text-align:left;cursor:pointer;background:transparent;border:1.5px dashed var(--line);border-radius:14px;padding:14px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.nueva{font:inherit;text-align:left;cursor:pointer;background:transparent;border:1.5px dashed var(--line);border-radius:14px;padding:14px;color:var(--muted);display:flex;flex-direction:column;gap:4px;min-height:120px}
 .nueva b{color:var(--fg);font-family:var(--f-display);font-size:16px}
-.nueva:hover{border-color:var(--accent);color:var(--accent)}
-.vacio{border:1.5px dashed var(--line);border-radius:16px;padding:28px 22px;color:var(--muted);text-align:center;margin-top:18px}
-.extras{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.nueva:hover{border-color:var(--fg);color:var(--fg)}
+.nueva.grande{justify-content:center;align-items:flex-start;gap:6px}
+.nueva .mas{font:700 26px var(--f-num);line-height:1;color:var(--fg)}
+.vacio{border:1.5px dashed var(--line);border-radius:16px;padding:22px;color:var(--muted);text-align:center;margin-top:12px}
+.extras{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
+
+/* precios de la comunidad */
+.comu{margin-top:34px;background:var(--mesa);border-radius:18px;padding:18px 16px 20px}
+.estante{display:flex;gap:8px;overflow-x:auto;padding:12px 2px 6px;margin:0 -2px;scrollbar-width:thin;scroll-snap-type:x proximity}
+.pz{flex:0 0 auto;scroll-snap-align:start;font:inherit;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);white-space:nowrap}
+.pz span{font:600 12px var(--f-num);color:var(--muted)}
+.pz[aria-pressed="true"]{background:var(--btn);color:var(--btn-tx);border-color:var(--btn)}
+.pz[aria-pressed="true"] span{color:inherit;opacity:.75}
+.buscar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.buscar input{flex:1 1 220px;min-width:0;font:inherit;font-size:16px;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0 12px;min-height:44px}
+.buscar small{color:var(--muted);font-size:13px}
+.talones{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:14px}
+.comu .vacio{background:var(--card)}
+
+/* diálogo de cotización aparte */
+.dlg{border:0;border-radius:18px;padding:0;width:min(560px,94vw);max-height:92vh;background:var(--card);color:var(--fg);box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.dlg::backdrop{background:rgba(10,12,20,.55)}
+.dlg form{padding:22px;display:flex;flex-direction:column;gap:14px}
+.dlg h2{font-size:23px}
+.dlg p{margin:0;color:var(--muted);font-size:14.5px}
+.dlg label.f{display:flex;flex-direction:column;gap:5px;font-weight:700;font-size:14px}
+.dlg input[type=text]{font:inherit;font-size:16px;font-weight:400;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:0 12px;min-height:46px}
+.grupo{display:flex;flex-direction:column;gap:6px}
+.grupo small{font:500 11.5px var(--f-num);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.grupo div{display:flex;flex-wrap:wrap;gap:6px}
+.toca{font:inherit;font-size:14px;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.toca[aria-pressed="true"]{background:var(--btn);color:var(--btn-tx);border-color:var(--btn)}
+.piezas{display:flex;flex-direction:column;gap:12px;max-height:38vh;overflow:auto;padding:2px}
+.pie{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.pie button{font:inherit;font-size:15px;min-height:46px;padding:0 18px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.pie .si{background:var(--btn);color:var(--btn-tx);border-color:var(--btn);font-weight:700}
 </style>
 </head>
 <body>
@@ -43,10 +81,16 @@ h2{font-family:var(--f-display);font-size:19px;margin:28px 0 10px}
   <main id="app"><div class="fx-empty">Cargando…</div></main>
 </div>
 <script type="module">
-import { sb, $, esc, toast, hace, navApp, espacio, conSesion, limite, proximamente, activarAvisame, etiqueta } from "../js/forja.js";
+import { sb, $, esc, toast, hace, navApp, espacio, conSesion, limite, activarAvisame, etiqueta } from "../js/forja.js";
 import { TIPOS, tc } from "../js/guias.js";
-import { funcion, tarjetaFuncion, pendientes } from "../js/planes.js";
+import { tarjetaFuncion, pendientes } from "../js/planes.js";
+import { TIPOS as PIEZAS, nombrePieza } from "../js/piezas.js";
+import { CAMPOS_PRECIO, talon, reportarPrecio, estilosPrecios, misReportados } from "../js/precios.js";
 navApp("cotizaciones");
+estilosPrecios();
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+const plural = (n, a, b) => n + " " + (n === 1 ? a : b);
 
 conSesion($("app"), async () => {
   const ESP = await espacio();
@@ -56,28 +100,103 @@ conSesion($("app"), async () => {
   ]);
   if (p.error || c.error) throw p.error || c.error;
   const PROYS = p.data || [], COTS = c.data || [];
+  const DE_PROY = COTS.filter((k) => k.proyecto_id), APARTE = COTS.filter((k) => !k.proyecto_id);
   const sin = PROYS.filter((x) => x.estado !== "archivado" && !COTS.some((k) => k.proyecto_id === x.id));
+  // Precios que compartiste desde tus cotizaciones (para marcarlos como tuyos).
+  const MIOS = new Set(COTS.flatMap((k) => ((k.datos || {}).cotizaciones || []).map((q) => q.compartido).filter(Boolean)));
+
   const tarjeta = (k) => {
     const pr = PROYS.find((x) => x.id === k.proyecto_id), d = k.datos || {}, comps = d.componentes || [], qs = d.cotizaciones || [];
-    return '<a class="cot" href="../cotizador/?c=' + k.id + '" style="--tc:' + (pr ? tc(pr.tipo) : "var(--line)") + '">' +
-      (pr ? etiqueta(pr.tipo, TIPOS[pr.tipo]) : '<span class="fx-etq" style="--tc:var(--muted)">Sin proyecto</span>') + "<h3>" + esc(pr ? pr.nombre : k.nombre) + "</h3>" +
+    return '<a class="cot' + (pr ? "" : " aparte") + '" href="../cotizador/?c=' + k.id + '"' + (pr ? ' style="--tc:' + tc(pr.tipo) + '"' : "") + ">" +
+      (pr ? etiqueta(pr.tipo, TIPOS[pr.tipo]) : k.proyecto_id ? '<span class="fx-etq" style="--tc:var(--muted)">De otro espacio</span>' : '<span class="fx-etq" style="--tc:var(--muted)">Aparte</span>') +
+      "<h3>" + esc(pr ? pr.nombre : k.nombre) + "</h3>" +
       (comps.length ? '<div class="chips">' + comps.slice(0, 6).map((x) => '<span class="' + (qs.some((q) => q.compId === x.id) ? "ok" : "") + '">' + esc(x.nombre) + "</span>").join("") + (comps.length > 6 ? "<span>+" + (comps.length - 6) + "</span>" : "") + "</div>" : '<span style="font-size:13px;color:var(--muted)">Sin piezas todavía</span>') +
-      "<small>" + qs.length + (qs.length === 1 ? " precio de proveedor" : " precios de proveedores") + " · " + hace(k.actualizado_en) + "</small></a>";
+      "<small>" + plural(qs.length, "precio de proveedor", "precios de proveedores") + " · " + hace(k.actualizado_en) + "</small></a>";
   };
+
   $("app").innerHTML =
-    '<header><h1>Cotizaciones</h1><p class="lead">Una por proyecto: lo que cuesta producirlo pieza por pieza y a cuánto venderlo. Las piezas en verde ya tienen precio.</p></header>' +
-    (COTS.length || sin.length ? '<div class="cots">' + COTS.map(tarjeta).join("") +
+    '<header><h1>Cotizaciones</h1><p class="lead">Lo que cuesta producir algo pieza por pieza y a cuánto venderlo. Haz una por proyecto, o una aparte para anotar lo que te cotizó un proveedor sin crear un proyecto. Las piezas en verde ya tienen precio.</p></header>' +
+    '<section class="mesa"><div class="mesa-cab"><h2>De tus proyectos</h2></div>' +
+    (DE_PROY.length || sin.length ? '<div class="cots">' + DE_PROY.map(tarjeta).join("") +
       sin.map((x) => '<button type="button" class="nueva" data-p="' + x.id + '">' + etiqueta(x.tipo, TIPOS[x.tipo]) + "<b>" + esc(x.nombre) + "</b><span>+ Crear su cotización</span></button>").join("") + "</div>"
-      : '<div class="vacio">Aún no tienes proyectos. Planta uno en <a href="../proyectos/">Proyectos</a> y aquí aparecerá su cotización.</div>') +
-    '<h2>Más para tus costos</h2><div class="extras">' + tarjetaFuncion("campanas", COTS[0] ? "../cotizador/?c=" + COTS[0].id + "#campana" : null) + pendientes(["versiones-precio", "presupuesto-fondos"]).map((k) => tarjetaFuncion(k)).join("") + "</div>";
+      : '<div class="vacio">Aún no tienes proyectos en curso. Planta uno en <a href="../proyectos/">Proyectos</a> y aquí aparecerá su cotización.</div>') + "</section>" +
+    '<section class="mesa"><div class="mesa-cab"><div><h2>Aparte</h2><p>Para lo que cotizas por tu cuenta: una imprenta, un taller, un proveedor de merch. Más adelante la puedes ligar a un proyecto.</p></div></div>' +
+    '<div class="cots">' + APARTE.map(tarjeta).join("") +
+      '<button type="button" class="nueva grande" id="aparte"><span class="mas">+</span><b>Cotización aparte</b><span>Anota precios de proveedores sin crear un proyecto</span></button></div></section>' +
+    '<section class="comu" aria-labelledby="comu-t"><div class="mesa-cab"><div><h2 id="comu-t">Precios de la comunidad</h2><p>Lo que otras personas cotizaron y decidieron compartir, sin su nombre. Son referencias para saber dónde preguntar: pide siempre tu propio precio. Si algo parece falso o engañoso, repórtalo.</p></div></div>' +
+      '<div id="comu"><div class="fx-empty">Cargando precios…</div></div></section>' +
+    '<section class="mesa"><h2>Más para tus costos</h2><div class="extras">' + tarjetaFuncion("campanas", COTS[0] ? "../cotizador/?c=" + COTS[0].id + "#campana" : null) + pendientes(["versiones-precio", "presupuesto-fondos"]).map((k) => tarjetaFuncion(k)).join("") + "</div></section>";
   activarAvisame($("app"));
+
   $("app").querySelectorAll("[data-p]").forEach((b) => b.onclick = async () => {
     const pr = PROYS.find((x) => x.id === b.dataset.p);
     const { data, error } = await sb.from("cotizaciones").insert({ espacio_id: ESP, proyecto_id: pr.id, nombre: pr.nombre, datos: {} }).select("id").single();
     if (error) { toast(limite(error) || "No se pudo crear la cotización."); return; }
     location.href = "../cotizador/?c=" + data.id;
   });
+  $("aparte").onclick = () => dialogoAparte(ESP);
+  comunidad(MIOS);
 });
+
+// Nueva cotización aparte: un nombre y las piezas con las que parte (se pueden cambiar después en el cotizador).
+function dialogoAparte(ESP) {
+  let dl = $("dlg-aparte"); if (dl) dl.remove();
+  dl = document.createElement("dialog"); dl.id = "dlg-aparte"; dl.className = "dlg";
+  const grupos = {};
+  Object.entries(PIEZAS).forEach(([k, t]) => { if (!t.oculto) (grupos[t.g] = grupos[t.g] || []).push(k); });
+  dl.innerHTML = '<form><h2>Cotización aparte</h2><p>Ponle un nombre que te ayude a encontrarla, como el del proveedor o lo que vas a mandar a hacer.</p>' +
+    '<label class="f">Nombre<input type="text" name="n" maxlength="80" required placeholder="Ej.: Imprenta del barrio, pines para la feria"></label>' +
+    '<div class="f" style="font-weight:700;font-size:14px">¿Qué vas a cotizar? <span style="font-weight:400;color:var(--muted)">Toca una o varias piezas (opcional).</span></div>' +
+    '<div class="piezas">' + Object.entries(grupos).map(([g, ks]) => '<div class="grupo"><small>' + esc(g) + "</small><div>" + ks.map((k) => '<button type="button" class="toca" data-k="' + k + '" aria-pressed="false">' + esc(PIEZAS[k].nombre) + "</button>").join("") + "</div></div>").join("") + "</div>" +
+    '<div class="pie"><button type="button" class="no">Cancelar</button><button type="submit" class="si">Crear y abrir</button></div></form>';
+  document.body.appendChild(dl); dl.showModal();
+  const f = dl.querySelector("form");
+  dl.querySelectorAll(".toca").forEach((b) => b.onclick = () => b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")));
+  dl.querySelector(".no").onclick = () => dl.close();
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const nombre = f.n.value.trim(); if (!nombre) return;
+    const ks = [...dl.querySelectorAll('.toca[aria-pressed="true"]')].map((b) => b.dataset.k);
+    const datos = { nombre, cantidades: [10, 100, 500], dolar: null, dolarInfo: "", sinIva: false,
+      componentes: ks.map((k) => ({ id: uid(), tipo: k, nombre: PIEZAS[k].nombre, specs: {} })), cotizaciones: [] };
+    const si = f.querySelector(".si"); si.disabled = true;
+    const { data, error } = await sb.from("cotizaciones").insert({ espacio_id: ESP, proyecto_id: null, nombre, datos }).select("id").single();
+    if (error) { si.disabled = false; toast(limite(error) || "No se pudo crear la cotización."); return; }
+    location.href = "../cotizador/?c=" + data.id;
+  };
+}
+
+// Precios de la comunidad: estante de piezas (con cuántos precios tiene cada una) y talones.
+async function comunidad(MIOS) {
+  const box = $("comu");
+  const [{ data, error }, YA] = await Promise.all([sb.from("precios_comunidad").select(CAMPOS_PRECIO).order("creado_en", { ascending: false }).limit(400), misReportados()]);
+  if (error) { box.innerHTML = '<div class="vacio">No se pudieron cargar los precios. Revisa tu conexión.</div>'; return; }
+  let R = data || [], pieza = "", texto = "";
+  if (!R.length) { box.innerHTML = '<div class="vacio">Todavía nadie comparte precios. Cuando guardes el precio de un proveedor en una cotización, marca «Compartir» para que otras personas sepan dónde cotizar.</div>'; return; }
+  const cuenta = {};
+  R.forEach((r) => { cuenta[r.componente] = (cuenta[r.componente] || 0) + 1; });
+  const orden = Object.keys(cuenta).sort((a, b) => cuenta[b] - cuenta[a] || nombrePieza(a).localeCompare(nombrePieza(b)));
+  const plano = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  box.innerHTML = '<div class="estante" role="group" aria-label="Elegir pieza"><button type="button" class="pz" data-pz="" aria-pressed="true">Todas <span>' + R.length + "</span></button>" +
+    orden.map((k) => '<button type="button" class="pz" data-pz="' + esc(k) + '" aria-pressed="false">' + esc(nombrePieza(k)) + " <span>" + cuenta[k] + "</span></button>").join("") + "</div>" +
+    '<div class="buscar"><input type="search" id="comu-q" placeholder="Buscar proveedor o detalle" aria-label="Buscar proveedor o detalle"><small id="comu-n" aria-live="polite"></small></div><div class="talones" id="talones"></div>';
+  const pintar = () => {
+    const q = plano(texto);
+    const vis = R.filter((r) => (!pieza || r.componente === pieza) && (!q || plano(r.proveedor + " " + (r.especificaciones || "")).includes(q)));
+    $("comu-n").textContent = vis.length === R.length ? "" : vis.length ? vis.length + " de " + R.length : "";
+    $("talones").innerHTML = vis.length ? vis.slice(0, 120).map((r) => talon(r, { mio: MIOS.has(r.id), pieza: !pieza, reportado: YA.has(r.id) })).join("")
+      : '<div class="vacio" style="grid-column:1/-1">Nada con «' + esc(texto) + '». Prueba con otra palabra o elige otra pieza.</div>';
+  };
+  box.querySelectorAll("[data-pz]").forEach((b) => b.onclick = () => {
+    pieza = b.dataset.pz; box.querySelectorAll("[data-pz]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); pintar();
+  });
+  $("comu-q").oninput = (e) => { texto = e.target.value.trim(); pintar(); };
+  $("talones").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-reportar]"); if (!b) return;
+    if (await reportarPrecio(b.dataset.reportar, b.dataset.prov)) { YA.add(b.dataset.reportar); pintar(); }
+  });
+  pintar();
+}
 </script>
 </body>
 </html>
