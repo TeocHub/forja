@@ -10,53 +10,136 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&family=Familjen+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap">
 <link rel="stylesheet" href="../css/forja.css">
 <style>
-/* Layout: moderación — pestañas (reportes, mensajes, sugerencias, suspendidas, Explorar, correos, registro); cada caso es una tarjeta con sus pruebas y sus decisiones */
+/* Layout: moderación — al costado (arriba en tablet angosta y celular) las ocho pestañas con su ícono y lo pendiente; al centro
+   la pestaña abierta. Cada caso es un expediente sobre la mesa, con sus papeletas (reportes) y sus decisiones; los correos se
+   escriben a la izquierda y se ven a la derecha tal como llegan (correos.js, el mismo que usa la Edge Function). */
+.wrap{max-width:1320px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mod{display:grid;grid-template-columns:232px minmax(0,1fr);gap:28px;align-items:start}
+.m-lado{position:sticky;top:12px;display:flex;flex-direction:column;gap:14px;padding:18px 0;border-radius:14px;background:var(--mesa);border:1px solid var(--line)}
+.m-tit{padding:0 18px;display:flex;flex-direction:column;gap:2px}
+.m-tit small{font:400 11px var(--f-num);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.m-tit b{font-family:var(--f-display);font-weight:800;font-stretch:var(--ancho);font-size:22px;line-height:1.05}
+.m-tabs{display:flex;flex-direction:column;gap:4px}
+.m-tabs button{min-height:50px;margin-left:12px;margin-right:-1px;padding:0 14px;border:1px solid transparent;border-right:0;border-radius:10px 0 0 10px;background:transparent;color:var(--fg);display:flex;align-items:center;gap:10px;font:700 15px var(--f-body);text-align:left;cursor:pointer}
+.m-tabs button .fx-ico{color:var(--muted);flex:none}
+.m-tabs button:hover{background:color-mix(in srgb,var(--card) 55%,transparent)}
+.m-tabs button[aria-selected=true]{background:var(--bg);border-color:var(--line)}
+.m-tabs button[aria-selected=true] .fx-ico{color:var(--fg)}
+.m-tabs .co{display:none}
+.m-tabs .n{margin-left:auto;min-width:24px;height:22px;padding:0 7px;border-radius:6px;display:grid;place-items:center;font:700 12px var(--f-num);background:var(--btn);color:var(--btn-tx)}
+.m-cuerpo{display:flex;flex-direction:column;gap:18px;min-width:0}
+.m-cab{display:flex;flex-direction:column;gap:6px}
+.m-cab h1{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,4.6vw,44px);line-height:1.02;letter-spacing:-.03em;margin:0}
+.lead{margin:0;color:var(--muted);font-size:15px;max-width:72ch}
+@media (max-width:960px){
+  .mod{grid-template-columns:minmax(0,1fr);gap:16px}
+  .m-lado{top:0;z-index:6;flex-direction:row;align-items:center;padding:6px;overflow-x:auto;scrollbar-width:none;background:color-mix(in srgb,var(--mesa) 94%,transparent);backdrop-filter:blur(8px)}
+  .m-lado::-webkit-scrollbar{display:none}
+  .m-tit{display:none}
+  .m-tabs{flex-direction:row;gap:4px}
+  .m-tabs button{margin:0;border:1px solid transparent;border-radius:10px;white-space:nowrap;min-height:46px;font-size:14px;padding:0 12px}
+}
+@media (max-width:560px){.m-tabs .lg{display:none}.m-tabs .co{display:inline}.m-tabs button{flex-direction:column;justify-content:center;gap:2px;font-size:11.5px;min-width:72px;padding:4px 6px;position:relative}.m-tabs .n{position:absolute;top:3px;right:6px;height:18px;min-width:18px;font-size:10.5px;padding:0 4px}}
 
-.wrap{max-width:1040px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-:where(button,a,select,textarea):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-h1{font-family:var(--f-display);font-size:clamp(26px,5vw,34px);margin:0}
-.lead{margin:4px 0 0;color:var(--muted);max-width:66ch}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 14px}
-.tabs button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:6px 14px;cursor:pointer}
-.tabs button[aria-selected=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.tabs b{font-family:var(--f-num);font-size:12px;margin-left:5px;padding:0 6px;border-radius:10px;background:var(--ember);color:var(--card)}
-.caso{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
-.caso-cab{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
-.caso h2{font-family:var(--f-display);font-size:19px;margin:0}
-.caso h2 small{font-family:var(--f-num);font-weight:500;font-size:12px;color:var(--muted);margin-left:6px}
-.tag{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 9px;border:1px solid var(--line);color:var(--muted)}
-.tag.mal{color:var(--bad);border-color:var(--bad)}
-.rep{border-left:3px solid var(--line);padding:4px 0 4px 12px;display:flex;flex-direction:column;gap:3px}
-.rep b{font-size:14px}
-.rep p{margin:0;white-space:pre-wrap}
-.rep small{color:var(--muted);font-size:12.5px}
-.rep .sosp{color:var(--e-pausa);font-weight:700}
-.acc{display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:10px}
-.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:9px;padding:6px 12px;cursor:pointer;text-decoration:none}
-.btn:hover{border-color:var(--accent)}
+/* expedientes y papeletas */
+.mesa{display:flex;flex-direction:column;gap:16px}
+.caso{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px}
+.caso-cab{display:flex;justify-content:space-between;gap:8px 14px;align-items:flex-start;flex-wrap:wrap}
+.caso-cab>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ficha{font:400 11.5px var(--f-num);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.caso h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.15;margin:0;overflow-wrap:anywhere}
+.timbre{display:inline-flex;align-items:center;font:700 11px var(--f-num);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:2px solid currentColor;outline:1px solid currentColor;outline-offset:2px;border-radius:4px;padding:3px 9px 2px;margin:3px;transform:rotate(-2.5deg);white-space:nowrap}
+.timbre.tinta{color:var(--fg);transform:rotate(1.5deg)}
+.timbre.mal{color:var(--bad)}
+.timbre.ojo{color:var(--warn)}
+.papeles{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:12px;border-radius:12px;background:var(--mesa)}
+.papeleta{position:relative;background:var(--card);border:1px solid var(--line);border-left:3px dashed var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:5px;box-shadow:0 4px 10px var(--sombra)}
+.papeleta:nth-child(2n){transform:rotate(.6deg)}.papeleta:nth-child(2n+1){transform:rotate(-.5deg)}
+.papeleta b{font-family:var(--f-display);font-weight:800;font-size:16px}
+.papeleta p{margin:0;white-space:pre-wrap;font-size:14.5px}
+.papeleta small{color:var(--muted);font-size:12.5px}
+.papeleta .sosp{color:var(--warn);font-weight:700}
+.carta{margin:0;white-space:pre-wrap;background:var(--mesa);border-radius:10px;padding:14px 16px;font-size:15px;line-height:1.55;border-left:3px solid var(--line)}
+.carta.nota{border-left-color:var(--bad)}
+.carta.nota b{display:block;font:700 11px var(--f-num);letter-spacing:.1em;text-transform:uppercase;color:var(--bad);margin-bottom:4px}
+.acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:12px}
+.acc.sin{border:0;padding:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:14px;min-height:40px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:0 14px;cursor:pointer;text-decoration:none}
+.btn:hover{border-color:var(--fg)}
 .btn.peligro{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
-.btn.prim{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
-.btn:disabled{opacity:.5}
-.forma{display:flex;flex-direction:column;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}
-.forma label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
-.forma select,.forma textarea{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:7px 9px}
-.forma textarea{min-height:110px;resize:vertical}
-.forma .campo{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:7px 9px}
-.forma b{font-size:14px;margin-top:6px}
-.check-l{flex-direction:row!important;align-items:center;gap:8px!important;color:var(--fg)!important;font-size:14px!important}
-.lead{margin:0;color:var(--muted);font-size:14px}
-.vacio{border:1.5px dashed var(--line);border-radius:16px;padding:28px;text-align:center;color:var(--muted)}
-.texto{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:10px 12px;margin:0}
-.reg{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 12px;font-size:14px}
-.reg span{font-family:var(--f-num);font-size:12px;color:var(--muted)}
-dialog.ver{border:0;padding:0;width:min(1000px,96vw);height:90vh;border-radius:16px;overflow:hidden}
-dialog.ver::backdrop{background:rgba(10,12,20,.6)}
-.ver-cab{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--fg);color:var(--bg);font-size:13px}
-.ver-cab button{font:inherit;border:0;background:none;color:inherit;font-size:22px;cursor:pointer}
-#ver-c{height:calc(90vh - 42px);overflow:auto}
+.btn.prim{background:var(--btn);color:var(--btn-tx);border-color:var(--btn);font-weight:700}
+.btn:disabled{opacity:.5;cursor:default}
+.btn .fx-ico{width:17px;height:17px}
+/* botones que timbran una decisión (sugerencias) */
+.sellos{display:flex;gap:10px;flex-wrap:wrap}
+.sello{font:700 12px var(--f-num);letter-spacing:.1em;text-transform:uppercase;min-height:42px;padding:0 14px;border:2px solid currentColor;outline:1px solid currentColor;outline-offset:2px;border-radius:4px;background:transparent;cursor:pointer;color:var(--muted);margin:3px}
+.sello.si{color:var(--fg);transform:rotate(-1.5deg)}
+.sello:hover{background:var(--suave)}
+.forma{display:flex;flex-direction:column;gap:10px;background:var(--mesa);border:1px solid var(--line);border-radius:12px;padding:14px}
+.forma label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:700;color:var(--fg)}
+.forma label small{font-weight:400;color:var(--muted)}
+.forma select,.forma textarea,.forma .campo{font:inherit;font-size:15px;font-weight:400;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:9px 11px;min-height:44px}
+.forma textarea{min-height:110px;resize:vertical;line-height:1.5}
+.forma .sub{font:700 11px var(--f-num);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.marcas{display:flex;flex-wrap:wrap;gap:8px}
+.marca-l{display:inline-flex;align-items:center;gap:8px;min-height:40px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 12px;font-size:14px;font-weight:400!important;cursor:pointer;flex-direction:row!important}
+.marca-l:has(input:checked){border-color:var(--fg);background:var(--suave)}
+.marca-l input{width:18px;height:18px;accent-color:var(--fg);margin:0}
+.marca-l small{font-family:var(--f-num);font-size:11.5px;color:var(--muted)}
+.vacio{border:1.5px dashed var(--line);border-radius:14px;padding:36px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
+.vacio .fx-ico{width:30px;height:30px;color:var(--muted)}
+.vacio b{color:var(--fg);font-family:var(--f-display);font-weight:800;font-size:18px}
+/* números grandes (estado de envíos, áreas de sugerencias, cuentas inactivas) */
+.cifras{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.cifra{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.cifra b{font:600 28px var(--f-num);line-height:1.1}
+.cifra span{font-size:13px;color:var(--muted)}
+.cifra.mal b{color:var(--bad)}
+.h2s{font-family:var(--f-display);font-weight:800;font-size:22px;margin:10px 0 0}
+/* registro: una bitácora con renglones */
+.bitacora{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 18px}
+.renglon{display:grid;grid-template-columns:132px minmax(0,1fr);gap:4px 14px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.renglon:last-child{border-bottom:0}
+.renglon time{font:400 12px var(--f-num);color:var(--muted);padding-top:2px}
+.dia{font:700 11px var(--f-num);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:14px 0 4px;border-bottom:1px solid var(--line)}
+@media (max-width:560px){.renglon{grid-template-columns:minmax(0,1fr)}}
+/* escribir un correo y verlo como llega */
+.taller-c{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:16px;align-items:start}
+@media (max-width:1100px){.taller-c{grid-template-columns:minmax(0,1fr)}}
+.pv{position:sticky;top:12px;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--mesa)}
+@media (max-width:1100px){.pv{position:static}}
+.pv-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 12px;padding:10px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+.pv-as{display:flex;flex-direction:column;min-width:0;flex:1 1 220px}
+.pv-as small{font:400 10.5px var(--f-num);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.pv-as b{font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv-op{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.pv-op button{font:inherit;font-size:13px;min-height:36px;padding:0 11px;border:0;border-left:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.pv-op button:first-child{border-left:0}
+.pv-op button[aria-pressed=true]{background:var(--btn);color:var(--btn-tx);font-weight:700}
+.pv-marco{padding:14px;display:flex;justify-content:center;max-height:780px;overflow:auto}
+.pv-marco iframe{display:block;width:100%;max-width:640px;border:0;border-radius:8px;background:#F4F4F2;min-height:300px}
+.pv.cel .pv-marco iframe{max-width:375px;box-shadow:0 0 0 8px #161616,0 10px 30px var(--sombra);border-radius:22px}
+.pv pre{margin:0;width:100%;white-space:pre-wrap;font:400 13px/1.55 var(--f-num);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
+.pv-nota{margin:0;padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);background:var(--card)}
+/* pasos de una versión de los documentos: Revisar → Probar → Avisar, como tres marcas de una regla */
+.pasos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--field)}
+.paso{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-left:1px solid var(--line);color:var(--muted);font-size:13px}
+.paso:first-child{border-left:0}
+.paso i{display:block;width:2px;height:10px;background:currentColor;margin-bottom:4px}
+.paso b{font-family:var(--f-display);font-weight:800;font-size:15px;color:inherit}
+.paso.ya{color:var(--fg);background:var(--suave)}.paso.ya i{height:16px}
+.paso.aqui{color:var(--fg)}.paso.aqui i{height:22px;background:var(--cat)}
+details.ver-correo>summary{list-style:none;cursor:pointer;display:inline-flex}
+details.ver-correo>summary::-webkit-details-marker{display:none}
+details.ver-correo[open]>summary{margin-bottom:12px}
+dialog.ver{border:0;padding:0;width:min(1000px,96vw);height:90vh;border-radius:14px;overflow:hidden;background:var(--card)}
+dialog.ver::backdrop{background:rgba(18,18,18,.6)}
+.ver-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:var(--btn);color:var(--btn-tx);font:400 12px var(--f-num);letter-spacing:.06em;text-transform:uppercase}
+.ver-cab button{font:inherit;border:0;background:none;color:inherit;font-size:24px;min-width:44px;min-height:40px;cursor:pointer}
+#ver-c{height:calc(90vh - 52px);overflow:auto}
 </style>
 </head>
 <body>
@@ -66,9 +149,10 @@ dialog.ver::backdrop{background:rgba(10,12,20,.6)}
 </div>
 <dialog class="ver" id="ver"><div class="ver-cab"><span id="ver-t">Vista de moderación</span><button type="button" id="ver-x" aria-label="Cerrar">×</button></div><div id="ver-c"></div></dialog>
 <script type="module">
-import { sb, $, esc, toast, navApp, conSesion, limite, hace, u, NOMBRE_DOC, fechaDia } from "../js/forja.js";
+import { sb, $, esc, toast, navApp, conSesion, limite, hace, u, NOMBRE_DOC, fechaDia, ico, ICONOS } from "../js/forja.js";
 import { pintarVitrina, CSS_VITRINA } from "../js/vitrina.js";
 import { FUNCIONES, AREAS, AREAS_SUGERENCIA } from "../js/planes.js";
+import { armar } from "../js/correos.js";
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_VITRINA + "</style>");
 navApp(null);
 const MOTIVOS = { estafa: "Estafa o engaño", ofensivo: "Odio, acoso o violencia", menores: "Pone en riesgo a menores", derechos: "Obras ajenas como propias", datos: "Datos personales de otros", spam: "Spam o enlaces dañinos", otro: "Otra cosa" };
@@ -82,49 +166,67 @@ const PLANTILLA = {
   spam: "Tu vitrina parece estar vacía, repetida o pensada para promocionar otra cosa. Agrega el contenido real de tu proyecto para publicarla de nuevo.",
   otro: "",
 };
-let D = null, pest = "reportes";
+// Íconos propios de Moderación, dibujados como los de taller (trazo, puntas redondas).
+const MI = { bandera: "M5 21V4 M5 4h11l-2 4 2 4H5", sobre: "M3 6h18v12H3z M3 6l9 7 9-7", papeleta: "M6 3h12v18l-3-2-3 2-3-2-3 2z M9 8h6 M9 12h6",
+  avion: "M21 3L3 10.5l7 2.5 2.5 7z M10 13l5-5", hoja: "M6 3h9l4 4v14H6z M14.5 3v4.5H19 M9 12h7 M9 16h5", reloj: "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M12 7v5l3 2" };
+Object.assign(ICONOS, MI);
+// Las ocho pestañas: nombre, ícono y para qué sirve.
+const TABS = [
+  ["reportes", "Reportes", "bandera", "Vitrinas que alguien reportó. Nada se oculta solo: mira las pruebas y decide."],
+  ["mensajes", "Mensajes y apelaciones", "sobre", "Lo que escriben desde Mi cuenta y las apelaciones de vitrinas suspendidas. La respuesta les llega como aviso."],
+  ["sugerencias", "Sugerencias", "papeleta", "Ideas de la comunidad desde la casilla de Planes. Tímbralas y, si quieres, responde."],
+  ["suspendidas", "Suspendidas", "pausa", "Vitrinas que no se pueden ver ni publicar hasta que se restauren."],
+  ["explorar", "En Explorar", "brujula", "Las vitrinas que hoy aparecen en Explorar."],
+  ["correos", "Correos", "avion", "Avisos de herramientas listas y el boletín. Escribe a la izquierda y mira a la derecha cómo llega."],
+  ["documentos", "Documentos", "hoja", "Versiones de los documentos legales y cuentas inactivas. Ninguna versión se publica sin avisarla antes a todas las cuentas."],
+  ["registro", "Registro", "reloj", "Cada decisión queda anotada aquí."],
+];
+let D = null, pest = (location.hash.slice(1) && TABS.some((t) => t[0] === location.hash.slice(1))) ? location.hash.slice(1) : "reportes";
 
 conSesion($("app"), async () => {
   const { data: adm } = await sb.rpc("soy_admin");
-  if (adm !== true) { $("app").innerHTML = '<div class="vacio">Esta página es solo para el equipo de moderación de Forja.</div>'; return; }
+  if (adm !== true) { $("app").innerHTML = vacio("bandera", "Solo para moderación", "Esta página es solo para el equipo de moderación de Forja."); return; }
   await cargar();
 });
 async function cargar() {
   const { data, error } = await sb.rpc("mod_panel");
-  if (error) { $("app").innerHTML = '<div class="vacio">No se pudo cargar el panel: ' + esc(error.message) + "</div>"; return; }
+  if (error) { $("app").innerHTML = vacio("bandera", "No se pudo cargar el panel", error.message); return; }
   D = data; pintar();
 }
-const TABS = [["reportes", "Reportes"], ["mensajes", "Mensajes y apelaciones"], ["sugerencias", "Sugerencias"], ["suspendidas", "Suspendidas"], ["explorar", "En Explorar"], ["correos", "Correos"], ["documentos", "Documentos"], ["registro", "Registro"]];
+const vacio = (i, t, x) => '<div class="vacio">' + ico(i, 30) + "<b>" + esc(t) + "</b>" + (x ? "<span>" + esc(x) + "</span>" : "") + "</div>";
+const num = (n) => String(n).padStart(2, "0");
 function pintar() {
   const n = { reportes: D.reportes.length, mensajes: D.mensajes.length, sugerencias: (D.sugerencias || []).length };
-  $("app").innerHTML = "<h1>Moderación</h1><p class=\"lead\">Cada decisión la toma una persona y queda en el registro. Al suspender, explica siempre el porqué: el dueño lo recibe como aviso y puede apelar.</p>" +
-    '<div class="tabs" role="tablist">' + TABS.map(([k, t]) => '<button type="button" role="tab" data-t="' + k + '" aria-selected="' + (k === pest) + '">' + t + (n[k] ? "<b>" + n[k] + "</b>" : "") + "</button>").join("") + '</div><div id="lista"></div>';
-  $("app").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { pest = b.dataset.t; pintar(); });
+  const t = TABS.find((x) => x[0] === pest);
+  $("app").innerHTML = '<div class="mod"><aside class="m-lado" aria-label="Pestañas de moderación"><div class="m-tit"><small>Forja</small><b>Moderación</b></div>' +
+    '<div class="m-tabs" role="tablist" aria-orientation="vertical">' + TABS.map(([k, nombre, i]) => '<button type="button" role="tab" id="tab-' + k + '" aria-controls="lista" data-t="' + k + '" aria-selected="' + (k === pest) + '">' + ico(i, 21) + '<span class="lg">' + nombre + '</span><span class="co">' + nombre.split(" ").pop() .replace(/^apelaciones$/, "Mensajes") + "</span>" + (n[k] ? '<span class="n" aria-label="' + n[k] + ' pendientes">' + n[k] + "</span>" : "") + "</button>").join("") + "</div></aside>" +
+    '<div class="m-cuerpo"><header class="m-cab"><h1>' + t[1] + '</h1><p class="lead">' + t[3] + '</p></header><div id="lista" role="tabpanel" aria-labelledby="tab-' + pest + '"></div></div></div>';
+  $("app").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { pest = b.dataset.t; history.replaceState(null, "", "#" + pest); pintar(); });
   ({ reportes, mensajes, sugerencias, suspendidas, explorar, correos, documentos, registro })[pest]();
 }
-const verBtn = (id, t) => '<button type="button" class="btn" data-ver="' + id + '" data-tt="' + esc(t || "") + '">Ver vitrina</button>';
+const verBtn = (id, t) => '<button type="button" class="btn" data-ver="' + id + '" data-tt="' + esc(t || "") + '">' + ico("ojo", 17) + "Ver vitrina</button>";
 function enlazarVer() {
   $("lista").querySelectorAll("[data-ver]").forEach((b) => b.onclick = async () => {
     const { data, error } = await sb.rpc("mod_vitrina", { v: b.dataset.ver });
     if (error || !data) { toast("No se pudo abrir la vitrina."); return; }
-    $("ver-t").textContent = "Vista de moderación · " + (b.dataset.tt || data.slug) + (data.suspendida ? " · SUSPENDIDA" : "");
+    $("ver-t").textContent = "Vista de moderación · " + (b.dataset.tt || data.slug) + (data.suspendida ? " · suspendida" : "");
     $("ver").showModal(); pintarVitrina($("ver-c"), data.datos, { previa: true });
   });
 }
 $("ver-x").onclick = () => $("ver").close();
 
+/* ---------- reportes: cada vitrina es un expediente con sus papeletas ---------- */
 function reportes() {
-  if (!D.reportes.length) { $("lista").innerHTML = '<div class="vacio">No hay reportes pendientes.</div>'; return; }
-  $("lista").innerHTML = D.reportes.map((c) => {
-    return '<article class="caso" data-v="' + c.vitrina_id + '"><div class="caso-cab"><h2>' + esc(c.titulo || "Sin título") + "<small>" + esc(c.slug) + "</small></h2>" +
-      (c.suspendida ? '<span class="tag mal">Suspendida</span>' : c.en_explorar ? '<span class="tag">En Explorar</span>' : '<span class="tag">Solo enlace</span>') + "</div>" +
-      c.reportes.map((r) => { const h = r.historial || {}, sosp = (h.mala_fe || 0) > 0 || (h.desestimados || 0) >= 3 || (r.cuenta_dias || 0) < 3;
-        return '<div class="rep"><b>' + esc(MOTIVOS[r.motivo] || r.motivo) + "</b>" + (r.detalle ? "<p>" + esc(r.detalle) + "</p>" : "") +
-          "<small>Quien reporta: cuenta " + esc(r.autor) + "… de " + (r.cuenta_dias ?? "?") + " días · antes: " + (h.aceptados || 0) + " aceptados, " + (h.desestimados || 0) + " desestimados, " + (h.mala_fe || 0) + " de mala fe · " + hace(r.creado_en) + "</small>" +
-          (sosp ? '<small class="sosp">Ojo: revisa con cuidado (cuenta nueva o historial de reportes desestimados).</small>' : "") + "</div>"; }).join("") +
+  if (!D.reportes.length) { $("lista").innerHTML = vacio("bandera", "No hay reportes pendientes", "Cuando alguien reporte una vitrina, aparece aquí."); return; }
+  $("lista").innerHTML = '<div class="mesa">' + D.reportes.map((c, i) =>
+    '<article class="caso" data-v="' + c.vitrina_id + '"><div class="caso-cab"><div><span class="ficha">Expediente N.º ' + num(i + 1) + " · " + esc(c.slug) + " · " + c.reportes.length + (c.reportes.length === 1 ? " reporte" : " reportes") + "</span><h2>" + esc(c.titulo || "Sin título") + "</h2></div>" +
+      (c.suspendida ? '<span class="timbre mal">Suspendida</span>' : c.en_explorar ? '<span class="timbre tinta">En Explorar</span>' : '<span class="timbre">Solo enlace</span>') + "</div>" +
+      '<div class="papeles">' + c.reportes.map((r) => { const h = r.historial || {}, sosp = (h.mala_fe || 0) > 0 || (h.desestimados || 0) >= 3 || (r.cuenta_dias || 0) < 3;
+        return '<div class="papeleta"><b>' + esc(MOTIVOS[r.motivo] || r.motivo) + "</b>" + (r.detalle ? "<p>" + esc(r.detalle) + "</p>" : "") +
+          "<small>Cuenta " + esc(r.autor) + "… de " + (r.cuenta_dias ?? "?") + " días · " + hace(r.creado_en) + "</small><small>Antes: " + (h.aceptados || 0) + " aceptados, " + (h.desestimados || 0) + " desestimados, " + (h.mala_fe || 0) + " de mala fe</small>" +
+          (sosp ? '<small class="sosp">Ojo: cuenta nueva o con reportes desestimados. Revisa con cuidado.</small>' : "") + "</div>"; }).join("") + "</div>" +
       '<div class="acc">' + verBtn(c.vitrina_id, c.titulo) + '<button type="button" class="btn" data-res="desestimado">No infringe</button><button type="button" class="btn" data-res="mala_fe">Reportes de mala fe</button>' +
-      (c.en_explorar ? '<button type="button" class="btn" data-fuera>Sacar de Explorar…</button>' : "") + '<button type="button" class="btn peligro" data-susp>Suspender…</button></div><div class="f"></div></article>';
-  }).join("");
+      (c.en_explorar ? '<button type="button" class="btn" data-fuera>Sacar de Explorar…</button>' : "") + '<button type="button" class="btn peligro" data-susp>Suspender…</button></div><div class="f"></div></article>').join("") + "</div>";
   enlazarVer();
   $("lista").querySelectorAll("[data-res]").forEach((b) => b.onclick = async () => {
     const v = b.closest("[data-v]").dataset.v;
@@ -139,8 +241,8 @@ function reportes() {
 function formSuspender(caso) {
   const f = caso.querySelector(".f"), motivoInicial = (D.reportes.find((c) => c.vitrina_id === caso.dataset.v)?.reportes[0] || {}).motivo || "otro";
   f.innerHTML = '<div class="forma"><label>Motivo<select id="s-m">' + Object.entries(MOTIVOS).map(([k, n]) => '<option value="' + k + '"' + (k === motivoInicial ? " selected" : "") + ">" + n + "</option>").join("") + "</select></label>" +
-    '<label>Mensaje para el dueño (lo recibe tal cual, explica qué cambiar)<textarea id="s-t">' + esc(PLANTILLA[motivoInicial]) + "</textarea></label>" +
-    '<div class="acc" style="border:0;padding:0"><button type="button" class="btn" id="s-no">Cancelar</button><button type="button" class="btn peligro" id="s-si">Suspender y avisar</button></div></div>';
+    '<label>Mensaje para el dueño <small>Lo recibe tal cual como aviso: explica qué tiene que cambiar.</small><textarea id="s-t">' + esc(PLANTILLA[motivoInicial]) + "</textarea></label>" +
+    '<div class="acc sin"><button type="button" class="btn" id="s-no">Cancelar</button><button type="button" class="btn peligro" id="s-si">Suspender y avisar</button></div></div>';
   f.querySelector("#s-m").onchange = (e) => { f.querySelector("#s-t").value = PLANTILLA[e.target.value]; };
   f.querySelector("#s-no").onclick = () => { f.innerHTML = ""; };
   f.querySelector("#s-si").onclick = async () => {
@@ -149,11 +251,12 @@ function formSuspender(caso) {
     if (error) { toast(limite(error) || error.message); return; }
     toast("Vitrina suspendida. El dueño recibió el aviso."); await cargar();
   };
+  f.querySelector("#s-t").focus();
 }
 function formExplorar(caso, mostrar = false) {
   const f = caso.querySelector(".f");
-  f.innerHTML = '<div class="forma"><label>Mensaje para el dueño (opcional)<textarea id="e-t">' + (mostrar ? "" : "Tu vitrina no cumple por ahora con lo necesario para aparecer en Explorar. Sigue visible para quien tenga su enlace.") + "</textarea></label>" +
-    '<div class="acc" style="border:0;padding:0"><button type="button" class="btn" id="e-no">Cancelar</button><button type="button" class="btn prim" id="e-si">' + (mostrar ? "Permitir de nuevo" : "Sacar de Explorar") + "</button></div></div>";
+  f.innerHTML = '<div class="forma"><label>Mensaje para el dueño <small>Opcional.</small><textarea id="e-t">' + (mostrar ? "" : "Tu vitrina no cumple por ahora con lo necesario para aparecer en Explorar. Sigue visible para quien tenga su enlace.") + "</textarea></label>" +
+    '<div class="acc sin"><button type="button" class="btn" id="e-no">Cancelar</button><button type="button" class="btn prim" id="e-si">' + (mostrar ? "Permitir de nuevo" : "Sacar de Explorar") + "</button></div></div>";
   f.querySelector("#e-no").onclick = () => { f.innerHTML = ""; };
   f.querySelector("#e-si").onclick = async () => {
     const { error } = await sb.rpc("mod_explorar", { v: caso.dataset.v, mostrar, mensaje: f.querySelector("#e-t").value.trim() });
@@ -161,15 +264,16 @@ function formExplorar(caso, mostrar = false) {
     toast(mostrar ? "Puede volver a Explorar." : "Fuera de Explorar. Se avisó al dueño."); await cargar();
   };
 }
+/* ---------- mensajes: cartas con su respuesta ---------- */
 function mensajes() {
-  if (!D.mensajes.length) { $("lista").innerHTML = '<div class="vacio">No hay mensajes abiertos.</div>'; return; }
+  if (!D.mensajes.length) { $("lista").innerHTML = vacio("sobre", "No hay mensajes abiertos", "Los mensajes de Mi cuenta → Escríbenos y las apelaciones llegan aquí."); return; }
   const T = { apelacion: "Apelación", privacidad: "Datos personales", contacto: "Contacto" };
-  $("lista").innerHTML = D.mensajes.map((m) => '<article class="caso" data-m="' + m.id + '"' + (m.vitrina ? ' data-v="' + m.vitrina.id + '"' : "") + '><div class="caso-cab"><h2>' + T[m.tipo] + "<small>cuenta " + esc(m.autor) + "… · " + hace(m.creado_en) + "</small></h2>" +
-    (m.tipo === "privacidad" ? '<span class="tag mal">Plazo legal: 30 días</span>' : "") + "</div>" +
-    (m.vitrina && m.vitrina.suspension ? '<p class="texto"><b>Se suspendió por:</b> ' + esc(MOTIVOS[m.vitrina.suspension.motivo] || "") + "\n" + esc(m.vitrina.suspension.mensaje || "") + "</p>" : "") +
-    '<p class="texto">' + esc(m.texto) + "</p>" +
-    '<div class="forma"><label>Respuesta (le llega como aviso)<textarea class="r-t"></textarea></label><div class="acc" style="border:0;padding:0">' + (m.vitrina ? verBtn(m.vitrina.id, m.vitrina.slug) : "") +
-    '<button type="button" class="btn prim" data-resp>Responder</button>' + (m.vitrina && m.vitrina.suspendida ? '<button type="button" class="btn" data-rest>Aceptar apelación: restaurar y responder</button>' : "") + "</div></div></article>").join("");
+  $("lista").innerHTML = '<div class="mesa">' + D.mensajes.map((m, i) => '<article class="caso" data-m="' + m.id + '"' + (m.vitrina ? ' data-v="' + m.vitrina.id + '"' : "") + '><div class="caso-cab"><div><span class="ficha">Carta N.º ' + num(i + 1) + " · cuenta " + esc(m.autor) + "… · " + hace(m.creado_en) + "</span><h2>" + T[m.tipo] + (m.vitrina ? " · " + esc(m.vitrina.slug) : "") + "</h2></div>" +
+    (m.tipo === "privacidad" ? '<span class="timbre mal">Plazo legal: 30 días</span>' : m.tipo === "apelacion" ? '<span class="timbre tinta">Apelación</span>' : '<span class="timbre">Contacto</span>') + "</div>" +
+    (m.vitrina && m.vitrina.suspension ? '<p class="carta nota"><b>Se suspendió por: ' + esc(MOTIVOS[m.vitrina.suspension.motivo] || "") + "</b>" + esc(m.vitrina.suspension.mensaje || "") + "</p>" : "") +
+    '<p class="carta">' + esc(m.texto) + "</p>" +
+    '<div class="forma"><label>Respuesta <small>Le llega como aviso dentro de Forja.</small><textarea class="r-t"></textarea></label><div class="acc sin">' + (m.vitrina ? verBtn(m.vitrina.id, m.vitrina.slug) : "") +
+    '<button type="button" class="btn prim" data-resp>Responder</button>' + (m.vitrina && m.vitrina.suspendida ? '<button type="button" class="btn" data-rest>Aceptar la apelación: restaurar y responder</button>' : "") + "</div></div></article>").join("") + "</div>";
   enlazarVer();
   $("lista").querySelectorAll("[data-resp], [data-rest]").forEach((b) => b.onclick = async () => {
     const c = b.closest("[data-m]"), t = c.querySelector(".r-t").value.trim();
@@ -181,19 +285,19 @@ function mensajes() {
     toast("Respuesta enviada."); await cargar();
   });
 }
-/* ---------- sugerencias de la comunidad (casilla de planes/) ---------- */
+/* ---------- sugerencias de la comunidad (casilla de planes/): papeletas que se timbran ---------- */
 const TEMA_SUG = { ...Object.fromEntries(AREAS.map((a) => [a.k, a.n])), ...AREAS_SUGERENCIA };
-const EST_SUG = { leida: "Leída", anotada: "Anotada", descartada: "Por ahora no" };
+const EST_SUG = { leida: "Leída", anotada: "La anotamos", descartada: "Por ahora no" };
 function sugerencias() {
   const S = D.sugerencias || [], V = D.sugerencias_vistas || [], A = D.sugerencias_areas || {};
-  const resumen = Object.keys(A).length ? '<p class="lead" style="margin:0 0 12px">Sin contar las descartadas: ' + Object.entries(A).sort((x, y) => y[1] - x[1]).map(([k, c]) => esc(TEMA_SUG[k] || k) + " <b>" + c + "</b>").join(" · ") + "</p>" : "";
-  $("lista").innerHTML = resumen + (S.length ? S.map((s) => '<article class="caso" data-s="' + s.id + '"><div class="caso-cab"><h2>' + esc(TEMA_SUG[s.area] || s.area) + "<small>cuenta " + esc(s.autor) + "… de " + (s.cuenta_dias ?? "?") + (s.cuenta_dias === 1 ? " día · " : " días · ") + s.del_autor + (s.del_autor === 1 ? " sugerencia" : " sugerencias") + " · " + hace(s.creado_en) + "</small></h2></div>" +
-    '<p class="texto">' + esc(s.texto) + "</p>" +
-    '<div class="forma"><label>Respuesta (opcional; le llega como aviso)<textarea class="r-t" style="min-height:70px" placeholder="Ej.: La anotamos para el Taller. ¡Gracias por escribir!"></textarea></label>' +
-    '<div class="acc" style="border:0;padding:0"><button type="button" class="btn prim" data-est="anotada">La anotamos</button><button type="button" class="btn" data-est="leida">Leída</button><button type="button" class="btn" data-est="descartada">Por ahora no</button></div></div></article>').join("")
-    : '<div class="vacio">No hay sugerencias nuevas.</div>') +
-    (V.length ? '<h2 style="font-family:var(--f-display);font-size:18px;margin:22px 0 10px">Revisadas hace poco</h2>' + V.map((s) => '<article class="caso"><div class="caso-cab"><h2>' + esc(TEMA_SUG[s.area] || s.area) + "<small>" + hace(s.revisado_en) + '</small></h2><span class="tag">' + EST_SUG[s.estado] + "</span></div>" +
-      '<p class="texto">' + esc(s.texto) + "</p>" + (s.respuesta ? '<p class="lead" style="margin:0"><b>Respondimos:</b> ' + esc(s.respuesta) + "</p>" : "") + "</article>").join("") : "");
+  const resumen = Object.keys(A).length ? '<div class="cifras" aria-label="Sugerencias por área, sin contar las descartadas">' + Object.entries(A).sort((x, y) => y[1] - x[1]).map(([k, c]) => '<div class="cifra"><b>' + c + "</b><span>" + esc(TEMA_SUG[k] || k) + "</span></div>").join("") + "</div>" : "";
+  $("lista").innerHTML = '<div class="mesa">' + resumen + (S.length ? S.map((s, i) => '<article class="caso" data-s="' + s.id + '"><div class="caso-cab"><div><span class="ficha">Papeleta N.º ' + num(i + 1) + " · cuenta " + esc(s.autor) + "… de " + (s.cuenta_dias ?? "?") + (s.cuenta_dias === 1 ? " día · " : " días · ") + s.del_autor + (s.del_autor === 1 ? " sugerencia" : " sugerencias") + " · " + hace(s.creado_en) + "</span><h2>" + esc(TEMA_SUG[s.area] || s.area) + '</h2></div><span class="timbre">Recibida</span></div>' +
+    '<p class="carta">' + esc(s.texto) + "</p>" +
+    '<div class="forma"><label>Respuesta <small>Opcional; le llega como aviso.</small><textarea class="r-t" style="min-height:76px" placeholder="Ej.: La anotamos para el Taller. ¡Gracias por escribir!"></textarea></label>' +
+    '<div class="sellos" role="group" aria-label="Timbrar la sugerencia"><button type="button" class="sello si" data-est="anotada">La anotamos</button><button type="button" class="sello" data-est="leida">Leída</button><button type="button" class="sello" data-est="descartada">Por ahora no</button></div></div></article>').join("")
+    : vacio("papeleta", "No hay sugerencias nuevas", "")) +
+    (V.length ? '<h2 class="h2s">Revisadas hace poco</h2><div class="papeles">' + V.map((s) => '<div class="papeleta"><small>' + esc(TEMA_SUG[s.area] || s.area) + " · " + hace(s.revisado_en) + '</small><span><span class="timbre' + (s.estado === "anotada" ? " tinta" : "") + '">' + EST_SUG[s.estado] + "</span></span>" +
+      "<p>" + esc(s.texto) + "</p>" + (s.respuesta ? "<small><b>Respondimos:</b> " + esc(s.respuesta) + "</small>" : "") + "</div>").join("") + "</div>" : "") + "</div>";
   $("lista").querySelectorAll("[data-est]").forEach((b) => b.onclick = async () => {
     const c = b.closest("[data-s]"), respuesta = c.querySelector(".r-t").value.trim();
     c.querySelectorAll("button").forEach((x) => (x.disabled = true));
@@ -203,10 +307,10 @@ function sugerencias() {
   });
 }
 function suspendidas() {
-  if (!D.suspendidas.length) { $("lista").innerHTML = '<div class="vacio">No hay vitrinas suspendidas.</div>'; return; }
-  $("lista").innerHTML = D.suspendidas.map((s) => '<article class="caso" data-v="' + s.vitrina_id + '"><div class="caso-cab"><h2>' + esc(s.titulo || s.slug) + "<small>" + esc(s.slug) + '</small></h2><span class="tag mal">' + esc(MOTIVOS[(s.suspension || {}).motivo] || "") + "</span></div>" +
-    '<p class="texto">' + esc((s.suspension || {}).mensaje || "") + "</p>" +
-    '<div class="forma"><label>Mensaje al restaurar (opcional)<textarea class="r-t"></textarea></label><div class="acc" style="border:0;padding:0">' + verBtn(s.vitrina_id, s.titulo) + '<button type="button" class="btn prim" data-rest>Restaurar</button></div></div></article>').join("");
+  if (!D.suspendidas.length) { $("lista").innerHTML = vacio("pausa", "No hay vitrinas suspendidas", ""); return; }
+  $("lista").innerHTML = '<div class="mesa">' + D.suspendidas.map((s, i) => '<article class="caso" data-v="' + s.vitrina_id + '"><div class="caso-cab"><div><span class="ficha">Expediente N.º ' + num(i + 1) + " · " + esc(s.slug) + "</span><h2>" + esc(s.titulo || s.slug) + '</h2></div><span class="timbre mal">' + esc(MOTIVOS[(s.suspension || {}).motivo] || "Suspendida") + "</span></div>" +
+    '<p class="carta nota"><b>Lo que se le dijo al dueño</b>' + esc((s.suspension || {}).mensaje || "") + "</p>" +
+    '<div class="forma"><label>Mensaje al restaurar <small>Opcional.</small><textarea class="r-t" style="min-height:76px"></textarea></label><div class="acc sin">' + verBtn(s.vitrina_id, s.titulo) + '<button type="button" class="btn prim" data-rest>Restaurar</button></div></div></article>').join("") + "</div>";
   enlazarVer();
   $("lista").querySelectorAll("[data-rest]").forEach((b) => b.onclick = async () => {
     const c = b.closest("[data-v]"); const { error } = await sb.rpc("mod_restaurar", { v: c.dataset.v, mensaje: c.querySelector(".r-t").value.trim() });
@@ -214,49 +318,82 @@ function suspendidas() {
   });
 }
 function explorar() {
-  if (!D.explorar.length) { $("lista").innerHTML = '<div class="vacio">Ninguna vitrina aparece todavía en Explorar.</div>'; return; }
-  $("lista").innerHTML = D.explorar.map((x) => '<article class="caso" data-v="' + x.vitrina_id + '"><div class="caso-cab"><h2>' + esc(x.titulo || x.slug) + "<small>" + esc(x.slug) + " · " + hace(x.publicado_en) + '</small></h2></div><div class="acc">' + verBtn(x.vitrina_id, x.titulo) + '<a class="btn" href="../vitrina/?v=' + esc(x.slug) + '" target="_blank" rel="noopener">Abrir pública ↗</a><button type="button" class="btn" data-fuera>Sacar de Explorar…</button></div><div class="f"></div></article>').join("");
+  if (!D.explorar.length) { $("lista").innerHTML = vacio("brujula", "Ninguna vitrina aparece todavía en Explorar", ""); return; }
+  $("lista").innerHTML = '<div class="papeles">' + D.explorar.map((x, i) => '<div class="papeleta" data-v="' + x.vitrina_id + '"><small>N.º ' + num(i + 1) + " · " + esc(x.slug) + " · " + hace(x.publicado_en) + "</small><b>" + esc(x.titulo || x.slug) + "</b>" +
+    '<div class="acc sin" style="margin-top:6px">' + verBtn(x.vitrina_id, x.titulo) + '<a class="btn" href="../vitrina/?v=' + esc(x.slug) + '" target="_blank" rel="noopener">Abrir ↗</a><button type="button" class="btn" data-fuera>Sacar…</button></div><div class="f"></div></div>').join("") + "</div>";
   enlazarVer();
   $("lista").querySelectorAll("[data-fuera]").forEach((b) => b.onclick = () => formExplorar(b.closest("[data-v]")));
 }
-/* ---------- correos: anunciar herramientas listas y enviar el boletín ---------- */
+
+/* ---------- vista previa de un correo: lo arma correos.js, el mismo archivo que usa la Edge Function ---------- */
 const SITIO = new URL("../", location.href).href;
+function previa(cont, nota) {
+  cont.innerHTML = '<div class="pv"><div class="pv-bar"><span class="pv-as"><small>Asunto</small><b class="pv-a"></b></span><div class="pv-op" role="group" aria-label="Cómo ver el correo">' +
+    '<button type="button" data-m="pc" aria-pressed="true">Computador</button><button type="button" data-m="cel" aria-pressed="false">Celular</button><button type="button" data-m="txt" aria-pressed="false">Solo texto</button></div></div>' +
+    '<div class="pv-marco"><iframe title="Vista previa del correo" sandbox="allow-same-origin"></iframe><pre hidden></pre></div>' + (nota ? '<p class="pv-nota">' + nota + "</p>" : "") + "</div>";
+  const pv = cont.firstChild, ifr = pv.querySelector("iframe"), pre = pv.querySelector("pre");
+  const alto = () => { try { ifr.style.height = ifr.contentDocument.documentElement.scrollHeight + 4 + "px"; } catch (e) {} };
+  ifr.onload = alto;
+  pv.querySelectorAll("[data-m]").forEach((b) => b.onclick = () => {
+    pv.querySelectorAll("[data-m]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    pv.classList.toggle("cel", b.dataset.m === "cel"); ifr.hidden = b.dataset.m === "txt"; pre.hidden = b.dataset.m !== "txt";
+    setTimeout(alto, 30);
+  });
+  return (fila) => {
+    let c; try { c = armar({ token: "vista-previa", ...fila }, SITIO); } catch (e) { c = { asunto: "—", html: "<p style='font-family:sans-serif;padding:20px'>Falta información para armar el correo.</p>", texto: "" }; }
+    pv.querySelector(".pv-a").textContent = c.asunto || "(sin asunto)";
+    if (ifr.srcdoc !== c.html) ifr.srcdoc = c.html;
+    pre.textContent = c.texto;
+  };
+}
+const demora = (fn, ms = 250) => { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; };
+
+/* ---------- correos: anunciar herramientas listas y enviar el boletín ---------- */
 const fechaLarga = (f) => new Date(f + "T12:00:00").toLocaleDateString("es-CL", { day: "numeric", month: "long" });
 async function correos() {
-  $("lista").innerHTML = '<div class="vacio">Cargando…</div>';
+  $("lista").innerHTML = '<div class="fx-empty">Cargando…</div>';
   const hoy = new Date().toISOString().slice(0, 10), en45 = new Date(Date.now() + 45 * 864e5).toISOString().slice(0, 10), hace30 = new Date(Date.now() - 30 * 864e5).toISOString();
   const [est, int, op, vi] = await Promise.all([sb.rpc("mod_correos"), sb.rpc("mod_intereses"),
     sb.from("oportunidades").select("id,nombre,postul_inicio,postul_fin,evento_inicio,fuente").or("and(postul_fin.gte." + hoy + ",postul_fin.lte." + en45 + "),and(postul_inicio.gte." + hoy + ",postul_inicio.lte." + en45 + "),and(evento_inicio.gte." + hoy + ",evento_inicio.lte." + en45 + ")"),
     sb.from("vitrinas_publicadas").select("slug,titulo,lema,publicado_en").eq("en_explorar", true).gte("publicado_en", hace30).order("publicado_en", { ascending: false }).limit(6)]);
-  if (est.error) { $("lista").innerHTML = '<div class="vacio">' + esc(est.error.message) + "</div>"; return; }
+  if (est.error) { $("lista").innerHTML = vacio("avion", "No se pudo cargar", est.error.message); return; }
   const E = est.data, I = int.data || [];
   const cuando = (o) => o.postul_fin && o.postul_fin >= hoy && o.postul_fin <= en45 ? "Cierra el " + fechaLarga(o.postul_fin) : o.postul_inicio && o.postul_inicio >= hoy && o.postul_inicio <= en45 ? "Abre el " + fechaLarga(o.postul_inicio) : "Evento: " + fechaLarga(o.evento_inicio);
-  const OPS = (op.data || []).map((o) => ({ id: o.id, nombre: o.nombre, cuando: cuando(o), url: o.fuente || "", orden: o.postul_fin || o.postul_inicio || o.evento_inicio })).sort((a, b) => a.orden.localeCompare(b.orden));
+  const OPS = (op.data || []).map((o) => ({ id: o.id, nombre: o.nombre, cuando: cuando(o), url: o.fuente || "", orden: o.postul_fin || o.postul_inicio || o.evento_inicio || "" })).sort((a, b) => a.orden.localeCompare(b.orden));
   const VIS = vi.data || [];
   const fun = FUNCIONES.map((f) => ({ ...f, n: (I.find((x) => x.funcion === f.k) || {}).pendientes || 0 })).sort((a, b) => b.n - a.n);
-  $("lista").innerHTML =
-    '<article class="caso"><div class="caso-cab"><h2>Estado de los envíos</h2></div><p class="texto">' + E.pendientes + " en cola · " + E.hoy + " enviados en 24 h · " + E.fallidos + " fallidos · " + E.boletin + " suscritos al boletín\nSalen desde forja@ por Resend, de a poco: hasta 40 por hora y 90 por día, bajo el límite del plan gratis (100 al día).</p>" +
-      (E.errores.length ? E.errores.map((e) => '<p class="texto" style="color:var(--bad)">' + esc(e.tipo) + " · " + esc(e.error) + "</p>").join("") : "") + "</article>" +
-    '<article class="caso" id="c-fun"><div class="caso-cab"><h2>Anunciar una herramienta lista</h2></div><p class="lead">Le llega solo a quienes tocaron «Avísame» en esa herramienta y no se han dado de baja. Cada persona recibe el aviso una vez.</p><div class="forma">' +
+  $("lista").innerHTML = '<div class="mesa">' +
+    '<div class="cifras"><div class="cifra"><b>' + E.pendientes + '</b><span>en la cola</span></div><div class="cifra"><b>' + E.hoy + '</b><span>enviados en 24 h</span></div><div class="cifra' + (E.fallidos ? " mal" : "") + '"><b>' + E.fallidos + '</b><span>fallidos</span></div><div class="cifra"><b>' + E.boletin + "</b><span>suscritos al boletín</span></div></div>" +
+    '<p class="lead">Salen desde forja@ por Resend, de a poco: hasta 40 por hora y 90 por día, bajo el límite del plan gratis (100 al día). Lo que ves a la derecha es lo mismo que arma el envío.</p>' +
+    (E.errores.length ? E.errores.map((e) => '<p class="carta nota"><b>' + esc(e.tipo) + "</b>" + esc(e.error) + "</p>").join("") : "") +
+    '<article class="caso"><div class="caso-cab"><div><span class="ficha">Avísame</span><h2>Anunciar una herramienta lista</h2></div></div><p class="lead">Le llega solo a quienes tocaron «Avísame» en esa herramienta y no se han dado de baja. Cada persona recibe el aviso una vez.</p>' +
+      '<div class="taller-c"><div class="forma">' +
       '<label>Herramienta<select id="f-k">' + fun.map((f) => '<option value="' + f.k + '">' + esc(f.t) + " · " + f.n + (f.n === 1 ? " persona" : " personas") + "</option>").join("") + "</select></label>" +
-      '<label>Título<input id="f-t" class="campo"></label><label>Texto<textarea id="f-x"></textarea></label><label>Enlace del botón<input id="f-u" class="campo"></label>' +
-      '<div class="acc" style="border:0;padding:0"><button type="button" class="btn" id="f-prueba">Enviarme una prueba</button><button type="button" class="btn prim" id="f-env">Enviar</button></div></div></article>' +
-    '<article class="caso" id="c-bol"><div class="caso-cab"><h2>Boletín</h2><span class="tag">' + E.boletin + " suscritos</span></div><p class=\"lead\">Una vez al mes como mucho. Lo que más sirve: herramientas nuevas, oportunidades que abren o cierran pronto y proyectos de la comunidad. Envíate una prueba antes.</p><div class=\"forma\">" +
+      '<label>Título<input id="f-t" class="campo"></label><label>Texto<textarea id="f-x"></textarea></label><label>Enlace del botón<input id="f-u" class="campo" inputmode="url"></label>' +
+      '<div class="acc sin"><button type="button" class="btn" id="f-prueba">Enviarme una prueba</button><button type="button" class="btn prim" id="f-env">Enviar</button></div></div><div id="pv-f"></div></div></article>' +
+    '<article class="caso"><div class="caso-cab"><div><span class="ficha">' + E.boletin + ' suscritos</span><h2>Boletín</h2></div></div><p class="lead">Una vez al mes como mucho. Lo que más sirve: herramientas nuevas, oportunidades que abren o cierran pronto y proyectos de la comunidad. Envíate una prueba antes.</p>' +
+      '<div class="taller-c"><div class="forma">' +
       '<label>Asunto<input id="b-a" class="campo" placeholder="Forja en ' + new Date().toLocaleDateString("es-CL", { month: "long" }) + '"></label><label>Introducción<textarea id="b-i" placeholder="Dos o tres líneas para abrir."></textarea></label>' +
-      '<label>Novedades de Forja (en cada una, la primera línea es el título y el resto el texto; separa una de otra con una línea que diga ---)<textarea id="b-n" style="min-height:140px"></textarea></label>' +
-      "<b>Oportunidades de las próximas 6 semanas</b>" + (OPS.length ? OPS.map((o) => '<label class="check-l"><input type="checkbox" data-op="' + esc(o.id) + '" checked> ' + esc(o.nombre) + " <small>· " + esc(o.cuando) + "</small></label>").join("") : '<p class="lead">No hay fechas en las próximas semanas.</p>') +
-      "<b>Proyectos de Explorar del último mes</b>" + (VIS.length ? VIS.map((v) => '<label class="check-l"><input type="checkbox" data-vi="' + esc(v.slug) + '"> ' + esc(v.titulo || v.slug) + "</label>").join("") : '<p class="lead">Aún no hay vitrinas nuevas en Explorar.</p>') +
-      '<label>Cierre (opcional)<textarea id="b-c" style="min-height:70px"></textarea></label>' +
-      '<div class="acc" style="border:0;padding:0"><button type="button" class="btn" id="b-prueba">Enviarme una prueba</button><button type="button" class="btn prim" id="b-env">Enviar a ' + E.boletin + " suscritos</button></div></div></article>" +
-    '<article class="caso"><div class="caso-cab"><h2>Últimos avisos de vitrinas</h2></div><p class="lead">Lo que los proyectos enviaron a sus seguidores. Si algo rompe las normas, se modera la vitrina como siempre.</p>' +
-      (E.vitrinas.length ? E.vitrinas.map((v) => '<p class="texto"><b>' + esc(v.titulo) + "</b> · " + esc(v.slug) + " · " + v.destinatarios + " · " + hace(v.en) + "\n" + esc(v.texto) + "</p>").join("") : '<p class="lead">Ninguno todavía.</p>') + "</article>";
+      '<label>Novedades de Forja <small>En cada una, la primera línea es el título y el resto el texto. Separa una de otra con una línea que diga ---</small><textarea id="b-n" style="min-height:150px"></textarea></label>' +
+      '<span class="sub">Oportunidades de las próximas 6 semanas</span>' + (OPS.length ? '<div class="marcas">' + OPS.map((o) => '<label class="marca-l"><input type="checkbox" data-op="' + esc(o.id) + '" checked> ' + esc(o.nombre) + " <small>" + esc(o.cuando) + "</small></label>").join("") + "</div>" : '<p class="lead">No hay fechas en las próximas semanas.</p>') +
+      '<span class="sub">Proyectos de Explorar del último mes</span>' + (VIS.length ? '<div class="marcas">' + VIS.map((v) => '<label class="marca-l"><input type="checkbox" data-vi="' + esc(v.slug) + '"> ' + esc(v.titulo || v.slug) + "</label>").join("") + "</div>" : '<p class="lead">Aún no hay vitrinas nuevas en Explorar.</p>') +
+      '<label>Cierre <small>Opcional.</small><textarea id="b-c" style="min-height:76px"></textarea></label>' +
+      '<div class="acc sin"><button type="button" class="btn" id="b-prueba">Enviarme una prueba</button><button type="button" class="btn prim" id="b-env">Enviar a ' + E.boletin + " suscritos</button></div></div><div id=\"pv-b\"></div></div></article>" +
+    '<article class="caso"><div class="caso-cab"><div><span class="ficha">Salen solos</span><h2>Los demás correos</h2></div></div><p class="lead">Estos no se escriben aquí: salen cuando pasa algo. Mira cómo llegan, con datos de ejemplo.</p>' +
+      '<div class="taller-c"><div class="forma"><label>Correo<select id="a-k"><option value="invitacion">Invitación a un proyecto</option><option value="vitrina">Novedades de una vitrina seguida</option><option value="inactiva1">Cuenta inactiva: primer aviso (90 días)</option><option value="inactiva2">Cuenta inactiva: segundo aviso (120 días)</option></select></label>' +
+      '<p class="lead" id="a-d"></p></div><div id="pv-a"></div></div></article>' +
+    '<article class="caso"><div class="caso-cab"><div><span class="ficha">Vitrinas</span><h2>Últimos avisos de vitrinas</h2></div></div><p class="lead">Lo que los proyectos enviaron a sus seguidores. Si algo rompe las normas, se modera la vitrina como siempre.</p>' +
+      (E.vitrinas.length ? '<div class="papeles">' + E.vitrinas.map((v) => '<div class="papeleta"><small>' + esc(v.slug) + " · " + v.destinatarios + " · " + hace(v.en) + "</small><b>" + esc(v.titulo) + "</b><p>" + esc(v.texto) + "</p></div>").join("") + "</div>" : '<p class="lead">Ninguno todavía.</p>') + "</article></div>";
   // herramienta
-  const llenar = () => { const f = FUNCIONES.find((x) => x.k === $("f-k").value); $("f-t").value = f.t; $("f-x").value = f.d; $("f-u").value = SITIO + "proyectos/"; };
-  $("f-k").onchange = llenar; llenar();
+  const pvF = previa($("pv-f"), "Así le llega a cada persona que tocó «Avísame». El enlace de baja es de ejemplo.");
   const datosF = () => ({ funcion: $("f-k").value, titulo: $("f-t").value.trim(), texto: $("f-x").value.trim(), enlace: $("f-u").value.trim() });
+  const verF = () => pvF({ tipo: "funcion", datos: datosF() });
+  const llenar = () => { const f = FUNCIONES.find((x) => x.k === $("f-k").value); $("f-t").value = f.t; $("f-x").value = f.d; $("f-u").value = SITIO + "proyectos/"; verF(); };
+  $("f-k").onchange = llenar; llenar();
+  ["f-t", "f-x", "f-u"].forEach((id) => $(id).addEventListener("input", demora(verF)));
   $("f-prueba").onclick = async () => { const { error } = await sb.rpc("mod_probar", { tipo: "funcion", datos: datosF() }); toast(error ? error.message : "Prueba en la cola: te llega en unos minutos."); };
   $("f-env").onclick = async (e) => {
-    const b = e.target, d = datosF(); if (!d.titulo || !d.texto) { toast("Falta el título o el texto."); return; }
+    const b = e.currentTarget, d = datosF(); if (!d.titulo || !d.texto) { toast("Falta el título o el texto."); return; }
     if (b.dataset.seguro !== "1") { b.dataset.seguro = "1"; b.textContent = "¿Enviar de verdad? Toca de nuevo"; return; }
     const { data, error } = await sb.rpc("mod_anunciar_funcion", d); if (error) { toast(error.message); return; }
     toast(data + (data === 1 ? " aviso en la cola." : " avisos en la cola.")); correos();
@@ -268,13 +405,27 @@ async function correos() {
     oportunidades: OPS.filter((o) => $("lista").querySelector('[data-op="' + CSS.escape(o.id) + '"]').checked).map(({ nombre, cuando, url }) => ({ nombre, cuando, url })),
     vitrinas: VIS.filter((v) => $("lista").querySelector('[data-vi="' + CSS.escape(v.slug) + '"]').checked).map(({ slug, titulo, lema }) => ({ slug, titulo, lema })),
   });
+  const pvB = previa($("pv-b"), "Así le llega a cada persona suscrita. Mientras no escribas el asunto, se muestra el del ejemplo.");
+  const verB = () => { const d = datosB(); pvB({ tipo: "boletin", datos: { ...d, asunto: d.asunto || $("b-a").placeholder } }); };
+  $("b-a").closest(".forma").addEventListener("input", demora(verB)); $("b-a").closest(".forma").addEventListener("change", verB); verB();
   $("b-prueba").onclick = async () => { const d = datosB(); if (!d.asunto) { toast("Escribe el asunto."); return; } const { error } = await sb.rpc("mod_boletin", { datos: d, prueba: true }); toast(error ? error.message : "Prueba en la cola: te llega en unos minutos."); };
   $("b-env").onclick = async (e) => {
-    const b = e.target, d = datosB(); if (!d.asunto) { toast("Escribe el asunto."); return; }
+    const b = e.currentTarget, d = datosB(); if (!d.asunto) { toast("Escribe el asunto."); return; }
     if (b.dataset.seguro !== "1") { b.dataset.seguro = "1"; b.textContent = "¿Enviar a todos? Toca de nuevo"; return; }
     const { data, error } = await sb.rpc("mod_boletin", { datos: d, prueba: false }); if (error) { toast(error.message); return; }
     toast(data + " boletines en la cola. Salen de a poco."); correos();
   };
+  // los automáticos, con datos de ejemplo
+  const pvA = previa($("pv-a"), "Datos de ejemplo: el proyecto, la persona y las fechas cambian en cada envío.");
+  const en = (d) => new Date(Date.now() + d * 864e5).toISOString().slice(0, 10);
+  const EJ = {
+    invitacion: [{ tipo: "invitacion", datos: { token: "ejemplo", expira: en(14), de: "camila@ejemplo.cl", proyecto: "La ciudad de las campanas", rol: "editor" } }, "Lo pide el dueño de un proyecto desde «Invitar personas». Llega aunque la persona aún no tenga cuenta."],
+    vitrina: [{ tipo: "vitrina", datos: { slug: "ejemplo", vitrina: "La ciudad de las campanas", titulo: "Terminamos el primer capítulo", texto: "Gracias por seguirnos. Ya puedes leer el primer capítulo en la vitrina.\n\nEn diciembre abrimos la campaña." } }, "Lo escribe quien crea el proyecto (una vez cada 7 días) y llega a quienes siguen su vitrina."],
+    inactiva1: [{ tipo: "inactiva", datos: { etapa: 1, borra: en(60) } }, "Aviso de servicio a los 90 días sin entrar. Llega aunque la persona no reciba otros correos."],
+    inactiva2: [{ tipo: "inactiva", datos: { etapa: 2, borra: en(30) } }, "Segundo aviso, a los 120 días. Solo se borra la cuenta si los dos avisos salieron."],
+  };
+  const verA = () => { const [f, t] = EJ[$("a-k").value]; $("a-d").textContent = t; pvA(f); };
+  $("a-k").onchange = verA; verA();
 }
 /* --- Documentos: versiones de los documentos legales ---
    Una versión nueva vive como borrador en el repositorio (legal/<versión>/ y legal/versiones.json) y no existe para nadie
@@ -289,38 +440,57 @@ async function huellaDe(m) {
   return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 async function documentos() {
-  $("lista").innerHTML = '<div class="vacio">Cargando…</div>';
+  $("lista").innerHTML = '<div class="fx-empty">Cargando…</div>';
   const [pn, M] = await Promise.all([sb.rpc("mod_legal_panel"), fetch(u("legal/versiones.json"), { cache: "no-store" }).then((r) => r.json())]);
-  if (pn.error) { $("lista").innerHTML = '<div class="vacio">' + esc(pn.error.message) + "</div>"; return; }
+  if (pn.error) { $("lista").innerHTML = vacio("hoja", "No se pudo cargar", pn.error.message); return; }
   const P = pn.data, db = new Map(P.versiones.map((v) => [v.version, v]));
   const huellas = await Promise.all(M.versiones.map((m) => huellaDe(m).catch(() => "")));
+  // Si se avisara hoy, ¿cuándo rige? 15 días más los días que tarda la cola (80 cuentas por día).
+  const rigeHoy = new Date(Date.now() + (15 + Math.max(Math.ceil(P.cuentas / 80) - 1, 0)) * 864e5).toLocaleDateString("en-CA", { timeZone: "America/Santiago" });
+  const pasos = (rev, prob, avis) => '<div class="pasos" aria-label="Pasos para publicar una versión">' + [["Revisar", "Lo que cambia y los documentos", rev], ["Probar", "Te envías el aviso", prob], ["Avisar", "A todas las cuentas", avis]].map(([t, d, e]) => '<div class="paso ' + e + '"><i></i><b>' + t + "</b><span>" + d + "</span></div>").join("") + "</div>";
   const fila = (m, i) => {
-    const v = db.get(m.id), h = huellas[i];
-    const estado = !v || !v.avisada_en ? "Borrador sin avisar" : v.reemplazada_por ? "Avisada, reemplazada por " + v.reemplazada_por + " (no rigió)" : v.version === P.vigente ? "Vigente desde el " + fechaDia(v.rige) : v.rige > P.hoy || v.pendientes ? "Avisada: rige el " + fechaDia(v.rige) : "Anterior (rigió desde el " + fechaDia(v.rige) + ")";
-    let cuerpo = '<p class="texto">' + esc(m.correo && m.correo.asunto ? "Asunto del correo: " + m.correo.asunto + "\n\n" + m.resumen : m.resumen) + "</p><p class=\"lead\">Documentos: " + m.docs.map((d) => esc(NOMBRE_DOC[d] || d)).join(", ") + (m.inactivas ? " · incluye la regla de cuentas inactivas" : "") + "</p>" +
-      '<div class="acc" style="border:0;padding:0"><a class="btn" href="' + u("documentos/?v=" + encodeURIComponent(m.id)) + '" target="_blank" rel="noopener">Revisar lo que cambia</a><a class="btn" href="' + u("terminos/?v=" + encodeURIComponent(m.id) + "&comparar=1") + '" target="_blank" rel="noopener">Comparar los Términos</a></div>';
-    if (v && v.avisada_en) {
-      if (v.huella && h && v.huella !== h) cuerpo += '<p class="texto" style="color:var(--bad)">El texto de esta versión cambió después de avisarla. Una versión avisada no se puede cambiar: devuelve el texto en el repositorio y, si hace falta un cambio, crea una versión nueva y avísala.</p>';
-      if (v.destinatarios != null) cuerpo += '<p class="texto">Aviso por correo: ' + v.enviados + " de " + v.destinatarios + " enviados · " + v.pendientes + " en la cola · " + v.fallidos + " fallidos" +
-        (v.pendientes ? "\nMientras queden avisos en la cola, esta versión no se activa aunque llegue su fecha." : "") + (v.fallidos ? "\nLos fallidos no se reintentan solos: revisa el error en la pestaña Correos." : "") + "</p>";
+    const v = db.get(m.id), h = huellas[i], avisada = v && v.avisada_en, probada = v && v.probada_en && v.huella === h;
+    const estado = !avisada ? "Borrador sin avisar" : v.reemplazada_por ? "No rigió" : v.version === P.vigente ? "Vigente" : v.rige > P.hoy || v.pendientes ? "Avisada" : "Anterior";
+    const detalle = !avisada ? "" : v.reemplazada_por ? "Avisada, reemplazada por la " + v.reemplazada_por + "." : v.version === P.vigente ? "Vigente desde el " + fechaDia(v.rige) + "." : v.rige > P.hoy || v.pendientes ? "Rige el " + fechaDia(v.rige) + "." : "Rigió desde el " + fechaDia(v.rige) + ".";
+    let cuerpo = (detalle ? '<p class="lead">' + esc(detalle) + "</p>" : "") + '<p class="carta">' + esc(m.resumen) + "</p><p class=\"lead\">Documentos: " + m.docs.map((d) => esc(NOMBRE_DOC[d] || d)).join(", ") + (m.inactivas ? " · incluye la regla de cuentas inactivas" : "") + "</p>" +
+      '<div class="acc sin"><a class="btn" href="' + u("documentos/?v=" + encodeURIComponent(m.id)) + '" target="_blank" rel="noopener">Revisar lo que cambia ↗</a><a class="btn" href="' + u("terminos/?v=" + encodeURIComponent(m.id) + "&comparar=1") + '" target="_blank" rel="noopener">Comparar los Términos ↗</a></div>';
+    if (avisada) {
+      if (v.huella && h && v.huella !== h) cuerpo += '<p class="carta nota"><b>El texto cambió después de avisarla</b>Una versión avisada no se puede cambiar: devuelve el texto en el repositorio y, si hace falta un cambio, crea una versión nueva y avísala.</p>';
+      if (v.destinatarios != null) cuerpo += '<div class="cifras"><div class="cifra"><b>' + v.enviados + "/" + v.destinatarios + '</b><span>avisos enviados</span></div><div class="cifra"><b>' + v.pendientes + '</b><span>en la cola</span></div><div class="cifra' + (v.fallidos ? " mal" : "") + '"><b>' + v.fallidos + "</b><span>fallidos</span></div></div>" +
+        (v.pendientes ? '<p class="lead">Mientras queden avisos en la cola, esta versión no se activa aunque llegue su fecha.</p>' : "") + (v.fallidos ? '<p class="lead">Los fallidos no se reintentan solos: revisa el error en la pestaña Correos.</p>' : "");
     } else {
-      const probada = v && v.probada_en && v.huella === h;
-      cuerpo += '<div class="forma"><b>Para publicarla</b><p class="lead">1. Revisa lo que cambia y los cinco documentos. 2. Envíate la prueba del aviso y léela en tu correo. 3. Avisa a todas las cuentas (' + P.cuentas + "). Rige 15 días después del aviso" + (P.cuentas > 80 ? ", más los días que tarda la cola en enviarlo a todas" : "") + ", y no se puede activar antes.</p>" +
-        (v && v.probada_en && v.huella !== h ? '<p class="texto" style="color:var(--warn)">El texto cambió después de la última prueba: envíate otra antes de avisar.</p>' : "") +
-        '<div class="acc" style="border:0;padding:0"><button type="button" class="btn" data-probar="' + esc(m.id) + '">' + (probada ? "Enviarme otra prueba" : "Enviarme una prueba del aviso") + "</button>" +
+      cuerpo += pasos(probada ? "ya" : "aqui", probada ? "ya" : "", probada ? "aqui" : "") +
+        '<p class="lead">Avisa a todas las cuentas (' + P.cuentas + "). Rige 15 días después del aviso" + (P.cuentas > 80 ? ", más los días que tarda la cola en enviarlo a todas" : "") + ", y no se puede activar antes.</p>" +
+        (v && v.probada_en && v.huella !== h ? '<p class="carta nota"><b>Prueba vieja</b>El texto cambió después de la última prueba: envíate otra antes de avisar.</p>' : "") +
+        '<div class="acc sin"><button type="button" class="btn" data-probar="' + esc(m.id) + '">' + (probada ? "Enviarme otra prueba" : "Enviarme una prueba del aviso") + "</button>" +
         '<button type="button" class="btn prim" data-avisar="' + esc(m.id) + '"' + (probada ? "" : " disabled") + ">Avisar a todas las cuentas</button></div>" +
-        (probada ? '<p class="lead">Prueba enviada ' + hace(v.probada_en) + ". Si avisas hoy, rige el " + fechaDia(new Date(Date.now() + (15 + Math.max(Math.ceil(P.cuentas / 80) - 1, 0)) * 864e5).toLocaleDateString("en-CA", { timeZone: "America/Santiago" })) + ".</p>" : '<p class="lead">El botón para avisar se activa después de enviarte la prueba.</p>') + "</div>";
+        (probada ? '<p class="lead">Prueba enviada ' + hace(v.probada_en) + ". Si avisas hoy, rige el " + fechaDia(rigeHoy) + ".</p>" : '<p class="lead">El botón para avisar se activa después de enviarte la prueba.</p>');
     }
-    return '<article class="caso"><div class="caso-cab"><h2>Versión ' + esc(m.id) + '</h2><span class="tag' + (!v || !v.avisada_en ? " mal" : "") + '">' + esc(estado) + "</span></div>" + cuerpo + "</article>";
+    cuerpo += '<details class="ver-correo" data-correo="' + esc(m.id) + '"><summary class="btn">' + ico("sobre", 17) + "Ver el correo del aviso</summary><div></div></details>";
+    return '<article class="caso"><div class="caso-cab"><div><span class="ficha">' + esc(m.docs.length) + (m.docs.length === 1 ? " documento" : " documentos") + "</span><h2>Versión " + esc(m.id) + '</h2></div><span class="timbre' + (!avisada ? " mal" : estado === "Vigente" ? " tinta" : "") + '">' + esc(estado) + "</span></div>" + cuerpo + "</article>";
   };
   const I = P.inactivas;
-  $("lista").innerHTML = '<p class="lead" style="margin-bottom:12px">Ninguna versión nueva se publica sin avisarla antes a todas las cuentas por correo, como aviso de servicio. La vigente hoy es la ' + esc(P.vigente || "—") + ".</p>" +
+  $("lista").innerHTML = '<div class="mesa"><p class="lead">La vigente hoy es la ' + esc(P.vigente || "—") + ".</p>" +
     M.versiones.map((m, i) => [m, i]).reverse().map(([m, i]) => fila(m, i)).join("") +
-    '<article class="caso"><div class="caso-cab"><h2>Cuentas inactivas</h2><span class="tag">' + (I.desde ? "Regla activa desde el " + esc(fechaDia(I.desde)) : I.parte ? "Parte el " + esc(fechaDia(I.parte)) : "Regla aún no vigente") + "</span></div>" +
-    '<p class="texto">' + I.aviso1 + " con el primer aviso (90 días) · " + I.aviso2 + " con el segundo (120 días) · " + I.borradas + " borradas (150 días) · " + (I.volvieron || 0) + " volvieron a entrar</p>" +
-    (I.errores ? '<p class="texto"><b>' + I.errores + " cuentas no se pudieron revisar en los últimos 7 días.</b> Mira el Registro.</p>" : "") +
-    '<p class="lead">Se revisa sola cada día. Nunca toca cuentas con plan pagado, del equipo Digital Monster o con una vitrina publicada, y solo borra si los dos avisos salieron. Entrar a Forja reinicia el conteo. Antes de esa fecha no se cuenta ni se borra nada. Cada aviso, regreso y borrado queda en el Registro, sin decir de quién.</p></article>';
+    '<article class="caso"><div class="caso-cab"><div><span class="ficha">Términos §6</span><h2>Cuentas inactivas</h2></div><span class="timbre' + (I.desde ? " tinta" : "") + '">' + (I.desde ? "Activa desde el " + esc(fechaDia(I.desde)) : I.parte ? "Parte el " + esc(fechaDia(I.parte)) : "Aún no vigente") + "</span></div>" +
+    '<div class="cifras"><div class="cifra"><b>' + I.aviso1 + '</b><span>con el primer aviso (90 días)</span></div><div class="cifra"><b>' + I.aviso2 + '</b><span>con el segundo (120 días)</span></div><div class="cifra"><b>' + I.borradas + '</b><span>borradas (150 días)</span></div><div class="cifra"><b>' + (I.volvieron || 0) + "</b><span>volvieron a entrar</span></div></div>" +
+    (I.errores ? '<p class="carta nota"><b>' + I.errores + " cuentas no se pudieron revisar en los últimos 7 días</b>Mira el Registro.</p>" : "") +
+    '<p class="lead">Se revisa sola cada día. Nunca toca cuentas con plan pagado, del equipo Digital Monster o con una vitrina publicada, y solo borra si los dos avisos salieron. Entrar a Forja reinicia el conteo. Antes de esa fecha no se cuenta ni se borra nada. Cada aviso, regreso y borrado queda en el Registro, sin decir de quién.</p>' +
+    '<details class="ver-correo" data-inactiva><summary class="btn">' + ico("sobre", 17) + "Ver los correos de aviso</summary><div></div></details></article></div>";
   const vers = (id) => M.versiones.find((x) => x.id === id), hDe = (id) => huellas[M.versiones.findIndex((x) => x.id === id)];
+  // Vista previa del aviso: la misma fila que encola la base (privado.legal_datos), con la fecha en que regiría.
+  $("lista").querySelectorAll("details[data-correo]").forEach((d) => d.addEventListener("toggle", () => {
+    if (!d.open || d.dataset.listo) return; d.dataset.listo = "1";
+    const m = vers(d.dataset.correo), v = db.get(m.id), rige = v && v.avisada_en ? v.rige : rigeHoy;
+    previa(d.lastChild, v && v.avisada_en ? "Así llegó a cada cuenta." : "Así le llegaría a cada cuenta si avisas hoy (rige el " + esc(fechaDia(rige)) + ").")({ tipo: "legal", datos: { version: m.id, resumen: m.resumen, documentos: m.docs, rige, enlace: "documentos/?v=" + m.id, correo: m.correo || null } });
+  }));
+  $("lista").querySelectorAll("details[data-inactiva]").forEach((d) => d.addEventListener("toggle", () => {
+    if (!d.open || d.dataset.listo) return; d.dataset.listo = "1";
+    d.lastChild.innerHTML = '<div class="pv-sel acc sin" role="group" aria-label="Qué aviso ver"><button type="button" class="btn prim" data-et="1">Primer aviso</button><button type="button" class="btn" data-et="2">Segundo aviso</button></div><div style="margin-top:10px"></div>';
+    const ver = previa(d.lastChild.lastChild, "Fecha de ejemplo: cada cuenta ve la suya.");
+    const poner = (et) => { d.lastChild.querySelectorAll("[data-et]").forEach((b) => b.classList.toggle("prim", b.dataset.et == et)); ver({ tipo: "inactiva", datos: { etapa: et, borra: new Date(Date.now() + (et === 2 ? 30 : 60) * 864e5).toISOString().slice(0, 10) } }); };
+    d.lastChild.querySelectorAll("[data-et]").forEach((b) => b.onclick = () => poner(+b.dataset.et)); poner(1);
+  }));
   $("lista").querySelectorAll("[data-probar]").forEach((b) => b.onclick = async () => {
     const m = vers(b.dataset.probar); b.disabled = true;
     const { data, error } = await sb.rpc("mod_legal_probar", { version: m.id, resumen: m.resumen, documentos: m.docs, inactivas: !!m.inactivas, huella: hDe(m.id), correo: m.correo || null });
@@ -337,6 +507,7 @@ async function documentos() {
     toast("Aviso en la cola para " + data.destinatarios + " cuentas. Rige el " + fechaDia(data.rige) + "."); documentos();
   });
 }
+/* ---------- registro: una bitácora por día ---------- */
 function registro() {
   const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje", sugerencia: "Revisó una sugerencia", anunciar_funcion: "Anunció una herramienta", boletin: "Envió el boletín", documentos_aviso: "Avisó una versión nueva de los documentos", cuenta_inactiva: "Se borró una cuenta inactiva (150 días)", inactiva_aviso: "Aviso por inactividad", inactiva_vuelve: "Una cuenta avisada volvió a entrar", inactiva_error: "No se pudo revisar una cuenta inactiva" };
   const extra = (r) => { const d = r.detalle || {};
@@ -344,7 +515,10 @@ function registro() {
     if (r.accion === "inactiva_vuelve") return " · tenía el " + (d.etapa === 2 ? "segundo" : "primer") + " aviso; todo se reinició";
     if (r.accion === "inactiva_error") return " · código " + esc(d.error || "");
     return d.mensaje || d.motivo ? " · " + esc(MOTIVOS[d.motivo] || "") + " " + esc((d.mensaje || "").slice(0, 120)) : ""; };
-  $("lista").innerHTML = D.registro.length ? '<div class="caso"><div class="reg">' + D.registro.map((r) => "<span>" + esc(String(r.en).slice(0, 16).replace("T", " ")) + "</span><div><b>" + esc(A[r.accion] || r.accion) + "</b>" + extra(r) + "</div>").join("") + "</div></div>" : '<div class="vacio">Aún no hay decisiones registradas.</div>';
+  if (!D.registro.length) { $("lista").innerHTML = vacio("reloj", "Aún no hay decisiones registradas", ""); return; }
+  let dia = "";
+  $("lista").innerHTML = '<div class="bitacora">' + D.registro.map((r) => { const f = String(r.en), d = f.slice(0, 10), cab = d !== dia ? '<div class="dia">' + esc(fechaDia(d)) + "</div>" : ""; dia = d;
+    return cab + '<div class="renglon"><time datetime="' + esc(f) + '">' + esc(f.slice(11, 16)) + "</time><div><b>" + esc(A[r.accion] || r.accion) + "</b>" + extra(r) + "</div></div>"; }).join("") + "</div>";
 }
 </script>
 </body>
