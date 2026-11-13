@@ -55,7 +55,32 @@
     "pagos"
    ],
    "inactivas": true,
-   "resumen": "Reescribimos todos los documentos con un lenguaje más preciso y al día con la Ley 19.628 y la nueva Ley 21.719 de protección de datos. Lo nuevo: las cuentas inactivas se avisan a los 90 y 120 días sin entrar y se borran a los 150 (nunca con plan pagado, del equipo Digital Monster o con vitrina publicada); todo cambio a los documentos se avisa por correo a todas las cuentas y rige 15 días después; y se suman la Política de cookies y almacenamiento y las Condiciones de planes, pagos y reembolsos."
+   "resumen": "Reescribimos todos los documentos con un lenguaje más preciso y al día con la Ley 19.628 y la nueva Ley 21.719 de protección de datos. Lo nuevo: las cuentas inactivas se avisan a los 90 y 120 días sin entrar y se borran a los 150 (nunca con plan pagado, del equipo Digital Monster o con vitrina publicada); todo cambio a los documentos se avisa por correo a todas las cuentas y rige 15 días después; y se suman la Política de cookies y almacenamiento y las Condiciones de planes, pagos y reembolsos.",
+   "correo": {
+    "asunto": "Te contamos qué cambia en Forja (en un minuto)",
+    "previa": "Sabemos que nadie lee los términos. Por eso te dejamos lo importante, corto y claro.",
+    "intro": "Sabemos que nadie lee los términos y condiciones. Por eso, en vez de mandarte un documento larguísimo, te contamos aquí lo importante.\n\nReescribimos los documentos de Forja para ponerlos al día con la nueva ley de datos personales y dejar más claras algunas reglas. Esto es lo que cambia para ti:",
+    "destacados": [
+     {
+      "t": "Si dejas de entrar, te avisamos antes de borrar nada",
+      "d": "Una cuenta sin uso se borra a los 150 días, pero antes te escribimos dos veces (a los 90 y a los 120) para que puedas descargar todo. Entrar una vez basta para conservarla. Nunca borramos cuentas con plan pagado, del equipo Digital Monster o con una vitrina publicada."
+     },
+     {
+      "t": "Tus datos, con la ley nueva",
+      "d": "Te explicamos para qué usamos cada dato, dónde se guardan y cómo pedirnos cualquier cosa sobre ellos. Te respondemos en 30 días como máximo."
+     },
+     {
+      "t": "Dos documentos nuevos",
+      "d": "Uno sobre lo que Forja guarda en tu navegador (adelanto: nada de seguimiento) y otro sobre cómo funcionarán los planes pagados, la cancelación y las devoluciones."
+     },
+     {
+      "t": "Nada cambia sin avisarte",
+      "d": "Cada cambio que hagamos de aquí en adelante te llegará así, con 15 días para revisarlo antes de que rija."
+     }
+    ],
+    "igual": "Tu contenido sigue siendo tuyo. No vendemos datos, no hay publicidad y no usamos lo que creas para entrenar inteligencia artificial.",
+    "firma": "El equipo de Digital Monster"
+   }
   }
  ]
 }

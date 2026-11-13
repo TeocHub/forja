@@ -50,17 +50,32 @@ function armar(f: Fila): Correo {
   }
   if (tipo === "legal") {
     // Aviso de servicio: llega a todas las cuentas, sin enlace de baja. Sin este aviso ninguna versión nueva de los documentos se publica.
-    const ir = SITIO + "/" + String(d.enlace || "documentos/"), cuando = fechaLarga(d.rige);
-    const nombres = (d.documentos || []).map((k: string) => NOMBRE_DOC[k] || k).join(", ");
+    // El texto lo escribe cada versión en docs/legal/versiones.json (`correo`); sin él se usa el resumen.
+    const ir = SITIO + "/" + String(d.enlace || "documentos/"), cuando = fechaLarga(d.rige), c = d.correo || {};
+    const dest = (Array.isArray(c.destacados) ? c.destacados : []).filter((x: any) => x && x.t).slice(0, 6);
+    const dia = new Date(String(d.rige) + "T12:00:00Z"), num = dia.getUTCDate(), mes = dia.toLocaleDateString("es-CL", { month: "short", timeZone: "UTC" }).replace(".", "");
+    const sello = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px"><tr>' +
+      '<td style="background:#2a3fd1;color:#ffffff;border-radius:12px;padding:10px 0;width:64px;text-align:center;font-family:Arial,Helvetica,sans-serif"><div style="font-size:26px;font-weight:bold;line-height:1">' + num + '</div><div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-top:3px">' + esc(mes) + "</div></td>" +
+      '<td style="padding-left:14px;font-size:14px;line-height:1.45;color:#4a4f5c">Desde este día rigen<br>los documentos nuevos de Forja</td></tr></table>';
+    const tarjetas = dest.map((x: any, i: number) =>
+      '<div style="border:1px solid #e3e1da;border-left:4px solid ' + ["#2a3fd1", "#c2410c", "#0f766e", "#7c3aed", "#b45309", "#be185d"][i % 6] + ';border-radius:10px;padding:14px 16px;margin:0 0 10px">' +
+      '<p style="margin:0 0 5px;font-size:16px;font-weight:bold;line-height:1.35">' + esc(x.t) + '</p><p style="margin:0;font-size:15px;line-height:1.55;color:#3d4250">' + esc(x.d) + "</p></div>").join("");
+    const previa = c.previa ? '<div style="display:none;max-height:0;overflow:hidden;opacity:0">' + esc(c.previa) + "</div>" : "";
+    const cuerpo = previa + sello +
+      '<h1 style="font-size:25px;line-height:1.25;margin:0 0 16px">' + esc(c.titulo || "Te contamos qué cambia en Forja") + "</h1>" +
+      parrafos(c.intro || d.resumen) + tarjetas +
+      (c.igual ? '<div style="background:#f4f3ee;border-radius:10px;padding:14px 16px;margin:16px 0 0"><p style="margin:0 0 4px;font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px;color:#6b7080">Lo que no cambia</p><p style="margin:0;font-size:15px;line-height:1.55">' + esc(c.igual) + "</p></div>" : "") +
+      boton(ir, "Ver los cambios lado a lado") +
+      '<p style="margin:-8px 0 18px;font-size:13.5px;color:#6b7080;line-height:1.5">Cada sección dice si es nueva, si cambió o si sigue igual, así que puedes leer solo lo que te interesa.</p>' +
+      parrafos("Hasta el " + cuando + " todo sigue como está. Desde ese día, Forja te pedirá aceptar la versión nueva al entrar. Si no te convence, puedes descargar tus datos y borrar tu cuenta cuando quieras, desde Mi cuenta.") +
+      (c.firma ? '<p style="margin:18px 0 0;font-size:15px">' + esc(c.firma) + "</p>" : "");
     return {
-      asunto: "Cambian los documentos de Forja: rigen el " + cuando, baja: "",
-      html: marco('<p style="font-size:14px;color:#6b7080;margin:0 0 6px">Aviso de servicio</p><h1 style="font-size:24px;margin:0 0 14px">Los documentos de Forja cambian el ' + esc(cuando) + "</h1>" +
-        parrafos(d.resumen) + '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#4a4f5c">Documentos de esta versión: ' + esc(nombres) + ".</p>" +
-        boton(ir, "Ver qué cambia") +
-        parrafos("Hasta el " + cuando + " sigue rigiendo la versión actual. Desde ese día, Forja te pedirá aceptar la nueva al entrar. Si no estás de acuerdo, puedes descargar tus datos y borrar tu cuenta cuando quieras, desde Mi cuenta."),
-        "Este es un aviso de servicio: llega a todas las cuentas de Forja, aunque no recibas otros correos, porque cambia el acuerdo entre tú y nosotros. ¿Dudas? Escríbenos desde Mi cuenta → Escríbenos.", aviso),
-      texto: "Los documentos de Forja cambian el " + cuando + ".\n\n" + d.resumen + "\n\nDocumentos de esta versión: " + nombres + ".\n\nVer qué cambia: " + ir +
-        "\n\nHasta el " + cuando + " sigue rigiendo la versión actual. Desde ese día, Forja te pedirá aceptar la nueva al entrar. Si no estás de acuerdo, puedes descargar tus datos y borrar tu cuenta desde Mi cuenta.\n\nEste es un aviso de servicio: llega a todas las cuentas de Forja.",
+      asunto: c.asunto || "Cambian los documentos de Forja: rigen el " + cuando, baja: "",
+      html: marco(cuerpo, "Este es un aviso de servicio: llega a todas las cuentas de Forja, aunque no recibas otros correos, porque cambia el acuerdo entre tú y nosotros. ¿Dudas? Escríbenos desde Mi cuenta → Escríbenos.", aviso),
+      texto: (c.titulo || "Te contamos qué cambia en Forja") + "\nRige desde el " + cuando + ".\n\n" + (c.intro || d.resumen) + "\n\n" +
+        dest.map((x: any) => "· " + x.t + "\n  " + x.d).join("\n\n") + (c.igual ? "\n\nLo que no cambia: " + c.igual : "") +
+        "\n\nVer los cambios lado a lado: " + ir + "\n\nHasta el " + cuando + " todo sigue como está. Desde ese día, Forja te pedirá aceptar la versión nueva al entrar. Si no te convence, puedes descargar tus datos y borrar tu cuenta desde Mi cuenta." +
+        (c.firma ? "\n\n" + c.firma : "") + "\n\nEste es un aviso de servicio: llega a todas las cuentas de Forja.",
     };
   }
   if (tipo === "inactiva") {

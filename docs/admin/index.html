@@ -280,9 +280,11 @@ async function correos() {
    hasta que se avisa aquí a TODAS las cuentas (correo de servicio por Resend, en tandas, más un aviso en Forja).
    Rige 15 días después del aviso y la base no deja activarla antes. La huella (SHA-256 del texto) amarra el aviso al texto
    probado: si el texto cambia después de la prueba hay que probar de nuevo, y una versión ya avisada no se puede cambiar. */
-async function huellaDe(version, docs) {
+// La huella cubre los textos de los documentos, el resumen y el correo: si algo cambia después de la prueba, hay que probar de nuevo.
+async function huellaDe(m) {
+  const { id: version, docs } = m;
   const textos = await Promise.all(docs.map((d) => fetch(u("legal/" + version + "/" + d + ".json"), { cache: "no-store" }).then((r) => r.text())));
-  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(docs.join(",") + "\n" + textos.join("\n")));
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(docs.join(",") + "\n" + textos.join("\n") + "\n" + (m.resumen || "") + "\n" + JSON.stringify(m.correo || null)));
   return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 async function documentos() {
@@ -290,11 +292,11 @@ async function documentos() {
   const [pn, M] = await Promise.all([sb.rpc("mod_legal_panel"), fetch(u("legal/versiones.json"), { cache: "no-store" }).then((r) => r.json())]);
   if (pn.error) { $("lista").innerHTML = '<div class="vacio">' + esc(pn.error.message) + "</div>"; return; }
   const P = pn.data, db = new Map(P.versiones.map((v) => [v.version, v]));
-  const huellas = await Promise.all(M.versiones.map((m) => huellaDe(m.id, m.docs).catch(() => "")));
+  const huellas = await Promise.all(M.versiones.map((m) => huellaDe(m).catch(() => "")));
   const fila = (m, i) => {
     const v = db.get(m.id), h = huellas[i];
     const estado = !v || !v.avisada_en ? "Borrador sin avisar" : v.reemplazada_por ? "Avisada, reemplazada por " + v.reemplazada_por + " (no rigió)" : v.version === P.vigente ? "Vigente desde el " + fechaDia(v.rige) : v.rige > P.hoy || v.pendientes ? "Avisada: rige el " + fechaDia(v.rige) : "Anterior (rigió desde el " + fechaDia(v.rige) + ")";
-    let cuerpo = '<p class="texto">' + esc(m.resumen) + "</p><p class=\"lead\">Documentos: " + m.docs.map((d) => esc(NOMBRE_DOC[d] || d)).join(", ") + (m.inactivas ? " · incluye la regla de cuentas inactivas" : "") + "</p>" +
+    let cuerpo = '<p class="texto">' + esc(m.correo && m.correo.asunto ? "Asunto del correo: " + m.correo.asunto + "\n\n" + m.resumen : m.resumen) + "</p><p class=\"lead\">Documentos: " + m.docs.map((d) => esc(NOMBRE_DOC[d] || d)).join(", ") + (m.inactivas ? " · incluye la regla de cuentas inactivas" : "") + "</p>" +
       '<div class="acc" style="border:0;padding:0"><a class="btn" href="' + u("documentos/?v=" + encodeURIComponent(m.id)) + '" target="_blank" rel="noopener">Revisar lo que cambia</a><a class="btn" href="' + u("terminos/?v=" + encodeURIComponent(m.id) + "&comparar=1") + '" target="_blank" rel="noopener">Comparar los Términos</a></div>';
     if (v && v.avisada_en) {
       if (v.huella && h && v.huella !== h) cuerpo += '<p class="texto" style="color:var(--bad)">El texto de esta versión cambió después de avisarla. Una versión avisada no se puede cambiar: devuelve el texto en el repositorio y, si hace falta un cambio, crea una versión nueva y avísala.</p>';
@@ -319,7 +321,7 @@ async function documentos() {
   const vers = (id) => M.versiones.find((x) => x.id === id), hDe = (id) => huellas[M.versiones.findIndex((x) => x.id === id)];
   $("lista").querySelectorAll("[data-probar]").forEach((b) => b.onclick = async () => {
     const m = vers(b.dataset.probar); b.disabled = true;
-    const { data, error } = await sb.rpc("mod_legal_probar", { version: m.id, resumen: m.resumen, documentos: m.docs, inactivas: !!m.inactivas, huella: hDe(m.id) });
+    const { data, error } = await sb.rpc("mod_legal_probar", { version: m.id, resumen: m.resumen, documentos: m.docs, inactivas: !!m.inactivas, huella: hDe(m.id), correo: m.correo || null });
     b.disabled = false; if (error) { toast(limite(error) || error.message); return; }
     toast("Prueba en la cola: te llega en unos minutos. Si avisas hoy, rige el " + fechaDia(data) + "."); documentos();
   });

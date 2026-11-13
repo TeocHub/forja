@@ -3293,6 +3293,7 @@ create table public.legal_versiones(
   rige date,
   destinatarios int,
   reemplazada_por text,
+  correo jsonb check (correo is null or (jsonb_typeof(correo) = 'object' and pg_column_size(correo) <= 12000)),
   creada_en timestamptz not null default now()
 );
 alter table public.legal_versiones enable row level security;
@@ -3317,7 +3318,8 @@ create or replace function privado.legal_vigente() returns text language sql sta
 create or replace function privado.legal_rige_para(n int) returns date language sql stable set search_path to '' as $$
   select privado.hoy_chile() + 15 + greatest(ceil(coalesce(n, 0) / 80.0)::int - 1, 0) $$;
 create or replace function privado.legal_datos(l public.legal_versiones, rige date) returns jsonb language sql stable set search_path to '' as $$
-  select jsonb_build_object('version', l.version, 'resumen', l.resumen, 'documentos', to_jsonb(l.documentos), 'rige', rige, 'enlace', 'documentos/?v=' || l.version) $$;
+  select jsonb_build_object('version', l.version, 'resumen', l.resumen, 'documentos', to_jsonb(l.documentos), 'rige', rige, 'enlace', 'documentos/?v=' || l.version)
+    || case when l.correo is not null then jsonb_build_object('correo', l.correo) else '{}'::jsonb end $$;
 
 create or replace function public.legal_estado() returns jsonb language plpgsql stable security definer set search_path to '' as $$
 declare vig text := privado.legal_vigente();
@@ -3338,19 +3340,20 @@ begin
 end $$;
 create trigger aceptar_solo_vigente before insert on public.aceptaciones for each row execute function privado.t_aceptaciones();
 
-create or replace function public.mod_legal_probar(version text, resumen text, documentos text[], inactivas boolean, huella text) returns date
+create or replace function public.mod_legal_probar(version text, resumen text, documentos text[], inactivas boolean, huella text, correo jsonb default null) returns date
 language plpgsql security definer set search_path to '' as $$
 #variable_conflict use_column
 declare l public.legal_versiones; n int; p_v text := mod_legal_probar.version; p_r text := btrim(coalesce(mod_legal_probar.resumen, ''));
   p_d text[] := mod_legal_probar.documentos; p_i boolean := coalesce(mod_legal_probar.inactivas, false); p_h text := btrim(coalesce(mod_legal_probar.huella, ''));
+  p_c jsonb := mod_legal_probar.correo;
 begin
   if not privado.es_admin() then raise exception 'FORJA_NO_PERMITIDO'; end if;
   if p_r = '' or p_h = '' or coalesce(array_length(p_d, 1), 0) = 0 then raise exception 'FORJA_FALTA_MENSAJE'; end if;
   select * into l from public.legal_versiones x where x.version = p_v;
   if found and l.avisada_en is not null then raise exception 'FORJA_YA_AVISADA'; end if;
-  insert into public.legal_versiones as x(version, resumen, documentos, inactivas, huella, probada_en)
-    values (p_v, p_r, p_d, p_i, p_h, now())
-    on conflict (version) do update set resumen = excluded.resumen, documentos = excluded.documentos, inactivas = excluded.inactivas, huella = excluded.huella, probada_en = now()
+  insert into public.legal_versiones as x(version, resumen, documentos, inactivas, huella, correo, probada_en)
+    values (p_v, p_r, p_d, p_i, p_h, p_c, now())
+    on conflict (version) do update set resumen = excluded.resumen, documentos = excluded.documentos, inactivas = excluded.inactivas, huella = excluded.huella, correo = excluded.correo, probada_en = now()
     returning * into l;
   select count(*) into n from auth.users u where u.email is not null and u.deleted_at is null;
   insert into privado.correos(user_id, tipo, datos) values (auth.uid(), 'prueba', privado.legal_datos(l, privado.legal_rige_para(n)) || jsonb_build_object('de', 'legal'));
@@ -3463,8 +3466,8 @@ end $$;
 
 revoke all on function public.legal_estado() from public;
 grant execute on function public.legal_estado() to anon, authenticated, service_role;
-revoke all on function public.mod_legal_probar(text, text, text[], boolean, text) from public, anon;
-grant execute on function public.mod_legal_probar(text, text, text[], boolean, text) to authenticated, service_role;
+revoke all on function public.mod_legal_probar(text, text, text[], boolean, text, jsonb) from public, anon;
+grant execute on function public.mod_legal_probar(text, text, text[], boolean, text, jsonb) to authenticated, service_role;
 revoke all on function public.mod_legal_avisar(text, text) from public, anon;
 grant execute on function public.mod_legal_avisar(text, text) to authenticated, service_role;
 revoke all on function public.mod_legal_panel() from public, anon;
