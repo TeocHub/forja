@@ -315,9 +315,10 @@ async function documentos() {
   const I = P.inactivas;
   $("lista").innerHTML = '<p class="lead" style="margin-bottom:12px">Ninguna versión nueva se publica sin avisarla antes a todas las cuentas por correo, como aviso de servicio. La vigente hoy es la ' + esc(P.vigente || "—") + ".</p>" +
     M.versiones.map((m, i) => [m, i]).reverse().map(([m, i]) => fila(m, i)).join("") +
-    '<article class="caso"><div class="caso-cab"><h2>Cuentas inactivas</h2><span class="tag">' + (I.desde ? "Regla activa desde el " + esc(fechaDia(I.desde)) : "Regla aún no vigente") + "</span></div>" +
-    '<p class="texto">' + I.aviso1 + " con el primer aviso (90 días) · " + I.aviso2 + " con el segundo (120 días) · " + I.borradas + " borradas (150 días)</p>" +
-    '<p class="lead">Se revisa sola cada día. Nunca toca cuentas con plan pagado, del equipo Digital Monster o con una vitrina publicada, y solo borra si los dos avisos salieron. Entrar a Forja reinicia el conteo.</p></article>';
+    '<article class="caso"><div class="caso-cab"><h2>Cuentas inactivas</h2><span class="tag">' + (I.desde ? "Regla activa desde el " + esc(fechaDia(I.desde)) : I.parte ? "Parte el " + esc(fechaDia(I.parte)) : "Regla aún no vigente") + "</span></div>" +
+    '<p class="texto">' + I.aviso1 + " con el primer aviso (90 días) · " + I.aviso2 + " con el segundo (120 días) · " + I.borradas + " borradas (150 días) · " + (I.volvieron || 0) + " volvieron a entrar</p>" +
+    (I.errores ? '<p class="texto"><b>' + I.errores + " cuentas no se pudieron revisar en los últimos 7 días.</b> Mira el Registro.</p>" : "") +
+    '<p class="lead">Se revisa sola cada día. Nunca toca cuentas con plan pagado, del equipo Digital Monster o con una vitrina publicada, y solo borra si los dos avisos salieron. Entrar a Forja reinicia el conteo. Antes de esa fecha no se cuenta ni se borra nada. Cada aviso, regreso y borrado queda en el Registro, sin decir de quién.</p></article>';
   const vers = (id) => M.versiones.find((x) => x.id === id), hDe = (id) => huellas[M.versiones.findIndex((x) => x.id === id)];
   $("lista").querySelectorAll("[data-probar]").forEach((b) => b.onclick = async () => {
     const m = vers(b.dataset.probar); b.disabled = true;
@@ -336,8 +337,13 @@ async function documentos() {
   });
 }
 function registro() {
-  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje", sugerencia: "Revisó una sugerencia", anunciar_funcion: "Anunció una herramienta", boletin: "Envió el boletín", documentos_aviso: "Avisó una versión nueva de los documentos", cuenta_inactiva: "Se borró una cuenta inactiva" };
-  $("lista").innerHTML = D.registro.length ? '<div class="caso"><div class="reg">' + D.registro.map((r) => "<span>" + esc(String(r.en).slice(0, 16).replace("T", " ")) + "</span><div><b>" + esc(A[r.accion] || r.accion) + "</b>" + (r.detalle && (r.detalle.mensaje || r.detalle.motivo) ? " · " + esc(MOTIVOS[r.detalle.motivo] || "") + " " + esc((r.detalle.mensaje || "").slice(0, 120)) : "") + "</div>").join("") + "</div></div>" : '<div class="vacio">Aún no hay decisiones registradas.</div>';
+  const A = { suspender: "Suspendió", restaurar: "Restauró", reportes_desestimado: "Desestimó reportes", reportes_mala_fe: "Marcó mala fe", explorar_quitar: "Sacó de Explorar", explorar_permitir: "Permitió Explorar", responder: "Respondió un mensaje", sugerencia: "Revisó una sugerencia", anunciar_funcion: "Anunció una herramienta", boletin: "Envió el boletín", documentos_aviso: "Avisó una versión nueva de los documentos", cuenta_inactiva: "Se borró una cuenta inactiva (150 días)", inactiva_aviso: "Aviso por inactividad", inactiva_vuelve: "Una cuenta avisada volvió a entrar", inactiva_error: "No se pudo revisar una cuenta inactiva" };
+  const extra = (r) => { const d = r.detalle || {};
+    if (r.accion === "inactiva_aviso") return " · " + (d.etapa === 2 ? "segundo (120 días)" : "primero (90 días)") + (d.borra ? ", se borraría el " + esc(fechaDia(d.borra)) : "");
+    if (r.accion === "inactiva_vuelve") return " · tenía el " + (d.etapa === 2 ? "segundo" : "primer") + " aviso; todo se reinició";
+    if (r.accion === "inactiva_error") return " · código " + esc(d.error || "");
+    return d.mensaje || d.motivo ? " · " + esc(MOTIVOS[d.motivo] || "") + " " + esc((d.mensaje || "").slice(0, 120)) : ""; };
+  $("lista").innerHTML = D.registro.length ? '<div class="caso"><div class="reg">' + D.registro.map((r) => "<span>" + esc(String(r.en).slice(0, 16).replace("T", " ")) + "</span><div><b>" + esc(A[r.accion] || r.accion) + "</b>" + extra(r) + "</div>").join("") + "</div></div>" : '<div class="vacio">Aún no hay decisiones registradas.</div>';
 }
 </script>
 </body>

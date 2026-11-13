@@ -3401,17 +3401,31 @@ begin
       from public.legal_versiones l), '[]'::jsonb),
     'inactivas', jsonb_build_object(
       'desde', privado.inactivas_desde(),
+      'parte', (select min(l.rige) from public.legal_versiones l where l.inactivas and l.avisada_en is not null and l.reemplazada_por is null),
       'aviso1', (select count(*) from privado.accesos a where a.aviso1 is not null and a.aviso2 is null),
       'aviso2', (select count(*) from privado.accesos a where a.aviso2 is not null),
-      'borradas', (select count(*) from privado.registro r where r.accion = 'cuenta_inactiva')));
+      'borradas', (select count(*) from privado.registro r where r.accion = 'cuenta_inactiva'),
+      'volvieron', (select count(*) from privado.registro r where r.accion = 'inactiva_vuelve'),
+      'errores', (select count(*) from privado.registro r where r.accion = 'inactiva_error' and r.en > now() - interval '7 days')));
 end $$;
 
+-- Limpia lo pendiente del aviso por inactividad cuando la cuenta vuelve a contar como activa.
+create or replace function privado.limpiar_inactiva(u uuid) returns void language sql security definer set search_path to '' as $$
+  delete from privado.correos c where c.user_id = u and c.tipo = 'inactiva' and c.enviado_en is null and c.tomado_en is null;
+  update public.avisos a set leido = true where a.user_id = u and not a.leido and a.enlace = 'cuenta/#datos' and a.titulo like '%se borrará el%';
+$$;
 create or replace function public.marcar_acceso() returns void language plpgsql security definer set search_path to '' as $$
+declare etapa int;
 begin
   if auth.uid() is null then return; end if;
+  select case when a.aviso2 is not null then 2 when a.aviso1 is not null then 1 end into etapa from privado.accesos a where a.user_id = auth.uid();
   insert into privado.accesos(user_id, ultimo) values (auth.uid(), now())
     on conflict (user_id) do update set ultimo = now(), aviso1 = null, correo1 = null, aviso2 = null, correo2 = null
     where privado.accesos.ultimo < now() - interval '1 hour' or privado.accesos.aviso1 is not null;
+  if etapa is not null then
+    perform privado.limpiar_inactiva(auth.uid());
+    insert into privado.registro(admin, accion, detalle) values (null, 'inactiva_vuelve', jsonb_build_object('fecha', privado.hoy_chile(), 'etapa', etapa));
+  end if;
 end $$;
 create or replace function public.mi_ultimo_acceso() returns timestamptz language sql stable security definer set search_path to '' as $$
   select ultimo from privado.accesos where user_id = auth.uid() $$;
@@ -3424,44 +3438,54 @@ create or replace function privado.exenta_inactividad(u uuid) returns boolean la
                 where vp.visible and (e.creado_por = u or exists(select 1 from public.miembros m where m.espacio_id = e.id and m.user_id = u and m.rol = 'dueno'))) $$;
 
 create or replace function privado.revisar_inactivas() returns jsonb language plpgsql security definer set search_path to '' as $$
-declare desde date := privado.inactivas_desde(); r record; ult timestamptz; borra date; cid bigint; a1 int := 0; a2 int := 0; b int := 0;
+declare desde date := privado.inactivas_desde(); r record; ult timestamptz; borra date; cid bigint; a1 int := 0; a2 int := 0; b int := 0; f int := 0;
 begin
   if desde is null then return jsonb_build_object('activa', false); end if;
   for r in select u.id, u.created_at, u.last_sign_in_at, a.ultimo, a.aviso1, a.correo1, a.aviso2, a.correo2
            from auth.users u left join privado.accesos a on a.user_id = u.id where u.deleted_at is null loop
-    if privado.exenta_inactividad(r.id) then
-      -- Mientras está exenta cuenta como activa: si deja de estarlo, el conteo parte desde ahí.
-      insert into privado.accesos(user_id, ultimo) values (r.id, now())
-        on conflict (user_id) do update set ultimo = now(), aviso1 = null, correo1 = null, aviso2 = null, correo2 = null;
-      continue;
-    end if;
-    ult := greatest(r.created_at, r.last_sign_in_at, r.ultimo, (desde::timestamp at time zone 'America/Santiago'));
-    if r.aviso2 is not null and now() >= ult + interval '150 days' and now() >= r.aviso2 + interval '25 days'
-       and privado.hoy_chile() >= coalesce((select (c.datos->>'borra')::date from privado.correos c where c.id = r.correo2), 'infinity'::date)
-       and exists(select 1 from privado.correos c where c.id = r.correo1 and c.enviado_en is not null)
-       and exists(select 1 from privado.correos c where c.id = r.correo2 and c.enviado_en is not null) then
-      delete from public.espacios e where e.creado_por = r.id and e.tipo = 'personal';
-      delete from auth.users u where u.id = r.id;
-      insert into privado.registro(admin, accion, detalle) values (null, 'cuenta_inactiva', jsonb_build_object('fecha', privado.hoy_chile()));
-      b := b + 1;
-    elsif r.aviso1 is not null and r.aviso2 is null and now() >= ult + interval '120 days' and now() >= r.aviso1 + interval '25 days' then
-      borra := greatest((ult + interval '150 days'), now() + interval '25 days')::date + 1;
-      insert into privado.correos(user_id, tipo, datos) values (r.id, 'inactiva', jsonb_build_object('etapa', 2, 'borra', borra)) returning id into cid;
-      insert into public.avisos(user_id, tipo, titulo, texto, enlace) values (r.id, 'info', 'Segundo aviso: tu cuenta se borrará el ' || to_char(borra, 'DD/MM/YYYY'),
-        'No has entrado a Forja en 120 días. Entrar ahora basta para conservarla. Si prefieres irte, descarga antes tus datos.', 'cuenta/#datos');
-      update privado.accesos set aviso2 = now(), correo2 = cid where user_id = r.id;
-      a2 := a2 + 1;
-    elsif r.aviso1 is null and now() >= ult + interval '90 days' then
-      borra := greatest((ult + interval '150 days'), now() + interval '55 days')::date + 1;
-      insert into privado.correos(user_id, tipo, datos) values (r.id, 'inactiva', jsonb_build_object('etapa', 1, 'borra', borra)) returning id into cid;
-      insert into public.avisos(user_id, tipo, titulo, texto, enlace) values (r.id, 'info', 'Tu cuenta se borrará el ' || to_char(borra, 'DD/MM/YYYY') || ' si no entras',
-        'No has entrado a Forja en 90 días. Entrar ahora basta para conservarla. Si prefieres irte, descarga antes tus datos.', 'cuenta/#datos');
-      insert into privado.accesos(user_id, ultimo, aviso1, correo1) values (r.id, ult, now(), cid)
-        on conflict (user_id) do update set aviso1 = now(), correo1 = cid;
-      a1 := a1 + 1;
-    end if;
+    begin
+      if privado.exenta_inactividad(r.id) then
+        -- Mientras está exenta cuenta como activa: si deja de estarlo, el conteo parte desde ahí.
+        if r.aviso1 is not null then perform privado.limpiar_inactiva(r.id); end if;
+        insert into privado.accesos(user_id, ultimo) values (r.id, now())
+          on conflict (user_id) do update set ultimo = now(), aviso1 = null, correo1 = null, aviso2 = null, correo2 = null;
+        continue;
+      end if;
+      ult := greatest(r.created_at, r.last_sign_in_at, r.ultimo, (desde::timestamp at time zone 'America/Santiago'));
+      if r.aviso2 is not null and now() >= ult + interval '150 days' and now() >= r.aviso2 + interval '25 days'
+         and privado.hoy_chile() >= coalesce((select (c.datos->>'borra')::date from privado.correos c where c.id = r.correo2), 'infinity'::date)
+         and exists(select 1 from privado.correos c where c.id = r.correo1 and c.enviado_en is not null and c.error is null)
+         and exists(select 1 from privado.correos c where c.id = r.correo2 and c.enviado_en is not null and c.error is null) then
+        delete from public.espacios e where e.creado_por = r.id and e.tipo = 'personal';
+        delete from auth.users u where u.id = r.id;
+        -- Solo la fecha: la cuenta ya no existe y no se guarda quién era.
+        insert into privado.registro(admin, accion, detalle) values (null, 'cuenta_inactiva', jsonb_build_object('fecha', privado.hoy_chile()));
+        b := b + 1;
+      elsif r.aviso1 is not null and r.aviso2 is null and now() >= ult + interval '120 days' and now() >= r.aviso1 + interval '25 days' then
+        borra := greatest((ult + interval '150 days'), now() + interval '25 days')::date + 1;
+        insert into privado.correos(user_id, tipo, datos) values (r.id, 'inactiva', jsonb_build_object('etapa', 2, 'borra', borra)) returning id into cid;
+        insert into public.avisos(user_id, tipo, titulo, texto, enlace) values (r.id, 'info', 'Segundo aviso: tu cuenta se borrará el ' || to_char(borra, 'DD/MM/YYYY'),
+          'No has entrado a Forja en 120 días. Entrar ahora basta para conservarla. Si prefieres irte, descarga antes tus datos.', 'cuenta/#datos');
+        update privado.accesos set aviso2 = now(), correo2 = cid where user_id = r.id;
+        insert into privado.registro(admin, accion, detalle) values (null, 'inactiva_aviso', jsonb_build_object('fecha', privado.hoy_chile(), 'etapa', 2, 'borra', borra));
+        a2 := a2 + 1;
+      elsif r.aviso1 is null and now() >= ult + interval '90 days' then
+        borra := greatest((ult + interval '150 days'), now() + interval '55 days')::date + 1;
+        insert into privado.correos(user_id, tipo, datos) values (r.id, 'inactiva', jsonb_build_object('etapa', 1, 'borra', borra)) returning id into cid;
+        insert into public.avisos(user_id, tipo, titulo, texto, enlace) values (r.id, 'info', 'Tu cuenta se borrará el ' || to_char(borra, 'DD/MM/YYYY') || ' si no entras',
+          'No has entrado a Forja en 90 días. Entrar ahora basta para conservarla. Si prefieres irte, descarga antes tus datos.', 'cuenta/#datos');
+        insert into privado.accesos(user_id, ultimo, aviso1, correo1) values (r.id, ult, now(), cid)
+          on conflict (user_id) do update set aviso1 = now(), correo1 = cid;
+        insert into privado.registro(admin, accion, detalle) values (null, 'inactiva_aviso', jsonb_build_object('fecha', privado.hoy_chile(), 'etapa', 1, 'borra', borra));
+        a1 := a1 + 1;
+      end if;
+    exception when others then
+      -- Una cuenta con problemas no detiene la revisión de las demás.
+      insert into privado.registro(admin, accion, detalle) values (null, 'inactiva_error', jsonb_build_object('fecha', privado.hoy_chile(), 'error', sqlstate));
+      f := f + 1;
+    end;
   end loop;
-  return jsonb_build_object('activa', true, 'aviso1', a1, 'aviso2', a2, 'borradas', b);
+  return jsonb_build_object('activa', true, 'aviso1', a1, 'aviso2', a2, 'borradas', b, 'errores', f);
 end $$;
 
 revoke all on function public.legal_estado() from public;
@@ -3477,6 +3501,7 @@ grant execute on function public.marcar_acceso() to authenticated;
 revoke all on function public.mi_ultimo_acceso() from public, anon;
 grant execute on function public.mi_ultimo_acceso() to authenticated;
 revoke all on function privado.revisar_inactivas() from public, anon, authenticated;
+revoke all on function privado.limpiar_inactiva(uuid) from public, anon, authenticated;
 revoke all on function privado.exenta_inactividad(uuid) from public, anon, authenticated;
 revoke all on function privado.inactivas_desde() from public, anon, authenticated;
 revoke all on function privado.legal_vigente() from public, anon, authenticated;
