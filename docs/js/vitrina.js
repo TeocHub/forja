@@ -17,6 +17,10 @@ export const TONOS = {
   papel: { n: "Papel", d: "Cálido y con letra de libro." },
 };
 const RAIZ = new URL("../", import.meta.url).href; // raíz del sitio, para enlazar desde cualquier carpeta
+// La marca de Forja (la F-regla con su chispa), la misma de marca() en forja.js; aquí sin cargar el resto de la base.
+const marca = (t) => '<svg class="fx-f" viewBox="8 8 50 50" width="' + t + '" height="' + t + '" aria-hidden="true"><path class="p" d="M19 13h28v10H30v8h14v10H30v11H19z"/>' +
+  [17, 22, 27, 32, 37, 42, 47].map((y, i) => '<line class="m" x1="19" y1="' + y + '" x2="' + (19 + (i % 3 ? 3.5 : 6)) + '" y2="' + y + '"/>').join("") +
+  '<path class="ch" transform="translate(50 47) scale(1.05)" d="M0 -6 Q0.9 -0.9 6 0 Q0.9 0.9 0 6 Q-0.9 0.9 -6 0 Q-0.9 -0.9 0 -6 Z"/></svg>';
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 export const okUrl = (u) => (/^https:\/\/[^\s"'<>]+$/i.test(String(u || "").trim()) ? String(u).trim() : "");
 export const okColor = (c) => (/^#[0-9a-f]{6}$/i.test(c || "") ? c.toLowerCase() : "");
@@ -213,7 +217,7 @@ export function pintarVitrina(raiz, datos, opts = {}) {
     : '<div class="vt-generativa" aria-hidden="true" style="--c2:' + (colores[0] || "var(--vt-acento)") + ";--c3:" + (colores[1] || colores[0] || "var(--vt-acento)") + '"><span>' + esc((d.titulo || "?").trim()[0] || "?") + "</span></div>";
 
   raiz.innerHTML = '<div class="vt' + (d.portada ? "" : " sin-portada") + '" data-tono="' + d.tono + '" style="--vt-acento:' + d.acento + '">' +
-    (previa ? "" : '<div class="vt-barra"><a href="' + RAIZ + '" class="vt-marca">Forja</a><a href="' + RAIZ + 'entrar/" class="vt-crea">Crea la vitrina de tu proyecto</a></div>') +
+    (previa ? "" : '<div class="vt-barra"><a href="' + RAIZ + '" class="vt-marca" aria-label="forja">' + marca(26) + "<span>forja</span></a>" + '<a href="' + RAIZ + 'entrar/" class="vt-crea">Crea la vitrina de tu proyecto</a></div>') +
     '<header class="vt-hero' + (d.portada ? " con-imagen" : "") + '">' + fondoHero +
       '<div class="vt-hero-txt">' + (etiqueta ? '<span class="vt-etq">' + esc(etiqueta) + "</span>" : "") +
       "<h1>" + (d.titulo ? esc(d.titulo) : "<i>Sin título</i>") + "</h1>" + (d.lema ? '<p class="vt-lema">' + esc(d.lema) + "</p>" : "") +
@@ -287,7 +291,7 @@ function pieza(g) {
 
 /* ---------- estilos ---------- */
 export const CSS_VITRINA = CSS_PIZARRA + `
-.vt{--vt-bg:#f5f4ef;--vt-fg:#16171c;--vt-muted:#5e6271;--vt-card:#fff;--vt-line:#e3e1d9;--vt-field:#eeece5;--vt-titulo:var(--f-display,"Familjen Grotesk",system-ui,sans-serif);--vt-texto:var(--f-body,"Atkinson Hyperlegible",system-ui,sans-serif);
+.vt{--f-display:"Familjen Grotesk",system-ui,sans-serif;--f-num:"JetBrains Mono",ui-monospace,monospace;--btn:var(--vt-acento);--btn-tx:#fff;--suave:var(--vt-field);--mesa:var(--vt-field);--vt-bg:#f5f4ef;--vt-fg:#16171c;--vt-muted:#5e6271;--vt-card:#fff;--vt-line:#e3e1d9;--vt-field:#eeece5;--vt-titulo:"Familjen Grotesk",system-ui,sans-serif;--vt-texto:var(--f-body,"Atkinson Hyperlegible",system-ui,sans-serif);
   --bg:var(--vt-bg);--fg:var(--vt-fg);--muted:var(--vt-muted);--card:var(--vt-card);--line:var(--vt-line);--field:var(--vt-field);--accent:var(--vt-acento);--accent-soft:color-mix(in srgb,var(--vt-acento) 12%,var(--vt-card));
   --vt-ac:var(--vt-acento);background:var(--vt-bg);color:var(--vt-fg);font-family:var(--vt-texto);font-size:17px;line-height:1.6;min-height:100%;position:relative;overflow-x:clip}
 .vt[data-tono=noche]{--vt-bg:#111218;--vt-fg:#ecebe6;--vt-muted:#a0a2b0;--vt-card:#1a1c24;--vt-line:#2b2e39;--vt-field:#16181f;--vt-ac:color-mix(in srgb,var(--vt-acento) 55%,#fff)}
@@ -297,7 +301,11 @@ export const CSS_VITRINA = CSS_PIZARRA + `
 .vt a{color:var(--vt-ac)}
 .vt :where(button,a):focus-visible{outline:2px solid var(--vt-acento);outline-offset:3px}
 .vt-barra{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px max(18px,env(safe-area-inset-left));font-size:14px}
-.vt-marca{font-family:"Familjen Grotesk",system-ui,sans-serif;font-weight:700;font-size:18px;text-decoration:none;color:#fff!important;text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.vt-marca{display:inline-flex;align-items:center;gap:7px;font-family:"Mona Sans",system-ui,sans-serif;font-weight:800;font-stretch:115%;letter-spacing:-.02em;font-size:20px;line-height:1;text-decoration:none;color:#fff!important;text-shadow:0 1px 8px rgba(0,0,0,.35);--tc:var(--vt-acento);--f-hueco:rgba(0,0,0,.6)}
+.vt-marca .fx-f{filter:drop-shadow(0 1px 6px rgba(0,0,0,.3))}
+.vt-marca .fx-f .p{fill:currentColor}
+.vt.sin-portada .vt-marca{--f-hueco:var(--vt-bg)}
+.vt.sin-portada .vt-marca .fx-f{filter:none}
 .vt-crea{color:#fff!important;text-decoration:none;border:1px solid rgba(255,255,255,.55);border-radius:999px;padding:5px 12px;backdrop-filter:blur(6px);background:rgba(0,0,0,.18)}
 .vt.sin-portada .vt-marca{color:var(--vt-fg)!important;text-shadow:none}
 .vt.sin-portada .vt-crea{color:var(--vt-fg)!important;border-color:var(--vt-line);background:color-mix(in srgb,var(--vt-card) 70%,transparent)}

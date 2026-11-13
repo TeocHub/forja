@@ -5,86 +5,91 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Forja · Proyectos</title>
 <meta name="description" content="Tus proyectos y cotizaciones en Forja.">
-<meta name="theme-color" content="#2a3fd1">
+<meta name="theme-color" content="#F4F4F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&display=swap">
 <link rel="stylesheet" href="../css/forja.css">
 <style>
-/* Layout: inventario — barra para plantar ideas, pestañas Proyectos / Cotizaciones, fichas en mosaico */
+/* Layout: inventario — barra para plantar ideas (la categoría como etiqueta colgante) y fichas en mosaico, cada una con su F de avance, su etiqueta y su timbre */
 
 .wrap{max-width:1040px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,36px);line-height:1.1;margin:0}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,5vw,44px);line-height:1.02;letter-spacing:-.03em;margin:0}
 .lead{margin:6px 0 0;color:var(--muted);max-width:62ch}
 button,input{font:inherit;color:var(--fg)}
 button{cursor:pointer}
 :where(button,input,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #app{display:flex;flex-direction:column;gap:20px}
+#app>div:empty{display:none}
 
-.semilla{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
-.semilla:focus-within{border-color:var(--accent)}
+.semilla{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.semilla:focus-within{border-color:var(--fg)}
 .semilla .line{display:flex;gap:8px;align-items:center}
-.semilla input{flex:1;min-width:0;font-family:var(--f-display);font-size:19px;font-weight:500;border:0;background:transparent;padding:6px 4px}
+.semilla input{flex:1;min-width:0;font-family:var(--f-display);font-size:21px;font-weight:700;font-stretch:var(--ancho);border:0;background:transparent;padding:6px 4px}
 .semilla input::placeholder{color:var(--muted)}
 .semilla input:focus-visible{outline:none}
-.plantar{font-weight:700;border:1px solid var(--accent);background:var(--accent);color:var(--card);border-radius:10px;padding:8px 14px;white-space:nowrap}
+.plantar{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:16px;border:1px solid var(--btn);background:var(--btn);color:var(--btn-tx);border-radius:10px;padding:0 20px;min-height:48px;white-space:nowrap}
+.plantar .fx-chispa{fill:var(--tc);stroke:var(--tc)}
 .plantar:disabled{opacity:.6}
 .a-semillero{font-size:13px;color:var(--muted);text-decoration:none;border-top:1px dashed var(--line);padding-top:8px}
-.a-semillero b{color:var(--good)}
+.a-semillero b{color:var(--fg)}
 .a-semillero:hover{color:var(--fg)}
 .a-semillero.fuerte{color:var(--fg);font-size:14px}
-.tipos{display:flex;flex-wrap:wrap;gap:6px}
-.tipo{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 11px 3px 9px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
-.tipo::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--tc)}
-.tipo[aria-pressed="true"]{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent);font-weight:700}
+.tipos{display:flex;flex-wrap:wrap;gap:8px}
+.tipos .fx-etq{min-height:40px}
 
 .mosaico{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
-.cupo{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:16px 0 12px;display:flex;flex-direction:column;gap:8px;--ec:var(--accent)}
+.cupo{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:16px 0 12px;display:flex;flex-direction:column;gap:8px}
 .cupo-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px}
 .cupo-top span{font-family:var(--f-num);font-size:13px;color:var(--muted)}
 .cupo p{margin:0;font-size:14px}
-.cupo.lleno{--ec:var(--e-semilla);border-color:color-mix(in srgb,var(--e-semilla) 45%,var(--line))}
-.cupo.pasado{--ec:var(--e-pausa);border-color:var(--e-pausa);background:color-mix(in srgb,var(--e-pausa) 7%,var(--card))}
-.cupo.mas{flex-direction:row;gap:10px;align-items:baseline;border-color:var(--ember)}
-.cupo.mas b,.cupo.de-mas .cupo-top b{color:var(--ember)}
+.cupo.lleno{border-color:var(--fg)}
+.cupo.pasado{border-color:var(--warn);background:var(--warn-soft)}
+.cupo.mas{flex-direction:row;gap:10px;align-items:baseline}
+.cupo-top b{font-family:var(--f-num);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
 .candado{vertical-align:-1px;color:var(--e-pausa)}
 .semilla input:disabled{cursor:not-allowed}
 .como{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;border-top:1px dashed var(--line);padding-top:10px}
 .como-t{font-size:13px;color:var(--muted);margin-right:2px}
-.como button{font:inherit;font-size:13px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:3px 11px;cursor:pointer}
-.como button[aria-checked="true"]{border-color:var(--accent);color:var(--fg);background:var(--accent-soft);font-weight:700}
+.como button{font:inherit;font-size:14px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:0 12px;min-height:40px;cursor:pointer}
+.como button[aria-checked="true"]{border-color:var(--fg);color:var(--fg);background:var(--suave);font-weight:700}
 .como-d{flex-basis:100%;font-size:12.5px;color:var(--muted)}
 .buscador{display:flex;flex-direction:column;gap:10px;margin-top:20px}
 .b-fila{display:flex;gap:8px;flex-wrap:wrap}
-.b-fila input{flex:1 1 220px;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;font-size:15px}
-.b-fila select{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 10px;font:inherit;color:var(--fg)}
+.b-fila input{flex:1 1 220px;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 14px;min-height:44px;font-size:15px}
+.b-fila select{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 10px;min-height:44px;font:inherit;color:var(--fg)}
 .estados-f{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
-.estados-f button{flex:none;display:inline-flex;gap:7px;align-items:center;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:6px 12px;font-size:14px}
-.estados-f button i{width:9px;height:9px;border-radius:50%;background:var(--ec)}
+.estados-f button{flex:none;display:inline-flex;gap:7px;align-items:center;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 12px;min-height:44px;font-size:14px}
+.estados-f button i{width:15px;height:15px;background:currentColor;-webkit-mask:var(--sello) center/contain no-repeat;mask:var(--sello) center/contain no-repeat;color:var(--muted)}
 .estados-f button .n{font-family:var(--f-num);font-size:12px;color:var(--muted)}
-.estados-f button[aria-pressed="true"]{border-color:var(--ec,var(--fg));background:color-mix(in srgb,var(--ec,var(--fg)) 12%,var(--card));font-weight:700}
-.tile{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;display:grid;grid-template-columns:1fr;gap:4px 10px;text-decoration:none;color:var(--fg);overflow:hidden;min-height:140px;transition:transform .15s ease,border-color .15s ease}
-.tile::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--tc)}
-.tile:hover{border-color:var(--tc);transform:translateY(-2px)}
-.tile .arriba{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.estados-f button[aria-pressed="true"]{border-color:var(--fg);background:var(--suave);font-weight:700}
+.estados-f button[aria-pressed="true"] i{color:var(--fg)}
+.tile{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;text-decoration:none;color:var(--fg);min-height:168px;--f-hueco:var(--card);transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+.tile:hover{border-color:var(--fg);transform:translateY(-2px);box-shadow:0 8px 20px var(--sombra)}
+.tile .arriba{grid-column:1;display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;min-width:0}
+.tile .fx-f{grid-column:2;grid-row:1/3;width:52px;height:52px;margin:-4px -4px 0 0}
 .tile .av{display:flex;align-items:center;gap:8px;flex:1;max-width:60%}
 .tile .av .fx-avance{flex:1}
 .tile .av b{font-family:var(--f-num);font-size:12px;color:var(--fg)}
-.tile.e-pausa{background:repeating-linear-gradient(135deg,var(--card) 0 14px,color-mix(in srgb,var(--e-pausa) 5%,var(--card)) 14px 28px)}
-.tile.e-listo{border-color:color-mix(in srgb,var(--e-listo) 45%,var(--line))}
-.tile .k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tc);font-weight:700}
-.tile h3{grid-column:1/-1;font-family:var(--f-display);font-size:19px;line-height:1.2;margin:4px 0 0;overflow-wrap:anywhere;text-wrap:balance}
-.tile .res{grid-column:1/-1;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.tile .mini{grid-column:2;grid-row:1/4;width:56px;height:56px}
+.tile.e-pausa{background:repeating-linear-gradient(135deg,var(--card) 0 14px,var(--field) 14px 28px)}
+.tile .k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.tile .fx-etq{font-size:12.5px;padding:3px 12px 3px 22px}
+.tile .fx-etq::before{left:8px}
+.tile .fx-estado{font-size:10.5px;padding:2px 7px 1px}
+.tile .fx-estado::before{width:12px;height:12px}
+.tile h3{grid-column:1/-1;font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.1;letter-spacing:-.02em;margin:6px 0 0;overflow-wrap:anywhere;text-wrap:balance}
+.tile .res{grid-column:1/-1;font-size:13.5px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tile .pie{grid-column:1/-1;align-self:end;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:var(--muted);margin-top:10px}
 .tile .estado{font-family:var(--f-num);font-size:11px;letter-spacing:.04em}
 .tile.e-archivado{opacity:.6}
+.tile .de,.tile .en-vitrina,.tile .reservado{grid-column:1/-1}
 .vacio{border:1.5px dashed var(--line);border-radius:16px;padding:28px 22px;color:var(--muted);text-align:center}
-.vacio b{color:var(--fg);font-family:var(--f-display);font-size:18px;display:block;margin-bottom:4px}
+.vacio b{color:var(--fg);font-family:var(--f-display);font-weight:800;font-size:19px;display:block;margin-bottom:4px}
 
-.cot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-decoration:none;color:var(--fg);display:flex;flex-direction:column;gap:6px;border-top:4px solid var(--tc)}
+.cot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-decoration:none;color:var(--fg);display:flex;flex-direction:column;gap:6px}
 .cot:hover{border-color:var(--tc)}
 .cot h3{font-family:var(--f-display);font-size:17px;margin:0;line-height:1.2}
 .cot .k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tc);font-weight:700}
@@ -92,12 +97,13 @@ button{cursor:pointer}
 .skeleton{height:140px;border-radius:14px;background:linear-gradient(90deg,var(--card),var(--field),var(--card));background-size:200% 100%;animation:sk 1.2s linear infinite}
 @keyframes sk{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.skeleton{animation:none}.tile{transition:none}}
-.en-vitrina{align-self:flex-start;font-size:11.5px;font-weight:700;color:var(--good);letter-spacing:.02em}
-.compartidos{margin-top:32px}.compartidos h2{font-family:var(--f-display);font-size:20px;margin:0 0 2px}
+.en-vitrina{justify-self:start;display:inline-flex;align-items:center;gap:5px;font-family:var(--f-num);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fg)}
+.en-vitrina .fx-ico{width:14px;height:14px}
+.compartidos{margin-top:32px}.compartidos h2{font-family:var(--f-display);font-weight:800;font-size:22px;margin:0 0 2px}
 .comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:12px}
 .tile .de{font-size:12.5px;color:var(--muted)}
-.reservado{align-self:flex-start;font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:1px 8px;letter-spacing:.02em}
-.eq-k{margin:0 0 2px;font-family:var(--f-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ember)}
+.reservado{justify-self:start;font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:1px 8px;letter-spacing:.02em}
+.eq-k{margin:0 0 2px;font-family:var(--f-num);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -107,11 +113,11 @@ button{cursor:pointer}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, hace, fecha, navApp, espacio, espacioActual, conSesion, avisos, plan, LIMITES, tope, limite, editable, MAS_PRONTO, MAS_LINK } from "../js/forja.js";
+import { sb, $, esc, toast, hace, fecha, navApp, espacio, espacioActual, conSesion, avisos, plan, LIMITES, tope, limite, editable, MAS_PRONTO, MAS_LINK, fAvance, etiqueta, chispa, ico } from "../js/forja.js";
 import { TIPOS, ESTADOS, tc, avance } from "../js/guias.js";
 import { sendero } from "../js/ayuda.js";
 import { FORMATOS } from "../js/brujula.js";
-import { CREADORES, CREADOR_INICIAL } from "../js/ruta.js";
+import { CREADORES, CREADOR_INICIAL, ETAPAS, estado as estadoRuta, etapaIndice, etapaNombre } from "../js/ruta.js";
 import { plantarProyecto } from "../js/semillero.js";
 navApp("proyectos");
 if (location.hash === "#cotizaciones") location.replace("../cotizaciones/");
@@ -157,9 +163,9 @@ function pintar() {
       : '<header><h1>Proyectos</h1><p class="lead">Todo lo que estás creando. Cada proyecto se abre en su propia página.</p></header>') +
     '<div id="avisos"></div><div id="sendero"></div><div id="panel"></div>' +
     (COMP.length ? '<section class="compartidos"><h2>Compartidos contigo</h2><p class="hint">Proyectos de otras personas en los que te invitaron. No ocupan tu cupo.</p><div class="comp-grid">' +
-      COMP.map((p) => '<a class="tile e-' + p.estado + '" href="../proyecto/?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')"><span class="arriba"><span class="k">' + esc(TIPOS[p.tipo]) + '</span><span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span><h3>" + esc(p.nombre) + '</h3><span class="de">De ' + esc(p.de || "otra persona") + (p.edita ? "" : " · puedes mirar") + "</span>" + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") + '<span class="pie"><span></span><span>' + hace(p.actualizado_en) + "</span></span></a>").join("") + "</div></section>" : "");
+      COMP.map((p) => '<a class="tile e-' + p.estado + '" href="../proyecto/?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')"><span class="arriba">' + etiqueta(p.tipo, TIPOS[p.tipo]) + '<span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span><h3>" + esc(p.nombre) + '</h3><span class="de">De ' + esc(p.de || "otra persona") + (p.edita ? "" : " · puedes mirar") + "</span>" + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") + '<span class="pie"><span></span><span>' + hace(p.actualizado_en) + "</span></span></a>").join("") + "</div></section>" : "");
   if (LECT.length) $("app").insertAdjacentHTML("beforeend", '<section class="compartidos"><h2>Para leer y opinar</h2><p class="hint">Rondas de prueba de otras personas a las que te invitaron. Ves solo una copia; tus respuestas las lee quien creó el proyecto.</p><div class="comp-grid">' +
-    LECT.map((x) => '<a class="tile lectura" href="../prueba/?t=' + x.token + '" style="--tc:' + tc(x.tipo) + '"><span class="arriba"><span class="k">' + esc(TIPOS[x.tipo] || "Proyecto") + '</span><span class="fx-estado">' + esc(x.titulo) + "</span></span><h3>" + esc(x.proyecto) + '</h3><span class="de">' + (Object.keys(x.respuestas || {}).length ? "Ya respondiste " + Object.keys(x.respuestas).length + (Object.keys(x.respuestas).length === 1 ? " pregunta" : " preguntas") : "Aún no respondes") + (x.cierra ? " · cierra el " + fecha(x.cierra + "T12:00:00") : "") + "</span></a>").join("") + "</div></section>");
+    LECT.map((x) => '<a class="tile lectura" href="../prueba/?t=' + x.token + '" style="--tc:' + tc(x.tipo) + '"><span class="arriba">' + etiqueta(x.tipo, TIPOS[x.tipo] || "Proyecto") + '<span class="k">' + esc(x.titulo) + "</span></span><h3>" + esc(x.proyecto) + '</h3><span class="de">' + (Object.keys(x.respuestas || {}).length ? "Ya respondiste " + Object.keys(x.respuestas).length + (Object.keys(x.respuestas).length === 1 ? " pregunta" : " preguntas") : "Aún no respondes") + (x.cierra ? " · cierra el " + fecha(x.cierra + "T12:00:00") : "") + "</span></a>").join("") + "</div></section>");
   avisos($("avisos"));
   proyectos();
   if (!EQUIPO()) sendero($("sendero"), HECHO, PROYS[0] ? PROYS[0].id : null);
@@ -182,15 +188,16 @@ function proyectos() {
   const sinCupo = tope(PL, "proyectos") !== null && activos() >= tope(PL, "proyectos"), lector = EQUIPO() && EA.rol === "lector";
   $("panel").innerHTML = cupo() + (lector ? '<div id="semilla" hidden></div>' :
     '<form class="semilla" id="semilla"><div class="line"><label class="fx-sr" for="s-nombre">Nombre de la idea</label>' +
-    '<input type="text" id="s-nombre" maxlength="160" placeholder="' + (sinCupo ? "Archiva un proyecto para plantar otra idea" : "¿Qué idea traes hoy?") + '" autocomplete="off"' + (sinCupo ? " disabled" : "") + '><button class="plantar" type="submit"' + (sinCupo ? " disabled" : "") + '>Plantar</button></div>' +
+    '<input type="text" id="s-nombre" maxlength="160" placeholder="' + (sinCupo ? "Archiva un proyecto para plantar otra idea" : "¿Qué idea traes hoy?") + '" autocomplete="off"' + (sinCupo ? " disabled" : "") + '><button class="plantar" type="submit" style="--tc:' + tc(tipoNuevo) + '"' + (sinCupo ? " disabled" : "") + ">" + chispa(16) + "Plantar</button></div>" +
     '<div class="tipos" role="group" aria-label="Tipo de proyecto">' +
-    Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipoNuevo) + '">' + n + "</button>").join("") +
+    Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo fx-etq" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipoNuevo) + '">' + n + "</button>").join("") +
     '</div><div class="como" role="radiogroup" aria-label="Cómo trabajas en este proyecto"><span class="como-t">¿Cómo trabajas?</span>' +
     Object.entries(CREADORES).map(([k, c]) => '<button type="button" role="radio" data-cr="' + k + '" aria-checked="' + (k === creadorNuevo) + '" title="' + esc(c.d) + '">' + c.n + "</button>").join("") +
     '<span class="como-d" id="como-d">' + esc(CREADORES[creadorNuevo].d) + '</span></div>' +
     '<a class="a-semillero' + (sinCupo ? " fuerte" : "") + '" href="../semillero/">' + (sinCupo ? "Mientras tanto, anota la idea en el <b>Semillero</b>: las ideas sueltas no gastan cupo." : "¿Todavía es solo una frase? Anótala en el <b>Semillero</b> y plántala cuando te siga dando vueltas.") + "</a></form>") + '<div class="buscador" id="buscador"></div><div id="mosaico" style="margin-top:12px"></div>';
   if (!lector) $("semilla").querySelectorAll(".tipo").forEach((b) => b.onclick = () => {
     tipoNuevo = b.dataset.t; $("semilla").querySelectorAll(".tipo").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    $("semilla").querySelector(".plantar").style.setProperty("--tc", tc(tipoNuevo));
   });
   if (!lector) $("semilla").querySelectorAll("[data-cr]").forEach((b) => b.onclick = () => {
     creadorNuevo = b.dataset.cr; try { localStorage.setItem("forja-creador", creadorNuevo); } catch (e) {}
@@ -215,8 +222,8 @@ function proyectos() {
     '<div class="b-fila"><label class="fx-sr" for="f-q">Buscar</label><input id="f-q" type="search" placeholder="Buscar por nombre o resumen…" autocomplete="off">' +
     '<label class="fx-sr" for="f-orden">Ordenar</label><select id="f-orden"><option value="recientes">Más recientes</option><option value="nombre">Por nombre</option><option value="mas">Más avanzados</option><option value="menos">Menos avanzados</option></select></div>' +
     '<div class="estados-f" role="group" aria-label="Filtrar por estado"><button data-e="" aria-pressed="false">En curso<span class="n">' + PROYS.filter((p) => p.estado !== "archivado").length + "</span></button>" +
-    ESTO.filter(cuenta).map((e) => '<button data-e="' + e + '" style="--ec:var(--e-' + e + ')" aria-pressed="false"><i></i>' + ESTADOS[e] + '<span class="n">' + cuenta(e) + "</span></button>").join("") + "</div>" +
-    (tiposUsados.length > 1 ? '<div class="tipos" role="group" aria-label="Filtrar por categoría"><button class="tipo" style="--tc:var(--fg)" data-t="" aria-pressed="false">Todas las categorías</button>' + tiposUsados.map((t) => '<button class="tipo" style="--tc:' + tc(t) + '" data-t="' + t + '" aria-pressed="false">' + TIPOS[t] + "</button>").join("") + "</div>" : "");
+    ESTO.filter(cuenta).map((e) => '<button data-e="' + e + '" class="e-' + e + '" aria-pressed="false"><i aria-hidden="true"></i>' + ESTADOS[e] + '<span class="n">' + cuenta(e) + "</span></button>").join("") + "</div>" +
+    (tiposUsados.length > 1 ? '<div class="tipos" role="group" aria-label="Filtrar por categoría"><button class="tipo fx-etq" style="--tc:var(--fg)" data-t="" aria-pressed="false">Todas las categorías</button>' + tiposUsados.map((t) => '<button class="tipo fx-etq" style="--tc:' + tc(t) + '" data-t="' + t + '" aria-pressed="false">' + TIPOS[t] + "</button>").join("") + "</div>" : "");
   if (!tiposUsados.includes(F.tipo)) F.tipo = "";
   if (F.estado && !cuenta(F.estado)) F.estado = "";
   $("f-orden").value = F.orden;
@@ -243,10 +250,12 @@ const VIT = new Set(); // proyectos con vitrina publicada
 const HECHO = { plantar: false, ruta: false, taller: false, referentes: false, vitrina: false };
 function tile(p) {
   const elegido = FORMATOS.find((f) => f.k === p.formato), av = AV[p.id] || 0, ro = !editable(p, activos(), PL);
+  const et = estadoRuta(p.ruta).etapa, ei = et ? etapaIndice(et) : -1, enom = et ? etapaNombre(et, p.tipo) : "";
   return '<a class="tile e-' + p.estado + '" href="../proyecto/?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')">' +
-    '<span class="arriba"><span class="k">' + esc(TIPOS[p.tipo]) + (elegido && elegido.n !== TIPOS[p.tipo] ? " · " + esc(elegido.n) : "") + '</span><span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span>" +
-    "<h3>" + (ro ? '<svg class="candado" viewBox="0 0 16 16" width="15" height="15" aria-label="Solo lectura" role="img"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' : "") + esc(p.nombre) + "</h3>" + (VIT.has(p.id) ? '<span class="en-vitrina">● En vitrina</span>' : "") + (p.acceso === "reservado" ? '<span class="reservado">Reservado</span>' : "") + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") +
-    '<span class="pie"><span class="av"><span class="fx-avance" role="img" aria-label="Avance ' + av + '%"><i style="width:' + av + '%"></i></span><b>' + av + '%</b></span><span>' + hace(p.actualizado_en) + "</span></span></a>";
+    '<span class="arriba">' + etiqueta(p.tipo, TIPOS[p.tipo] + (elegido && elegido.n !== TIPOS[p.tipo] ? " · " + elegido.n : "")) + '<span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span>" +
+    fAvance(ei, 52, ei >= 0 ? "Etapa " + (ei + 1) + " de 7: " + enom : "Sin etapa marcada en la Ruta") +
+    "<h3>" + (ro ? '<svg class="candado" viewBox="0 0 16 16" width="15" height="15" aria-label="Solo lectura" role="img"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' : "") + esc(p.nombre) + "</h3>" + (VIT.has(p.id) ? '<span class="en-vitrina">' + ico("vitrina", 14) + "En vitrina</span>" : "") + (p.acceso === "reservado" ? '<span class="reservado">Reservado</span>' : "") + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") +
+    '<span class="pie"><span class="av"><span class="fx-avance" role="img" aria-label="Avance ' + av + '%"><i style="width:' + av + '%"></i></span><b>' + av + '%</b></span><span>' + (ei >= 0 ? esc(enom) + " · " : "") + hace(p.actualizado_en) + "</span></span></a>";
 }
 
 </script>

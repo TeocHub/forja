@@ -4,39 +4,81 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Forja · Proyecto</title>
-<meta name="theme-color" content="#2a3fd1">
+<meta name="theme-color" content="#F4F4F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
 <link rel="stylesheet" href="../css/forja.css">
 <style>
-/* Layout: página de proyecto — cabecera editable y cinco partes (Ruta · Idea · Crear · Probar · Mostrar), cada una con su mesa de herramientas; el Taller es índice de secciones + hoja de escritura */
+/* Layout: página de proyecto — al costado la F de avance y el menú de las cinco partes (Ruta · Idea · Crear · Probar · Mostrar); al centro la cabecera editable, la mesa de boletos de la parte y la herramienta abierta. El Taller es índice de secciones + hoja de escritura. El color lo pone la categoría del proyecto (--tc). */
 
-.wrap{max-width:1120px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0}
+.wrap{max-width:1300px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2;margin:0}
 button,select,input,textarea{font:inherit;color:var(--fg)}
 button{cursor:pointer}
 :where(button,select,input,textarea,a,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hint{font-size:13px;color:var(--muted)}
 #app{display:flex;flex-direction:column;gap:18px}
-.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px;font-size:14px}
-.btn:hover{border-color:var(--accent)}
-.btn.prim{background:var(--accent);border-color:var(--accent);color:var(--card);font-weight:700}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 14px;min-height:40px;font-size:14px}
+.btn:hover{border-color:var(--fg)}
+.btn.prim{background:var(--btn);border-color:var(--btn);color:var(--btn-tx);font-weight:700}
 .btn.peligro{color:var(--bad)}
-.btn.chico{padding:3px 9px;font-size:13px}
+.btn.chico{padding:3px 11px;min-height:34px;font-size:13px}
 .vol{font-size:14px;text-decoration:none}
 
+/* costado: la F de avance y las cinco partes */
+.proy{display:grid;grid-template-columns:218px minmax(0,1fr);gap:28px;align-items:start}
+.lado{position:sticky;top:12px;display:flex;flex-direction:column;gap:18px;padding:18px 0 18px;border-radius:14px;background:var(--mesa);border:1px solid var(--line);--f-hueco:var(--mesa)}
+.lado-f{display:flex;align-items:center;gap:10px;padding:0 16px}
+.lado-f button>span{display:flex;flex-direction:column;min-width:0}
+.lado-f small{white-space:nowrap;font:400 11px var(--f-num);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lado-f b{font-family:var(--f-display);font-weight:800;font-size:17px;line-height:1.15}
+.lado-f button{font:inherit;border:0;background:none;padding:0;color:inherit;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px}
+.partes{display:flex;flex-direction:column;gap:6px}
+.partes button{min-height:56px;margin-left:14px;margin-right:-1px;padding:0 14px 0 14px;border:1px solid transparent;border-right:0;border-radius:10px 0 0 10px;background:transparent;color:var(--fg);display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:17px;font-stretch:var(--ancho);text-align:left;position:relative}
+.partes button .fx-ico{color:var(--muted)}
+.partes button .n{margin-left:auto;font:400 12px var(--f-num);color:var(--muted)}
+.partes button:hover{background:color-mix(in srgb,var(--card) 55%,transparent)}
+.partes button[aria-selected="true"]{background:var(--bg);border-color:var(--line)}
+.partes button[aria-selected="true"] .fx-ico{color:var(--tc)}
+.partes .punto{position:absolute;left:30px;top:13px;width:8px;height:8px;border-radius:50%;background:var(--tc);border:2px solid var(--mesa)}
+.cuerpo{display:flex;flex-direction:column;gap:18px;min-width:0}
+.parte-t{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-bottom:-6px}
+.parte-t .fx-ico{color:var(--tc)}
+.parte-t b{font-family:var(--f-display);font-weight:800;font-size:20px;font-stretch:var(--ancho)}
+.parte-t span{color:var(--muted);font-size:15px}
+@media (max-width:960px){
+  .proy{grid-template-columns:minmax(0,1fr);gap:16px}
+  .lado{top:0;z-index:6;flex-direction:row;align-items:center;gap:6px;padding:6px;border-radius:14px;overflow-x:auto;scrollbar-width:none;background:color-mix(in srgb,var(--mesa) 94%,transparent);backdrop-filter:blur(8px)}
+  .lado::-webkit-scrollbar{display:none}
+  .lado-f{padding:0 6px 0 4px;flex:none}
+  .lado-f .fx-f{width:40px;height:40px}
+  .lado-f button>span{display:none}
+  .partes{flex-direction:row;gap:4px;flex:none}
+  .partes button{min-height:48px;margin:0;border:1px solid transparent;border-radius:10px;font-size:15px;padding:0 12px;gap:7px}
+  .partes button .n{display:none}
+  .partes .punto{left:22px;top:8px}
+}
+@media (max-width:520px){.lado{gap:2px;padding:4px}.lado-f{padding:0 2px}.lado-f .fx-f{width:34px;height:34px}.partes{flex:1;min-width:0}.partes button{flex:1 1 0;min-width:52px;flex-direction:column;justify-content:center;gap:2px;font-size:12px;padding:0 2px}.partes button .fx-ico{width:20px;height:20px}.partes .punto{left:auto;right:6px}}
+
 /* cabecera */
-.cabeza{display:flex;flex-direction:column;gap:10px;border-left:5px solid var(--tc);padding-left:14px}
-.cabeza input.nombre{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,5vw,38px);line-height:1.15;border:1px solid transparent;border-radius:8px;background:transparent;padding:2px 6px;margin-left:-7px;width:100%}
+.cabeza{display:flex;flex-direction:column;gap:12px}
+.cab-sup{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.etq-sel{padding:0 8px 0 24px;min-height:36px;cursor:pointer}
+.etq-sel select{appearance:none;-webkit-appearance:none;border:0;background:transparent;font:700 14px var(--f-body);color:var(--fg);padding:6px 18px 6px 0;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--fg) 50%),linear-gradient(135deg,var(--fg) 50%,transparent 50%);background-position:calc(100% - 7px) 55%,calc(100% - 3px) 55%;background-size:4px 4px;background-repeat:no-repeat}
+.etq-sel select option{color:#161616}
+.cab-tit{display:flex;gap:10px 28px;align-items:flex-start;flex-wrap:wrap}
+.cabeza input.nombre{flex:1 1 360px;min-width:0;font-family:var(--f-display);font-weight:800;font-stretch:var(--ancho);letter-spacing:-.03em;font-size:clamp(28px,4.6vw,44px);line-height:1.05;border:1px solid transparent;border-radius:10px;background:transparent;padding:2px 6px;margin-left:-7px;width:100%}
 .cabeza input.nombre:hover{border-color:var(--line)}
 .ctrl{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
-.ctrl select{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 10px;font-size:14px}
-.estados{display:inline-flex;max-width:100%;overflow-x:auto;scrollbar-width:none;border:1px solid var(--line);border-radius:999px;background:var(--card)}
-.estados button{white-space:nowrap;flex:none;border:0;background:transparent;padding:4px 11px;font-size:13px;color:var(--muted)}
-.estados button[aria-pressed="true"]{background:var(--fg);color:var(--bg);font-weight:700}
+.ctrl select{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 10px;min-height:36px;font-size:14px}
+.estados{display:flex;flex-wrap:wrap;gap:2px 4px;max-width:100%}
+.estados button{white-space:nowrap;flex:none;border:2px solid transparent;outline:1px solid transparent;outline-offset:2px;background:transparent;border-radius:4px;padding:3px 9px 2px;margin:4px 3px;min-height:34px;display:inline-flex;align-items:center;gap:6px;font:700 11.5px var(--f-num);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.estados button::before{content:"";width:14px;height:14px;flex:none;background:currentColor;-webkit-mask:var(--sello) center/contain no-repeat;mask:var(--sello) center/contain no-repeat;opacity:.7}
+.estados button:hover{color:var(--fg)}
 .eq-fila{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;border:1px dashed var(--line);border-radius:12px;padding:8px 12px;font-size:14px}
 .eq-que{color:var(--muted)}.eq-que b{color:var(--fg)}
 .eq-presencia{display:inline-flex;align-items:center;gap:6px;color:var(--good);font-size:13.5px}
@@ -93,19 +135,21 @@ button.ar-chip{cursor:pointer}
 .pronto-cab a{font-size:13px}
 .pronto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
 /* ruta */
-.sigue{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:10px 12px 10px 14px}
-.sg-izq{display:flex;flex-direction:column;gap:4px;min-width:150px}
-.sg-k{font-family:var(--f-num);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
-.sg-via{display:flex;gap:4px}
-.sg-via i{width:14px;height:5px;border-radius:3px;background:var(--line)}
-.sg-via i.ya{background:color-mix(in srgb,var(--accent) 45%,var(--line))}
-.sg-via i.aqui{background:var(--accent);width:22px}
-.sg-n{font-size:12.5px;color:var(--muted)}
-.sg-txt{flex:1 1 260px;margin:0;font-size:14px;color:var(--muted)}
-.sg-txt b{color:var(--fg)}
+.sigue{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;background:var(--btn);color:var(--btn-tx);border-radius:14px;padding:14px 16px 14px 18px;--line:color-mix(in srgb,var(--btn-tx) 22%,transparent)}
+.sg-izq{display:flex;flex-direction:column;gap:6px;min-width:150px}
+.sg-k{display:flex;align-items:center;gap:6px;font-family:var(--f-num);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.sg-via{display:flex;gap:3px;align-items:flex-end;height:16px}
+.sg-via i{width:12px;height:6px;border-radius:1px;background:color-mix(in srgb,var(--btn-tx) 30%,transparent)}
+.sg-via i.ya{background:color-mix(in srgb,var(--btn-tx) 75%,transparent);height:10px}
+.sg-via i.aqui{background:var(--tc);height:16px}
+.sg-n{font-size:12.5px;opacity:.8}
+.sg-txt{flex:1 1 260px;margin:0;font-size:15px;opacity:.92}
+.sg-txt b{font-family:var(--f-display);font-weight:800}
+.sigue .btn{background:transparent;color:var(--btn-tx);border-color:color-mix(in srgb,var(--btn-tx) 45%,transparent)}
+.sigue .btn.prim{background:var(--btn-tx);color:var(--btn);border-color:var(--btn-tx)}
 .sg-acc{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.sg-x{border:0;background:none;color:var(--muted);font-size:20px;line-height:1;padding:2px 6px;border-radius:6px}
-.sg-x:hover{color:var(--fg);background:var(--field)}
+.sg-x{border:0;background:none;color:inherit;opacity:.75;font-size:22px;line-height:1;min-width:40px;min-height:40px;border-radius:8px}
+.sg-x:hover{opacity:1;background:color-mix(in srgb,var(--btn-tx) 12%,transparent)}
 .ruta{margin-top:14px;display:flex;flex-direction:column;gap:14px}
 .rt-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 18px}
 .rt-cab p{margin:4px 0 0}
@@ -133,7 +177,7 @@ button.ar-chip{cursor:pointer}
 .rt-et-cab>div{flex:1 1 260px}
 .rt-et-cab h3{margin:0;font-family:var(--f-display);font-size:22px;line-height:1.15}
 .rt-et-cab p{margin:4px 0 0;color:var(--muted);max-width:62ch}
-.rt-big{font-family:var(--f-display);font-size:44px;line-height:.9;font-weight:700;color:color-mix(in srgb,var(--tc) 70%,var(--fg))}
+.rt-big{font-family:var(--f-display);font-size:44px;line-height:.9;font-weight:800;color:color-mix(in srgb,var(--tc) 70%,var(--fg))}
 .rt-aqui{font-size:12.5px;font-weight:700;color:var(--tc);border:1.5px solid var(--tc);border-radius:999px;padding:3px 10px}
 .rt-explora{margin:0}
 .rt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
@@ -216,12 +260,15 @@ button.ar-chip{cursor:pointer}
 @media (prefers-reduced-motion:reduce){.ref.destello{animation:none;box-shadow:0 0 0 3px var(--ember)}}
 .sel{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .sel select{font-size:15px}
-.estado-w{display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--ec) 8%,var(--card));border:1.5px solid color-mix(in srgb,var(--ec) 40%,var(--line));border-radius:14px;padding:10px 12px}
-.estados button[aria-checked="true"]{background:var(--ec);color:#fff;font-weight:700}
-.estados button[aria-checked="true"]::before{content:"● ";font-size:10px}
-.avance-w{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
-.avance-w .fx-avance{flex:1;height:8px}
+.estado-w{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
+.estados button[aria-checked="true"]{color:var(--ec);border-color:currentColor;outline-color:currentColor;transform:rotate(-2.5deg)}
+.estados button[aria-checked="true"]::before{opacity:1}
+.estados button.e-listo{--ec:var(--tc)}.estados button.e-desarrollo{--ec:var(--fg)}.estados button.e-semilla,.estados button.e-pausa,.estados button.e-archivado{--ec:var(--muted)}
+.avance-w{flex:0 1 220px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);padding-top:10px}
+.avance-w .av-top{display:flex;justify-content:space-between;gap:8px}
+.avance-w .fx-avance{height:10px}
 .avance-w b{color:var(--fg);font-family:var(--f-num)}
+.avance-w small{font-size:12px}
 .fx-tabs .punto{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ember);margin-left:5px;vertical-align:2px}
 .sugerencia{margin-top:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border:1.5px dashed var(--ember);background:var(--ember-soft);border-radius:14px;padding:12px 14px}
 .sugerencia .ops{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
@@ -248,12 +295,9 @@ button.ar-chip{cursor:pointer}
 textarea.resumen{width:100%;min-height:64px;resize:vertical;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;line-height:1.5}
 .fx-tabs{position:sticky;top:0;z-index:5;background:var(--bg)}
 /* las cinco partes: pestañas más grandes; bajo ellas, la mesa con sus herramientas */
-.fx-tabs.partes{gap:2px}
-.fx-tabs.partes button{font-family:var(--f-display);font-size:16px;padding:9px 14px}
-.mesa{margin-top:-8px}
 .mesa[hidden]{display:none}
 
-.bloque{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.bloque{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 12px}
 .vacio{border:1.5px dashed var(--line);border-radius:14px;padding:22px;color:var(--muted);text-align:center}
 
@@ -623,7 +667,7 @@ dialog.an-d::backdrop{background:rgba(10,12,20,.5)}
 </div>
 
 <script type="module">
-import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, tope, NOMBRE_PLAN, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen , equipo } from "../js/forja.js";
+import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, tope, NOMBRE_PLAN, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen, equipo, ico, fAvance, chispa, colorDe } from "../js/forja.js";
 import { funcion, tarjetaFuncion, pendientes } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
 import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
@@ -686,7 +730,7 @@ else conSesion($("app"), async (ses) => {
     sb.from("vitrinas").select("id,slug,publicada,publicado_en,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
   ]);
   P = pr.data; VIT = vi.data || null;
-  if (P) try { localStorage.setItem("forja-ultimo-proyecto", P.id); } catch (e) {}
+  if (P) { try { localStorage.setItem("forja-ultimo-proyecto", P.id); } catch (e) {} colorDe(P.tipo); }
   if (!P) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
   SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || []; PIZ = pz.data || [];
   if (EQ) {
@@ -719,19 +763,19 @@ function armar() {
   RO = calcRO();
   $("app").innerHTML =
     '<a class="vol" href="../proyectos/">← Proyectos</a>' +
+    '<div class="proy" style="--tc:' + tc(P.tipo) + '"><aside class="lado" aria-label="Partes del proyecto"><div class="lado-f" id="lado-f"></div><div class="partes" role="tablist" id="tabs" aria-label="Partes del proyecto" aria-orientation="vertical"></div></aside><div class="cuerpo">' +
     '<section class="cabeza" id="cabeza" style="--tc:' + tc(P.tipo) + ";--ec:var(--e-" + P.estado + ')">' +
-    '<label class="fx-sr" for="f-nombre">Nombre del proyecto</label><input class="nombre" id="f-nombre" maxlength="160" value="' + esc(P.nombre) + '">' +
-    '<div class="ctrl"><label class="sel"><span>Categoría</span><select id="f-tipo">' + Object.entries(TIPOS).map(([k, n]) => '<option value="' + k + '"' + (k === P.tipo ? " selected" : "") + ">" + n + "</option>").join("") + "</select></label>" +
+    '<div class="cab-sup"><label class="fx-etq etq-sel" id="etq-tipo" style="--tc:' + tc(P.tipo) + '"><span class="fx-sr">Categoría</span><select id="f-tipo">' + Object.entries(TIPOS).map(([k, n]) => '<option value="' + k + '"' + (k === P.tipo ? " selected" : "") + ">" + n + "</option>").join("") + "</select></label>" +
     '<label class="sel" id="w-formato"><span>Formato</span><select id="f-formato"></select></label></div>' +
-    '<div class="estado-w"><div class="estados" role="radiogroup" aria-label="Estado del proyecto">' + Object.entries(ESTADOS).map(([k, n]) => '<button type="button" role="radio" data-est="' + k + '" style="--ec:var(--e-' + k + ')" aria-checked="' + (k === P.estado) + '">' + n + "</button>").join("") + "</div>" +
-    '<div class="avance-w" id="avance-w"></div></div>' +
+    '<div class="cab-tit"><label class="fx-sr" for="f-nombre">Nombre del proyecto</label><input class="nombre" id="f-nombre" maxlength="160" value="' + esc(P.nombre) + '"><div class="avance-w" id="avance-w"></div></div>' +
+    '<div class="estado-w"><div class="estados" role="radiogroup" aria-label="Estado del proyecto">' + Object.entries(ESTADOS).map(([k, n]) => '<button type="button" role="radio" class="e-' + k + '" data-est="' + k + '" aria-checked="' + (k === P.estado) + '">' + n + "</button>").join("") + "</div></div>" +
     '<label class="fx-sr" for="f-resumen">Resumen</label><textarea class="resumen" id="f-resumen" maxlength="4000" placeholder="¿De qué se trata, en pocas líneas? Se puede reescribir cuando la idea cambie.">' + esc(P.resumen || "") + "</textarea></section>" +
     equipoFila() +
     (RO ? '<div class="lectura" role="status"><b>Solo lectura</b><span>' + (nivelDe(pest) !== "editar" ? (ACC.invitado ? "En esta parte del proyecto puedes mirar, pero no editar. Si necesitas cambiar algo, pídeselo a quien te invitó." : "Puedes ver este proyecto del equipo, pero no editarlo. Si necesitas editarlo, pídele permiso a quien administra el equipo.") : P.estado === "archivado"
       ? "Este proyecto está archivado. Puedes verlo y exportarlo; para editarlo cámbialo a otro estado (usa uno de tus " + tope(PL, "proyectos") + " cupos del plan gratis)."
       : "Hay " + ACT + " proyectos en curso y " + (PL.mas ? NOMBRE_PLAN[PL.plan] : "el plan gratis") + " permite " + tope(PL, "proyectos") + ". Archiva " + (ACT - tope(PL, "proyectos")) + " (este u otro, desde Mi forja) para seguir editando. Nada se borra.") + "</span></div>" : "") +
-    '<div id="sigue"></div><div class="fx-tabs partes" role="tablist" id="tabs" aria-label="Partes del proyecto"></div><div class="mesa" id="mesa" style="--tc:' + tc(P.tipo) + '"></div><div id="panel" role="tabpanel" aria-labelledby="tab-' + grupoAct().k + '"></div>' +
-    '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="../biblia/?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar">' + (ACC.rol === "dueno" ? '<button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button>' : "") + "</span></div>";
+    '<div id="sigue"></div><div class="parte-t" id="parte-t"></div><div class="mesa" id="mesa" style="--tc:' + tc(P.tipo) + '"></div><div id="panel" role="tabpanel" aria-labelledby="tab-' + grupoAct().k + '"></div>' +
+    '<div class="pie-ficha"><a class="btn" style="text-decoration:none" href="../biblia/?p=' + P.id + '" target="_blank" rel="noopener">Exportar la biblia del proyecto (PDF)</a><span id="zona-borrar">' + (ACC.rol === "dueno" ? '<button class="btn peligro" type="button" id="b-borrar">Borrar proyecto</button>' : "") + "</span></div></div></div>";
 
   $("f-nombre").onchange = (e) => { const v = e.target.value.trim(); if (!v) { e.target.value = P.nombre; return; } guardar({ nombre: v }); document.title = "Forja · " + v; };
   $("f-tipo").onchange = (e) => cambiarTipo(e.target.value);
@@ -757,7 +801,7 @@ function armar() {
       location.href = "../proyectos/";
     };
   };
-  pintarFormatos(); pintarAvance(); pintarTabs(); pintarPestana(); pintarSigue();
+  pintarFormatos(); pintarAvance(); pintarLado(); pintarTabs(); pintarPestana(); pintarSigue();
   aplicarSoloLectura();
   // La ficha (nombre, categoría, estado, resumen) es parte del Taller: sin permiso ahí, queda para leer.
   if (nivelDe("taller") !== "editar") $("cabeza").querySelectorAll("input, textarea, select, button").forEach((el) => { el.disabled = true; if ("readOnly" in el) el.readOnly = true; });
@@ -771,6 +815,7 @@ async function guardarRuta(c, aviso) {
   if (!puedeRuta()) { toast("Solo puedes mirar la ruta de este proyecto."); return; }
   P.ruta = { ...(P.ruta || {}), ...c };
   await guardar({ ruta: P.ruta }, aviso);
+  pintarLado();
 }
 const DESTINO = { mapa: "Abrir el Mapa", estructura: "Probar estructuras", lectores: "Abrir una ronda", analizar: "Agregar una obra", semillero: "Abrir el Semillero", referentes: "Abrir Referentes", brujula: "Abrir la Brújula", pizarra: "Abrir la Pizarra", bitacora: "Abrir la Bitácora", taller: "Abrir el Taller", vitrina: "Ir a la Vitrina", biblia: "Abrir la biblia", oportunidades: "Ver oportunidades", costos: "Abrir Costos", resumen: "Escribir el resumen" };
 async function irTecnica(id) {
@@ -785,7 +830,7 @@ async function irTecnica(id) {
     const pend = OBRAS().find((r) => O.partesHechas(r.analisis) < 4);
     if (!pend && puedeRefs()) obraForm = { clase: "libro", ficha: { clase: "libro" } };
     irA("referentes");
-    window.scrollTo({ top: $("tabs").getBoundingClientRect().top + scrollY - 12, behavior: "smooth" });
+    window.scrollTo({ top: $("parte-t").getBoundingClientRect().top + scrollY - 70, behavior: "smooth" });
     if (pend) analizar(pend);
     return;
   }
@@ -803,7 +848,7 @@ async function irTecnica(id) {
   if (dest === "pizarra" && dato) { const z = PIZ.find((y) => y.modo === dato); if (z) { pizSel = z.id; recordarPiz(z.id); } }
   DESDE_RUTA = true;
   irA(dest);
-  window.scrollTo({ top: $("tabs").getBoundingClientRect().top + scrollY - 12, behavior: "smooth" });
+  window.scrollTo({ top: $("parte-t").getBoundingClientRect().top + scrollY - 70, behavior: "smooth" });
 }
 function pintarSigue() {
   const w = $("sigue"); if (!w) return;
@@ -1086,7 +1131,13 @@ function pintarFormatos() {
 }
 function pintarAvance() {
   const a = avance(SECS), listas = SECS.filter((x) => x.avance >= 100).length;
-  $("avance-w").innerHTML = SECS.length ? '<div class="fx-avance" role="img" aria-label="Avance ' + a + '%"><i style="width:' + a + '%"></i></div><span><b>' + a + "%</b> de avance · " + listas + " de " + SECS.length + " secciones listas</span>" : "";
+  $("avance-w").innerHTML = SECS.length ? '<span class="av-top"><span>Avance</span><b>' + a + ' %</b></span><div class="fx-avance" role="img" aria-label="Avance ' + a + '%"><i style="width:' + a + '%"></i></div><small>' + listas + " de " + SECS.length + " secciones listas</small>" : "";
+}
+// El color del proyecto sigue a su categoría: la chispa, las marcas de la F, la etiqueta y la mesa.
+function tenir(t) {
+  colorDe(t);
+  document.querySelectorAll(".proy, #cabeza, #etq-tipo, #mesa").forEach((el) => el.style.setProperty("--tc", tc(t)));
+  pintarLado();
 }
 // Cambiar de categoría: si el formato ya no calza se suelta, y el Taller sugiere las secciones nuevas.
 async function cambiarTipo(t, silencio) {
@@ -1095,7 +1146,7 @@ async function cambiarTipo(t, silencio) {
   const unico = FORMATOS_DE[t] && FORMATOS_DE[t].length === 1 ? FORMATOS_DE[t][0] : null;
   if (unico && !cambios.formato && P.formato !== unico) cambios.formato = unico;
   await guardar(cambios);
-  $("f-tipo").value = t; $("cabeza").style.setProperty("--tc", tc(t));
+  $("f-tipo").value = t; tenir(t);
   pintarFormatos(); avisarSecciones(silencio); pintarTabs(); if (["oportunidades", "taller"].includes(pest)) pintarPestana();
 }
 // Elegir formato (desde la cabecera o la brújula): si es de otra categoría, la categoría lo sigue.
@@ -1103,7 +1154,7 @@ async function elegirFormato(f) {
   if (f && !formatoCabe(P.tipo, f)) {
     const t = tipoDe(f);
     await guardar({ formato: f, tipo: t });
-    $("f-tipo").value = t; $("cabeza").style.setProperty("--tc", tc(t));
+    $("f-tipo").value = t; tenir(t);
     toast("Formato: " + FORMATOS.find((x) => x.k === f).n + ". La categoría pasó a " + TIPOS[t].toLowerCase() + ".");
   } else { await guardar({ formato: f }); if (f) toast("Formato: " + FORMATOS.find((x) => x.k === f).n); }
   pintarFormatos(); avisarSecciones(true); pintarTabs(); if (["oportunidades", "taller", "brujula"].includes(pest)) pintarPestana();
@@ -1132,15 +1183,27 @@ const DATO = {
   pizarra: () => PIZ.length || "", bitacora: () => NOTAS.length || "", oportunidades: () => SEGS.length || "",
   vitrina: () => (VIT && VIT.publicada ? "Publicada" : ""), costos: () => (COT ? "Cotizada" : ""),
 };
+// Al costado: la F de avance del proyecto. La etapa es la que marca la persona en la Ruta (o la que sugiere Forja si no marcó ninguna).
+function pintarLado() {
+  const w = $("lado-f"); if (!w) return;
+  const E = R.estado(P.ruta), k = E.etapa || R.etapaActual(P.ruta, R.senales(ctxRuta())), i = k ? R.etapaIndice(k) : -1;
+  const txt = i >= 0 ? "Etapa " + (i + 1) + " de 7: " + R.etapaNombre(k, P.tipo) : "Sin etapa marcada";
+  w.innerHTML = '<button type="button" data-lado-ruta title="Ver la Ruta">' + fAvance(i, 56, txt) + "<span><small>" + (i >= 0 ? "Etapa " + (i + 1) + " de 7" : "La Ruta") + "</small><b>" + esc(i >= 0 ? R.etapaNombre(k, P.tipo) : "Sin etapa") + "</b></span></button>";
+  w.querySelector("[data-lado-ruta]").onclick = () => { if (nivelDe("ruta")) { DESDE_RUTA = false; irA("ruta"); } };
+}
+// Para qué sirve cada parte, dicho con su herramienta de taller.
+const SENTIDO = { ruta: "una regla: medir dónde vas", idea: "la chispa: donde todo parte", crear: "el martillo: hacer", probar: "la lupa: mirar de cerca", mostrar: "la vitrina: abrir al mundo" };
 function pintarTabs() {
   const nuevas = faltantes().length + sobrantes().length, ga = grupoAct();
-  $("tabs").innerHTML = HV.GRUPOS.filter((g) => herrsDe(g.k).length).map((g) => '<button role="tab" id="tab-' + g.k + '" data-g="' + g.k + '" aria-controls="panel" aria-selected="' + (g === ga) + '" title="' + esc(g.d) + '">' + g.n +
-    (g.k === "crear" && nuevas && pest !== "taller" ? '<span class="punto" title="Secciones sugeridas nuevas en el Taller"></span>' : "") + "</button>").join("");
+  $("tabs").innerHTML = HV.GRUPOS.filter((g) => herrsDe(g.k).length).map((g) => { const n = g.k === "ruta" ? 0 : herrsDe(g.k).length;
+    return '<button role="tab" id="tab-' + g.k + '" data-g="' + g.k + '" aria-controls="panel" aria-selected="' + (g === ga) + '" title="' + esc(g.d) + '">' + ico(g.k, 22) + "<span>" + g.n + "</span>" + (n ? '<span class="n" aria-hidden="true">' + n + "</span>" : "") +
+    (g.k === "crear" && nuevas && pest !== "taller" ? '<span class="punto" title="Secciones sugeridas nuevas en el Taller"></span>' : "") + "</button>"; }).join("");
   $("tabs").querySelectorAll("[data-g]").forEach((b) => b.onclick = () => irGrupo(b.dataset.g));
+  $("parte-t").innerHTML = ico(ga.k, 24) + "<b>" + esc(ga.n) + "</b><span>· " + SENTIDO[ga.k] + "</span>";
   const hs = ga.k === "ruta" ? [] : herrsDe(ga.k), m = $("mesa");
   m.style.setProperty("--tc", tc(P.tipo));
   m.hidden = !hs.length;
-  m.innerHTML = hs.length ? HV.mesaHTML(hs.map((k) => ({ k, n: esc(nombreDe(k)), d: esc(HV.LEMA[k] || (HV.vistaDe(k) || {}).d || ""), ico: icono(k, 20),
+  m.innerHTML = hs.length ? HV.mesaHTML(hs.map((k) => ({ k, n: esc(nombreDe(k)), d: esc(HV.LEMA[k] || (HV.vistaDe(k) || {}).d || ""), ico: ico(k, 22),
     dato: nivelDe(k) === "ver" ? "Solo ver" : DATO[k] ? DATO[k]() : "", nota: k === "taller" && nuevas ? "Secciones sugeridas nuevas" : "" })), pest, "Herramientas de " + ga.n) : "";
   m.querySelectorAll("[data-p]").forEach((b) => b.onclick = () => { if (b.dataset.p === pest) return; DESDE_RUTA = false; irA(b.dataset.p); });
   // En pantallas angostas la mesa se desliza: la herramienta abierta queda a la vista.

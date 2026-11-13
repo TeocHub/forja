@@ -1,12 +1,19 @@
 {
   "name": "Forja",
   "short_name": "Forja",
-  "description": "Oportunidades, proyectos y campañas de Digital Monster.",
+  "description": "Un taller para llevar tus proyectos creativos de la primera idea hasta mostrarlos.",
   "lang": "es",
   "start_url": "proyectos/",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f3f4f7",
-  "theme_color": "#2a3fd1",
-  "icons": [{"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}]
+  "background_color": "#F4F4F2",
+  "theme_color": "#F4F4F2",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }

@@ -150,25 +150,35 @@ export const herrDe = (gk) => { const g = grupo(gk); if (!g) return []; return [
 // La parte donde vive una herramienta (null = solo se abre desde la Ruta).
 export const grupoDe = (k) => GRUPOS.find((g) => herrDe(g.k).includes(k)) || null;
 
-// La mesa: las herramientas de una parte como fichas para elegir. items = [{ k, n, d, dato, ico, nota }].
-export const mesaHTML = (items, actual, etiqueta) => '<div class="mesa-in" role="group" aria-label="' + etiqueta + '">' + items.map((x) =>
-  '<button type="button" class="mesa-h" data-p="' + x.k + '" aria-current="' + (x.k === actual) + '"><span class="mesa-ico">' + (x.ico || "") + "</span>" +
+// La mesa: las herramientas de una parte como boletos numerados sobre la mesa del taller, cada uno con su ícono.
+// items = [{ k, n, d, dato, ico, nota }]. La herramienta abierta queda derecha y marcada con el color del proyecto.
+const GIRO = [-1.2, 0.9, -0.6, 1.3];
+export const mesaHTML = (items, actual, etiqueta) => '<div class="mesa-in" role="group" aria-label="' + etiqueta + '">' + items.map((x, i) =>
+  '<button type="button" class="mesa-h" data-p="' + x.k + '" aria-current="' + (x.k === actual) + '" style="--giro:' + GIRO[i % 4] + 'deg"><span class="mesa-top"><span class="mesa-ico">' + (x.ico || "") + '</span><span class="mesa-num">N.º ' + String(i + 1).padStart(2, "0") + "</span></span>" +
   '<span class="mesa-t"><b>' + x.n + (x.nota ? '<i class="mesa-p" title="' + x.nota + '"></i>' : "") + "</b><small>" + (x.d || "") + "</small></span>" +
   (x.dato !== "" && x.dato != null ? '<span class="mesa-n">' + x.dato + "</span>" : "") + "</button>").join("") + "</div>";
 export const CSS_MESA = `
-.mesa-in{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr);gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 4px;scroll-snap-type:x proximity}
-.mesa-in::-webkit-scrollbar{display:none}
-.mesa-h{font:inherit;text-align:left;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:9px 12px 9px 9px;cursor:pointer;scroll-snap-align:start;transition:border-color .15s,background-color .15s}
-.mesa-h:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 60%,var(--line))}
-.mesa-ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--tc,var(--accent));background:color-mix(in srgb,var(--tc,var(--accent)) 10%,transparent)}
-.mesa-t{display:flex;flex-direction:column;min-width:0}
-.mesa-t b{font-family:var(--f-display);font-size:15px;line-height:1.2;display:flex;align-items:center;gap:5px}
-.mesa-t small{color:var(--muted);font-size:12.5px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mesa-n{font-family:var(--f-num);font-size:11.5px;color:var(--muted);white-space:nowrap}
-.mesa-p{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ember)}
-.mesa-h[aria-current="true"]{border-color:var(--tc,var(--accent));background:color-mix(in srgb,var(--tc,var(--accent)) 7%,var(--card));box-shadow:inset 0 -3px 0 var(--tc,var(--accent))}
-.mesa-h[aria-current="true"] .mesa-ico{background:var(--tc,var(--accent));color:var(--card)}
-.mesa-h[aria-current="true"] .mesa-n{color:var(--fg)}
-@media (max-width:640px){.mesa-in{grid-auto-columns:max-content}.mesa-h{grid-template-columns:auto auto auto;padding:6px 11px 6px 6px;gap:8px}.mesa-ico{width:30px;height:30px;border-radius:8px}.mesa-t small{display:none}}
+.mesa-in{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;padding:18px;border-radius:14px;background:var(--mesa)}
+.mesa-h{font:inherit;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:132px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-left:3px dashed var(--line);border-radius:10px;box-shadow:0 6px 16px var(--sombra);padding:14px 16px 14px 18px;cursor:pointer;transform:rotate(var(--giro,0deg));transition:transform .18s ease,box-shadow .18s ease}
+.mesa-h:hover{transform:rotate(0) translateY(-2px)}
+.mesa-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mesa-ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:var(--fg);background:var(--suave)}
+.mesa-num{font:700 12px var(--f-num);color:var(--muted)}
+.mesa-t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mesa-t b{font-family:var(--f-display);font-weight:800;font-size:19px;line-height:1.12;display:flex;align-items:center;gap:6px}
+.mesa-t small{color:var(--muted);font-size:13.5px;line-height:1.35}
+.mesa-n{margin-top:auto;font:700 12.5px var(--f-num);color:var(--fg)}
+.mesa-p{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--tc,var(--cat))}
+.mesa-h[aria-current="true"]{transform:none;border-color:var(--fg);border-left:3px solid var(--tc,var(--cat));box-shadow:0 0 0 1px var(--fg),0 8px 20px var(--sombra)}
+.mesa-h[aria-current="true"] .mesa-ico{background:var(--tc,var(--cat));color:var(--card)}
+@media (max-width:640px){
+  .mesa-in{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:max-content;overflow-x:auto;scrollbar-width:none;gap:10px;padding:12px;scroll-snap-type:x proximity}
+  .mesa-in::-webkit-scrollbar{display:none}
+  .mesa-h{min-height:0;flex-direction:row;align-items:center;gap:10px;padding:8px 12px 8px 10px;scroll-snap-align:start;box-shadow:0 3px 8px var(--sombra)}
+  .mesa-top{flex:none}.mesa-num,.mesa-t small{display:none}
+  .mesa-ico{width:32px;height:32px;border-radius:8px}
+  .mesa-t b{font-size:16px}
+  .mesa-n{margin:0;font-size:11.5px;color:var(--muted)}
+}
 @media (prefers-reduced-motion:reduce){.mesa-h{transition:none}}
 `;

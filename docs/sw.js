@@ -4,7 +4,7 @@
 // Al cambiar de versión, lo ya guardado pasa a la caché nueva (no se vuelve a descargar todo el sitio).
 // Las páginas se guardan sin su ?consulta (proyecto/?p=… es siempre el mismo archivo): así la caché no crece
 // con cada proyecto o vitrina que se abre, y sin conexión cualquier proyecto abre su página.
-const CACHE = "forja-v35";
+const CACHE = "forja-v36";
 const SHELL = ["./", "proyectos/", "manifest.webmanifest", "icon.svg", "css/forja.css", "js/forja.js"];
 const clave = (req) => (req.mode === "navigate" ? new URL(req.url).origin + new URL(req.url).pathname : req);
 self.addEventListener("install", (e) => e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())));

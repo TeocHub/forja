@@ -20,14 +20,6 @@ const PUBLICO = [
 ];
 // Explorar aparece en el menú solo cuando hay suficientes proyectos para que no se vea vacío.
 export const MIN_EXPLORAR = 6;
-// Menú de la cuenta. Íconos dibujados a mano, de trazo, para que se lean en la barra del celular.
-const ICONO = {
-  proyectos: '<path d="M4 6.5h6l2 2h8v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-10.5a1 1 0 0 1 1-1z"/>',
-  semillero: '<path d="M12 20v-6.5"/><path d="M12 13.5c0-3.6 2.6-6.2 6.5-6.2 0 3.6-2.7 6.2-6.5 6.2Z"/><path d="M12 15.5c0-2.8-2.2-5-5.4-5 0 2.8 2.2 5 5.4 5Z"/><path d="M5 20h14"/>',
-  eventos: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
-  cotizaciones: '<path d="M6 3h9l4 4v14H6z"/><path d="M14.5 3v4.5H19M9 12h7M9 16h5"/>',
-  plan: '<path d="M12 3.5l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/>',
-};
 const APP = [
   { href: u("proyectos/"), nombre: "Proyectos", id: "proyectos" },
   { href: u("semillero/"), nombre: "Semillero", id: "semillero" },
@@ -35,7 +27,58 @@ const APP = [
   { href: u("cotizaciones/"), nombre: "Cotizaciones", id: "cotizaciones" },
   { href: u("planes/"), nombre: "Planes", id: "plan" },
 ];
-const svg = (k) => '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' + ICONO[k] + "</svg>";
+const MENU_ICO = { proyectos: "fichas", semillero: "semilla", eventos: "calendario", cotizaciones: "moneda", plan: "chispa" };
+const svg = (k) => ico(MENU_ICO[k], 22);
+
+/* --- identidad «Grafito con color propio»: marca, íconos y piezas compartidas (estilos en forja.css) --- */
+// Íconos de trazo del taller (viewBox 24, puntas redondas). Las cinco partes: Ruta = regla, Idea = chispa, Crear = martillo, Probar = lupa, Mostrar = vitrina.
+export const ICONOS = {
+  regla: "M2.5 8.5h19v7h-19z M6 8.5v3 M9.5 8.5v4 M13 8.5v3 M16.5 8.5v4", chispa: "M12 3 Q13.2 10.8 21 12 Q13.2 13.2 12 21 Q10.8 13.2 3 12 Q10.8 10.8 12 3 Z",
+  martillo: "M9 4h9v5H9z M9 6.5H5.5 M13.5 9v11", lupa: "M10.5 4.5a6 6 0 1 0 0 12a6 6 0 1 0 0-12z M15 15l5 5", vitrina: "M4 10h16v10H4z M3 10l2-6h14l2 6 M9.5 20v-5h5v5",
+  pluma: "M4 20l4-1 11-11-3-3L5 16z M14 7l3 3", fichas: "M8 3.5h11v14H8z M5 6.5v14h11", pizarra: "M3 4h18v12H3z M7.5 8.5a1.5 1.5 0 1 0 0 .01 M16.5 11.5a1.5 1.5 0 1 0 0 .01 M9 9l6 2.5 M12 16v4",
+  mapa: "M12 3l7.5 4.3v9.4L12 21l-7.5-4.3V7.3z M12 10.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3", curva: "M3 18c3.5 0 4.5-11 9-11s5.5 11 9 11 M3 21h18",
+  brujula: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z M15 9l-1.8 4.2L9 15l1.8-4.2z", chinche: "M9 3h6l-1 5 3 3H7l3-3z M12 11v10",
+  ojo: "M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z M12 9.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5", cuaderno: "M6 3h11a2 2 0 0 1 2 2v16H8a2 2 0 0 1-2-2z M6 17.5a2 2 0 0 1 2-2h11",
+  moneda: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z M14.5 9.5c0-1.2-1.1-1.8-2.5-1.8s-2.5.7-2.5 1.8 1.1 1.6 2.5 1.9 2.5.8 2.5 2-1.1 1.9-2.5 1.9-2.5-.6-2.5-1.9 M12 6.5v11",
+  calendario: "M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5", flecha: "M4 12h15 M13 6l6 6-6 6", persona: "M12 4a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7z M5 20c.8-4 3.6-6 7-6s6.2 2 7 6",
+  semilla: "M12 20v-6 M12 14c-4 0-6-2.5-6-6 3.5 0 6 2 6 6z M12 14c0-3 2-5.5 6-5.5 0 3.5-2.5 5.5-6 5.5z", desarrollo: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z M12 4v16",
+  pausa: "M9 6v12 M15 6v12", listo: "M5 12.5l4.5 4.5L19 7.5", archivado: "M4 5h16v4H4z M5.5 9v10h13V9 M10 13h4",
+};
+// Ícono de cada parte del proyecto y de cada herramienta (la mesa de boletos y la guía).
+export const ICONO_DE = { ruta: "regla", idea: "chispa", crear: "martillo", probar: "lupa", mostrar: "vitrina",
+  mapa: "mapa", estructura: "curva", brujula: "brujula", referentes: "chinche", taller: "pluma", fichas: "fichas", pizarra: "pizarra",
+  lectores: "ojo", bitacora: "cuaderno", vitrina: "vitrina", costos: "moneda", oportunidades: "calendario" };
+export const ico = (k, tam = 20) => '<svg class="fx-ico" viewBox="0 0 24 24" width="' + tam + '" height="' + tam + '" aria-hidden="true"><path d="' + (ICONOS[k] || ICONOS[ICONO_DE[k]] || ICONOS.chispa) + '"/></svg>';
+const CHISPA = "M0 -6 Q0.9 -0.9 6 0 Q0.9 0.9 0 6 Q-0.9 0.9 -6 0 Q-0.9 -0.9 0 -6 Z";
+export const chispa = (tam = 18) => '<svg class="fx-chispa" viewBox="-7 -7 14 14" width="' + tam + '" height="' + tam + '" aria-hidden="true"><path d="' + CHISPA + '"/></svg>';
+const F_FORMA = "M19 13h28v10H30v8h14v10H30v11H19z", F_Y = [17, 22, 27, 32, 37, 42, 47];
+// La marca: la F-regla. Sus siete marcas son las siete etapas de la Ruta; la chispa al pie es la idea que enciende todo.
+export const marca = (tam = 32) => '<svg class="fx-f" viewBox="8 8 50 50" width="' + tam + '" height="' + tam + '" aria-hidden="true"><path class="p" d="' + F_FORMA + '"/>' +
+  F_Y.map((y, i) => '<line class="m" x1="19" y1="' + y + '" x2="' + (19 + (i % 3 ? 3.5 : 6)) + '" y2="' + y + '"/>').join("") + '<path class="ch" transform="translate(50 47) scale(1.05)" d="' + CHISPA + '"/></svg>';
+// La F de avance: lo hecho se marca largo y de color, la etapa actual cruza el palo con la chispa al lado, lo que falta queda corto.
+// etapa = índice 0–6, o -1 si el proyecto todavía no marca etapa.
+export const fAvance = (etapa, tam = 56, etiqueta) => '<svg class="fx-f" viewBox="2 8 56 50" width="' + tam + '" height="' + tam + '"' + (etiqueta ? ' role="img" aria-label="' + esc(etiqueta) + '"' : ' aria-hidden="true"') + '><path class="p" d="' + F_FORMA + '"/>' +
+  F_Y.map((y, i) => { const act = i === etapa, hecho = i < etapa; return '<line class="m' + (act || hecho ? " on" : "") + '" x1="19" y1="' + y + '" x2="' + (19 + (act ? 11 : hecho ? 7 : 3)) + '" y2="' + y + '"' + (act ? ' style="stroke-width:2.4"' : "") + "/>"; }).join("") +
+  (etapa >= 0 ? '<path class="ch" transform="translate(12 ' + F_Y[etapa] + ')" d="' + CHISPA + '"/>' : "") + "</svg>";
+// La regla de avance: siete marcas que se tocan. Con `botones`, cada marca es un botón (data-etapa = índice).
+// nombres = los siete nombres de etapa (para leerlos en voz alta). etapa = índice o -1.
+export function regla(etapa, nombres, { botones = false, chica = false, pie = true, etiqueta = "Etapas de la Ruta" } = {}) {
+  const pct = etapa < 0 ? 0 : ((etapa + 0.5) / 7) * 100, tag = botones ? "button" : "span";
+  return '<div class="fx-regla' + (chica ? " chica" : "") + '"><div class="fx-regla-r"' + (botones ? ' role="group"' : ' role="img"') + ' aria-label="' + esc(etiqueta) + (botones || etapa < 0 ? "" : ": etapa " + (etapa + 1) + " de 7, " + esc(nombres[etapa] || "")) + '" style="--pct:' + pct.toFixed(1) + '%">' +
+    nombres.map((n, i) => "<" + tag + (botones ? ' type="button" data-etapa="' + i + '" aria-pressed="' + (i === etapa) + '" aria-label="' + (i + 1) + ": " + esc(n) + '"' : ' aria-hidden="true"') + ' class="' + (i === etapa ? "aqui" : i < etapa ? "ya" : "") + '">' + chispa(18) + "<i></i><span>" + (i + 1) + "</span></" + tag + ">").join("") +
+    "</div>" + (pie ? '<div class="fx-regla-pie"><span>Primera chispa</span><span>Listo para mostrar</span></div>' : "") + "</div>";
+}
+// Etiqueta colgante: la categoría del proyecto.
+export const etiqueta = (tipo, nombre) => '<span class="fx-etq" style="--tc:var(--t-' + esc(tipo || "otro") + ')">' + esc(nombre) + "</span>";
+// Boleto numerado: una herramienta con su ícono.
+export const boleto = (n, k, nombre) => '<span class="fx-boleto">' + ico(k, 16) + "N.º " + String(n).padStart(2, "0") + " · " + esc(nombre) + "</span>";
+// El color de Forja lo pone el proyecto: la chispa toma el color de su categoría. Fuera de un proyecto, el del último que se abrió.
+export function colorDe(tipo) {
+  const t = /^[a-z]+$/.test(tipo || "") ? tipo : "historia";
+  document.documentElement.style.setProperty("--cat", "var(--t-" + t + ")");
+  try { localStorage.setItem("forja-ultimo-tipo", t); } catch (e) {}
+}
+try { const t = localStorage.getItem("forja-ultimo-tipo"); if (/^[a-z]+$/.test(t || "")) document.documentElement.style.setProperty("--cat", "var(--t-" + t + ")"); } catch (e) {}
 
 export const $ = (id) => document.getElementById(id);
 export function esc(s) {
@@ -66,7 +109,7 @@ export function nav(actual) {
   if (!el) return;
   el.className = "fx-nav";
   el.innerHTML =
-    '<a class="fx-logo" href="' + u() + '">Forja</a><span class="fx-mods">' +
+    '<a class="fx-logo" href="' + u() + '" aria-label="forja, inicio">' + marca(32) + "<span>forja</span></a><span class=\"fx-mods\">" +
     PUBLICO.map((m) => '<a href="' + m.href + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + m.nombre + "</a>").join("") +
     '</span><span class="fx-user" id="fx-user"><a class="fx-entrar" href="' + u("entrar/") + '">Entrar</a></span>';
   sb.from("vitrinas_publicadas").select("slug", { count: "exact", head: true }).eq("en_explorar", true).then(({ count }) => {
@@ -80,7 +123,7 @@ export function navApp(actual) {
   if (!el) return;
   el.className = "fx-app";
   el.innerHTML =
-    '<a class="fx-logo" href="' + u("proyectos/") + '">Forja<span class="fx-esp" id="fx-esp" hidden></span></a>' +
+    '<a class="fx-logo" href="' + u("proyectos/") + '" aria-label="forja, mis proyectos">' + marca(32) + '<span>forja</span><span class="fx-esp" id="fx-esp" hidden></span></a>' +
     '<nav class="fx-menu" aria-label="Mi forja">' + APP.map((m) => '<a href="' + m.href + '" class="m-' + m.id + '"' + (m.id === actual ? ' aria-current="page"' : "") + ">" + svg(m.id) + "<span>" + m.nombre + "</span></a>").join("") + "</nav>" +
     '<button type="button" class="fx-ayuda" id="fx-ayuda" aria-label="Ayuda: cómo funciona esta página" title="Ayuda">?</button>' +
     '<details class="fx-cuenta" id="fx-cuenta"><summary aria-label="Mi cuenta"><span class="fx-ini" id="fx-ini">·</span></summary><div class="fx-pop">' +
