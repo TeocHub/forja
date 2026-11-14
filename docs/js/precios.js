@@ -4,7 +4,7 @@ import { sb, esc, u, limite } from "./forja.js";
 import { nombrePieza } from "./piezas.js";
 
 // Campos que se leen de public.precios_comunidad (la columna autor no es legible).
-export const CAMPOS_PRECIO = "id,componente,proveedor,enlace,origen,moneda,cantidad,precio,envio,envio_pendiente,incluye_iva,especificaciones,opciones,grupo,plazo,creado_en";
+export const CAMPOS_PRECIO = "id,componente,proveedor,enlace,origen,moneda,cantidad,precio,envio,envio_pendiente,incluye_iva,especificaciones,opciones,grupo,plazo,revisado,creado_en";
 
 // Quita del enlace lo que solo sirve para seguir visitas (utm, _pos, _sid…) y deja lo que elige el producto (como variant).
 const RASTREO = /^(utm_|_pos$|_sid$|_ss$|_psq$|_v$|fbclid$|gclid$|igshid$|mc_|ref$|ref_)/i;
@@ -24,6 +24,7 @@ export function agrupar(filas) {
     if (!vistos.has(k)) { const g = { ...r, tramos: [], ids: [] }; vistos.set(k, g); salida.push(g); }
     const g = vistos.get(k); g.tramos.push({ id: r.id, cantidad: n0(r.cantidad), precio: n0(r.precio) }); g.ids.push(r.id);
     if (String(r.creado_en) > String(g.creado_en)) g.creado_en = r.creado_en;
+    if (r.revisado && String(r.revisado) > String(g.revisado || "")) g.revisado = r.revisado;
   });
   salida.forEach((g) => { g.tramos.sort((a, b) => a.cantidad - b.cantidad); const t = g.tramos[0]; g.id = t.id; g.cantidad = t.cantidad; g.precio = t.precio; });
   return salida;
@@ -48,6 +49,12 @@ export const porUnidad = (r) => !n0(r.cantidad) ? "–" : r.moneda === "USD"
   ? "USD " + (n0(r.precio) / n0(r.cantidad)).toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   : dinero(r.moneda, n0(r.precio) / n0(r.cantidad));
 const mes = (iso) => new Date(iso).toLocaleDateString("es-CL", { month: "short", year: "numeric" });
+// Cuándo se revisó por última vez (los precios cambian: pasados 90 días se avisa que puede haber cambiado).
+export const VIEJO_DIAS = 90;
+export function revisadoTxt(r) {
+  const f = r.revisado ? new Date(r.revisado + "T12:00:00") : new Date(r.creado_en), dias = Math.floor((Date.now() - f) / 864e5);
+  return "revisado " + mes(f) + (dias > VIEJO_DIAS ? ' · <b class="pr-viejo">puede haber cambiado</b>' : "");
+}
 
 // Escalera de tramos: desde cuántas unidades, a cuánto sale cada una.
 export function escalera(r, max = 12) {
@@ -55,7 +62,7 @@ export function escalera(r, max = 12) {
   return '<ol class="pr-tramos" aria-label="Precio por pieza según cantidad">' + ts.map((t) =>
     "<li><span>" + t.cantidad.toLocaleString("es-CL") + "+</span><b>" + porUnidad({ moneda: r.moneda, cantidad: t.cantidad, precio: t.precio }) + "</b></li>").join("") + "</ol>";
 }
-const envioTxt = (r) => r.envio_pendiente ? " · envío por confirmar" : n0(r.envio) ? " · envío " + dinero(r.moneda, r.envio) : "";
+const envioTxt = (r) => r.envio_pendiente ? " · envío según destino" : n0(r.envio) ? " · envío " + dinero(r.moneda, r.envio) : "";
 
 // Talón de un precio compartido (o de un grupo con tramos, ver agrupar). mio: lo compartiste tú (no se reporta).
 export function talon(r, { mio = false, pieza = true, reportado = false } = {}) {
@@ -70,7 +77,7 @@ export function talon(r, { mio = false, pieza = true, reportado = false } = {}) 
       : '<div class="pr-cifra"><span class="pr-cant">' + n0(r.cantidad).toLocaleString("es-CL") + ' u.</span><span class="pr-total">' + dinero(r.moneda, r.precio) + "</span>" +
         '<span class="pr-uni">' + porUnidad(r) + " c/u" + envioTxt(r) + "</span></div>") +
     (r.especificaciones ? '<p class="pr-spec">' + esc(r.especificaciones) + "</p>" : "") +
-    '<footer><span>' + (r.origen === "chile" ? "Chile" : "Extranjero") + (r.incluye_iva ? " · con IVA" : "") + (r.plazo ? " · " + esc(r.plazo) : "") + " · " + mes(r.creado_en) + "</span>" +
+    '<footer><span>' + (r.origen === "chile" ? "Chile" : "Extranjero") + (r.incluye_iva ? " · con IVA" : "") + (r.plazo ? " · " + esc(r.plazo) : "") + " · " + revisadoTxt(r) + "</span>" +
     (mio ? '<span class="pr-mio">Lo compartiste tú</span>' : reportado ? '<span class="pr-mio pr-ya">Reportado</span>' : '<button type="button" class="pr-rep-btn" data-reportar="' + esc(r.id) + '" data-prov="' + esc(r.proveedor) + '">Reportar</button>') +
     "</footer></article>";
 }
@@ -139,6 +146,7 @@ export const CSS_PRECIOS = `
 .pr-rep-btn:hover{color:var(--bad)}
 .pr-mio{font:700 11px var(--f-num);letter-spacing:.08em;text-transform:uppercase;color:var(--good)}
 .pr-mio.pr-ya{color:var(--muted)}
+.pr-viejo{color:var(--warn,#9a6200)}
 .pr-rep{border:0;border-radius:18px;padding:0;width:min(520px,94vw);max-height:92vh;background:var(--card);color:var(--fg);box-shadow:0 24px 60px rgba(0,0,0,.3);font-family:var(--f-body)}
 .pr-rep::backdrop{background:rgba(10,12,20,.55)}
 .pr-rep-c{padding:22px;display:flex;flex-direction:column;gap:12px;font-size:15px;line-height:1.5}
