@@ -222,7 +222,7 @@ td .opc:focus{background:var(--card)}
   <section class="panel" aria-labelledby="h-datos-c">
     <h2 id="h-datos-c">Antes de empezar</h2>
     <div class="grid">
-      <label class="f">Nombre<input id="p-nombre" type="text" autocomplete="off"></label>
+      <label class="f">Qué vas a fabricar<input id="p-nombre" type="text" autocomplete="off" placeholder="Ej.: Llaveros acrílicos transparentes"><span class="hint">El producto, sin el proveedor: cada proveedor va en su precio, así puedes comparar varios.</span></label>
       <label class="f">¿Cuántas unidades piensas fabricar? <span class="hint">Escribe algunas opciones para compararlas, ej.: 50, 100, 300</span><input id="p-cant" type="text" inputmode="numeric" autocomplete="off"></label>
       <label class="f">Dólar (CLP por 1 USD)<input id="p-dolar" type="number" min="1" step="0.01" inputmode="decimal"></label>
       <label class="f">Recargo de tarjeta o banco al pagar en dólares (%)<input id="p-recargo" type="number" min="0" max="30" step="0.5" inputmode="decimal" placeholder="0"></label>
@@ -501,7 +501,7 @@ navApp("cotizaciones");
     $("nuevo-tipo").innerHTML=Object.keys(gr).map(function(g){return '<optgroup label="'+g+'">'+gr[g].map(function(k){return '<option value="'+k+'">'+TIPOS[k].nombre+'</option>';}).join("")+'</optgroup>';}).join("");})();
 
   /* --- eventos --- */
-  $("p-nombre").addEventListener("change",function(e){S.nombre=e.target.value.trim();save();renderProyecto();});
+  $("p-nombre").addEventListener("change",function(e){S.nombre=e.target.value.trim();save();renderProyecto();if(HOJA&&!HOJA.proyecto_id)pintarHoja();});
   $("p-cant").addEventListener("change",function(e){
     var v=e.target.value.split(/[,;\s]+/).map(function(x){return parseInt(x,10);}).filter(function(n){return n>0;});
     S.cantidades=Array.from(new Set(v)).sort(function(a,b){return a-b;}).slice(0,6);save();renderProyecto();renderResumen();});
@@ -1137,7 +1137,8 @@ navApp("cotizaciones");
     var p=PROYS.filter(function(x){return HOJA&&x.id===HOJA.proyecto_id;})[0];
     if(p){$("h-de").innerHTML='<span class="hint">Cotización del proyecto</span><br><a href="../proyecto/?p='+p.id+'#costos" style="font-family:var(--f-display);font-weight:700;font-size:18px">← '+esc(p.nombre)+'</a>';return;}
     var libres=PROYS.filter(function(x){return !LISTA.some(function(c){return c.proyecto_id===x.id;});});
-    $("h-de").innerHTML='<span class="hint">Cotización aparte, sin proyecto</span><br><b style="font-family:var(--f-display);font-size:18px">'+esc(S.nombre||HOJA.nombre||"Sin nombre")+'</b>'+(libres.length?'<label class="f" style="margin-top:8px">Ligarla a un proyecto (opcional)<select id="h-ligar"><option value="">Elegir proyecto…</option>'+libres.map(function(x){return '<option value="'+x.id+'">'+esc(x.nombre)+'</option>';}).join("")+'</select></label>':'');
+    $("h-de").innerHTML='<span class="hint">Cotización aparte, sin proyecto</span><br><b style="font-family:var(--f-display);font-size:18px">'+esc(S.nombre||HOJA.nombre||"Sin nombre")+'</b> <button type="button" class="link" id="h-renombrar">Cambiar nombre</button>'+(libres.length?'<label class="f" style="margin-top:8px">Ligarla a un proyecto (opcional)<select id="h-ligar"><option value="">Elegir proyecto…</option>'+libres.map(function(x){return '<option value="'+x.id+'">'+esc(x.nombre)+'</option>';}).join("")+'</select></label>':'');
+    if($("h-renombrar"))$("h-renombrar").onclick=function(){var i=$("p-nombre");i.scrollIntoView({block:"center",behavior:"smooth"});i.focus();i.select();};
     if($("h-ligar"))$("h-ligar").onchange=function(e){var v=e.target.value;if(!v)return;
       sb.from("cotizaciones").update({proyecto_id:v}).eq("id",HOJA.id).then(function(r){if(r.error){toast("No se pudo ligar al proyecto.");return;}HOJA.proyecto_id=v;LISTA.forEach(function(c){if(c.id===HOJA.id)c.proyecto_id=v;});pintarHoja();toast("Ligada al proyecto");});};
   }
