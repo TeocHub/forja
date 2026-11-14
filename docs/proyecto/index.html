@@ -680,6 +680,7 @@ import * as ES from "../js/estructura.js";
 import * as LB from "../js/lectores.js";
 import * as HV from "../js/herramientas.js";
 import * as CR from "../js/cruces.js";
+import * as BT from "../js/bitacora.js";
 import { PLANTILLAS as FPL, sirve as fSirve, camposDe } from "../js/fichas-plantillas.js";
 navApp("proyectos");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + HV.CSS_MESA + "</style>");
@@ -723,7 +724,7 @@ else conSesion($("app"), async (ses) => {
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
     sb.from("secciones").select("id,titulo,guia,texto,orden,avance,peso,coleccion_id").eq("proyecto_id", ID).order("orden"),
     sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
-    sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
+    sb.from("notas").select("id,texto,creado_en,tipo,oficio,enlace,resuelta_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
     sb.from("cotizaciones").select("id,nombre,datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
     sb.from("proyecto_oportunidades").select("oportunidad_id,estado").eq("proyecto_id", ID),
     sb.from("pizarras").select("id,nombre,modo,datos,creado_en,coleccion_id").eq("proyecto_id", ID).order("creado_en"),
@@ -845,6 +846,7 @@ async function irTecnica(id) {
     }
     if (sec) secActual = sec.id;
   }
+  if (dest === "bitacora" && dato) bitTipo = dato;
   if (dest === "pizarra" && dato) { const z = PIZ.find((y) => y.modo === dato); if (z) { pizSel = z.id; recordarPiz(z.id); } }
   DESDE_RUTA = true;
   irA(dest);
@@ -1118,7 +1120,7 @@ let obs = null;
 function aplicarSoloLectura() {
   if (obs) { obs.disconnect(); obs = null; }
   if (!RO) return;
-  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fi-cajon:not(.nuevo), .fi-modo, .fi-estados, .fi-t, .fi-abrir, #fi-cerrar, [data-ir], #fi-q, .fx-tabs, .mesa, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr, [data-mp], [data-mp-ir], [data-volver], [data-pzf-ir], [data-taller], .fi-ir-taller, .hojas, #hj-ir-col, #hf-ficha, [data-mod], [data-ir-m], #es-comp, [data-quitar-c]") || el.id === "h-foco";
+  const libre = (el) => (nivelDe("taller") === "editar" && el.closest(".estados")) || el.closest(".eq-fila") || el.closest(".fi-cajon:not(.nuevo), .fi-modo, .fi-estados, .fi-t, .fi-abrir, #fi-cerrar, [data-ir], #fi-q, .fx-tabs, .mesa, #indice, #r-filtro, .play, .pie-ficha, .guia summary, #h-foco, .pz-libre, .pz-chip, .pz-x, .pz-rel, .pz-zoom, [data-rt-et], [data-rt-ir], #rt-todas, [data-sg-ver], [data-sg-ir], .ob-abrir, .ob-cita, [data-est], [data-a=copiar], .apr, [data-mp], [data-mp-ir], [data-volver], [data-pzf-ir], [data-taller], .fi-ir-taller, .hojas, #hj-ir-col, #hf-ficha, [data-mod], [data-ir-m], #es-comp, [data-quitar-c], .bt-f, .bt-dia, .bt-nav, [data-limpiar]") || el.id === "h-foco";
   const aplicar = () => $("app").querySelectorAll("input, textarea, select, button").forEach((el) => { if (!libre(el)) { el.disabled = true; if ("readOnly" in el) el.readOnly = true; } });
   aplicar();
   obs = new MutationObserver(aplicar); obs.observe($("app"), { childList: true, subtree: true });
@@ -1180,7 +1182,7 @@ const DATO = {
   mapa: () => { const l = MP.llenas(MP.normalEsquema(P.esquema), P.tipo); return l ? l + " de " + MP.nodos(P.tipo).length : ""; },
   estructura: () => { const m = (P.estructura && P.estructura.m) || {}, l = Object.values(m).filter((v) => typeof v === "string" && v.trim()).length; return l ? l + " de 6" : ""; },
   referentes: () => REFS.length || "", taller: () => (SECS.length ? avance(SECS) + "%" : ""), fichas: () => FICHAS.fichas.length || "",
-  pizarra: () => PIZ.length || "", bitacora: () => NOTAS.length || "", oportunidades: () => SEGS.length || "",
+  pizarra: () => PIZ.length || "", bitacora: () => { const n = NOTAS.filter((x) => Date.now() - new Date(x.creado_en) < 7 * 864e5).length; return n ? n + " esta semana" : NOTAS.length || ""; }, oportunidades: () => SEGS.length || "",
   vitrina: () => (VIT && VIT.publicada ? "Publicada" : ""), costos: () => (COT ? "Cotizada" : ""),
 };
 // Al costado: la F de avance del proyecto. La etapa es la que marca la persona en la Ruta (o la que sugiere Forja si no marcó ninguna).
@@ -1872,7 +1874,7 @@ function lectores() {
   LB.vista({ P, SECS: secsCompletas(), PL, panel: $("panel"), tc: tc(P.tipo), ed: puedeRuta(), publica: !!(ACC && ACC.publica), tope: tope(PL, "lectores"),
     volver: volverRuta(), conVolver,
     alAbrir: () => marcarHecho("lectores"),
-    alCerrar: async () => { const { data } = await sb.from("notas").select("id,texto,creado_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }); NOTAS = data || NOTAS; pintarTabs(); } });
+    alCerrar: async () => { const { data } = await sb.from("notas").select("id,texto,creado_en,tipo,oficio,enlace,resuelta_en").eq("proyecto_id", ID).order("creado_en", { ascending: false }); NOTAS = data || NOTAS; pintarTabs(); } });
 }
 
 /* --- Mapa de la idea --- */
@@ -2393,31 +2395,13 @@ function vitrina() {
   const c = $("vit-copiar"); if (c) c.onclick = async () => { try { await navigator.clipboard.writeText(url); toast("Enlace copiado"); } catch (e) { toast(url); } };
 }
 
+/* --- Bitácora de avance: todo el detalle en js/bitacora.js --- */
+let cssBT = false, bitTipo = null;
 function bitacora() {
-  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Bitácora</h2><span class="hint">Avances, decisiones e ideas sueltas, con fecha.</span></div>' +
-    '<form class="nueva" id="f-nota"><label class="fx-sr" for="f-texto">Nueva entrada</label><textarea id="f-texto" maxlength="20000" placeholder="¿Qué avanzaste o decidiste hoy?"></textarea>' +
-    '<div class="fila"><span class="hint">Ctrl + Enter para guardar</span><button class="btn prim" type="submit">Anotar</button></div></form>' +
-    '<div class="hilo" id="hilo" style="--tc:' + tc(P.tipo) + '"></div></section>';
-  const pintar = () => {
-    $("hilo").innerHTML = NOTAS.length ? NOTAS.map((n) => '<article class="nota"><time datetime="' + n.creado_en + '">' + fecha(n.creado_en) + '</time><button class="x" data-del="' + n.id + '" aria-label="Borrar entrada">borrar</button><p>' + esc(n.texto) + "</p></article>").join("")
-      : '<p class="hint" style="margin:0">Todavía no hay entradas. La primera puede ser por qué te gusta esta idea.</p>';
-  };
-  pintar();
-  $("f-texto").onkeydown = (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) $("f-nota").requestSubmit(); };
-  $("f-nota").onsubmit = async (e) => {
-    e.preventDefault();
-    const texto = $("f-texto").value.trim(); if (!texto) return;
-    const { data, error } = await sb.from("notas").insert({ espacio_id: ESP, proyecto_id: P.id, texto }).select("id,texto,creado_en").single();
-    if (error) { toast(limite(error) || "No se pudo anotar."); return; }
-    NOTAS.unshift(data); $("f-texto").value = ""; pintar(); pintarTabs(); tocarProyecto();
-  };
-  $("hilo").onclick = async (e) => {
-    const b = e.target.closest("[data-del]"); if (!b) return;
-    if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "¿seguro?"; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ""; b.textContent = "borrar"; } }, 3500); return; }
-    const { error } = await sb.from("notas").delete().eq("id", b.dataset.del);
-    if (error) { toast("No se pudo borrar."); return; }
-    NOTAS = NOTAS.filter((n) => n.id !== b.dataset.del); pintar(); pintarTabs();
-  };
+  if (!cssBT) { document.head.insertAdjacentHTML("beforeend", "<style>" + BT.CSS_BITACORA + "</style>"); cssBT = true; }
+  BT.vista({ panel: $("panel"), P, ESP, sb, esc, toast, limite, tc: tc(P.tipo), ed: !RO, tipoInicial: bitTipo,
+    notas: () => NOTAS, setNotas: (xs) => { NOTAS = xs; }, alCambiar: () => { pintarTabs(); tocarProyecto(); }, marcarHecho });
+  bitTipo = null;
 }
 
 </script>

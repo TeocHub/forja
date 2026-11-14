@@ -185,7 +185,11 @@ create table public.notas(
   proyecto_id uuid not null,
   texto text not null,
   autor uuid default auth.uid(),
-  creado_en timestamp with time zone default now() not null
+  creado_en timestamp with time zone default now() not null,
+  tipo text default 'avance'::text not null,
+  oficio text,
+  enlace text,
+  resuelta_en timestamp with time zone
 );
 
 create table public.oportunidades(
@@ -739,7 +743,7 @@ begin
   res := ro.titulo || ': ' || nl || ' ' || case when nl = 1 then uno else w end || ', ' || nm || case when nm = 1 then ' mejora' else ' mejoras' end || '.';
   update public.rondas set estado = 'cerrada', cerrada_en = now(), resumen = res where id = r;
   if privado.editable(ro.proyecto_id) then
-    insert into public.notas(espacio_id, proyecto_id, texto) values (ro.espacio_id, ro.proyecto_id, res);
+    insert into public.notas(espacio_id, proyecto_id, texto, tipo) values (ro.espacio_id, ro.proyecto_id, res, 'prueba');
   end if;
   return res;
 end $function$
@@ -2700,6 +2704,10 @@ alter table public.miembros add constraint miembros_pkey PRIMARY KEY (espacio_id
 alter table public.miembros add constraint miembros_rol_check CHECK ((rol = ANY (ARRAY['dueno'::text, 'editor'::text, 'lector'::text])));
 alter table public.notas add constraint notas_pkey PRIMARY KEY (id);
 alter table public.notas add constraint notas_texto_check CHECK (((char_length(texto) >= 1) AND (char_length(texto) <= 20000)));
+alter table public.notas add constraint notas_tipo_check CHECK ((tipo = ANY (ARRAY['avance'::text, 'version'::text, 'decision'::text, 'problema'::text, 'prueba'::text, 'idea'::text])));
+alter table public.notas add constraint notas_oficio_check CHECK (((oficio IS NULL) OR (oficio = ANY (ARRAY['escritura'::text, 'arte'::text, 'codigo'::text, 'diseno'::text, 'sonido'::text, 'produccion'::text]))));
+alter table public.notas add constraint notas_enlace_check CHECK (((enlace IS NULL) OR ((enlace ~ '^https://[^\s]+$'::text) AND (char_length(enlace) <= 500))));
+alter table public.notas add constraint notas_resuelta_check CHECK (((resuelta_en IS NULL) OR (tipo = 'problema'::text)));
 alter table public.oportunidades add constraint oportunidades_pkey PRIMARY KEY (id);
 alter table public.oportunidades add constraint oportunidades_id_check CHECK ((id ~ '^[a-z0-9-]+$'::text));
 alter table public.oportunidades add constraint oportunidades_tipo_check CHECK ((tipo = ANY (ARRAY['fondo'::text, 'feria'::text, 'convocatoria'::text])));
@@ -2895,7 +2903,7 @@ CREATE INDEX mensajes_vitrina_idx ON public.mensajes USING btree (vitrina_id);
 CREATE INDEX miembros_user_idx ON public.miembros USING btree (user_id);
 CREATE INDEX notas_autor_idx ON public.notas USING btree (autor);
 CREATE INDEX notas_espacio_idx ON public.notas USING btree (espacio_id);
-CREATE INDEX notas_proyecto_idx ON public.notas USING btree (proyecto_id);
+CREATE INDEX notas_proyecto_fecha_idx ON public.notas USING btree (proyecto_id, creado_en DESC);
 CREATE INDEX pizarras_espacio ON public.pizarras USING btree (espacio_id);
 CREATE INDEX pizarras_proyecto ON public.pizarras USING btree (proyecto_id);
 CREATE INDEX precios_comunidad_autor_idx ON public.precios_comunidad USING btree (autor);

@@ -96,7 +96,7 @@ export const HERRAMIENTAS = [
 
   // --- Próximamente: herramientas de la Ruta (la técnica se ve con «Llega pronto») ---
   { id: "sesion", t: "Sesión de trabajo", estado: "pronto", etapa: "hacer", ruta: "sesion", d: "Un temporizador con una meta chica y una línea para anotar dónde quedaste." },
-  { id: "prototipo", t: "Enlace del prototipo", estado: "pronto", etapa: "hacer", ruta: "prototipo", solo: ["videojuego", "juegomesa", "producto"], d: "El enlace a tu prototipo guardado en el proyecto, para que la etapa cuente." },
+  { id: "prototipo", t: "Enlace del prototipo", estado: "listo", etapa: "hacer", ruta: "prototipo", solo: ["videojuego", "juegomesa", "producto"], donde: "pestana:bitacora", ayuda: "bitacora", d: "Cada versión de tu prototipo anotada en la Bitácora con su enlace, para que la etapa cuente y se pueda volver a probar." },
   { id: "metrabe", t: "Me trabé", estado: "pronto", etapa: "hacer", ruta: "metrabe", d: "Ejercicios rápidos para cuando la página o el prototipo no avanzan." },
   { id: "revision", t: "Revisión con lista", estado: "pronto", etapa: "revisar", ruta: "revision", d: "Preguntas por categoría para encontrar lo que falla, de lo grande a lo chico." },
   { id: "pulido", t: "Lista de pulido", estado: "pronto", etapa: "pulir", ruta: "pulido", d: "Los últimos detalles antes de mostrarlo: ortografía, continuidad, piezas que faltan." },
@@ -141,7 +141,7 @@ export const GRUPOS = [
 export const LEMA = {
   ruta: "Etapas y técnicas", mapa: "La idea entera en una vista", estructura: "Tus momentos en modelos dibujados", brujula: "Con qué formatos calza",
   referentes: "Lo que te inspira y las obras que estudias", taller: "Escribir por secciones", fichas: "Cada cosa con sus datos", pizarra: "Tarjetas, flechas y mapas",
-  lectores: "Rondas de prueba con otras personas", bitacora: "Tu diario del proyecto", vitrina: "Su página pública", costos: "Cuánto cuesta y a cuánto venderlo",
+  lectores: "Rondas de prueba con otras personas", bitacora: "Avances, versiones y problemas", vitrina: "Su página pública", costos: "Cuánto cuesta y a cuánto venderlo",
   oportunidades: "Fondos, ferias y convocatorias",
 };
 export const grupo = (k) => GRUPOS.find((g) => g.k === k) || null;

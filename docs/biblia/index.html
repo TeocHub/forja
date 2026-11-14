@@ -70,6 +70,7 @@
 .tabla th,.tabla td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
 .tabla th{font-size:8.5pt;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
 .hilo .n{break-inside:avoid;margin-bottom:12px;padding-left:12px;border-left:2px solid var(--rule)}
+.hilo .bt-url{font-size:11px;color:#666;overflow-wrap:anywhere;margin-top:2px}
 .hilo time{font-family:"Geist Mono",monospace;font-size:8.5pt;color:var(--soft)}
 .hilo p{margin:2px 0 0;white-space:pre-wrap}
 .pie-doc{margin-top:48px;font-family:"Atkinson Hyperlegible",sans-serif;font-size:8.5pt;color:var(--soft);border-top:1px solid var(--rule);padding-top:8px}
@@ -105,6 +106,7 @@ import * as ES from "../js/estructura.js";
 import { TIPOS, ESTADOS, tc } from "../js/guias.js";
 import { EJES, FORMATOS, radar, dial, lectura, tocado, vals, pct, base, CSS_BRUJULA } from "../js/brujula.js";
 import { MODOS, estatica, cuentaTarjetas, CSS_PIZARRA } from "../js/pizarra.js";
+import { etiqueta as etqNota } from "../js/bitacora.js";
 navApp("proyectos");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + ".doc .mapa{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:6px 14px;margin:0}.doc .mapa dt{font-weight:700;font-family:'Atkinson Hyperlegible',sans-serif;font-size:10pt}.doc .mapa dd{margin:0}.doc .centro{font-size:13pt;font-style:italic;margin:0 0 12px}.doc .es-bib{max-width:520px;margin:0 0 14px}.doc .es-dib .es-p .es-lbl{stroke:#fff}" + ".doc .piz{break-inside:avoid;margin:0 0 22px}.doc .piz h3{margin:0 0 2px}.doc .piz .modo{font-family:'Atkinson Hyperlegible',sans-serif;font-size:9pt;color:var(--soft);margin:0 0 8px}.doc .radar text,.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .radar .forma{fill:rgba(42,63,209,.15);stroke:#2a3fd1}.doc .dial .petalo{fill:#e6e9fb}.doc .dial .petalo.top{fill:#f6cdb9}.doc .dial .borde{fill:#fafafa;stroke:#d9dbe2}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
 
@@ -123,7 +125,7 @@ else conSesion($("app"), async () => {
     // Hojas de Fichas conectadas a una sección del Taller (solo el equipo las puede leer; para el resto llega vacío).
     sb.from("elementos").select("titulo,texto,coleccion_id,orden,creado_en").eq("proyecto_id", ID),
     sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en"),
-    sb.from("notas").select("texto,creado_en").eq("proyecto_id", ID).order("creado_en"),
+    sb.from("notas").select("texto,creado_en,tipo,oficio,enlace,resuelta_en").eq("proyecto_id", ID).order("creado_en"),
     sb.from("cotizaciones").select("datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
     sb.from("proyecto_oportunidades").select("oportunidad_id,estado").eq("proyecto_id", ID),
     sb.from("pizarras").select("nombre,modo,datos,creado_en").eq("proyecto_id", ID).order("creado_en"),
@@ -200,7 +202,7 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
     SEGS.map((s) => { const o = OPS.find((x) => x.id === s.oportunidad_id) || { nombre: s.oportunidad_id }; return "<tr><td><b>" + esc(o.nombre) + "</b>" + (o.organiza ? "<br>" + esc(o.organiza) : "") + "</td><td>" + (o.postul_fin ? "Postulación hasta " + esc(o.postul_fin) + "<br>" : "") + (o.evento_inicio ? "Evento " + esc(o.evento_inicio) : "") + "</td><td>" + ESTOP[s.estado] + "</td></tr>"; }).join("") + "</tbody></table></section>" +
 
     '<section class="parte" data-p="bitacora"><h2>Bitácora</h2><p class="bajada">Cómo avanzó el proyecto, de lo más antiguo a lo más reciente.</p><div class="hilo">' +
-    NOTAS.map((n) => '<div class="n"><time>' + fecha(n.creado_en) + "</time><p>" + esc(n.texto) + "</p></div>").join("") + "</div></section>" +
+    NOTAS.map((n) => '<div class="n"><time>' + fecha(n.creado_en) + " · " + esc(etqNota(n)) + (n.tipo === "problema" && n.resuelta_en ? " (resuelto)" : "") + "</time><p>" + esc(n.texto) + "</p>" + (n.enlace ? '<p class="bt-url">' + esc(n.enlace) + "</p>" : "") + "</div>").join("") + "</div></section>" +
 
     '<section class="parte" data-p="bibliografia"><h2>Bibliografía</h2><p class="bajada">Las obras citadas y analizadas, en formato <select id="b-estilo" class="no-print" aria-label="Formato">' + Object.entries(O.ESTILOS).map(([k, n]) => '<option value="' + k + '">' + n + "</option>").join("") + '</select><span class="solo-print" id="b-estilo-n">APA 7</span>.</p><div class="biblio" id="biblio"></div></section>' +
     '<p class="pie-doc">Hecho con Forja · forja.digitalmonster.cl</p></article>';
