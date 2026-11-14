@@ -66,6 +66,9 @@ export const HERRAMIENTAS = [
   { id: "pagina-publica", t: "Vitrina del proyecto", estado: "listo", area: "presentacion", etapa: "pulir", ruta: "vitrina", donde: "pestana:vitrina", ayuda: "vitrina",
     d: "Una página pública para ferias, fondos o editoriales, con lo que elijas mostrar, enlace propio y QR. Con Forja Más, tus pizarras se publican para explorarlas.",
     libre: "Gratis: vitrina con portada, historia, galería, novedades y enlaces." },
+  { id: "tablero", t: "Tablero de producción", estado: "listo", area: "organizacion", etapa: "hacer", ruta: "tablero", donde: "vista:tablero", vista: "tablero", grupo: "crear", modulo: "tablero.js", areaPermiso: "tablero", ayuda: "tablero",
+    d: "Las piezas de tu proyecto (páginas, funciones, assets, publicaciones, cartas, variantes) pasan por sus etapas en columnas, con quién las hace y para cuándo. Con Forja Más, todos los tableros que quieras.",
+    libre: "Gratis: un tablero por proyecto, con todas sus piezas." },
   { id: "colaboradores", t: "Colaboradores", estado: "listo", area: "equipo", donde: null, ayuda: "equipo",
     d: "Invita personas a un proyecto (5 con Forja Más, 15 con Forja Estudio) y decide qué puede hacer cada una en cada parte; ellas no necesitan pagar.",
     libre: "Gratis: 1 persona por proyecto." },
@@ -133,14 +136,14 @@ export const vistaDe = (k) => vistas().find((h) => h.vista === k) || null;
 export const GRUPOS = [
   { k: "ruta", n: "Ruta", d: "Las etapas de tu proyecto y qué podrías hacer ahora.", h: ["ruta"] },
   { k: "idea", n: "Idea", d: "Entender qué es tu proyecto antes de construirlo.", h: ["mapa", "estructura", "brujula", "referentes"] },
-  { k: "crear", n: "Crear", d: "Donde el proyecto toma forma.", h: ["taller", "fichas", "pizarra"] },
+  { k: "crear", n: "Crear", d: "Donde el proyecto toma forma.", h: ["taller", "tablero", "fichas", "pizarra"] },
   { k: "probar", n: "Probar", d: "Que otras personas lo prueben y anotar lo que aprendes.", h: ["lectores", "bitacora"] },
   { k: "mostrar", n: "Mostrar", d: "Llevarlo al mundo: su página, sus costos y dónde postular.", h: ["vitrina", "costos", "oportunidades"] },
 ];
 // Para qué sirve cada herramienta, en pocas palabras (la mesa de cada parte y la guía).
 export const LEMA = {
   ruta: "Etapas y técnicas", mapa: "La idea entera en una vista", estructura: "Tus momentos en modelos dibujados", brujula: "Con qué formatos calza",
-  referentes: "Lo que te inspira y las obras que estudias", taller: "Escribir por secciones", fichas: "Cada cosa con sus datos", pizarra: "Tarjetas, flechas y mapas",
+  referentes: "Lo que te inspira y las obras que estudias", taller: "Escribir por secciones", tablero: "Piezas por etapas, con quién y cuándo", fichas: "Cada cosa con sus datos", pizarra: "Tarjetas, flechas y mapas",
   lectores: "Rondas de prueba con otras personas", bitacora: "Avances, versiones y problemas", vitrina: "Su página pública", costos: "Cuánto cuesta y a cuánto venderlo",
   oportunidades: "Fondos, ferias y convocatorias",
 };

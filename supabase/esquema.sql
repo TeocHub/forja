@@ -539,6 +539,7 @@ AS $function$
     'tipo', e.tipo, 'nombre', e.nombre, 'mas', privado.es_mas(x.espacio_id), 'plan', privado.plan_de(x.espacio_id), 'acceso_proyecto', x.acceso,
     'invitado', privado.rol_en(x.espacio_id) is null,
     'areas', jsonb_build_object('taller', privado.acceso_area(p, 'taller'), 'referentes', privado.acceso_area(p, 'referentes'), 'pizarra', privado.acceso_area(p, 'pizarra'),
+      'tablero', privado.acceso_area(p, 'tablero'),
       'costos', privado.acceso_area(p, 'costos'), 'oportunidades', privado.acceso_area(p, 'oportunidades'), 'bitacora', privado.acceso_area(p, 'bitacora'), 'vitrina', privado.acceso_area(p, 'vitrina')))
   from public.proyectos x join public.espacios e on e.id = x.espacio_id where x.id = p and privado.ve(p)
 $function$
@@ -1363,7 +1364,7 @@ begin
   if exists(select 1 from public.vitrinas v where v.proyecto_id = p and v.publicada) and not privado.es_dueno(destino) then raise exception 'FORJA_MOVER_PUBLICADA'; end if;
   if tp is not null and pr.estado <> 'archivado' and privado.activos(destino) >= tp then raise exception 'FORJA_LIMITE_PROYECTOS'; end if;
   perform set_config('forja.mover', '1', true);
-  foreach t in array array['secciones','referentes','pizarras','vitrinas','notas','proyecto_oportunidades','cotizaciones','rondas','colecciones','elementos'] loop
+  foreach t in array array['secciones','referentes','pizarras','vitrinas','notas','proyecto_oportunidades','cotizaciones','rondas','colecciones','elementos','tableros','piezas'] loop
     execute format('update public.%I set espacio_id = $1 where proyecto_id = $2', t) using destino, p;
   end loop;
   update public.proyectos set espacio_id = destino, acceso = 'equipo' where id = p;
@@ -1928,7 +1929,7 @@ CREATE OR REPLACE FUNCTION privado.limite(clave text)
  SET search_path TO ''
 AS $function$
   select case clave when 'proyectos' then 3 when 'palabras' then 20000 when 'referentes' then 30 when 'pizarras' then 1 when 'tarjetas' then 20
-    when 'ideas' then 50 when 'analisis' then 3 when 'colecciones' then 2 when 'fichas' then 60 end;
+    when 'ideas' then 50 when 'analisis' then 3 when 'colecciones' then 2 when 'fichas' then 60 when 'tableros' then 1 end;
 $function$
 ;
 
@@ -1939,7 +1940,7 @@ CREATE OR REPLACE FUNCTION privado.limpiar_areas(areas jsonb)
  SET search_path TO ''
 AS $function$
   select coalesce((select jsonb_object_agg(k, v) from jsonb_each_text(coalesce(areas, '{}'::jsonb)) as x(k, v)
-    where k in ('taller','referentes','pizarra','costos','oportunidades','bitacora','vitrina') and v in ('editar','ver','no')), '{}'::jsonb)
+    where k in ('taller','referentes','pizarra','tablero','costos','oportunidades','bitacora','vitrina') and v in ('editar','ver','no')), '{}'::jsonb)
 $function$
 ;
 
@@ -3704,3 +3705,174 @@ revoke all on function privado.legal_vigente() from public, anon, authenticated;
 revoke all on function privado.legal_pendientes(text) from public, anon, authenticated;
 revoke all on function privado.t_aceptaciones() from public, anon, authenticated;
 select cron.schedule('forja-inactivas', '23 9 * * *', $$select privado.revisar_inactivas()$$);
+
+-- ===================================================================
+-- Tablero de producción (2026-11-14): piezas que pasan por estados en columnas, con oficio, responsable y fecha.
+-- Tablas propias (no `elementos`): una pieza de producción (una página entintada, un sprite, un reel) no es una ficha de diseño,
+-- y Fichas sigue en prueba solo para el equipo. Abierto a todas las cuentas; gratis 1 tablero por proyecto.
+
+create table public.tableros(
+  id uuid default gen_random_uuid() primary key,
+  espacio_id uuid not null references public.espacios(id) on delete cascade,
+  proyecto_id uuid not null references public.proyectos(id) on delete cascade,
+  nombre text not null check (char_length(nombre) between 1 and 80),
+  plantilla text not null default 'libre' check (plantilla in ('funciones','paginas','capitulos','publicaciones','prototipo','variantes','libre')),
+  columnas jsonb not null default '[]'::jsonb,
+  creado_en timestamptz not null default now(),
+  actualizado_en timestamptz not null default now()
+);
+
+create table public.piezas(
+  id uuid default gen_random_uuid() primary key,
+  espacio_id uuid not null references public.espacios(id) on delete cascade,
+  proyecto_id uuid not null references public.proyectos(id) on delete cascade,
+  tablero_id uuid not null references public.tableros(id) on delete cascade,
+  titulo text not null check (char_length(titulo) between 1 and 160),
+  estado text not null check (char_length(estado) between 1 and 24),
+  clase text check (clase is null or char_length(clase) between 1 and 40),
+  oficio text check (oficio is null or oficio in ('escritura','arte','codigo','diseno','sonido','produccion')),
+  responsable uuid references auth.users(id) on delete set null,
+  fecha date,
+  enlace text check (enlace is null or (enlace ~ '^https://[^\s]+$' and char_length(enlace) <= 500)),
+  nota text check (nota is null or char_length(nota) <= 4000),
+  orden double precision not null default 0,
+  hecho_en timestamptz,
+  autor uuid default auth.uid() references auth.users(id) on delete set null,
+  creado_en timestamptz not null default now(),
+  actualizado_en timestamptz not null default now()
+);
+
+create index tableros_proyecto_idx on public.tableros(proyecto_id, creado_en);
+create index tableros_espacio_idx on public.tableros(espacio_id);
+create index piezas_tablero_idx on public.piezas(tablero_id, estado, orden);
+create index piezas_proyecto_idx on public.piezas(proyecto_id);
+create index piezas_espacio_idx on public.piezas(espacio_id);
+create index piezas_responsable_idx on public.piezas(responsable);
+create index piezas_autor_idx on public.piezas(autor);
+
+-- Límites: 1 tablero por proyecto en el plan gratis (Más y Estudio sin límite: privado.tope devuelve null).
+
+-- ¿Esta persona está en el proyecto? (miembro del espacio que lo ve, o invitada). Para elegir responsable.
+create or replace function privado.persona_proyecto(p uuid, u uuid)
+ returns boolean language sql stable security definer set search_path to ''
+as $function$
+  select exists(select 1 from public.proyectos pr join public.miembros m on m.espacio_id = pr.espacio_id and m.user_id = u
+                where pr.id = p and (pr.acceso = 'equipo' or m.rol = 'dueno'))
+      or exists(select 1 from public.proyecto_accesos a where a.proyecto_id = p and a.user_id = u);
+$function$;
+revoke all on function privado.persona_proyecto(p uuid, u uuid) from public, anon, authenticated, service_role;
+
+-- Un tablero extra (después de bajar al plan gratis) queda para ver o borrar.
+create or replace function privado.tablero_editable(t uuid)
+ returns boolean language sql stable security definer set search_path to ''
+as $function$
+  select coalesce((select l.tp is null or (select count(*) from public.tableros y where y.proyecto_id = x.proyecto_id and (y.creado_en, y.id) < (x.creado_en, x.id)) < l.tp
+    from public.tableros x, lateral (select privado.tope(x.espacio_id, 'tableros') as tp) l where x.id = t), false);
+$function$;
+revoke all on function privado.tablero_editable(t uuid) from public, anon, authenticated, service_role;
+
+-- Columnas: 2 a 10, cada una {k, n} con clave única. La última es «lista».
+create or replace function privado.columnas_ok(c jsonb)
+ returns boolean language sql immutable set search_path to ''
+as $function$
+  select jsonb_typeof(c) = 'array' and jsonb_array_length(c) between 2 and 10 and octet_length(c::text) <= 2000
+    and not exists(select 1 from jsonb_array_elements(c) j where jsonb_typeof(j) <> 'object' or coalesce(j->>'k', '') !~ '^[a-z0-9_-]{1,24}$' or char_length(coalesce(j->>'n', '')) not between 1 and 40)
+    and (select count(distinct j->>'k') from jsonb_array_elements(c) j) = jsonb_array_length(c);
+$function$;
+
+create or replace function privado.t_tableros()
+ returns trigger language plpgsql security definer set search_path to ''
+as $function$
+declare tp int; n int;
+begin
+  if coalesce(current_setting('forja.mover', true), '') = '1' then return new; end if;
+  if not privado.columnas_ok(new.columnas) then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  if not privado.editable(new.proyecto_id) then raise exception 'FORJA_SOLO_LECTURA'; end if;
+  if tg_op = 'INSERT' then
+    tp := privado.tope(new.espacio_id, 'tableros');
+    select count(*) into n from public.tableros t where t.proyecto_id = new.proyecto_id;
+    if tp is not null and n >= tp then raise exception 'FORJA_LIMITE_TABLEROS'; end if;
+    if n >= 30 then raise exception 'FORJA_LIMITE_TABLEROS'; end if;
+  elsif not privado.tablero_editable(new.id) then raise exception 'FORJA_TABLERO_EXTRA';
+  end if;
+  return new;
+end $function$;
+
+-- Al cambiar las columnas: lo que estaba en una columna que se quitó pasa a la primera, y «lista» sigue a la última.
+create or replace function privado.t_tableros_despues()
+ returns trigger language plpgsql security definer set search_path to ''
+as $function$
+declare primera text := new.columnas->0->>'k'; ultima text := new.columnas->(jsonb_array_length(new.columnas) - 1)->>'k';
+begin
+  if new.columnas is not distinct from old.columnas then return null; end if;
+  perform set_config('forja.columnas', '1', true);
+  update public.piezas z set estado = primera
+    where z.tablero_id = new.id and not exists(select 1 from jsonb_array_elements(new.columnas) j where j->>'k' = z.estado);
+  update public.piezas z set hecho_en = case when z.estado = ultima then coalesce(z.hecho_en, now()) end
+    where z.tablero_id = new.id and (z.hecho_en is null) = (z.estado = ultima);
+  perform set_config('forja.columnas', '', true);
+  return null;
+end $function$;
+
+create or replace function privado.t_piezas()
+ returns trigger language plpgsql security definer set search_path to ''
+as $function$
+declare t public.tableros; n int; ultima text;
+begin
+  if coalesce(current_setting('forja.mover', true), '') = '1' then return new; end if;
+  select * into t from public.tableros x where x.id = new.tablero_id;
+  if not found or t.proyecto_id <> new.proyecto_id then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  if tg_op = 'UPDATE' and new.tablero_id <> old.tablero_id then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  if not exists(select 1 from jsonb_array_elements(t.columnas) j where j->>'k' = new.estado) then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  ultima := t.columnas->(jsonb_array_length(t.columnas) - 1)->>'k';
+  if new.estado = ultima then new.hecho_en := coalesce(case when tg_op = 'UPDATE' then old.hecho_en end, now()); else new.hecho_en := null; end if;
+  -- Lo que hace el propio tablero al cambiar sus columnas no se vuelve a revisar.
+  if coalesce(current_setting('forja.columnas', true), '') = '1' then return new; end if;
+  if not privado.editable(new.proyecto_id) then raise exception 'FORJA_SOLO_LECTURA'; end if;
+  if not privado.tablero_editable(t.id) then raise exception 'FORJA_TABLERO_EXTRA'; end if;
+  if new.responsable is not null and (tg_op = 'INSERT' or new.responsable is distinct from old.responsable)
+     and not privado.persona_proyecto(new.proyecto_id, new.responsable) then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  if tg_op = 'INSERT' then
+    select count(*) into n from public.piezas z where z.tablero_id = new.tablero_id;
+    if n >= 500 then raise exception 'FORJA_TABLERO_GRANDE'; end if;
+  end if;
+  return new;
+end $function$;
+
+create trigger tableros_mismo before insert or update on public.tableros for each row execute function public.mismo_espacio();
+create trigger tableros_reglas before insert or update on public.tableros for each row execute function privado.t_tableros();
+create trigger tableros_despues after update of columnas on public.tableros for each row execute function privado.t_tableros_despues();
+create trigger tableros_tocar before update on public.tableros for each row execute function public.tocar_actualizado();
+create trigger espacio_fijo before update of espacio_id on public.tableros for each row execute function privado.t_espacio_fijo();
+create trigger piezas_mismo before insert or update on public.piezas for each row execute function public.mismo_espacio();
+create trigger piezas_reglas before insert or update on public.piezas for each row execute function privado.t_piezas();
+create trigger piezas_tocar before update on public.piezas for each row execute function public.tocar_actualizado();
+create trigger espacio_fijo before update of espacio_id on public.piezas for each row execute function privado.t_espacio_fijo();
+
+alter table public.tableros enable row level security;
+alter table public.piezas enable row level security;
+create policy tableros_ver on public.tableros for select to authenticated using (privado.acceso_area(proyecto_id, 'tablero') is not null);
+create policy tableros_crear on public.tableros for insert to authenticated with check (privado.edita_area_en(proyecto_id, 'tablero', espacio_id));
+create policy tableros_editar on public.tableros for update to authenticated using (privado.acceso_area(proyecto_id, 'tablero') = 'editar') with check (privado.edita_area_en(proyecto_id, 'tablero', espacio_id));
+create policy tableros_borrar on public.tableros for delete to authenticated using (privado.acceso_area(proyecto_id, 'tablero') = 'editar');
+create policy piezas_ver on public.piezas for select to authenticated using (privado.acceso_area(proyecto_id, 'tablero') is not null);
+create policy piezas_crear on public.piezas for insert to authenticated with check (privado.edita_area_en(proyecto_id, 'tablero', espacio_id));
+create policy piezas_editar on public.piezas for update to authenticated using (privado.acceso_area(proyecto_id, 'tablero') = 'editar') with check (privado.edita_area_en(proyecto_id, 'tablero', espacio_id));
+create policy piezas_borrar on public.piezas for delete to authenticated using (privado.acceso_area(proyecto_id, 'tablero') = 'editar');
+revoke all on public.tableros, public.piezas from anon, authenticated;
+grant select, insert, update, delete on public.tableros, public.piezas to authenticated;
+
+-- Las personas del proyecto, para elegir responsable (solo el nombre del correo).
+create or replace function public.tablero_personas(p uuid)
+ returns jsonb language plpgsql stable security definer set search_path to ''
+as $function$
+begin
+  if not privado.ve(p) then raise exception 'FORJA_NO_PERMITIDO'; end if;
+  return (select coalesce(jsonb_agg(jsonb_build_object('id', x.id, 'nombre', x.nombre, 'yo', x.id = auth.uid()) order by x.id <> auth.uid(), x.nombre), '[]'::jsonb)
+    from (select distinct u.id, split_part(u.email, '@', 1) as nombre from auth.users u
+          where privado.persona_proyecto(p, u.id) and u.id in (
+            select m.user_id from public.miembros m join public.proyectos pr on pr.espacio_id = m.espacio_id where pr.id = p
+            union select a.user_id from public.proyecto_accesos a where a.proyecto_id = p)) x);
+end $function$;
+revoke all on function public.tablero_personas(p uuid) from public, anon, authenticated, service_role;
+grant execute on function public.tablero_personas(p uuid) to authenticated, service_role;

@@ -688,8 +688,8 @@ document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZA
 const ID = new URLSearchParams(location.search).get("p");
 const PESTANAS = [["ruta", "Ruta"], ["taller", "Taller"], ["referentes", "Referentes"], ["brujula", "Brújula"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
 // Cada pestaña pertenece a un área; las personas invitadas pueden editar, ver o no ver cada área.
-const AREA_DE = { ruta: "taller", mapa: "taller", estructura: "taller", lectores: "taller", taller: "taller", referentes: "referentes", brujula: "taller", pizarra: "pizarra", costos: "costos", oportunidades: "oportunidades", bitacora: "bitacora", vitrina: "vitrina" };
-const AREAS = [["taller", "Taller y ficha"], ["referentes", "Referentes"], ["pizarra", "Pizarra"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
+const AREA_DE = { ruta: "taller", mapa: "taller", estructura: "taller", lectores: "taller", taller: "taller", referentes: "referentes", brujula: "taller", pizarra: "pizarra", costos: "costos", oportunidades: "oportunidades", bitacora: "bitacora", tablero: "tablero", vitrina: "vitrina" };
+const AREAS = [["taller", "Taller y ficha"], ["referentes", "Referentes"], ["pizarra", "Pizarra"], ["tablero", "Tablero"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["vitrina", "Vitrina"]];
 // Las vistas nuevas del registro (herramientas.js) usan su `areaPermiso` (por defecto, el Taller).
 const areaDe_ = (k) => AREA_DE[k] || (HV.vistaDe(k) ? HV.vistaDe(k).areaPermiso || "taller" : undefined);
 const nivelDe = (k) => (ACC && ACC.areas ? ACC.areas[areaDe_(k)] : "editar");
@@ -703,7 +703,7 @@ const grupoAct = () => HV.grupoDe(pest) || HV.GRUPOS[0]; // una vista sin parte 
 let DESDE_RUTA = false; // «← Ruta» aparece solo si se llegó desde la Ruta o «Lo que sigue»
 const ULT = () => { try { return JSON.parse(localStorage.getItem("forja-grupos-" + P.id) || "{}"); } catch (e) { return {}; } };
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-let EQ = false, FICHAS = { cols: [], fichas: [] }, ESP, P, ACC = null, VER = false, PERS = null, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
+let EQ = false, FICHAS = { cols: [], fichas: [] }, ESP, P, ACC = null, VER = false, PERS = null, YO = null, EQS = [], CANAL = null, OTROS = [], PL = { mas: false }, ACT = 0, RO = false, SECS = [], REFS = [], NOTAS = [], COT = null, PZS = [], SEGS = [], OPS = null, PIZ = [], VIT = null, pizSel = null, EDITOR = null, pest = "taller", secActual = null;
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../proyectos/");
 else conSesion($("app"), async (ses) => {
@@ -720,7 +720,7 @@ else conSesion($("app"), async (ses) => {
   if (ACC.tipo === "equipo") try { localStorage.setItem("forja-espacio", ESP); } catch (e) {}
   const ac = await sb.from("proyectos").select("id", { count: "exact", head: true }).eq("espacio_id", ESP).neq("estado", "archivado");
   ACT = ac.count || 0;
-  const [pr, se, re, no, co, po, pz, vi] = await Promise.all([
+  const [pr, se, re, no, co, po, pz, vi, tz] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
     sb.from("secciones").select("id,titulo,guia,texto,orden,avance,peso,coleccion_id").eq("proyecto_id", ID).order("orden"),
     sb.from("referentes").select("*").eq("proyecto_id", ID).order("creado_en", { ascending: false }),
@@ -729,11 +729,12 @@ else conSesion($("app"), async (ses) => {
     sb.from("proyecto_oportunidades").select("oportunidad_id,estado").eq("proyecto_id", ID),
     sb.from("pizarras").select("id,nombre,modo,datos,creado_en,coleccion_id").eq("proyecto_id", ID).order("creado_en"),
     sb.from("vitrinas").select("id,slug,publicada,publicado_en,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
+    sb.from("piezas").select("id,hecho_en").eq("proyecto_id", ID),
   ]);
   P = pr.data; VIT = vi.data || null;
   if (P) { try { localStorage.setItem("forja-ultimo-proyecto", P.id); } catch (e) {} colorDe(P.tipo); }
   if (!P) { $("app").innerHTML = '<a class="vol" href="../proyectos/">← Proyectos</a><div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
-  SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || []; PIZ = pz.data || [];
+  SECS = se.data || []; REFS = re.data || []; NOTAS = no.data || []; COT = co.data; SEGS = po.data || []; PIZ = pz.data || []; PZS = tz.data || [];
   if (EQ) {
     const [fc, fe] = await Promise.all([sb.from("colecciones").select("id,nombre,plantilla").eq("proyecto_id", ID).order("orden"), sb.from("elementos").select("id,titulo,coleccion_id,enlaces,orden,texto,datos,estado,creado_en").eq("proyecto_id", ID).order("orden").order("creado_en")]);
     FICHAS = { cols: fc.data || [], fichas: fe.data || [] };
@@ -818,7 +819,7 @@ async function guardarRuta(c, aviso) {
   await guardar({ ruta: P.ruta }, aviso);
   pintarLado();
 }
-const DESTINO = { mapa: "Abrir el Mapa", estructura: "Probar estructuras", lectores: "Abrir una ronda", analizar: "Agregar una obra", semillero: "Abrir el Semillero", referentes: "Abrir Referentes", brujula: "Abrir la Brújula", pizarra: "Abrir la Pizarra", bitacora: "Abrir la Bitácora", taller: "Abrir el Taller", vitrina: "Ir a la Vitrina", biblia: "Abrir la biblia", oportunidades: "Ver oportunidades", costos: "Abrir Costos", resumen: "Escribir el resumen" };
+const DESTINO = { mapa: "Abrir el Mapa", estructura: "Probar estructuras", lectores: "Abrir una ronda", analizar: "Agregar una obra", semillero: "Abrir el Semillero", referentes: "Abrir Referentes", brujula: "Abrir la Brújula", pizarra: "Abrir la Pizarra", tablero: "Abrir el Tablero", bitacora: "Abrir la Bitácora", taller: "Abrir el Taller", vitrina: "Ir a la Vitrina", biblia: "Abrir la biblia", oportunidades: "Ver oportunidades", costos: "Abrir Costos", resumen: "Escribir el resumen" };
 async function irTecnica(id) {
   const x = Object.values(R.TECNICAS).flat().find((t) => t.id === id); if (!x || !x.ir || !R.disponible(x)) return;
   const [dest, dato] = x.ir.split(":");
@@ -985,10 +986,10 @@ async function activarEquipo() {
 const NIVEL = { editar: "Edita", ver: "Ve", no: "No ve" }, CICLO = { editar: "ver", ver: "no", no: "editar" };
 const PRESETS = [
   ["todo", "Todo", () => ({})],
-  ["creativo", "Lo creativo", () => ({ taller: "editar", referentes: "editar", pizarra: "editar", costos: "ver", oportunidades: "ver", bitacora: "editar", vitrina: "ver" })],
-  ["costos", "Costos", () => ({ taller: "ver", referentes: "ver", pizarra: "ver", costos: "editar", oportunidades: "editar", bitacora: "editar", vitrina: "ver" })],
-  ["vitrina", "La vitrina", () => ({ taller: "ver", referentes: "ver", pizarra: "ver", costos: "no", oportunidades: "ver", bitacora: "editar", vitrina: "editar" })],
-  ["mirar", "Solo mirar", () => ({ taller: "ver", referentes: "ver", pizarra: "ver", costos: "ver", oportunidades: "ver", bitacora: "ver", vitrina: "ver" })],
+  ["creativo", "Lo creativo", () => ({ taller: "editar", referentes: "editar", pizarra: "editar", tablero: "editar", costos: "ver", oportunidades: "ver", bitacora: "editar", vitrina: "ver" })],
+  ["costos", "Costos", () => ({ taller: "ver", referentes: "ver", pizarra: "ver", tablero: "ver", costos: "editar", oportunidades: "editar", bitacora: "editar", vitrina: "ver" })],
+  ["vitrina", "La vitrina", () => ({ taller: "ver", referentes: "ver", pizarra: "ver", tablero: "ver", costos: "no", oportunidades: "ver", bitacora: "editar", vitrina: "editar" })],
+  ["mirar", "Solo mirar", () => ({ taller: "ver", referentes: "ver", pizarra: "ver", tablero: "ver", costos: "ver", oportunidades: "ver", bitacora: "ver", vitrina: "ver" })],
 ];
 // Nivel de un área para una persona: lo de sus áreas, o lo de su rol.
 const nivelP = (x, a) => (x.areas && x.areas[a]) || (x.rol === "lector" ? "ver" : "editar");
@@ -1182,7 +1183,7 @@ const DATO = {
   mapa: () => { const l = MP.llenas(MP.normalEsquema(P.esquema), P.tipo); return l ? l + " de " + MP.nodos(P.tipo).length : ""; },
   estructura: () => { const m = (P.estructura && P.estructura.m) || {}, l = Object.values(m).filter((v) => typeof v === "string" && v.trim()).length; return l ? l + " de 6" : ""; },
   referentes: () => REFS.length || "", taller: () => (SECS.length ? avance(SECS) + "%" : ""), fichas: () => FICHAS.fichas.length || "",
-  pizarra: () => PIZ.length || "", bitacora: () => { const n = NOTAS.filter((x) => Date.now() - new Date(x.creado_en) < 7 * 864e5).length; return n ? n + " esta semana" : NOTAS.length || ""; }, oportunidades: () => SEGS.length || "",
+  pizarra: () => PIZ.length || "", tablero: () => (PZS.length ? PZS.filter((z) => z.hecho_en).length + " de " + PZS.length + " listas" : ""), bitacora: () => { const n = NOTAS.filter((x) => Date.now() - new Date(x.creado_en) < 7 * 864e5).length; return n ? n + " esta semana" : NOTAS.length || ""; }, oportunidades: () => SEGS.length || "",
   vitrina: () => (VIT && VIT.publicada ? "Publicada" : ""), costos: () => (COT ? "Cotizada" : ""),
 };
 // Al costado: la F de avance del proyecto. La etapa es la que marca la persona en la Ruta (o la que sugiere Forja si no marcó ninguna).
@@ -1232,7 +1233,7 @@ function irA(k) {
 function calcRO() { return nivelDe(pest) !== "editar" || !editable(P, ACT, PL); }
 function pintarPestana() {
   if (EDITOR) { EDITOR.destruir(); EDITOR = null; }
-  const local = ({ ruta, mapa, estructura, lectores, taller, referentes, brujula, pizarra, costos, oportunidades, bitacora, vitrina })[pest];
+  const local = ({ ruta, mapa, estructura, lectores, taller, referentes, brujula, pizarra, tablero, costos, oportunidades, bitacora, vitrina })[pest];
   if (local) local(); else vistaModulo(pest);
   activarAvisame($("panel"));
   pista($("panel"), pest); // la primera vez en cada herramienta, una nota corta
@@ -2404,6 +2405,17 @@ function bitacora() {
   bitTipo = null;
 }
 
+/* --- Tablero de producción: piezas por etapas, con oficio, responsable y fecha; todo el detalle en js/tablero.js --- */
+let cssTB = false;
+async function tablero() {
+  $("panel").innerHTML = '<div class="fx-empty">Abriendo el Tablero…</div>';
+  let TB;
+  try { TB = await import("../js/tablero.js"); } catch (e) { $("panel").innerHTML = '<div class="fx-empty">No se pudo abrir el Tablero. Revisa tu conexión y recarga la página.</div>'; return; }
+  if (pest !== "tablero") return;
+  if (!cssTB) { document.head.insertAdjacentHTML("beforeend", "<style>" + TB.CSS_TABLERO + "</style>"); cssTB = true; }
+  await TB.vista({ panel: $("panel"), P, ESP, PL, sb, esc, toast, limite, tc: tc(P.tipo), ed: !RO, tope: (k) => tope(PL, k), u: (r) => "../" + r, marcarHecho,
+    alCambiar: (D) => { PZS = D.piezas.map((z) => ({ id: z.id, hecho_en: z.hecho_en })); pintarTabs(); tocarProyecto(); } });
+}
 </script>
 </body>
 </html>

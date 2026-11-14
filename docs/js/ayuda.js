@@ -32,7 +32,7 @@ const ICO = {
   app: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
 };
 // Con la identidad nueva, las herramientas usan los íconos de taller de forja.js (ICONOS); los demás temas siguen con su dibujo propio.
-const NUEVO = { plantar: "chispa", semillero: "semilla", obras: "lupa", ruta: "regla", mapa: "mapa", estructura: "curva", taller: "pluma", referentes: "chinche", brujula: "brujula", pizarra: "pizarra",
+const NUEVO = { plantar: "chispa", semillero: "semilla", obras: "lupa", ruta: "regla", mapa: "mapa", estructura: "curva", taller: "pluma", referentes: "chinche", brujula: "brujula", pizarra: "pizarra", tablero: "tablero",
   costos: "moneda", oportunidades: "calendario", eventos: "calendario", vitrina: "vitrina", bitacora: "cuaderno", lectores: "ojo", fichas: "fichas", equipo: "persona", invitar: "persona", proyecto: "martillo", idea: "chispa", crear: "martillo", probar: "lupa", mostrar: "vitrina" };
 export const icono = (k, tam = 22) => '<svg class="fx-ico" viewBox="0 0 24 24" width="' + tam + '" height="' + tam + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (NUEVO[k] ? '<path d="' + ICONOS[NUEVO[k]] + '"/>' : ICO[k] || ICO.plantar) + "</svg>";
 
@@ -95,7 +95,7 @@ export const TEMAS = [
     ir: enProyecto("ruta"), claves: "ruta etapas camino qué sigue lo que sigue guía método planificar inspirarse sembrar estructura borrador prototipo revisar pulir tipo de creador" },
   { id: "proyecto", n: "El proyecto por dentro", donde: "Arriba de cada proyecto",
     corto: "Cada proyecto se ordena en cinco partes: Ruta, Idea, Crear, Probar y Mostrar. Toca una para ver sus herramientas y elige.",
-    para: "Las herramientas de un proyecto viven en cinco partes, en el orden en que suele crecer una idea. La Ruta te orienta. Idea junta lo que sirve para entender tu proyecto antes de construirlo: el Mapa de la idea, la Estructura, la Brújula y tus Referentes. Crear es donde toma forma: el Taller y la Pizarra. Probar es para que otras personas lo prueben y anotar lo que aprendes: Lectores beta y la Bitácora. Mostrar lo lleva al mundo: la Vitrina, los Costos y las Oportunidades. Cada herramienta muestra un dato al lado, como el avance del Taller o cuántos referentes tienes.",
+    para: "Las herramientas de un proyecto viven en cinco partes, en el orden en que suele crecer una idea. La Ruta te orienta. Idea junta lo que sirve para entender tu proyecto antes de construirlo: el Mapa de la idea, la Estructura, la Brújula y tus Referentes. Crear es donde toma forma: el Taller, el Tablero de producción y la Pizarra. Probar es para que otras personas lo prueben y anotar lo que aprendes: Lectores beta y la Bitácora. Mostrar lo lleva al mundo: la Vitrina, los Costos y las Oportunidades. Cada herramienta muestra un dato al lado, como el avance del Taller o cuántos referentes tienes.",
     pasos: ["Toca una parte arriba del proyecto: debajo aparecen sus herramientas.", "Toca una herramienta para abrirla. Al volver a esa parte, se abre la última que usaste.", "La Ruta y «Lo que sigue» también te llevan a la herramienta indicada, con «← Ruta» para volver.", "Si alguien te invitó a su proyecto, solo ves las partes que te dejó ver."],
     consejo: "No hay que pasar por las partes en orden: muchas veces conviene volver a Idea después de probar.",
     plan: ["Incluido", "Incluido"],
@@ -128,6 +128,13 @@ export const TEMAS = [
     consejo: "Supr borra lo elegido y Ctrl + Z deshace. En el celular, «Pantalla completa» hace todo más cómodo.",
     plan: ["1 pizarra libre por proyecto, 20 tarjetas", "Sin límite, más relaciones, escaleta y mapa del mundo"],
     ir: enProyecto("pizarra"), claves: "tablero tarjetas flechas mapa relaciones personajes escaleta escenas actos mundo lugares diagrama" },
+  { id: "tablero", linea: true, n: "Tablero de producción", donde: "Crear → Tablero",
+    corto: "Las piezas de tu proyecto en columnas, de la primera etapa a lista, con quién las hace y para cuándo.",
+    para: "Sirve para cualquier oficio: páginas que van del boceto a las letras, funciones y assets de un juego, publicaciones de la idea a publicadas, cartas del prototipo o variantes de un producto. Cada pieza dice qué es, de qué parte del trabajo (arte, código, escritura, diseño, sonido o producción), quién la hace y para cuándo. Arriba, una regla muestra cuántas piezas hay en cada etapa y cuántas ya están listas.",
+    pasos: ["Elige la plantilla de tu categoría: trae sus columnas y los tipos de pieza.", "Agrega piezas al pie de cualquier columna, o varias de una vez con «Agregar varias» (por ejemplo, de la Página 1 a la 24).", "Toca la flecha de una pieza para pasarla a la columna que sigue, o arrástrala (en tablet y celular, mantén el dedo un momento).", "Toca una pieza para elegir quién la hace, la fecha, un enlace al archivo y una nota. Filtra por parte del trabajo, por persona o por atrasadas."],
+    consejo: "La última columna es la que cuenta como lista. Renómbrala y suma las etapas que use tu equipo desde «Columnas».",
+    plan: ["1 tablero por proyecto", "Todos los tableros que quieras"],
+    ir: enProyecto("tablero"), claves: "tablero producción kanban columnas piezas tareas pendientes estado páginas boceto lápiz tinta color letras funciones assets sprites niveles publicaciones reels cartas prototipo variantes responsable fecha entrega quién hace atrasadas" },
   { id: "costos", linea: true, n: "Costos y precio", donde: "Mostrar → Costos, y Cotizaciones",
     corto: "Calcula cuánto cuesta producir una unidad, pieza por pieza, y a cuánto venderla sin perder plata.",
     para: "Una cotización reúne las piezas (tablero, cartas, impresión, figuras…) y los precios que te dan los proveedores. Con eso calcula el costo real de una unidad, con IVA, envío y dólar, y te sugiere un precio de venta. Puedes hacer una por proyecto o una aparte, sin proyecto, para anotar lo que te cotizó un proveedor.",
@@ -151,7 +158,7 @@ export const TEMAS = [
     ir: enProyecto("vitrina"), claves: "página pública compartir mostrar publicar enlace qr feria editorial portfolio redes seguir seguidores wishlist lista de deseos avisar correo pagos preventa apoyo" },
   { id: "biblia", linea: true, n: "La biblia del proyecto", donde: "Botón «Exportar la biblia»",
     corto: "Un documento imprimible con todo tu proyecto, para guardarlo como PDF o llevarlo a una reunión.",
-    para: "La biblia junta en un solo documento la portada, el mapa de la idea, la estructura con su dibujo, la escritura, los referentes y las obras analizadas, la brújula, las pizarras, los costos, las oportunidades y la bitácora. Eliges qué partes incluir y la guardas como PDF desde la impresión del navegador.",
+    para: "La biblia junta en un solo documento la portada, el mapa de la idea, la estructura con su dibujo, la escritura, los referentes y las obras analizadas, la brújula, las pizarras, la producción del Tablero, los costos, las oportunidades y la bitácora. Eliges qué partes incluir y la guardas como PDF desde la impresión del navegador.",
     pasos: ["En el proyecto, toca «Exportar la biblia del proyecto (PDF)».", "Marca las partes que quieres incluir.", "Toca «Imprimir o guardar PDF» y elige «Guardar como PDF»."],
     consejo: "Es ideal para enviarla a un fondo, a una editorial o para tener un respaldo de tu proyecto fuera de Forja.",
     plan: ["Incluida", "Incluida, más la bibliografía en APA, MLA o Chicago"],
@@ -194,7 +201,7 @@ export const TEMAS = [
     plan: ["Hoy, solo Digital Monster", "Igual; además puedes invitar a otras personas a cada proyecto"], ir: () => u("equipo/"), claves: "equipo compartir colaborar colaborativo roles miembros digital monster invitar permisos reservado mover" },
   { id: "invitar", n: "Invitar personas a un proyecto", donde: "Bajo la cabecera del proyecto → Personas",
     corto: "Trabaja con otras personas en un proyecto, cada una con lo que le toca.",
-    para: "Puedes invitar a alguien por correo a un proyecto tuyo. Para cada parte (Taller y ficha, Referentes, Pizarra, Costos, Oportunidades, Bitácora y Vitrina) eliges si edita, solo ve o no ve. Así un grupo puede repartirse el trabajo: unos en lo creativo, otros en costos o en la vitrina.",
+    para: "Puedes invitar a alguien por correo a un proyecto tuyo. Para cada parte (Taller y ficha, Referentes, Pizarra, Tablero, Costos, Oportunidades, Bitácora y Vitrina) eliges si edita, solo ve o no ve. Así un grupo puede repartirse el trabajo: unos en lo creativo, otros en costos o en la vitrina.",
     pasos: ["Abre el proyecto y toca «Invitar personas» (o «Personas») bajo la cabecera.", "Escribe su correo, elige desde dónde partir (Todo, Lo creativo, Costos, La vitrina o Solo mirar) y toca cada área para ajustarla.", "Le llega un correo con un enlace que solo funciona con esa dirección y vence en 14 días. Si no tiene cuenta, la crea gratis.", "Puedes cambiar lo que hace cada persona o quitarle el acceso cuando quieras; ella también puede salirse."],
     consejo: "Publicar la vitrina, borrar, mover e invitar siempre queda en tus manos. Si dos personas escriben en la misma sección a la vez, se guarda lo último: repártanse las secciones.",
     plan: ["1 persona por proyecto", "Hasta 5 por proyecto", "Hasta 15 por proyecto"], ir: null, claves: "invitar colaborar colaboradores compartir compañero grupo correo permisos acceso areas costos vitrina salir compartidos" },

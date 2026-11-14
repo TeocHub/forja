@@ -42,11 +42,11 @@ export const ICONOS = {
   moneda: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z M14.5 9.5c0-1.2-1.1-1.8-2.5-1.8s-2.5.7-2.5 1.8 1.1 1.6 2.5 1.9 2.5.8 2.5 2-1.1 1.9-2.5 1.9-2.5-.6-2.5-1.9 M12 6.5v11",
   calendario: "M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5", flecha: "M4 12h15 M13 6l6 6-6 6", persona: "M12 4a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7z M5 20c.8-4 3.6-6 7-6s6.2 2 7 6",
   semilla: "M12 20v-6 M12 14c-4 0-6-2.5-6-6 3.5 0 6 2 6 6z M12 14c0-3 2-5.5 6-5.5 0 3.5-2.5 5.5-6 5.5z", desarrollo: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z M12 4v16",
-  pausa: "M9 6v12 M15 6v12", listo: "M5 12.5l4.5 4.5L19 7.5", archivado: "M4 5h16v4H4z M5.5 9v10h13V9 M10 13h4",
+  pausa: "M9 6v12 M15 6v12", tablero: "M3.5 4h5v9h-5z M9.5 4h5v15h-5z M15.5 4h5v6h-5z", listo: "M5 12.5l4.5 4.5L19 7.5", archivado: "M4 5h16v4H4z M5.5 9v10h13V9 M10 13h4",
 };
 // Ícono de cada parte del proyecto y de cada herramienta (la mesa de boletos y la guía).
 export const ICONO_DE = { ruta: "regla", idea: "chispa", crear: "martillo", probar: "lupa", mostrar: "vitrina",
-  mapa: "mapa", estructura: "curva", brujula: "brujula", referentes: "chinche", taller: "pluma", fichas: "fichas", pizarra: "pizarra",
+  mapa: "mapa", estructura: "curva", brujula: "brujula", referentes: "chinche", taller: "pluma", fichas: "fichas", pizarra: "pizarra", tablero: "tablero",
   lectores: "ojo", bitacora: "cuaderno", vitrina: "vitrina", costos: "moneda", oportunidades: "calendario" };
 export const ico = (k, tam = 20) => '<svg class="fx-ico" viewBox="0 0 24 24" width="' + tam + '" height="' + tam + '" aria-hidden="true"><path d="' + (ICONOS[k] || ICONOS[ICONO_DE[k]] || ICONOS.chispa) + '"/></svg>';
 const CHISPA = "M0 -6 Q0.9 -0.9 6 0 Q0.9 0.9 0 6 Q-0.9 0.9 -6 0 Q-0.9 -0.9 0 -6 Z";
@@ -163,10 +163,10 @@ export function navApp(actual) {
 }
 
 /* --- plan y límites (los mismos que aplica la base de datos en privado.limite y privado.tope) --- */
-export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30, pizarras: 1, tarjetas: 20, ideas: 50, analisis: 3, colecciones: 2, fichas: 60 };
+export const LIMITES = { proyectos: 3, palabras: 20000, referentes: 30, pizarras: 1, tarjetas: 20, ideas: 50, analisis: 3, colecciones: 2, fichas: 60, tableros: 1 };
 // Topes que cambian por plan (privado.tope): null = sin límite. «lectores» = personas por ronda de Lectores beta.
 export const TOPES = {
-  libre: { proyectos: 3, invitados: 1, lectores: 3, ideas: 50, colecciones: 2, fichas: 60 },
+  libre: { proyectos: 3, invitados: 1, lectores: 3, ideas: 50, colecciones: 2, fichas: 60, tableros: 1 },
   mas: { proyectos: 15, invitados: 5, lectores: 15, ideas: 500 },
   estudio: { proyectos: null, invitados: 15, lectores: 40, ideas: null },
 };
@@ -198,6 +198,9 @@ const MSG = {
   FORJA_SOLO_MAS: "Esto es parte de Forja Más. Lo que ya tienes se puede ver y borrar.",
   FORJA_LIMITE_COLECCIONES: "El plan gratis permite " + LIMITES.colecciones + " colecciones de fichas por proyecto. Borra una para crear otra.",
   FORJA_LIMITE_FICHAS: "El plan gratis permite " + LIMITES.fichas + " fichas por proyecto. Borra alguna para agregar otra.",
+  FORJA_LIMITE_TABLEROS: "El plan gratis incluye " + LIMITES.tableros + " tablero por proyecto. Con Forja Más y Forja Estudio no hay límite.",
+  FORJA_TABLERO_EXTRA: "El plan gratis incluye un tablero por proyecto: este queda para ver o borrar. Puedes seguir trabajando en el primero.",
+  FORJA_TABLERO_GRANDE: "Un tablero llega hasta 500 piezas. Crea otro o borra las que ya no necesites.",
   FORJA_OTRA_CATEGORIA: "Esa colección es de otra categoría: queda para ver o borrar.",
   FORJA_SOLO_EQUIPO: "Esta herramienta todavía está en prueba con el equipo de Forja.",
   FORJA_PIZARRA_GRANDE: "La pizarra es demasiado grande para guardarla. Divídela en dos.",

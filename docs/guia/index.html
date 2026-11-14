@@ -265,7 +265,8 @@ import { PRECIOS } from "../js/planes.js";
 import { PLANTILLAS, ENLACES } from "../js/fichas-plantillas.js";
 import { GRUPOS, LEMA, herrDe, mesaHTML, CSS_MESA } from "../js/herramientas.js";
 import { CSS_FICHAS } from "../js/fichas.js";
-document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_AYUDA + CSS_BRUJULA + CSS_VITRINA + CSS_ESTRUCTURA + CSS_FICHAS + CSS_MESA + "</style>");
+import { CSS_TABLERO } from "../js/tablero.js";
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_AYUDA + CSS_BRUJULA + CSS_VITRINA + CSS_ESTRUCTURA + CSS_FICHAS + CSS_MESA + CSS_TABLERO + "</style>");
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 let SES = null, CTX = { p: null };
@@ -282,7 +283,7 @@ const ESTACIONES = [
   { k: "sembrar", temas: ["semillero", "plantar"] },
   { k: "mapa", temas: ["mapa"] },
   { k: "estructura", temas: ["estructura", "pizarra"] },
-  { k: "hacer", temas: ["taller", ...(EQ ? ["fichas"] : [])] },
+  { k: "hacer", temas: ["taller", "tablero", ...(EQ ? ["fichas"] : [])] },
   { k: "revisar", temas: ["lectores"] },
   { k: "pulir", temas: ["vitrina", "costos", "oportunidades", "biblia"] },
 ].map((e) => ({ ...e, ...ETAPAS_R.find((x) => x.k === e.k) }));
@@ -343,7 +344,7 @@ addEventListener("resize", () => senda(estacionDe(actual)));
 const DEMOS = {
   // Las cinco partes del proyecto, como se ven arriba de cada uno (las herramientas en prueba solo aparecen para el equipo).
   proyecto(c) {
-    const EJ = { mapa: "5 de 9", estructura: "4 de 6", referentes: 12, taller: "40%", pizarra: 2, bitacora: 7, oportunidades: 3, vitrina: "Publicada" };
+    const EJ = { mapa: "5 de 9", estructura: "4 de 6", referentes: 12, taller: "40%", tablero: "12 de 30 listas", pizarra: 2, bitacora: 7, oportunidades: 3, vitrina: "Publicada" };
     const de = (gk) => herrDe(gk).filter((k) => tema(k));
     let g = "idea", h = "mapa";
     const pintar = () => {
@@ -354,6 +355,26 @@ const DEMOS = {
       c.querySelectorAll("[data-g]").forEach((b) => b.onclick = () => { g = b.dataset.g; h = g === "ruta" ? "ruta" : de(g)[0]; pintar(); });
       c.querySelectorAll(".mesa-h").forEach((b) => b.onclick = () => { h = b.dataset.p; pintar(); });
       c.querySelector("[data-ver]").onclick = () => { abrir(h, true); $("g-lamina").scrollIntoView({ behavior: "smooth", block: "start" }); };
+    };
+    pintar();
+  },
+  // Un tablero de cómic de ejemplo: la flecha pasa cada página a la etapa que sigue.
+  tablero(c) {
+    const C = [["boceto", "Boceto"], ["lapiz", "Lápiz"], ["tinta", "Tinta"], ["color", "Color"], ["letras", "Letras"], ["lista", "Lista"]];
+    const Z = [["Portada", "color", "Arte", "Tú"], ["Página 1", "letras", "Arte", "Ana"], ["Página 2", "tinta", "Arte", "Ana"], ["Página 3", "lapiz", "Arte", "Tú"], ["Página 4", "boceto", null, null], ["Guion, capítulo 2", "boceto", "Escritura", "Tú"]]
+      .map(([t, e, o, q], i) => ({ t, e, o, q, i }));
+    const pct = (i) => Math.round(10 + (i / (C.length - 1)) * 70) + "%";
+    const flecha = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h13 M13 7l5 5-5 5"/></svg>';
+    const pintar = () => {
+      const listas = Z.filter((z) => z.e === "lista").length;
+      c.innerHTML = '<div class="tb" style="--tc:var(--t-comic);margin:0"><div class="tb-regla"><div class="tb-tramos">' + C.map(([k, n], i) => { const m = Z.filter((z) => z.e === k).length;
+          return '<span class="tb-tramo' + (k === "lista" ? " fin" : "") + (m ? "" : " vacio") + '" style="flex:' + m + " 1 0;--p:" + pct(i) + '" title="' + n + '">' + (m || "") + "</span>"; }).join("") + "</div>" +
+        '<p class="tb-dice"><strong>' + listas + " de " + Z.length + "</strong> piezas en «Lista». Toca la flecha de una página para pasarla a la etapa que sigue.</p></div>" +
+        '<div class="tb-cols" style="grid-auto-columns:minmax(172px,1fr)">' + C.map(([k, n], i) => '<section class="tb-col' + (k === "lista" ? " fin" : "") + '" style="--p:' + pct(i) + ';min-height:120px"><div class="tb-col-cab"><i></i><b>' + n + '</b><span class="n">' + Z.filter((z) => z.e === k).length + '</span></div><div class="tb-col-z">' +
+          Z.filter((z) => z.e === k).map((z) => '<article class="tb-z' + (k === "lista" ? " fin" : "") + '" style="cursor:default"><div class="tb-z-top"><span class="cl">' + (z.t.startsWith("Guion") ? "Guion" : z.t === "Portada" ? "Portada" : "Página") + "</span></div><b>" + esc(z.t) + '</b><div class="tb-z-pie">' + (z.o ? '<span class="of">' + z.o + "</span>" : "") +
+            '<span class="der">' + (z.q ? '<span class="quien' + (z.q === "Tú" ? " yo" : "") + '" title="' + z.q + '">' + z.q.slice(0, 2).toUpperCase() + "</span>" : "") +
+            (k !== "lista" ? '<button type="button" class="sig" data-i="' + z.i + '" aria-label="Pasar a ' + C[i + 1][1] + '">' + flecha + "</button>" : "") + "</span></div></article>").join("") + "</div></section>").join("") + "</div></div>";
+      c.querySelectorAll("[data-i]").forEach((b) => b.onclick = () => { const z = Z[+b.dataset.i], j = C.findIndex((x) => x[0] === z.e); z.e = C[j + 1][0]; pintar(); });
     };
     pintar();
   },

@@ -112,14 +112,14 @@ document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZA
 
 const ID = new URLSearchParams(location.search).get("p");
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
-const PARTES = [["mapa", "Mapa de la idea"], ["estructura", "Estructura"], ["taller", "Escritura"], ["referentes", "Referentes"], ["obras", "Obras analizadas"], ["brujula", "Brújula"], ["pizarras", "Pizarras"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["bibliografia", "Bibliografía"]];
-let MAS = false;
+const PARTES = [["mapa", "Mapa de la idea"], ["estructura", "Estructura"], ["taller", "Escritura"], ["referentes", "Referentes"], ["obras", "Obras analizadas"], ["brujula", "Brújula"], ["pizarras", "Pizarras"], ["produccion", "Producción"], ["costos", "Costos"], ["oportunidades", "Oportunidades"], ["bitacora", "Bitácora"], ["bibliografia", "Bibliografía"]];
+let MAS = false, TBS = [], PZS = [];
 
 if (!/^[0-9a-f-]{36}$/.test(ID || "")) location.replace("../proyectos/");
 else conSesion($("app"), async () => {
   await espacio();
   const acc = await accesoProyecto(ID); MAS = !!(acc && acc.mas);
-  const [pr, se, el, re, no, co, po, pz] = await Promise.all([
+  const [pr, se, el, re, no, co, po, pz, tb, tz] = await Promise.all([
     sb.from("proyectos").select("*").eq("id", ID).maybeSingle(),
     sb.from("secciones").select("id,titulo,texto,orden,coleccion_id").eq("proyecto_id", ID).order("orden"),
     // Hojas de Fichas conectadas a una sección del Taller (solo el equipo las puede leer; para el resto llega vacío).
@@ -129,8 +129,10 @@ else conSesion($("app"), async () => {
     sb.from("cotizaciones").select("datos,actualizado_en").eq("proyecto_id", ID).maybeSingle(),
     sb.from("proyecto_oportunidades").select("oportunidad_id,estado").eq("proyecto_id", ID),
     sb.from("pizarras").select("nombre,modo,datos,creado_en").eq("proyecto_id", ID).order("creado_en"),
+    sb.from("tableros").select("id,nombre,columnas").eq("proyecto_id", ID).order("creado_en"),
+    sb.from("piezas").select("tablero_id,titulo,estado,clase,fecha,orden").eq("proyecto_id", ID).order("orden"),
   ]);
-  const P = pr.data;
+  const P = pr.data; TBS = tb.data || []; PZS = tz.data || [];
   if (!P) { $("app").innerHTML = '<div class="fx-empty">Este proyecto no existe o no es tuyo.</div>'; return; }
   let OPS = [];
   if ((po.data || []).length) { const { data } = await sb.from("oportunidades").select("id,nombre,organiza,postul_fin,evento_inicio,evento_fin"); OPS = data || []; }
@@ -150,7 +152,7 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
   const PZ = PIZ.filter((z) => cuentaTarjetas(z.datos) || ((z.datos || {}).regiones || []).length);
   const OBRAS = REFS.filter((r) => r.tipo === "obra"), OTROS = REFS.filter((r) => r.tipo !== "obra");
   const EQ = MP.normalEsquema(P.esquema), NODOS = MP.nodos(P.tipo).filter((n) => EQ.r[n.k]), ESx = ES.normalEstructura(P.estructura), MOM = ES.momentos(P.tipo).filter((m) => ESx.m[m.k]);
-  const tiene = { mapa: NODOS.length || EQ.centro, estructura: MOM.length, taller: conTexto.length, referentes: OTROS.length, obras: OBRAS.length, bibliografia: MAS && OBRAS.length, brujula: tocado(P.ejes) || f, pizarras: PZ.length, costos: COT && (COT.datos.componentes || []).length, oportunidades: SEGS.length, bitacora: NOTAS.length };
+  const tiene = { mapa: NODOS.length || EQ.centro, estructura: MOM.length, taller: conTexto.length, referentes: OTROS.length, obras: OBRAS.length, bibliografia: MAS && OBRAS.length, brujula: tocado(P.ejes) || f, pizarras: PZ.length, produccion: PZS.length, costos: COT && (COT.datos.componentes || []).length, oportunidades: SEGS.length, bitacora: NOTAS.length };
 
   $("app").innerHTML =
     '<section class="opciones"><h1>Biblia del proyecto</h1><p>Un documento con todo lo que has trabajado. Elige qué incluir y guárdalo como PDF desde la ventana de impresión (opción “Guardar como PDF”).</p>' +
@@ -195,6 +197,11 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
 
     '<section class="parte" data-p="pizarras"><h2>Pizarras</h2><p class="bajada">Los tableros del proyecto, tal como quedaron ordenados.</p>' +
     PZ.map((z) => '<div class="piz"><h3>' + esc(z.nombre) + '</h3><p class="modo">' + MODOS[z.modo].n + " · " + cuentaTarjetas(z.datos) + (z.modo === "escaleta" ? " escenas" : z.modo === "relaciones" ? " personajes" : z.modo === "mapa" ? " lugares" : " tarjetas") + "</p>" + estatica(z, { secciones: SECS, referentes: REFS }) + "</div>").join("") + "</section>" +
+
+    '<section class="parte" data-p="produccion"><h2>Producción</h2><p class="bajada">Las piezas del proyecto y en qué etapa va cada una.</p>' +
+    TBS.filter((t) => PZS.some((z) => z.tablero_id === t.id)).map((t) => { const zs = PZS.filter((z) => z.tablero_id === t.id), C = t.columnas || [], fin = (C[C.length - 1] || {}).k;
+      return '<h3>' + esc(t.nombre) + '</h3><p class="modo">' + zs.filter((z) => z.estado === fin).length + " de " + zs.length + " en «" + esc((C[C.length - 1] || {}).n || "") + '»</p><table class="tabla"><thead><tr><th>Etapa</th><th>Piezas</th></tr></thead><tbody>' +
+        C.map((c) => { const xs = zs.filter((z) => z.estado === c.k); return xs.length ? "<tr><td><b>" + esc(c.n) + "</b><br>" + xs.length + "</td><td>" + xs.map((z) => esc(z.titulo) + (z.fecha ? " (" + esc(z.fecha.split("-").reverse().join("-")) + ")" : "")).join(" · ") + "</td></tr>" : ""; }).join("") + "</tbody></table>"; }).join("") + "</section>" +
 
     '<section class="parte" data-p="costos"><h2>Costos</h2><p class="bajada">Componentes a producir y proveedores cotizados. Valores actualizados en Forja el ' + (COT ? fecha(COT.actualizado_en) : "") + ".</p>" + costosHTML(COT) + "</section>" +
 
