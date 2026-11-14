@@ -4,7 +4,30 @@ import { sb, esc, u, limite } from "./forja.js";
 import { nombrePieza } from "./piezas.js";
 
 // Campos que se leen de public.precios_comunidad (la columna autor no es legible).
-export const CAMPOS_PRECIO = "id,componente,proveedor,enlace,origen,moneda,cantidad,precio,envio,incluye_iva,especificaciones,plazo,creado_en";
+export const CAMPOS_PRECIO = "id,componente,proveedor,enlace,origen,moneda,cantidad,precio,envio,envio_pendiente,incluye_iva,especificaciones,opciones,grupo,plazo,creado_en";
+
+// Quita del enlace lo que solo sirve para seguir visitas (utm, _pos, _sid…) y deja lo que elige el producto (como variant).
+const RASTREO = /^(utm_|_pos$|_sid$|_ss$|_psq$|_v$|fbclid$|gclid$|igshid$|mc_|ref$|ref_)/i;
+export function limpiarEnlace(url) {
+  try { const x = new URL(String(url || "").trim()); if (x.protocol !== "https:") return "";
+    [...x.searchParams.keys()].forEach((k) => { if (RASTREO.test(k)) x.searchParams.delete(k); });
+    return x.toString().slice(0, 500);
+  } catch (e) { return ""; }
+}
+
+// Junta los precios compartidos juntos (mismo grupo) en uno solo con sus tramos por cantidad.
+// Cada elemento queda como el tramo más chico, con tramos [{id, cantidad, precio}] ordenados y ids con todos sus ids.
+export function agrupar(filas) {
+  const vistos = new Map(), salida = [];
+  (filas || []).forEach((r) => {
+    const k = r.grupo || r.id;
+    if (!vistos.has(k)) { const g = { ...r, tramos: [], ids: [] }; vistos.set(k, g); salida.push(g); }
+    const g = vistos.get(k); g.tramos.push({ id: r.id, cantidad: n0(r.cantidad), precio: n0(r.precio) }); g.ids.push(r.id);
+    if (String(r.creado_en) > String(g.creado_en)) g.creado_en = r.creado_en;
+  });
+  salida.forEach((g) => { g.tramos.sort((a, b) => a.cantidad - b.cantidad); const t = g.tramos[0]; g.id = t.id; g.cantidad = t.cantidad; g.precio = t.precio; });
+  return salida;
+}
 
 export const MOTIVOS_PRECIO = [
   ["falso", "Precio falso o inventado", "No calza con lo que cobra ese proveedor o parece puesto para engañar."],
@@ -21,17 +44,31 @@ export const dinero = (moneda, v) => moneda === "USD"
   ? "USD " + n0(v).toLocaleString("es-CL", { maximumFractionDigits: 2 })
   : "$" + Math.round(n0(v)).toLocaleString("es-CL");
 // Por unidad, en la moneda del proveedor y sin envío ni impuestos (el cotizador hace la cuenta completa).
-export const porUnidad = (r) => n0(r.cantidad) ? dinero(r.moneda, n0(r.precio) / n0(r.cantidad)) : "–";
+export const porUnidad = (r) => !n0(r.cantidad) ? "–" : r.moneda === "USD"
+  ? "USD " + (n0(r.precio) / n0(r.cantidad)).toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  : dinero(r.moneda, n0(r.precio) / n0(r.cantidad));
 const mes = (iso) => new Date(iso).toLocaleDateString("es-CL", { month: "short", year: "numeric" });
 
-// Talón de un precio compartido. mio: lo compartiste tú (no se reporta).
+// Escalera de tramos: desde cuántas unidades, a cuánto sale cada una.
+export function escalera(r, max = 12) {
+  const ts = (r.tramos || []).slice(0, max);
+  return '<ol class="pr-tramos" aria-label="Precio por pieza según cantidad">' + ts.map((t) =>
+    "<li><span>" + t.cantidad.toLocaleString("es-CL") + "+</span><b>" + porUnidad({ moneda: r.moneda, cantidad: t.cantidad, precio: t.precio }) + "</b></li>").join("") + "</ol>";
+}
+const envioTxt = (r) => r.envio_pendiente ? " · envío por confirmar" : n0(r.envio) ? " · envío " + dinero(r.moneda, r.envio) : "";
+
+// Talón de un precio compartido (o de un grupo con tramos, ver agrupar). mio: lo compartiste tú (no se reporta).
 export function talon(r, { mio = false, pieza = true, reportado = false } = {}) {
   const enl = r.enlace && /^https:\/\//.test(r.enlace)
     ? '<a href="' + esc(r.enlace) + '" target="_blank" rel="noopener noreferrer nofollow">' + esc(r.proveedor) + "</a>" : esc(r.proveedor);
+  const varios = (r.tramos || []).length > 1;
   return '<article class="pr-talon" data-precio="' + esc(r.id) + '">' +
-    '<header>' + (pieza ? '<small class="pr-pieza">' + esc(nombrePieza(r.componente)) + "</small>" : "") + "<b>" + enl + "</b></header>" +
-    '<div class="pr-cifra"><span class="pr-cant">' + n0(r.cantidad).toLocaleString("es-CL") + ' u.</span><span class="pr-total">' + dinero(r.moneda, r.precio) + "</span>" +
-    '<span class="pr-uni">' + porUnidad(r) + " c/u" + (n0(r.envio) ? " · envío " + dinero(r.moneda, r.envio) : "") + "</span></div>" +
+    '<header>' + (pieza ? '<small class="pr-pieza">' + esc(nombrePieza(r.componente)) + "</small>" : "") + "<b>" + enl + "</b>" +
+      (r.opciones ? '<span class="pr-opc">' + esc(r.opciones) + "</span>" : "") + "</header>" +
+    (varios
+      ? '<div class="pr-cifra"><span class="pr-uni" style="flex-basis:auto">Precio por pieza según cuántas pidas' + envioTxt(r) + "</span>" + escalera(r) + "</div>"
+      : '<div class="pr-cifra"><span class="pr-cant">' + n0(r.cantidad).toLocaleString("es-CL") + ' u.</span><span class="pr-total">' + dinero(r.moneda, r.precio) + "</span>" +
+        '<span class="pr-uni">' + porUnidad(r) + " c/u" + envioTxt(r) + "</span></div>") +
     (r.especificaciones ? '<p class="pr-spec">' + esc(r.especificaciones) + "</p>" : "") +
     '<footer><span>' + (r.origen === "chile" ? "Chile" : "Extranjero") + (r.incluye_iva ? " · con IVA" : "") + (r.plazo ? " · " + esc(r.plazo) : "") + " · " + mes(r.creado_en) + "</span>" +
     (mio ? '<span class="pr-mio">Lo compartiste tú</span>' : reportado ? '<span class="pr-mio pr-ya">Reportado</span>' : '<button type="button" class="pr-rep-btn" data-reportar="' + esc(r.id) + '" data-prov="' + esc(r.proveedor) + '">Reportar</button>') +
@@ -86,6 +123,11 @@ export const CSS_PRECIOS = `
 .pr-talon header{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pr-talon header b{font-family:var(--f-display);font-weight:800;font-stretch:105%;font-size:17px;line-height:1.2;overflow-wrap:anywhere}
 .pr-talon header a{color:var(--fg)}
+.pr-opc{font-size:13px;color:var(--fg);background:var(--suave);border-radius:6px;padding:3px 8px;margin-top:4px;align-self:flex-start;overflow-wrap:anywhere}
+.pr-tramos{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:4px;flex-basis:100%}
+.pr-tramos li{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:7px;padding:4px 7px;background:var(--bg)}
+.pr-tramos span{font:600 11.5px var(--f-num);color:var(--muted)}
+.pr-tramos b{font:700 13px var(--f-num)}
 .pr-pieza{font:500 11.5px var(--f-num);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .pr-cifra{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;border-top:1.5px dashed var(--line);padding-top:8px}
 .pr-cant{font:600 13px var(--f-num);color:var(--muted)}

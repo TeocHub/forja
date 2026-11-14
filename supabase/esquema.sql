@@ -1,5 +1,5 @@
 -- Forja · esquema de la base (Supabase, proyecto "forja", id gfkiwldxxvffnkjcesws).
--- Sacado de la base en vivo el 2026-11-11 (y al día con las migraciones taller_fichas_enlazados y pizarra_fichas_enlazadas del 2026-11-12, y reportes_precios_y_cotizaciones_aparte, mod_panel_precios y mod_precio_cerrar del 2026-11-13): es la foto completa de la estructura y las reglas de acceso, sin ningún dato
+-- Sacado de la base en vivo el 2026-11-11 (y al día con las migraciones taller_fichas_enlazados y pizarra_fichas_enlazadas del 2026-11-12, y reportes_precios_y_cotizaciones_aparte, mod_panel_precios, mod_precio_cerrar y precios_tramos_opciones del 2026-11-13): es la foto completa de la estructura y las reglas de acceso, sin ningún dato
 -- (ni oportunidades, ni cuentas, ni privado.config, que guarda la clave de la cola de correos y se genera dentro de la base).
 -- La fuente sigue siendo la base: todo cambio se aplica como migración y después se vuelve a sacar este archivo.
 -- Orden: extensiones y esquemas, tablas, funciones, restricciones, índices, triggers, reglas (RLS) y permisos.
@@ -238,7 +238,10 @@ create table public.precios_comunidad(
   incluye_iva boolean default false not null,
   especificaciones text,
   plazo text,
-  creado_en timestamp with time zone default now() not null
+  creado_en timestamp with time zone default now() not null,
+  opciones text,
+  grupo uuid,
+  envio_pendiente boolean default false not null
 );
 
 create table public.proyecto_accesos(
@@ -2516,6 +2519,16 @@ end $function$
 ;
 
 -- Reportes de precios de la comunidad y cotizaciones aparte (2026-11-13)
+CREATE OR REPLACE FUNCTION privado.precio_existe(p uuid, g text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select exists(select 1 from public.precios_comunidad c where c.id = p or (g is not null and c.grupo::text = g));
+$function$
+;
+
 CREATE OR REPLACE FUNCTION privado.mod_precios()
  RETURNS jsonb
  LANGUAGE sql
@@ -2524,9 +2537,9 @@ CREATE OR REPLACE FUNCTION privado.mod_precios()
 AS $function$
   select coalesce(jsonb_agg(g order by g->>'ultimo' desc), '[]'::jsonb) from (
     select jsonb_build_object('precio', r0.precio_ref, 'copia', (array_agg(r0.copia order by r0.creado_en desc))[1],
-      'existe', exists(select 1 from public.precios_comunidad c where c.id = r0.precio_ref),
+      'existe', privado.precio_existe(r0.precio_ref, (array_agg(r0.copia->>'grupo'))[1]),
       'autor_dias', (select extract(day from now() - u.created_at)::int from auth.users u where u.id = (array_agg(r0.precio_autor))[1]),
-      'autor_comparte', (select count(*) from public.precios_comunidad c where c.autor = (array_agg(r0.precio_autor))[1]),
+      'autor_comparte', (select count(distinct coalesce(c.grupo, c.id)) from public.precios_comunidad c where c.autor = (array_agg(r0.precio_autor))[1]),
       'ultimo', max(r0.creado_en),
       'reportes', jsonb_agg(jsonb_build_object('id', r0.id, 'motivo', r0.motivo, 'detalle', r0.detalle, 'creado_en', r0.creado_en, 'autor', left(r0.autor::text, 8),
         'historial', (select jsonb_build_object(
@@ -2576,14 +2589,15 @@ CREATE OR REPLACE FUNCTION public.mod_precio(p uuid, decision text, mensaje text
  SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-declare n int; dueno uuid; prov text;
+declare n int; dueno uuid; prov text; grp text;
 begin
   if not privado.es_admin() then raise exception 'FORJA_NO_PERMITIDO'; end if;
   if decision not in ('quitar','cerrar','desestimado','mala_fe') then raise exception 'FORJA_DECISION'; end if;
-  select r.precio_autor, r.copia->>'proveedor' into dueno, prov from public.reportes_precios r where r.precio_ref = p order by r.creado_en limit 1;
+  select r.precio_autor, r.copia->>'proveedor', r.copia->>'grupo' into dueno, prov, grp from public.reportes_precios r where r.precio_ref = p order by r.creado_en limit 1;
   if decision = 'quitar' then
     if nullif(btrim(coalesce(mensaje, '')), '') is null then raise exception 'FORJA_FALTA_MENSAJE'; end if;
-    delete from public.precios_comunidad c where c.id = p;
+    -- se quita el precio y, si venía con tramos, todos los de su grupo
+    delete from public.precios_comunidad c where c.id = p or (grp is not null and c.grupo::text = grp);
     if not found then raise exception 'FORJA_NO_ENCONTRADA'; end if;
     if dueno is not null then
       insert into public.avisos(user_id, tipo, titulo, texto, enlace)
@@ -2594,8 +2608,7 @@ begin
       from public.reportes_precios r where r.precio_ref = p and r.estado = 'pendiente';
     update public.reportes_precios set estado = 'aceptado', revisado_en = now() where precio_ref = p and estado = 'pendiente';
   elsif decision = 'cerrar' then
-    -- quien lo compartió ya lo quitó: se cierra sin culpar a nadie
-    if exists(select 1 from public.precios_comunidad c where c.id = p) then raise exception 'FORJA_DECISION'; end if;
+    if privado.precio_existe(p, grp) then raise exception 'FORJA_DECISION'; end if;
     insert into public.avisos(user_id, tipo, titulo, texto)
       select r.autor, 'reporte', 'Revisamos tu reporte', 'El precio que reportaste ya no se muestra a la comunidad. Gracias por ayudar a cuidar la comunidad.'
       from public.reportes_precios r where r.precio_ref = p and r.estado = 'pendiente';
@@ -2622,16 +2635,22 @@ CREATE OR REPLACE FUNCTION public.reportar_precio(p uuid, motivo text, detalle t
  SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-declare uid uuid := auth.uid(); x public.precios_comunidad;
+declare uid uuid := auth.uid(); x public.precios_comunidad; tramos jsonb;
 begin
   if uid is null then raise exception 'FORJA_REPORTE_SIN_CUENTA'; end if;
   select * into x from public.precios_comunidad c where c.id = p;
   if not found then raise exception 'FORJA_NO_ENCONTRADA'; end if;
   if x.autor = uid then raise exception 'FORJA_REPORTE_PROPIO'; end if;
   perform privado.puede_reportar(uid);
-  if exists(select 1 from public.reportes_precios r where r.autor = uid and r.precio_ref = p) then raise exception 'FORJA_REPORTE_REPETIDO'; end if;
+  if exists(select 1 from public.reportes_precios r where r.autor = uid
+            and (r.precio_ref = p or (x.grupo is not null and r.copia->>'grupo' = x.grupo::text))) then raise exception 'FORJA_REPORTE_REPETIDO'; end if;
+  if x.grupo is not null then
+    select jsonb_agg(jsonb_build_object('cantidad', c.cantidad, 'precio', c.precio) order by c.cantidad) into tramos
+      from public.precios_comunidad c where c.grupo = x.grupo;
+  end if;
   insert into public.reportes_precios(precio_ref, copia, precio_autor, autor, motivo, detalle)
-  values (p, to_jsonb(x) - 'autor', x.autor, uid, reportar_precio.motivo, nullif(btrim(coalesce(reportar_precio.detalle, '')), ''));
+  values (p, (to_jsonb(x) - 'autor') || case when tramos is null then '{}'::jsonb else jsonb_build_object('tramos', tramos) end,
+          x.autor, uid, reportar_precio.motivo, nullif(btrim(coalesce(reportar_precio.detalle, '')), ''));
 end $function$
 ;
 
@@ -2693,6 +2712,7 @@ alter table public.precios_comunidad add constraint precios_comunidad_moneda_che
 alter table public.precios_comunidad add constraint precios_comunidad_origen_check CHECK ((origen = ANY (ARRAY['chile'::text, 'extranjero'::text])));
 alter table public.precios_comunidad add constraint precios_comunidad_plazo_check CHECK ((char_length(plazo) <= 80));
 alter table public.precios_comunidad add constraint precios_comunidad_precio_check CHECK (((precio >= (0)::numeric) AND (precio <= (1000000000)::numeric)));
+alter table public.precios_comunidad add constraint precios_comunidad_opciones_check CHECK ((char_length(opciones) <= 300));
 alter table public.precios_comunidad add constraint precios_comunidad_proveedor_check CHECK (((char_length(proveedor) >= 1) AND (char_length(proveedor) <= 120)));
 alter table public.proyecto_accesos add constraint proyecto_accesos_pkey PRIMARY KEY (proyecto_id, user_id);
 alter table public.proyecto_accesos add constraint proyecto_accesos_rol_check CHECK ((rol = ANY (ARRAY['editor'::text, 'lector'::text])));
@@ -2872,6 +2892,7 @@ CREATE INDEX pizarras_espacio ON public.pizarras USING btree (espacio_id);
 CREATE INDEX pizarras_proyecto ON public.pizarras USING btree (proyecto_id);
 CREATE INDEX precios_comunidad_autor_idx ON public.precios_comunidad USING btree (autor);
 CREATE INDEX precios_comunidad_componente_idx ON public.precios_comunidad USING btree (componente, creado_en DESC);
+CREATE INDEX precios_comunidad_grupo_idx ON public.precios_comunidad USING btree (grupo) WHERE (grupo IS NOT NULL);
 CREATE INDEX proyecto_accesos_invitado_por_idx ON public.proyecto_accesos USING btree (invitado_por);
 CREATE INDEX proyecto_accesos_user_idx ON public.proyecto_accesos USING btree (user_id);
 CREATE INDEX po_espacio_idx ON public.proyecto_oportunidades USING btree (espacio_id);
@@ -3106,6 +3127,9 @@ create policy precios_borrar on public.precios_comunidad as PERMISSIVE for DELET
   using ((autor = ( SELECT auth.uid() AS uid)));
 create policy precios_crear on public.precios_comunidad as PERMISSIVE for INSERT to authenticated
   with check ((autor = ( SELECT auth.uid() AS uid)));
+create policy precios_editar on public.precios_comunidad as PERMISSIVE for UPDATE to authenticated
+  using ((autor = ( SELECT auth.uid() AS uid)))
+  with check ((autor = ( SELECT auth.uid() AS uid)));
 create policy precios_ver on public.precios_comunidad as PERMISSIVE for SELECT to authenticated
   using (true);
 create policy proyecto_accesos_ver on public.proyecto_accesos as PERMISSIVE for SELECT to public
@@ -3196,7 +3220,7 @@ grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on public.ro
 grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on public.secciones to authenticated;
 grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on public.sugerencias to anon;
 grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on public.sugerencias to authenticated;
-grant DELETE, INSERT, REFERENCES, TRIGGER, TRUNCATE, UPDATE on public.precios_comunidad to authenticated;
+grant DELETE, INSERT, REFERENCES, TRIGGER, TRUNCATE on public.precios_comunidad to authenticated;
 grant DELETE, SELECT on public.vitrinas to authenticated;
 grant REFERENCES, SELECT, TRIGGER on public.meta to anon;
 grant REFERENCES, SELECT, TRIGGER on public.meta to authenticated;
@@ -3212,7 +3236,9 @@ grant SELECT (acento, busqueda, datos, en_explorar, estado, firma, formato, lema
 grant SELECT (acento, busqueda, datos, en_explorar, estado, firma, formato, lema, portada, publicado_en, slug, tipo, titulo) on public.vitrinas_publicadas to authenticated;
 grant SELECT (aceptado_en, documento, version) on public.aceptaciones to authenticated;
 grant SELECT (actualizado_en, boletin, boletin_desde, funciones, vitrinas) on public.correo_prefs to authenticated;
-grant SELECT (cantidad, componente, creado_en, enlace, envio, especificaciones, id, incluye_iva, moneda, origen, plazo, precio, proveedor) on public.precios_comunidad to authenticated;
+grant SELECT (cantidad, componente, creado_en, enlace, envio, envio_pendiente, especificaciones, grupo, id, incluye_iva, moneda, opciones, origen, plazo, precio, proveedor) on public.precios_comunidad to authenticated;
+grant INSERT (envio_pendiente, grupo, opciones) on public.precios_comunidad to authenticated;
+grant UPDATE (enlace, envio_pendiente, especificaciones, opciones, plazo, proveedor) on public.precios_comunidad to authenticated;
 grant SELECT (creado_en, detalle, estado, id, motivo, revisado_en, vitrina_id) on public.reportes to authenticated;
 grant SELECT (copia, creado_en, detalle, estado, id, motivo, precio_ref, revisado_en) on public.reportes_precios to authenticated;
 grant SELECT (creado_en, enlace, id, leido, texto, tipo, titulo) on public.avisos to authenticated;
@@ -3286,6 +3312,7 @@ revoke all on function privado.herramientas_equipo() from public, anon, authenti
 grant execute on function privado.herramientas_equipo() to authenticated;
 revoke all on function privado.plantilla_ok(pl text, tipo text) from public, anon, authenticated, service_role;
 revoke all on function privado.mod_precios() from public, anon, authenticated, service_role;
+revoke all on function privado.precio_existe(p uuid, g text) from public, anon, authenticated, service_role;
 revoke all on function privado.puede_reportar(uid uuid) from public, anon, authenticated, service_role;
 revoke all on function privado.t_cot_aparte() from public, anon, authenticated, service_role;
 revoke all on function privado.t_colecciones() from public, anon, authenticated, service_role;

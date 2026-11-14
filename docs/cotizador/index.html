@@ -53,6 +53,17 @@ tfoot td{font-weight:700;background:var(--field)}
 details{border-top:1px solid var(--line);padding-top:10px}
 details summary{cursor:pointer;color:var(--accent);font-size:14px}
 .addq{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+.tramos{border:1px solid var(--line);border-radius:10px;padding:8px 12px 10px;margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.tramos legend{font-size:13px;color:var(--muted);padding:0 4px}
+.tr-cab,.tr-fila{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) 32px;gap:8px;align-items:center}
+.tr-cab{font-size:13px;color:var(--muted)}
+.tr-cab label{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tr-cab select{font:inherit;font-size:14px;min-height:36px;padding:0 6px}
+.tr-fila input{min-width:0}
+.tramos>.link{align-self:flex-start}
+td .opc{display:block;width:100%;min-width:150px;margin-top:4px;font:inherit;font-size:12.5px;color:var(--fg);background:transparent;border:1px dashed var(--line);border-radius:6px;padding:4px 6px}
+td .opc:not(:placeholder-shown){border-style:solid;background:var(--suave)}
+td .opc:focus{background:var(--card)}
 .empty{border:1px dashed var(--line);border-radius:10px;padding:14px;color:var(--muted);font-size:14px}
 .pill{display:inline-block;font-size:12px;border-radius:999px;padding:1px 8px;background:var(--accent-soft);color:var(--accent)}
 .pill.warn{background:var(--warn-soft);color:var(--warn)}
@@ -272,7 +283,7 @@ details summary{cursor:pointer;color:var(--accent);font-size:14px}
 <script type="module">
 import { sb, espacio, accesoProyecto, conSesion, navApp, debounce, plan, editable, limite, LIMITES, tope, NOMBRE_PLAN } from "../js/forja.js";
 import { TIPOS as PIEZAS } from "../js/piezas.js";
-import { CAMPOS_PRECIO, reportarPrecio, misReportados, estilosPrecios } from "../js/precios.js";
+import { CAMPOS_PRECIO, reportarPrecio, misReportados, estilosPrecios, agrupar, escalera, limpiarEnlace } from "../js/precios.js";
 estilosPrecios();
 navApp("cotizaciones");
 (function(){
@@ -409,6 +420,20 @@ navApp("cotizaciones");
     L.push("","Quantities (number of units): "+qs,"Shipping to: Santiago, Chile","","Please include unit price for each quantity, shipping cost to Chile, production time and payment terms.","","Thank you!");
     return L.join("\n");
   }
+  // Tramos: un proveedor puede dar precios distintos según cuántas pidas (6+, 16+, 50+…). Cada tramo se guarda como un precio
+  // y los del mismo pedido comparten «grupo», así se comparten juntos y la comunidad los ve como uno solo.
+  var TRAMOS_N={};
+  function tramosHTML(cid){
+    var n=TRAMOS_N[cid]||1,filas="";
+    for(var i=0;i<n;i++)filas+='<div class="tr-fila"><input name="t-cant" id="q-'+cid+'-tc'+i+'" type="number" min="1" step="1" inputmode="numeric" aria-label="Cantidad del tramo '+(i+1)+'" placeholder="Ej.: '+[50,100,300,500,1000,2000][i%6]+'"'+(i?'':' required')+'>'+
+      '<input name="t-precio" id="q-'+cid+'-tp'+i+'" type="number" min="0" step="0.0001" inputmode="decimal" aria-label="Precio del tramo '+(i+1)+'"'+(i?'':' required')+'>'+
+      (i?'<button type="button" class="link danger" data-tramo-menos="'+cid+'" data-i="'+i+'" aria-label="Quitar tramo">×</button>':'<span></span>')+'</div>';
+    return '<fieldset class="tramos" style="grid-column:1/-1"><legend>Cantidad y precio</legend>'+
+      '<div class="tr-cab"><span>Unidades</span><label>Precio <select name="modo" id="q-'+cid+'-modo"><option value="total">del pedido completo</option><option value="pieza">por pieza</option></select></label><span></span></div>'+filas+
+      '<button type="button" class="link" data-tramo-mas="'+cid+'">+ Otro tramo de cantidad</button> <span class="hint">Si el proveedor tiene precios por cantidad (6+, 16+, 50+…), anótalos todos de una vez.</span></fieldset>';
+  }
+  function delGrupo(q){return q.grupo?S.cotizaciones.filter(function(x){return x.grupo===q.grupo;}):[q];}
+  function nuevoGrupo(){return (crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,function(c){return (c^Math.random()*16>>c/4).toString(16);}));}
   function renderComps(){
     var box=$("comps"),keep={},vals={};
     box.querySelectorAll("details[data-k]").forEach(function(d){keep[d.dataset.k]=d.open;});
@@ -420,12 +445,13 @@ navApp("cotizaciones");
         '<label class="f" style="grid-column:1/-1">Notas<textarea data-c="'+c.id+'" data-spec="notas" id="s-'+c.id+'-notas" placeholder="Detalles para el proveedor">'+esc((c.specs||{}).notas)+'</textarea></label>';
       var tabla=qs.length?'<div class="tablewrap"><table><thead><tr><th>Proveedor</th><th class="num">Cantidad</th><th class="num">Precio + envío</th><th class="num">Total en Chile</th><th class="num">Por unidad</th><th>Plazo</th><th></th></tr></thead><tbody>'+
         qs.map(function(q){var L=landed(q),u=L.total!=null&&num(q.cantidad)?L.total/num(q.cantidad):null;
-          return '<tr><td>'+(q.enlace?'<a href="'+esc(q.enlace)+'" target="_blank" rel="noopener">'+esc(q.proveedor||"Sin nombre")+'</a>':esc(q.proveedor||"Sin nombre"))+'<span class="sub">'+(q.origen==="extranjero"?"Extranjero":"Chile")+(q.fecha?" · "+esc(q.fecha):"")+(q.notas?" · "+esc(q.notas):"")+'</span>'+(q.contacto?'<span class="sub">Contacto: '+esc(q.contacto)+'</span>':'')+'</td>'+
+          return '<tr><td>'+(q.enlace?'<a href="'+esc(q.enlace)+'" target="_blank" rel="noopener">'+esc(q.proveedor||"Sin nombre")+'</a>':esc(q.proveedor||"Sin nombre"))+'<span class="sub">'+(q.origen==="extranjero"?"Extranjero":"Chile")+(q.fecha?" · "+esc(q.fecha):"")+(q.notas?" · "+esc(q.notas):"")+'</span>'+(q.contacto?'<span class="sub">Contacto: '+esc(q.contacto)+'</span>':'')+
+          '<input class="opc" data-opc="'+q.id+'" value="'+esc(q.opciones||"")+'" maxlength="300" placeholder="+ Opciones de este precio" aria-label="Opciones de este precio (tamaño, caras, técnica…)"></td>'+
           '<td class="num">'+num(q.cantidad).toLocaleString("es-CL")+'</td>'+
-          '<td class="num">'+(q.moneda==="USD"?"USD "+(num(q.precio)+num(q.envio)).toLocaleString("es-CL",{maximumFractionDigits:2}):clp(num(q.precio)+num(q.envio)))+'</td>'+
+          '<td class="num">'+(q.moneda==="USD"?"USD "+(num(q.precio)+num(q.envio)).toLocaleString("es-CL",{maximumFractionDigits:2}):clp(num(q.precio)+num(q.envio)))+(q.envioPend?'<span class="sub">+ envío por confirmar</span>':'')+'</td>'+
           '<td class="num">'+clp(L.total)+'<span class="sub">'+esc(L.detalle)+'</span></td>'+
           '<td class="num">'+clp2(u)+'</td><td>'+esc(q.plazo||"")+'</td>'+
-          '<td style="white-space:nowrap">'+(q.compartido?'<span class="compartido" title="Visible para otros, sin tu nombre ni tu proyecto">Compartido ✓</span> <button type="button" class="link" data-noshare="'+q.id+'">Dejar de compartir</button>':'<button type="button" class="link" data-share="'+q.id+'" title="Otras personas verán proveedor, cantidad y precio, sin tu nombre ni tu proyecto">Compartir</button>')+' <button type="button" class="link danger" data-delq="'+q.id+'" aria-label="Eliminar precio">Eliminar</button></td></tr>';}).join("")+'</tbody></table></div>':
+          '<td style="white-space:nowrap">'+(q.compartido?'<span class="compartido" title="Visible para otros, sin tu nombre ni tu proyecto">Compartido ✓</span> <button type="button" class="link" data-noshare="'+q.id+'">Dejar de compartir'+(delGrupo(q).length>1?' los '+delGrupo(q).length+' tramos':'')+'</button>':'<button type="button" class="link" data-share="'+q.id+'" title="Otras personas verán proveedor, opciones, cantidad y precio, sin tu nombre ni tu proyecto">Compartir'+(delGrupo(q).length>1?' los '+delGrupo(q).length+' tramos':'')+'</button>')+' <button type="button" class="link danger" data-delq="'+q.id+'" aria-label="Eliminar precio">Eliminar</button></td></tr>';}).join("")+'</tbody></table></div>':
         '<div class="empty">Aún sin precios de proveedores para esta pieza.</div>';
       var sug=(t.s||[]).map(function(s){return '<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[0]+'</a>';}).join("");
       return '<article class="panel comp" data-comp="'+c.id+'">'+
@@ -437,15 +463,16 @@ navApp("cotizaciones");
           '<label class="f">Proveedor<input name="proveedor" id="q-'+c.id+'-prov" required list="provs"></label>'+
           '<label class="f">Origen<select name="origen" id="q-'+c.id+'-orig"><option value="extranjero">Extranjero</option><option value="chile">Chile</option></select></label>'+
           '<label class="f">Moneda<select name="moneda" id="q-'+c.id+'-mon"><option value="USD">USD</option><option value="CLP">CLP</option></select></label>'+
-          '<label class="f">Cantidad (unidades)<input name="cantidad" id="q-'+c.id+'-cant" type="number" min="1" step="1" required inputmode="numeric"></label>'+
-          '<label class="f">Precio total<input name="precio" id="q-'+c.id+'-precio" type="number" min="0" step="0.01" required inputmode="decimal"></label>'+
+          '<label class="f" style="grid-column:1/-1">Opciones de este precio<input name="opciones" id="q-'+c.id+'-opc" maxlength="300" placeholder="Ej.: 3″ (76,2 mm), doble cara con el mismo diseño, sin técnica adicional"><span class="hint">Lo que elegiste en la página o lo que te cotizaron. Si cambias una opción y cambia el precio, guárdalo como otro precio.</span></label>'+
+          tramosHTML(c.id)+
           '<label class="f">Envío a Chile<input name="envio" id="q-'+c.id+'-envio" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label>'+
+          '<label class="check" style="align-self:end"><input type="checkbox" name="envioPend" id="q-'+c.id+'-envpend"> Aún no sé el envío</label>'+
           '<label class="f">Plazo<input name="plazo" id="q-'+c.id+'-plazo" placeholder="Ej.: 4 semanas"></label>'+
           '<label class="f">Enlace<input name="enlace" id="q-'+c.id+'-link" type="url" placeholder="https://"></label>'+
           '<label class="f" title="Solo lo ves tú (y tu equipo): nunca se comparte">Contacto<input name="contacto" id="q-'+c.id+'-contacto" maxlength="120" placeholder="Solo para ti: correo, WhatsApp…"></label>'+
           '<label class="f" style="grid-column:1/-1">Notas<input name="notas" id="q-'+c.id+'-notas" placeholder="Ej.: precio de calculadora en línea, incluye muestra"></label>'+
           '<label class="check" style="grid-column:1/-1"><input type="checkbox" name="incluyeIva" id="q-'+c.id+'-iva"> El precio ya incluye IVA (solo para proveedores en Chile)</label>'+
-          '<label class="check" style="grid-column:1/-1"><input type="checkbox" name="compartir" id="q-'+c.id+'-share"><span>Compartir este precio con la comunidad, para que otros sepan dónde cotizar <span class="hint">(se muestra el proveedor, el enlace, la cantidad, el precio y las especificaciones; nunca tu nombre, tu proyecto ni el contacto)</span></span></label>'+
+          '<label class="check" style="grid-column:1/-1"><input type="checkbox" name="compartir" id="q-'+c.id+'-share"><span>Compartir este precio con la comunidad, para que otros sepan dónde cotizar <span class="hint">(se muestra el proveedor, el enlace, las opciones, las cantidades, los precios y las especificaciones; nunca tu nombre, tu proyecto ni el contacto)</span></span></label>'+
           '<div class="row" style="grid-column:1/-1"><button type="submit" class="primary">Guardar precio</button></div>'+
         '</form></details>'+
         ''+(sug?'<div class="sugs"><span class="hint">Dónde cotizar:</span>'+sug+'</div>':'')+''+comunidadHTML(c)+
@@ -482,28 +509,39 @@ navApp("cotizaciones");
   document.addEventListener("change",function(e){
     var t=e.target,c;
     if(t.dataset&&t.dataset.c){c=S.componentes.filter(function(x){return x.id===t.dataset.c;})[0];if(!c)return;
-      if(t.dataset.spec){c.specs=c.specs||{};c.specs[t.dataset.spec]=t.value.trim();save();}
+      if(t.dataset.spec){c.specs=c.specs||{};c.specs[t.dataset.spec]=t.value.trim();save();sincronizar(c.id);}
       if(t.dataset.field==="nombre"){c.nombre=t.value.trim()||TIPOS[c.tipo].nombre;save();renderResumen();}
     }
     if(t.name==="origen"){var f=t.form;f.moneda.value=t.value==="chile"?"CLP":"USD";}
+    if(t.dataset&&t.dataset.opc){var qo=S.cotizaciones.filter(function(x){return x.id===t.dataset.opc;})[0];if(!qo)return;
+      var v=t.value.trim().slice(0,300);delGrupo(qo).forEach(function(x){if(v)x.opciones=v;else delete x.opciones;});save();renderComps();sincronizar(qo.compId);toast(delGrupo(qo).length>1?"Opciones guardadas en sus "+delGrupo(qo).length+" tramos":"Opciones guardadas");}
   });
   document.addEventListener("submit",function(e){
     var f=e.target;if(!f.dataset.addq)return;e.preventDefault();
-    var q={id:uid(),compId:f.dataset.addq,proveedor:f.proveedor.value.trim(),origen:f.origen.value,moneda:f.moneda.value,cantidad:num(f.cantidad.value),
-      precio:num(f.precio.value),envio:num(f.envio.value),plazo:f.plazo.value.trim(),enlace:f.enlace.value.trim(),contacto:f.contacto.value.trim(),notas:f.notas.value.trim(),incluyeIva:f.incluyeIva.checked,fecha:new Date().toLocaleDateString("es-CL")};
-    if(!q.cantidad){toast("Indica la cantidad de unidades.");return;}
-    if(q.moneda==="USD"&&!S.dolar)toast("Guardada. Ingresa el dólar para calcular el costo en pesos.");else toast("Precio guardado");
-    var quiere=f.compartir&&f.compartir.checked;
-    S.cotizaciones.push(q);f.reset();save();renderResumen();renderComps();
-    if(quiere)compartir(q);
+    var cs=f.querySelectorAll('[name="t-cant"]'),ps=f.querySelectorAll('[name="t-precio"]'),porPieza=f.modo.value==="pieza",tramos=[],vistos={};
+    for(var i=0;i<cs.length;i++){var ca=Math.round(num(cs[i].value)),pr=ps[i].value.trim();if(ca>0&&pr!==""&&!vistos[ca]){vistos[ca]=1;tramos.push({cantidad:ca,precio:porPieza?Math.round(num(pr)*ca*100)/100:num(pr)});}}
+    if(!tramos.length){toast("Indica al menos una cantidad con su precio.");return;}
+    var enl=f.enlace.value.trim(),limpio=enl?limpiarEnlace(enl):"";
+    var base={compId:f.dataset.addq,proveedor:f.proveedor.value.trim(),opciones:f.opciones.value.trim(),origen:f.origen.value,moneda:f.moneda.value,
+      envio:num(f.envio.value),envioPend:f.envioPend.checked,plazo:f.plazo.value.trim(),enlace:limpio||enl,contacto:f.contacto.value.trim(),notas:f.notas.value.trim(),incluyeIva:f.incluyeIva.checked,fecha:new Date().toLocaleDateString("es-CL")};
+    if(!base.opciones)delete base.opciones;if(!base.envioPend)delete base.envioPend;
+    var grupo=tramos.length>1?nuevoGrupo():null,nuevos=tramos.map(function(t){var q=Object.assign({id:uid()},base,t);if(grupo)q.grupo=grupo;return q;});
+    if(base.moneda==="USD"&&!S.dolar)toast("Guardado. Ingresa el dólar para calcular el costo en pesos.");else toast(nuevos.length>1?nuevos.length+" tramos guardados":"Precio guardado");
+    var quiere=f.compartir&&f.compartir.checked,cid=f.dataset.addq;
+    S.cotizaciones=S.cotizaciones.concat(nuevos);f.reset();TRAMOS_N[cid]=1;save();renderResumen();renderComps();
+    if(quiere)compartir(nuevos[0]);
   });
   document.addEventListener("click",function(e){
     var t=e.target.closest("button");if(!t)return;
+    if(t.dataset.tramoMas){var cm=t.dataset.tramoMas;TRAMOS_N[cm]=Math.min(12,(TRAMOS_N[cm]||1)+1);renderComps();var nx=$("q-"+cm+"-tc"+(TRAMOS_N[cm]-1));if(nx)nx.focus();return;}
+    if(t.dataset.tramoMenos){var cq=t.dataset.tramoMenos,ix=+t.dataset.i,n=TRAMOS_N[cq]||1;
+      for(var j=ix;j<n-1;j++){["tc","tp"].forEach(function(k){var a=$("q-"+cq+"-"+k+j),b=$("q-"+cq+"-"+k+(j+1));if(a&&b)a.value=b.value;});}
+      var ua=$("q-"+cq+"-tc"+(n-1)),ub=$("q-"+cq+"-tp"+(n-1));if(ua)ua.value="";if(ub)ub.value="";TRAMOS_N[cq]=Math.max(1,n-1);renderComps();return;}
     if(t.dataset.share){compartir(S.cotizaciones.filter(function(q){return q.id===t.dataset.share;})[0]);return;}
     if(t.dataset.noshare){dejarDeCompartir(S.cotizaciones.filter(function(q){return q.id===t.dataset.noshare;})[0]);return;}
     if(t.dataset.usar){usarReferencia(t.dataset.usar,t.dataset.comp);return;}
     if(t.dataset.reportar){reportarPrecio(t.dataset.reportar,t.dataset.prov).then(function(ok){if(ok){YA_REP.add(t.dataset.reportar);renderComps();}});return;}
-    if(t.dataset.delq){var qd=S.cotizaciones.filter(function(q){return q.id===t.dataset.delq;})[0];if(qd&&qd.compartido)dejarDeCompartir(qd,true);S.cotizaciones=S.cotizaciones.filter(function(q){return q.id!==t.dataset.delq;});save();renderResumen();renderComps();toast("Precio eliminado");}
+    if(t.dataset.delq){var qd=S.cotizaciones.filter(function(q){return q.id===t.dataset.delq;})[0];if(qd&&qd.compartido)dejarDeCompartir(qd,true,true);S.cotizaciones=S.cotizaciones.filter(function(q){return q.id!==t.dataset.delq;});save();renderResumen();renderComps();toast("Precio eliminado");}
     if(t.dataset.delc){
       if(t.dataset.armed!=="1"){t.dataset.armed="1";t.textContent="¿Quitar con sus cotizaciones?";setTimeout(function(){if(t.isConnected){t.dataset.armed="";t.textContent="Quitar";}},4000);return;}
       S.componentes=S.componentes.filter(function(c){return c.id!==t.dataset.delc;});S.cotizaciones=S.cotizaciones.filter(function(q){return q.compId!==t.dataset.delc;});save();renderAll();
@@ -547,38 +585,58 @@ navApp("cotizaciones");
   }
   function comunidadHTML(c){
     var mias={};S.cotizaciones.forEach(function(q){if(q.compartido)mias[q.compartido]=1;});
-    var refs=COMU.filter(function(r){return r.componente===c.tipo&&!mias[r.id];}).slice(0,6);
+    var refs=agrupar(COMU.filter(function(r){return r.componente===c.tipo;})).filter(function(g){return !g.ids.some(function(i){return mias[i];});}).slice(0,6);
     if(!refs.length)return "";
     return '<div class="comu"><span class="hint"><b style="color:var(--fg)">Precios que otras personas cotizaron</b> para '+esc((TIPOS[c.tipo]||TIPOS.otro).nombre.toLowerCase())+'. Son referencias: pide siempre tu propia cotización.</span><div class="lista">'+refs.map(function(r){
       var L=landed({moneda:r.moneda,precio:r.precio,envio:r.envio,incluyeIva:r.incluye_iva}),u=L.total!=null?L.total/num(r.cantidad):null;
       var bruto=(r.moneda==="USD"?"USD "+num(r.precio).toLocaleString("es-CL",{maximumFractionDigits:2}):clp(num(r.precio)));
       var nom=r.enlace&&/^https:\/\//.test(r.enlace)?'<a href="'+esc(r.enlace)+'" target="_blank" rel="noopener noreferrer nofollow">'+esc(r.proveedor)+'</a>':esc(r.proveedor);
-      return '<div class="ref-p"><b>'+nom+'</b><span class="cif">'+num(r.cantidad).toLocaleString("es-CL")+' u. · '+bruto+(u!=null?' · ≈ '+clp2(u)+' c/u en Chile':'')+'</span>'+
+      var env=r.envio_pendiente?' · envío por confirmar':'';
+      return '<div class="ref-p"><b>'+nom+'</b>'+(r.opciones?'<span class="pr-opc">'+esc(r.opciones)+'</span>':'')+
+        (r.tramos.length>1?'<span class="cif">Desde '+num(r.cantidad).toLocaleString("es-CL")+' u. · ≈ '+clp2(u)+' c/u en Chile'+env+'</span>'+escalera(r)
+          :'<span class="cif">'+num(r.cantidad).toLocaleString("es-CL")+' u. · '+bruto+(u!=null?' · ≈ '+clp2(u)+' c/u en Chile':'')+env+'</span>')+
         (r.especificaciones?'<span class="sp">'+esc(r.especificaciones)+'</span>':'')+
-        '<span class="pie"><span>'+(r.origen==="chile"?"Chile":"Extranjero")+(r.plazo?' · '+esc(r.plazo):'')+' · '+new Date(r.creado_en).toLocaleDateString("es-CL",{month:"short",year:"numeric"})+'</span><span>'+(YA_REP.has(r.id)?'<span class="pr-mio pr-ya">Reportado</span>':'<button type="button" class="link" data-reportar="'+r.id+'" data-prov="'+esc(r.proveedor)+'">Reportar</button> ')+'<button type="button" class="link" data-usar="'+r.id+'" data-comp="'+c.id+'">Usar proveedor</button></span></span></div>';
+        '<span class="pie"><span>'+(r.origen==="chile"?"Chile":"Extranjero")+(r.plazo?' · '+esc(r.plazo):'')+' · '+new Date(r.creado_en).toLocaleDateString("es-CL",{month:"short",year:"numeric"})+'</span><span>'+(r.ids.some(function(i){return YA_REP.has(i);})?'<span class="pr-mio pr-ya">Reportado</span>':'<button type="button" class="link" data-reportar="'+r.id+'" data-prov="'+esc(r.proveedor)+'">Reportar</button> ')+'<button type="button" class="link" data-usar="'+r.id+'" data-comp="'+c.id+'">Usar proveedor</button></span></span></div>';
     }).join("")+'</div></div>';
   }
   function usarReferencia(id,compId){
     var r=COMU.filter(function(x){return x.id===id;})[0];if(!r)return;
     var d=document.querySelector('details[data-k="add-'+compId+'"]');if(d)d.open=true;
     var set=function(k,v){var el=$("q-"+compId+"-"+k);if(el)el.value=v;};
-    set("prov",r.proveedor);set("orig",r.origen);set("mon",r.moneda);if(r.enlace)set("link",r.enlace);
+    set("prov",r.proveedor);set("orig",r.origen);set("mon",r.moneda);if(r.enlace)set("link",r.enlace);if(r.opciones)set("opc",r.opciones);
     var cant=$("q-"+compId+"-cant");if(cant){cant.focus();cant.scrollIntoView({block:"center",behavior:"smooth"});}
     toast("Proveedor listo. Anota la cantidad y el precio que te den a ti.");
   }
   function specsTexto(c){
     return CAMPOS.map(function(f){var v=(c.specs||{})[f[0]];return v?f[1]+": "+v:"";}).filter(Boolean).join(" · ").slice(0,600)||null;
   }
+  // Lo que se muestra a la comunidad de un precio (sin cantidad ni monto, que no cambian después de compartir).
+  function descripcion(q,c){
+    return {proveedor:(q.proveedor||"Sin nombre").slice(0,120),enlace:limpiarEnlace(q.enlace)||null,especificaciones:specsTexto(c),
+      opciones:(q.opciones||"").slice(0,300)||null,plazo:(q.plazo||"").slice(0,80)||null,envio_pendiente:!!q.envioPend};
+  }
+  // Comparte el precio o, si es parte de un grupo de tramos, todos los tramos juntos.
   function compartir(q){
     if(!q)return;
     var c=S.componentes.filter(function(x){return x.id===q.compId;})[0];if(!c)return;
-    var enl=/^https:\/\//.test(q.enlace||"")?q.enlace.slice(0,500):null;
-    var fila={componente:TIPOS[c.tipo]&&!TIPOS[c.tipo].oculto?c.tipo:"otro",proveedor:(q.proveedor||"Sin nombre").slice(0,120),enlace:enl,origen:q.origen==="chile"?"chile":"extranjero",
-      moneda:q.moneda==="CLP"?"CLP":"USD",cantidad:num(q.cantidad),precio:num(q.precio),envio:num(q.envio),incluye_iva:!!q.incluyeIva,especificaciones:specsTexto(c),plazo:(q.plazo||"").slice(0,80)||null};
-    sb.from("precios_comunidad").insert(fila).select("id").single().then(function(r){
-      if(r.error){toast("No se pudo compartir.");return;}
-      q.compartido=r.data.id;save();renderComps();toast("Compartido. ¡Gracias por aportar!");
+    var qs=delGrupo(q).filter(function(x){return !x.compartido;});if(!qs.length)return;
+    var filas=qs.map(function(x){return Object.assign({componente:TIPOS[c.tipo]&&!TIPOS[c.tipo].oculto?c.tipo:"otro",origen:x.origen==="chile"?"chile":"extranjero",
+      moneda:x.moneda==="CLP"?"CLP":"USD",cantidad:num(x.cantidad),precio:num(x.precio),envio:num(x.envio),incluye_iva:!!x.incluyeIva,grupo:x.grupo||null},descripcion(x,c));});
+    sb.from("precios_comunidad").insert(filas).select("id,cantidad").then(function(r){
+      if(r.error||!r.data){toast("No se pudo compartir.");return;}
+      qs.forEach(function(x,i){if(r.data[i])x.compartido=r.data[i].id;});save();renderComps();toast("Compartido. ¡Gracias por aportar!");
     });
+  }
+  // Si cambian las especificaciones u opciones, lo compartido se corrige (la cantidad y el precio no se tocan).
+  var SINC={};
+  function sincronizar(compId){
+    clearTimeout(SINC[compId]);
+    SINC[compId]=setTimeout(function(){
+      var c=S.componentes.filter(function(x){return x.id===compId;})[0];if(!c)return;
+      S.cotizaciones.filter(function(q){return q.compId===compId&&q.compartido;}).forEach(function(q){
+        sb.from("precios_comunidad").update(descripcion(q,c)).eq("id",q.compartido).then(function(){});
+      });
+    },1200);
   }
   // Un precio compartido que ya no está (lo quitó moderación) deja de marcarse como compartido.
   function revisarCompartidos(){
@@ -589,12 +647,12 @@ navApp("cotizaciones");
       if(cambio){renderComps();if(!$("ro-aviso"))save();}
     });
   }
-  function dejarDeCompartir(q,silencio){
+  function dejarDeCompartir(q,silencio,solo){
     if(!q||!q.compartido)return;
-    var id=q.compartido;
-    sb.from("precios_comunidad").delete().eq("id",id).then(function(r){
+    var qs=(solo?[q]:delGrupo(q)).filter(function(x){return x.compartido;}),ids=qs.map(function(x){return x.compartido;});
+    sb.from("precios_comunidad").delete().in("id",ids).then(function(r){
       if(r.error){if(!silencio)toast("No se pudo quitar.");return;}
-      delete q.compartido;COMU=COMU.filter(function(x){return x.id!==id;});save();renderComps();if(!silencio)toast("Ya no se comparte");
+      qs.forEach(function(x){delete x.compartido;});COMU=COMU.filter(function(x){return ids.indexOf(x.id)<0;});save();renderComps();if(!silencio)toast("Ya no se comparte");
     });
   }
 

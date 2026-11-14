@@ -252,7 +252,10 @@ function casoPrecio(c, i) {
   const x = c.copia || {};
   return '<article class="caso" data-precio="' + esc(c.precio) + '"><div class="caso-cab"><div><span class="ficha">Precio N.º ' + num(i + 1) + " · " + esc(nombrePieza(x.componente)) + " · " + c.reportes.length + (c.reportes.length === 1 ? " reporte" : " reportes") + "</span><h2>" + esc(x.proveedor || "Sin nombre") + "</h2></div>" +
     (c.existe ? '<span class="timbre tinta">Se muestra</span>' : '<span class="timbre">Ya no está</span>') + "</div>" +
-    '<div class="carta">' + esc(Number(x.cantidad || 0).toLocaleString("es-CL")) + " u. por " + esc(dinero(x.moneda, x.precio)) + " (" + esc(porUnidad(x)) + " c/u)" + (Number(x.envio) ? " + envío " + esc(dinero(x.moneda, x.envio)) : "") +
+    '<div class="carta">' + (x.opciones ? "Opciones: " + esc(x.opciones) + "\n" : "") +
+      ((x.tramos || []).length > 1 ? "Tramos: " + x.tramos.map((t) => esc(Number(t.cantidad).toLocaleString("es-CL")) + "+ a " + esc(porUnidad({ moneda: x.moneda, cantidad: t.cantidad, precio: t.precio }))).join(" · ") + " c/u"
+        : esc(Number(x.cantidad || 0).toLocaleString("es-CL")) + " u. por " + esc(dinero(x.moneda, x.precio)) + " (" + esc(porUnidad(x)) + " c/u)") +
+      (x.envio_pendiente ? " + envío por confirmar" : Number(x.envio) ? " + envío " + esc(dinero(x.moneda, x.envio)) : "") +
       " · " + (x.origen === "chile" ? "Chile" : "Extranjero") + (x.plazo ? " · " + esc(x.plazo) : "") + (x.especificaciones ? "\n" + esc(x.especificaciones) : "") + (x.enlace ? "\nEnlace (sin abrir): " + esc(x.enlace) : "") + "</div>" +
     "<small style=\"color:var(--muted)\">Quien lo compartió: cuenta de " + (c.autor_dias ?? "?") + " días, que tiene " + (c.autor_comparte || 0) + " precios compartidos.</small>" +
     papeletas(c.reportes, MOTIVO_PRECIO) +

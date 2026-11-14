@@ -85,7 +85,7 @@ import { sb, $, esc, toast, hace, navApp, espacio, conSesion, limite, activarAvi
 import { TIPOS, tc } from "../js/guias.js";
 import { tarjetaFuncion, pendientes } from "../js/planes.js";
 import { TIPOS as PIEZAS, nombrePieza } from "../js/piezas.js";
-import { CAMPOS_PRECIO, talon, reportarPrecio, estilosPrecios, misReportados } from "../js/precios.js";
+import { CAMPOS_PRECIO, talon, reportarPrecio, estilosPrecios, misReportados, agrupar } from "../js/precios.js";
 navApp("cotizaciones");
 estilosPrecios();
 
@@ -171,7 +171,8 @@ async function comunidad(MIOS) {
   const box = $("comu");
   const [{ data, error }, YA] = await Promise.all([sb.from("precios_comunidad").select(CAMPOS_PRECIO).order("creado_en", { ascending: false }).limit(400), misReportados()]);
   if (error) { box.innerHTML = '<div class="vacio">No se pudieron cargar los precios. Revisa tu conexión.</div>'; return; }
-  let R = data || [], pieza = "", texto = "";
+  // Los precios compartidos juntos (tramos por cantidad) se ven como uno solo.
+  let R = agrupar(data), pieza = "", texto = "";
   if (!R.length) { box.innerHTML = '<div class="vacio">Todavía nadie comparte precios. Cuando guardes el precio de un proveedor en una cotización, marca «Compartir» para que otras personas sepan dónde cotizar.</div>'; return; }
   const cuenta = {};
   R.forEach((r) => { cuenta[r.componente] = (cuenta[r.componente] || 0) + 1; });
@@ -179,12 +180,12 @@ async function comunidad(MIOS) {
   const plano = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   box.innerHTML = '<div class="estante" role="group" aria-label="Elegir pieza"><button type="button" class="pz" data-pz="" aria-pressed="true">Todas <span>' + R.length + "</span></button>" +
     orden.map((k) => '<button type="button" class="pz" data-pz="' + esc(k) + '" aria-pressed="false">' + esc(nombrePieza(k)) + " <span>" + cuenta[k] + "</span></button>").join("") + "</div>" +
-    '<div class="buscar"><input type="search" id="comu-q" placeholder="Buscar proveedor o detalle" aria-label="Buscar proveedor o detalle"><small id="comu-n" aria-live="polite"></small></div><div class="talones" id="talones"></div>';
+    '<div class="buscar"><input type="search" id="comu-q" placeholder="Buscar proveedor, opción o detalle" aria-label="Buscar proveedor, opción o detalle"><small id="comu-n" aria-live="polite"></small></div><div class="talones" id="talones"></div>';
   const pintar = () => {
     const q = plano(texto);
-    const vis = R.filter((r) => (!pieza || r.componente === pieza) && (!q || plano(r.proveedor + " " + (r.especificaciones || "")).includes(q)));
+    const vis = R.filter((r) => (!pieza || r.componente === pieza) && (!q || plano(r.proveedor + " " + (r.opciones || "") + " " + (r.especificaciones || "")).includes(q)));
     $("comu-n").textContent = vis.length === R.length ? "" : vis.length ? vis.length + " de " + R.length : "";
-    $("talones").innerHTML = vis.length ? vis.slice(0, 120).map((r) => talon(r, { mio: MIOS.has(r.id), pieza: !pieza, reportado: YA.has(r.id) })).join("")
+    $("talones").innerHTML = vis.length ? vis.slice(0, 120).map((r) => talon(r, { mio: r.ids.some((i) => MIOS.has(i)), pieza: !pieza, reportado: r.ids.some((i) => YA.has(i)) })).join("")
       : '<div class="vacio" style="grid-column:1/-1">Nada con «' + esc(texto) + '». Prueba con otra palabra o elige otra pieza.</div>';
   };
   box.querySelectorAll("[data-pz]").forEach((b) => b.onclick = () => {
