@@ -56,7 +56,8 @@ details{border-top:1px solid var(--line);padding-top:10px}
 details summary{cursor:pointer;color:var(--accent);font-size:14px}
 .addq{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
 .var-h th{text-align:left;font-family:var(--f-display);font-size:14px;padding-top:12px;background:var(--suave)}
-.pags{margin:4px 0 0}
+.pags{margin:6px 0 2px;max-width:420px}
+.pags-ctl input{max-width:140px}
 .addq.editando{border:1.5px solid var(--fg);border-radius:12px;padding:12px}
 td .viejo{display:block;margin-top:4px;font-size:12.5px;color:var(--warn,#9a6200);font-weight:700}
 td .viejo .link{font-weight:400}
@@ -477,6 +478,14 @@ navApp("cotizaciones");
   function familiaDe(q){var t=String(HOJA&&HOJA.id)+"|"+q.compId+"|"+(q.proveedor||"").trim().toLowerCase(),h1=0x811c9dc5,h2=0x1000193;
     for(var i=0;i<t.length;i++){h1=Math.imul(h1^t.charCodeAt(i),16777619)>>>0;h2=Math.imul(h2^t.charCodeAt(i),2246822519)>>>0;}
     return h1.toString(36)+h2.toString(36);}
+  // Control visible de las páginas de la pieza (se guarda en Especificaciones → «Cantidad por unidad»).
+  function paginasCtl(c,dup){
+    var ps=Array.from(new Set(S.cotizaciones.filter(function(q){return q.compId===c.id&&q.paginas;}).map(function(q){return q.paginas;}))).sort(function(a,b){return a-b;});
+    return '<label class="f pags-ctl">Páginas de tu '+(c.tipo==="comic"?"cómic":"libro")+(dup?' <span class="hint">('+esc(c.nombre)+')</span>':'')+
+      '<input type="number" min="1" max="5000" step="1" inputmode="numeric" data-pags="'+c.id+'" value="'+(paginasPieza(c)||"")+'" placeholder="Ej.: 150">'+
+      (ps.length?'<span class="hint">Cotizaste '+ps.join(", ")+' páginas. Con otra cantidad, Forja estima entre las más cercanas.</span>':'')+'</label>';
+  }
+  function piezasConPaginas(){return S.componentes.filter(function(c){return conPaginas(c)&&S.cotizaciones.some(function(q){return q.compId===c.id&&q.paginas;});});}
   function delGrupo(q){return q.grupo?S.cotizaciones.filter(function(x){return x.grupo===q.grupo;}):[q];}
   function nuevoGrupo(){return (crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,function(c){return (c^Math.random()*16>>c/4).toString(16);}));}
   function renderComps(){
@@ -504,7 +513,7 @@ navApp("cotizaciones");
       var sug=(t.s||[]).map(function(s){return '<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[0]+'</a>';}).join("");
       return '<article class="panel comp" data-comp="'+c.id+'">'+
         '<div class="comp-head"><input class="name" data-c="'+c.id+'" data-field="nombre" id="n-'+c.id+'" value="'+esc(c.nombre)+'" aria-label="Nombre de la pieza (si compartes un precio, es el nombre que ve la comunidad)" title="Si compartes un precio, la comunidad ve este nombre: ponle lo que es, como «Llavero acrílico transparente»"><div class="row"><span class="pill">'+qs.length+(qs.length===1?' precio':' precios')+'</span><button type="button" class="link danger" data-delc="'+c.id+'">Quitar</button></div></div>'+
-        (conPaginas(c)&&qs.some(function(q){return q.paginas;})?'<p class="hint pags">'+(paginasPieza(c)?'Tu '+(c.tipo==="comic"?"cómic":"libro")+' tiene <b>'+paginasPieza(c)+' páginas</b> (de las especificaciones): el costo usa el precio de esas páginas o lo estima entre las más cercanas.':'<b>¿Cuántas páginas tiene tu '+(c.tipo==="comic"?"cómic":"libro")+'?</b> Anótalo en Especificaciones → «Cantidad por unidad» (ej.: 150 páginas). Mientras tanto, el costo usa el precio con más páginas.')+'</p>':'')+
+        (conPaginas(c)&&qs.some(function(q){return q.paginas;})?'<div class="pags">'+paginasCtl(c)+(paginasPieza(c)?'':'<p class="hint" style="margin:4px 0 0">Mientras no lo anotes, el costo usa el precio con más páginas.</p>')+'</div>':'')+
         (c.nombre===t.nombre?'<p class="hint nombra">Toca el nombre para decir qué es exactamente, como «Llavero acrílico transparente». Si compartes un precio, la comunidad ve ese nombre.</p>':'')+
         '<details data-k="spec-'+c.id+'"><summary>Especificaciones</summary><div class="grid" style="margin-top:10px">'+specs+'</div>'+
         '<div class="row" style="margin-top:10px"><button type="button" data-copy="'+c.id+'">Copiar solicitud de cotización (inglés)</button><span class="hint">Pégala en el formulario o correo del proveedor.</span></div></details>'+
@@ -570,9 +579,17 @@ navApp("cotizaciones");
     if(t.name==="modo"&&t.form&&t.form.dataset.addq){var fm=t.form,cs=fm.querySelectorAll('[name="t-cant"]'),ps=fm.querySelectorAll('[name="t-precio"]');
       for(var k=0;k<cs.length;k++){var ca=num(cs[k].value),pv=ps[k].value.trim();if(!ca||pv==="")continue;
         ps[k].value=t.value==="pieza"?String(Math.round(num(pv)/ca*10000)/10000):String(Math.round(num(pv)*ca*100)/100);}}
+    if(t.dataset&&t.dataset.pags){var cpg=S.componentes.filter(function(x){return x.id===t.dataset.pags;})[0];if(!cpg)return;
+      var np=Math.round(num(t.value));cpg.specs=cpg.specs||{};cpg.specs.cantidad=np>0?np+" páginas":"";save();sincronizar(cpg.id);
+      renderResumen();resultados();pintarPasos();if(!t.closest("#tab-venta"))renderComps();
+      document.querySelectorAll('[data-pags="'+cpg.id+'"]').forEach(function(o){if(o!==t)o.value=np>0?np:"";});return;}
     if(t.dataset&&t.dataset.opc){var qo=S.cotizaciones.filter(function(x){return x.id===t.dataset.opc;})[0];if(!qo)return;
       var v=t.value.trim().slice(0,300);delGrupo(qo).forEach(function(x){if(v)x.opciones=v;else delete x.opciones;});save();renderComps();sincronizar(qo.compId);toast(delGrupo(qo).length>1?"Opciones guardadas en sus "+delGrupo(qo).length+" tramos":"Opciones guardadas");}
   });
+  // En «A cuánto venderlo», las páginas recalculan mientras se escribe.
+  document.addEventListener("input",function(e){var t=e.target;if(!t.dataset||!t.dataset.pags||!t.closest("#tab-venta"))return;
+    var c=S.componentes.filter(function(x){return x.id===t.dataset.pags;})[0],np=Math.round(num(t.value));if(!c||!(np>0))return;
+    c.specs=c.specs||{};c.specs.cantidad=np+" páginas";resultados();pintarPasos();});
   document.addEventListener("submit",function(e){
     var f=e.target;if(!f.dataset.addq)return;e.preventDefault();
     var cs=f.querySelectorAll('[name="t-cant"]'),ps=f.querySelectorAll('[name="t-precio"]'),porPieza=f.modo.value==="pieza",tramos=[],vistos={};
@@ -817,6 +834,7 @@ navApp("cotizaciones");
     var v=V(),box=$("tab-venta");
     box.innerHTML='<p class="lead" style="margin:0">Aquí no se anotan precios de proveedores: se toma el costo por unidad que calculaste en el paso 1 y se le suma lo tuyo (empaque, tiempo, merma) más lo que quieres ganar y reinvertir. El resultado es el precio de venta. Todo en pesos chilenos.</p>'+
     '<div class="venta"><div class="forms">'+
+      (piezasConPaginas().length?'<section class="panel"><h2>Tu '+(piezasConPaginas()[0].tipo==="comic"?"cómic":"libro")+'</h2><p class="hint" style="margin:0">El costo cambia con las páginas: cambia el número y mira cómo se mueve el precio.</p><div class="fields">'+piezasConPaginas().map(function(c){return paginasCtl(c,piezasConPaginas().length>1);}).join("")+'</div></section>':'')+
       '<section class="panel"><h2>Tirada y versiones</h2><p class="hint" style="margin:0">Si vas a producir varias versiones (diseños, colores, ediciones), anota cuántas de cada una. Todas se venden al mismo precio.</p>'+
         '<div class="tablewrap"><table class="ds"><thead><tr><th>Versión</th><th class="num" style="width:34%">Cantidad</th><th></th></tr></thead><tbody id="v-ds"></tbody><tfoot><tr><td>Total</td><td class="num" id="v-total"></td><td></td></tr></tfoot></table></div>'+
         '<div class="row"><button type="button" id="v-add">+ Agregar versión</button></div>'+
