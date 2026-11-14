@@ -36,3 +36,11 @@ export const TIPOS={
 TIPOS.disco={g:"Juego de mesa",nombre:"Disco decodificador",c:TIPOS.fichas.c,s:[BG,TGC,PANDA],oculto:true};
 // Nombre visible de una pieza (los tipos desconocidos se muestran como «Componente»).
 export const nombrePieza = (k) => (TIPOS[k] || TIPOS.otro).nombre;
+
+// Piezas cuyo precio también cambia según las páginas (libros, cómics, fanzines).
+export const CON_PAGINAS = ["libro", "comic"];
+// Saca el número de páginas de un texto como «240 páginas» o «100 pág. b/n» (o null).
+export function paginasDe(t) {
+  const m = /(\d{1,4})\s*(p[aá]g(inas|s?\.?)?|pp\.?)(?![a-z])/i.exec(String(t || ""));
+  return m ? parseInt(m[1], 10) : null;
+}

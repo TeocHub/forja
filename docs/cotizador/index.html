@@ -55,6 +55,8 @@ tfoot td{font-weight:700;background:var(--field)}
 details{border-top:1px solid var(--line);padding-top:10px}
 details summary{cursor:pointer;color:var(--accent);font-size:14px}
 .addq{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+.var-h th{text-align:left;font-family:var(--f-display);font-size:14px;padding-top:12px;background:var(--suave)}
+.pags{margin:4px 0 0}
 .addq.editando{border:1.5px solid var(--fg);border-radius:12px;padding:12px}
 td .viejo{display:block;margin-top:4px;font-size:12.5px;color:var(--warn,#9a6200);font-weight:700}
 td .viejo .link{font-weight:400}
@@ -100,6 +102,8 @@ td .opc:focus{background:var(--card)}
 .fx-tabs{position:sticky;top:0;z-index:5;background:var(--bg)}
 /* comunidad */
 .comu{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.comu .lista .ancho{grid-column:span 2}
+@media (max-width:620px){.comu .lista .ancho{grid-column:auto}}
 .comu .lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
 .ref-p{background:var(--field);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .ref-p b{font-size:14px;overflow-wrap:anywhere}
@@ -287,8 +291,8 @@ td .opc:focus{background:var(--card)}
 
 <script type="module">
 import { sb, espacio, accesoProyecto, conSesion, navApp, debounce, plan, editable, limite, LIMITES, tope, NOMBRE_PLAN } from "../js/forja.js";
-import { TIPOS as PIEZAS } from "../js/piezas.js";
-import { CAMPOS_PRECIO, reportarPrecio, misReportados, estilosPrecios, agrupar, escalera, limpiarEnlace, revisadoTxt } from "../js/precios.js";
+import { TIPOS as PIEZAS, CON_PAGINAS, paginasDe } from "../js/piezas.js";
+import { CAMPOS_PRECIO, reportarPrecio, misReportados, estilosPrecios, agrupar, escalera, matriz, limpiarEnlace, revisadoTxt } from "../js/precios.js";
 estilosPrecios();
 navApp("cotizaciones");
 (function(){
@@ -361,27 +365,48 @@ navApp("cotizaciones");
     if(v<0){v=0;F=sy/n;} if(F<0){F=0;v=sxy/sxx;}
     return {F:F,v:v};
   }
-  function costFor(compId,qty,libre){ // mejor costo por unidad entre proveedores (o el proveedor elegido para esa pieza)
+  // Costo por unidad de una variante (sus tramos) para una cantidad: exacto, ajuste lineal dentro del rango o como tramo.
+  function unidadEn(pts,qty){
+    var exact=pts.filter(function(x){return x.q===qty;})[0];
+    if(exact)return {unit:exact.t/qty,est:false};
+    var qsP=pts.map(function(x){return x.q;}),minQ=Math.min.apply(null,qsP),maxQ=Math.max.apply(null,qsP),f=fit(pts);
+    if(f&&qty>=minQ/3&&qty<=maxQ*3)return {unit:(f.F+f.v*qty)/qty,est:true};
+    var bajo=pts.filter(function(x){return x.q<=qty;}).sort(function(a,b){return b.q-a.q;})[0]; // como tramo: la cotización más grande que no supere la cantidad
+    return bajo?{unit:bajo.t/bajo.q,est:true}:null;
+  }
+  // Mejor costo por unidad entre proveedores (o el elegido para esa pieza). Cada variante (opciones distintas) se calcula aparte;
+  // en libros y cómics, las variantes por páginas se combinan: se usa la de las páginas de la pieza o se estima entre las dos más cercanas.
+  function costFor(compId,qty,libre){
     var byProv={},comp=S.componentes.filter(function(c){return c.id===compId;})[0],el=!libre&&comp&&comp.elegido?comp.elegido.trim().toLowerCase():"";
-    var todas=S.cotizaciones.filter(function(q){return q.compId===compId;});
+    var todas=S.cotizaciones.filter(function(q){return q.compId===compId;}),pag=conPaginas(comp)?paginasPieza(comp):null;
     if(el&&!todas.some(function(q){return (q.proveedor||"Sin nombre").trim().toLowerCase()===el;}))el="";
     todas.filter(function(q){return !el||(q.proveedor||"Sin nombre").trim().toLowerCase()===el;}).forEach(function(q){
       var L=landed(q);if(L.total==null||!num(q.cantidad))return;
-      var k=(q.proveedor||"Sin nombre").trim().toLowerCase();
-      (byProv[k]=byProv[k]||{nombre:q.proveedor||"Sin nombre",pts:[]}).pts.push({q:num(q.cantidad),t:L.total});
+      var pv=(q.proveedor||"Sin nombre").trim().toLowerCase(),k=q.paginas?pv:pv+"|"+(q.opciones||"").trim().toLowerCase();
+      var e=byProv[k]=byProv[k]||{nombre:q.proveedor||"Sin nombre",vars:{}},vk=q.paginas?String(q.paginas):"";
+      (e.vars[vk]=e.vars[vk]||[]).push({q:num(q.cantidad),t:L.total});
     });
     var best=null;
     Object.keys(byProv).forEach(function(k){
-      var p=byProv[k],exact=p.pts.filter(function(x){return x.q===qty;})[0],unit,est=false;
-      if(exact)unit=exact.t/qty;
+      var e=byProv[k],ks=Object.keys(e.vars),r=null,nota="";
+      if(ks.length===1&&!ks[0]){r=unidadEn(e.vars[""],qty);}
       else{
-        var qsP=p.pts.map(function(x){return x.q;}),minQ=Math.min.apply(null,qsP),maxQ=Math.max.apply(null,qsP),f=fit(p.pts);
-        if(f&&qty>=minQ/3&&qty<=maxQ*3){unit=(f.F+f.v*qty)/qty;est=true;}
-        else{ // como tramo: el precio por unidad de la cotización más grande que no supere la cantidad
-          var bajo=p.pts.filter(function(x){return x.q<=qty;}).sort(function(a,b){return b.q-a.q;})[0];
-          if(!bajo)return; unit=bajo.t/bajo.q;est=true;}
+        var vs=ks.filter(Boolean).map(function(p){return {p:+p,u:unidadEn(e.vars[p],qty)};}).filter(function(v){return v.u;}).sort(function(a,b){return a.p-b.p;});
+        if(!vs.length)return;
+        if(!pag){var m=vs[vs.length-1];r={unit:m.u.unit,est:true};nota="sin páginas: se usó "+m.p;}
+        else{
+          var ex=vs.filter(function(v){return v.p===pag;})[0];
+          if(ex)r=ex.u;
+          else if(vs.length===1){r={unit:vs[0].u.unit,est:true};nota="precio de "+vs[0].p+" páginas";}
+          else{
+            var bajo=vs.filter(function(v){return v.p<pag;}).pop(),alto=vs.filter(function(v){return v.p>pag;})[0];
+            if(!bajo){bajo=vs[0];alto=vs[1];}else if(!alto){alto=vs[vs.length-1];bajo=vs[vs.length-2];}
+            var u=bajo.u.unit+(alto.u.unit-bajo.u.unit)*(pag-bajo.p)/(alto.p-bajo.p);
+            r={unit:Math.max(u,Math.min(bajo.u.unit,alto.u.unit)*0.5),est:true};nota="estimado entre "+bajo.p+" y "+alto.p+" páginas";
+          }
+        }
       }
-      if(!best||unit<best.unit)best={unit:unit,prov:p.nombre,est:est};
+      if(r&&(!best||r.unit<best.unit))best={unit:r.unit,prov:e.nombre,est:r.est,nota:nota};
     });
     return best;
   }
@@ -408,7 +433,7 @@ navApp("cotizaciones");
         var b=costFor(c.id,q);
         if(!b){totals[i].missing++;return '<td class="num"><span class="hint">sin datos</span></td>';}
         totals[i].sum+=b.unit;
-        return '<td class="num'+(b.est?' est':'')+'">'+(b.est?'≈ ':'')+clp2(b.unit)+'<span class="sub">'+esc(b.prov)+'</span></td>';
+        return '<td class="num'+(b.est?' est':'')+'">'+(b.est?'≈ ':'')+clp2(b.unit)+'<span class="sub">'+esc(b.prov)+(b.nota?' · '+esc(b.nota):'')+'</span></td>';
       }).join("")+'</tr>';
     }).join("");
     var foot='<tr><td>Costo por unidad</td>'+totals.map(function(t){return '<td class="num">'+(t.missing?'<span class="pill warn">faltan '+t.missing+'</span><span class="sub">parcial '+clp(t.sum)+'</span>':clp(t.sum))+'</td>';}).join("")+'</tr>'+
@@ -444,6 +469,14 @@ navApp("cotizaciones");
   function isoDe(q){var d=fechaDe(q)||new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
   function hoy(){return new Date().toLocaleDateString("es-CL");}
   var EDITANDO={};// compId → id de un precio (o tramo) que se está editando
+  // Variante de un precio: el proveedor, sus páginas (libros y cómics) y sus opciones. Los tramos de una misma variante se calculan juntos.
+  function claveVar(q){return (q.proveedor||"").trim().toLowerCase()+"|"+String(q.paginas||0).padStart(5,"0")+"|"+(q.paginas?"":(q.opciones||"").trim().toLowerCase());}
+  function conPaginas(c){return c&&CON_PAGINAS.indexOf(c.tipo)>=0;}
+  function paginasPieza(c){return c?paginasDe((c.specs||{}).cantidad):null;}
+  // Familia: todas las variantes de un proveedor para una pieza (se comparten como una sola tabla). Huella corta, sin ids a la vista.
+  function familiaDe(q){var t=String(HOJA&&HOJA.id)+"|"+q.compId+"|"+(q.proveedor||"").trim().toLowerCase(),h1=0x811c9dc5,h2=0x1000193;
+    for(var i=0;i<t.length;i++){h1=Math.imul(h1^t.charCodeAt(i),16777619)>>>0;h2=Math.imul(h2^t.charCodeAt(i),2246822519)>>>0;}
+    return h1.toString(36)+h2.toString(36);}
   function delGrupo(q){return q.grupo?S.cotizaciones.filter(function(x){return x.grupo===q.grupo;}):[q];}
   function nuevoGrupo(){return (crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,function(c){return (c^Math.random()*16>>c/4).toString(16);}));}
   function renderComps(){
@@ -452,12 +485,14 @@ navApp("cotizaciones");
     box.querySelectorAll("form[data-addq] input,form[data-addq] select").forEach(function(i){if(i.id)vals[i.id]=i.type==="checkbox"?i.checked:i.value;});
     if(!S.componentes.length){box.innerHTML='<div class="empty">Aún no hay piezas. Elige arriba qué hay que fabricar (por ejemplo tablero, cartas, impresión del libro o etiqueta) y presiona “Agregar pieza”.</div>';return;}
     box.innerHTML=S.componentes.map(function(c){
-      var t=TIPOS[c.tipo]||TIPOS.otro,qs=S.cotizaciones.filter(function(q){return q.compId===c.id;}).sort(function(a,b){return num(a.cantidad)-num(b.cantidad);});
+      var t=TIPOS[c.tipo]||TIPOS.otro,qs=S.cotizaciones.filter(function(q){return q.compId===c.id;}).sort(function(a,b){return claveVar(a).localeCompare(claveVar(b),"es",{numeric:true})||num(a.cantidad)-num(b.cantidad);});
+      var nVar=new Set(qs.map(claveVar)).size;
       var specs=CAMPOS.map(function(f){return '<label class="f">'+f[1]+'<input data-c="'+c.id+'" data-spec="'+f[0]+'" id="s-'+c.id+'-'+f[0]+'" value="'+esc((c.specs||{})[f[0]])+'" placeholder="'+esc(t.c[f[0]]||"")+'"></label>';}).join("")+
         '<label class="f" style="grid-column:1/-1">Notas<textarea data-c="'+c.id+'" data-spec="notas" id="s-'+c.id+'-notas" placeholder="Detalles para el proveedor">'+esc((c.specs||{}).notas)+'</textarea></label>';
       var tabla=qs.length?'<div class="tablewrap"><table><thead><tr><th>Proveedor</th><th class="num">Cantidad</th><th class="num">Precio + envío</th><th class="num">Total en Chile</th><th class="num">Por unidad</th><th>Plazo</th><th></th></tr></thead><tbody>'+
-        qs.map(function(q){var L=landed(q),u=L.total!=null&&num(q.cantidad)?L.total/num(q.cantidad):null;
-          return '<tr><td>'+(q.enlace?'<a href="'+esc(q.enlace)+'" target="_blank" rel="noopener">'+esc(q.proveedor||"Sin nombre")+'</a>':esc(q.proveedor||"Sin nombre"))+'<span class="sub">'+(q.origen==="extranjero"?"Extranjero":"Chile")+(q.fecha?" · revisado el "+esc(q.fecha):"")+(q.notas?" · "+esc(q.notas):"")+'</span>'+
+        qs.map(function(q,i){var L=landed(q),u=L.total!=null&&num(q.cantidad)?L.total/num(q.cantidad):null;
+          var hd=nVar>1&&(i===0||claveVar(qs[i-1])!==claveVar(q))?'<tr class="var-h"><th colspan="7" scope="rowgroup">'+esc(q.proveedor||"Sin nombre")+(q.paginas?' · '+q.paginas+' páginas':'')+(q.opciones&&!q.paginas?' · '+esc(q.opciones):'')+'</th></tr>':'';
+          return hd+'<tr><td>'+(q.enlace?'<a href="'+esc(q.enlace)+'" target="_blank" rel="noopener">'+esc(q.proveedor||"Sin nombre")+'</a>':esc(q.proveedor||"Sin nombre"))+'<span class="sub">'+(q.origen==="extranjero"?"Extranjero":"Chile")+(q.fecha?" · revisado el "+esc(q.fecha):"")+(q.notas?" · "+esc(q.notas):"")+'</span>'+
           (diasDe(q)>=REVISAR_DIAS?'<span class="viejo">Revisa este precio: es de hace '+(diasDe(q)>=60?Math.round(diasDe(q)/30)+' meses':diasDe(q)+' días')+' <button type="button" class="link" data-vigente="'+q.id+'">Sigue igual</button></span>':'')+(q.contacto?'<span class="sub">Contacto: '+esc(q.contacto)+'</span>':'')+
           '<input class="opc" data-opc="'+q.id+'" value="'+esc(q.opciones||"")+'" maxlength="300" placeholder="+ Opciones de este precio" aria-label="Opciones de este precio (tamaño, caras, técnica…)"></td>'+
           '<td class="num">'+num(q.cantidad).toLocaleString("es-CL")+'</td>'+
@@ -469,6 +504,7 @@ navApp("cotizaciones");
       var sug=(t.s||[]).map(function(s){return '<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[0]+'</a>';}).join("");
       return '<article class="panel comp" data-comp="'+c.id+'">'+
         '<div class="comp-head"><input class="name" data-c="'+c.id+'" data-field="nombre" id="n-'+c.id+'" value="'+esc(c.nombre)+'" aria-label="Nombre de la pieza (si compartes un precio, es el nombre que ve la comunidad)" title="Si compartes un precio, la comunidad ve este nombre: ponle lo que es, como «Llavero acrílico transparente»"><div class="row"><span class="pill">'+qs.length+(qs.length===1?' precio':' precios')+'</span><button type="button" class="link danger" data-delc="'+c.id+'">Quitar</button></div></div>'+
+        (conPaginas(c)&&qs.some(function(q){return q.paginas;})?'<p class="hint pags">'+(paginasPieza(c)?'Tu '+(c.tipo==="comic"?"cómic":"libro")+' tiene <b>'+paginasPieza(c)+' páginas</b> (de las especificaciones): el costo usa el precio de esas páginas o lo estima entre las más cercanas.':'<b>¿Cuántas páginas tiene tu '+(c.tipo==="comic"?"cómic":"libro")+'?</b> Anótalo en Especificaciones → «Cantidad por unidad» (ej.: 150 páginas). Mientras tanto, el costo usa el precio con más páginas.')+'</p>':'')+
         (c.nombre===t.nombre?'<p class="hint nombra">Toca el nombre para decir qué es exactamente, como «Llavero acrílico transparente». Si compartes un precio, la comunidad ve ese nombre.</p>':'')+
         '<details data-k="spec-'+c.id+'"><summary>Especificaciones</summary><div class="grid" style="margin-top:10px">'+specs+'</div>'+
         '<div class="row" style="margin-top:10px"><button type="button" data-copy="'+c.id+'">Copiar solicitud de cotización (inglés)</button><span class="hint">Pégala en el formulario o correo del proveedor.</span></div></details>'+
@@ -479,6 +515,7 @@ navApp("cotizaciones");
           '<label class="f">Origen<select name="origen" id="q-'+c.id+'-orig"><option value="extranjero">Extranjero</option><option value="chile">Chile</option></select></label>'+
           '<label class="f">Moneda<select name="moneda" id="q-'+c.id+'-mon"><option value="USD">USD</option><option value="CLP">CLP</option></select></label>'+
           '<label class="f" style="grid-column:1/-1">Opciones de este precio<input name="opciones" id="q-'+c.id+'-opc" maxlength="300" placeholder="Ej.: 3″ (76,2 mm), doble cara con el mismo diseño, sin técnica adicional"><span class="hint">Lo que elegiste en la página o lo que te cotizaron. Si cambias una opción y cambia el precio, guárdalo como otro precio.</span></label>'+
+          (conPaginas(c)?'<label class="f">Páginas de este precio<input name="paginas" id="q-'+c.id+'-pag" type="number" min="1" max="5000" step="1" inputmode="numeric" placeholder="Ej.: 200"><span class="hint">Si el proveedor te dio precios para distintas páginas, guarda cada una como otro precio.</span></label>':'')+
           tramosHTML(c.id)+
           '<label class="f">Envío hasta ti<input name="envio" id="q-'+c.id+'-envio" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label>'+
           '<label class="check" style="align-self:end"><input type="checkbox" name="envioPend" id="q-'+c.id+'-envpend"> El envío cambia según a dónde se mande (o aún no lo sé)</label>'+
@@ -544,6 +581,8 @@ navApp("cotizaciones");
     var enl=f.enlace.value.trim(),limpio=enl?limpiarEnlace(enl):"";
     var base={compId:f.dataset.addq,proveedor:f.proveedor.value.trim(),opciones:f.opciones.value.trim(),origen:f.origen.value,moneda:f.moneda.value,
       envio:num(f.envio.value),envioPend:f.envioPend.checked,plazo:f.plazo.value.trim(),enlace:limpio||enl,contacto:f.contacto.value.trim(),notas:f.notas.value.trim(),incluyeIva:f.incluyeIva.checked,modo:porPieza?"pieza":"total",fecha:hoy()};
+    var cP=S.componentes.filter(function(x){return x.id===f.dataset.addq;})[0];
+    if(conPaginas(cP)){var pg=Math.round(num(f.paginas&&f.paginas.value))||paginasDe(base.opciones);if(pg>0&&pg<=5000)base.paginas=pg;}
     if(!base.opciones)delete base.opciones;if(!base.envioPend)delete base.envioPend;
     if(EDITANDO[f.dataset.addq]){f.reset();guardarEdicion(f.dataset.addq,base,tramos);return;}
     var grupo=tramos.length>1?nuevoGrupo():null,nuevos=tramos.map(function(t){var q=Object.assign({id:uid()},base,t);if(grupo)q.grupo=grupo;return q;});
@@ -562,7 +601,7 @@ navApp("cotizaciones");
     tramos.forEach(function(t){
       var i=sobran.findIndex(function(x){return num(x.cantidad)===t.cantidad;}),q;
       if(i>=0){q=sobran.splice(i,1)[0];}else{q={id:uid()};nuevos.push(q);}
-      ["opciones","envioPend","grupo"].forEach(function(k){delete q[k];});
+      ["opciones","envioPend","grupo","paginas"].forEach(function(k){delete q[k];});
       Object.assign(q,base,t);if(grupo)q.grupo=grupo;quedan.push(q);
     });
     var ids=sobran.map(function(x){return x.id;});
@@ -585,7 +624,7 @@ navApp("cotizaciones");
     EDITANDO[cid]=q.id;TRAMOS_N[cid]=g.length;renderComps();
     var set=function(k,v){var el=$("q-"+cid+"-"+k);if(!el)return;if(el.type==="checkbox")el.checked=!!v;else el.value=v==null?"":v;};
     var pieza=q.modo==="pieza";
-    set("prov",q.proveedor);set("orig",q.origen);set("mon",q.moneda);set("opc",q.opciones);set("modo",pieza?"pieza":"total");
+    set("prov",q.proveedor);set("orig",q.origen);set("mon",q.moneda);set("opc",q.opciones);set("pag",q.paginas);set("modo",pieza?"pieza":"total");
     g.forEach(function(x,i){set("tc"+i,num(x.cantidad));set("tp"+i,pieza?Math.round(num(x.precio)/num(x.cantidad)*10000)/10000:num(x.precio));});
     set("envio",num(q.envio)||"");set("envpend",q.envioPend);set("plazo",q.plazo);set("link",q.enlace);set("contacto",q.contacto);set("notas",q.notas);set("iva",q.incluyeIva);
     var d=document.querySelector('details[data-k="add-'+cid+'"]');if(d){d.open=true;d.scrollIntoView({block:"start",behavior:"smooth"});}
@@ -658,8 +697,8 @@ navApp("cotizaciones");
       var bruto=(r.moneda==="USD"?"USD "+num(r.precio).toLocaleString("es-CL",{maximumFractionDigits:2}):clp(num(r.precio)));
       var nom=r.enlace&&/^https:\/\//.test(r.enlace)?'<a href="'+esc(r.enlace)+'" target="_blank" rel="noopener noreferrer nofollow">'+esc(r.proveedor)+'</a>':esc(r.proveedor);
       var env=r.envio_pendiente?' · envío según destino':'';
-      return '<div class="ref-p">'+(r.producto?'<b>'+esc(r.producto)+'</b><span class="sp">de '+nom+'</span>':'<b>'+nom+'</b>')+(r.opciones?'<span class="pr-opc">'+esc(r.opciones)+'</span>':'')+
-        (r.tramos.length>1?'<span class="cif">Desde '+num(r.cantidad).toLocaleString("es-CL")+' u. · ≈ '+clp2(u)+' c/u en Chile'+env+'</span>'+escalera(r)
+      return '<div class="ref-p'+((r.paginasLista||[]).length>1?' ancho':'')+'">'+(r.producto?'<b>'+esc(r.producto)+'</b><span class="sp">de '+nom+'</span>':'<b>'+nom+'</b>')+(r.opciones?'<span class="pr-opc">'+esc(r.opciones)+'</span>':'')+
+        ((r.paginasLista||[]).length>1?'<span class="cif">Precio por pieza'+(r.moneda==="USD"?" (USD)":"")+' según páginas y cantidad'+env+'</span>'+matriz(r):r.tramos.length>1?'<span class="cif">Desde '+num(r.cantidad).toLocaleString("es-CL")+' u. · ≈ '+clp2(u)+' c/u en Chile'+env+'</span>'+escalera(r)
           :'<span class="cif">'+num(r.cantidad).toLocaleString("es-CL")+' u. · '+bruto+(u!=null?' · ≈ '+clp2(u)+' c/u en Chile':'')+env+'</span>')+
         (r.especificaciones?'<span class="sp">'+esc(r.especificaciones)+'</span>':'')+
         '<span class="pie"><span>'+(r.origen==="chile"?"Chile":"Extranjero")+(r.plazo?' · '+esc(r.plazo):'')+' · '+revisadoTxt(r)+'</span><span>'+(r.ids.some(function(i){return YA_REP.has(i);})?'<span class="pr-mio pr-ya">Reportado</span>':'<button type="button" class="link" data-reportar="'+r.id+'" data-prov="'+esc(r.proveedor)+'">Reportar</button> ')+'<button type="button" class="link" data-usar="'+r.id+'" data-comp="'+c.id+'">Usar proveedor</button></span></span></div>';
@@ -685,7 +724,7 @@ navApp("cotizaciones");
   }
   function filaCompartida(x,c){
     return Object.assign({componente:TIPOS[c.tipo]&&!TIPOS[c.tipo].oculto?c.tipo:"otro",origen:x.origen==="chile"?"chile":"extranjero",
-      moneda:x.moneda==="CLP"?"CLP":"USD",cantidad:num(x.cantidad),precio:num(x.precio),envio:num(x.envio),incluye_iva:!!x.incluyeIva,grupo:x.grupo||null,revisado:isoDe(x)},descripcion(x,c));
+      moneda:x.moneda==="CLP"?"CLP":"USD",cantidad:num(x.cantidad),precio:num(x.precio),envio:num(x.envio),incluye_iva:!!x.incluyeIva,grupo:x.grupo||null,revisado:isoDe(x),paginas:x.paginas||null,familia:x.paginas?familiaDe(x):null},descripcion(x,c));
   }
   // Comparte el precio o, si es parte de un grupo de tramos, todos los tramos juntos.
   function compartir(q){

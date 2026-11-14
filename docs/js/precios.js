@@ -4,7 +4,7 @@ import { sb, esc, u, limite } from "./forja.js";
 import { nombrePieza } from "./piezas.js";
 
 // Campos que se leen de public.precios_comunidad (la columna autor no es legible).
-export const CAMPOS_PRECIO = "id,componente,proveedor,enlace,origen,moneda,cantidad,precio,envio,envio_pendiente,incluye_iva,especificaciones,opciones,grupo,plazo,revisado,creado_en,producto";
+export const CAMPOS_PRECIO = "id,componente,proveedor,enlace,origen,moneda,cantidad,precio,envio,envio_pendiente,incluye_iva,especificaciones,opciones,grupo,plazo,revisado,creado_en,producto,paginas,familia";
 
 // Quita del enlace lo que solo sirve para seguir visitas (utm, _pos, _sid…) y deja lo que elige el producto (como variant).
 const RASTREO = /^(utm_|_pos$|_sid$|_ss$|_psq$|_v$|fbclid$|gclid$|igshid$|mc_|ref$|ref_)/i;
@@ -20,14 +20,29 @@ export function limpiarEnlace(url) {
 export function agrupar(filas) {
   const vistos = new Map(), salida = [];
   (filas || []).forEach((r) => {
-    const k = r.grupo || r.id;
+    const k = r.familia || r.grupo || r.id;
     if (!vistos.has(k)) { const g = { ...r, tramos: [], ids: [] }; vistos.set(k, g); salida.push(g); }
-    const g = vistos.get(k); g.tramos.push({ id: r.id, cantidad: n0(r.cantidad), precio: n0(r.precio) }); g.ids.push(r.id);
+    const g = vistos.get(k); g.tramos.push({ id: r.id, cantidad: n0(r.cantidad), precio: n0(r.precio), paginas: r.paginas || null }); g.ids.push(r.id);
     if (String(r.creado_en) > String(g.creado_en)) g.creado_en = r.creado_en;
     if (r.revisado && String(r.revisado) > String(g.revisado || "")) g.revisado = r.revisado;
   });
-  salida.forEach((g) => { g.tramos.sort((a, b) => a.cantidad - b.cantidad); const t = g.tramos[0]; g.id = t.id; g.cantidad = t.cantidad; g.precio = t.precio; });
+  salida.forEach((g) => {
+    g.tramos.sort((a, b) => (a.paginas || 0) - (b.paginas || 0) || a.cantidad - b.cantidad); const t = g.tramos[0]; g.id = t.id; g.cantidad = t.cantidad; g.precio = t.precio;
+    g.paginasLista = [...new Set(g.tramos.map((x) => x.paginas).filter(Boolean))];
+    if (g.paginasLista.length > 1 && g.opciones) g.opciones = sinPaginas(g.opciones);
+  });
   return salida;
+}
+// Quita «100 páginas» de un texto de opciones (cuando las páginas ya están en la tabla).
+export const sinPaginas = (t) => String(t || "").replace(/\b\d{1,4}\s*(p[aá]g(inas|s?\.?)?|pp\.?)(?![a-z])\s*[,·;]?\s*/i, "").replace(/^[\s,·;]+|[\s,·;]+$/g, "");
+// Tabla páginas × cantidad: precio por pieza de cada combinación que se cotizó.
+export function matriz(r) {
+  const pags = r.paginasLista, cants = [...new Set(r.tramos.map((t) => t.cantidad))].sort((a, b) => a - b);
+  const celda = (p, c) => { const t = r.tramos.find((x) => x.paginas === p && x.cantidad === c); return t ? porUnidad({ moneda: r.moneda, cantidad: t.cantidad, precio: t.precio }).replace("USD ", "") : "–"; };
+  return '<div class="pr-matriz" role="region" aria-label="Precio por pieza según páginas y cantidad" tabindex="0"><table><thead><tr><th scope="col">Páginas</th>' +
+    cants.map((c) => "<th scope=\"col\">" + c.toLocaleString("es-CL") + "+</th>").join("") + "</tr></thead><tbody>" +
+    pags.map((p) => "<tr><th scope=\"row\">" + p + "</th>" + cants.map((c) => "<td>" + celda(p, c) + "</td>").join("") + "</tr>").join("") +
+    "</tbody></table></div>";
 }
 
 export const MOTIVOS_PRECIO = [
@@ -68,15 +83,18 @@ const envioTxt = (r) => r.envio_pendiente ? " · envío según destino" : n0(r.e
 export function talon(r, { mio = false, pieza = true, reportado = false } = {}) {
   const enl = r.enlace && /^https:\/\//.test(r.enlace)
     ? '<a href="' + esc(r.enlace) + '" target="_blank" rel="noopener noreferrer nofollow">' + esc(r.proveedor) + "</a>" : esc(r.proveedor);
-  const varios = (r.tramos || []).length > 1;
-  return '<article class="pr-talon" data-precio="' + esc(r.id) + '">' +
+  const varios = (r.tramos || []).length > 1, conPags = (r.paginasLista || []).length > 1;
+  return '<article class="pr-talon' + (conPags ? " ancho" : "") + '" data-precio="' + esc(r.id) + '">' +
     '<header>' + (pieza ? '<small class="pr-pieza">' + esc(nombrePieza(r.componente)) + "</small>" : "") +
       (r.producto ? "<b>" + esc(r.producto) + '</b><span class="pr-prov">de ' + enl + "</span>" : "<b>" + enl + "</b>") +
       (r.opciones ? '<span class="pr-opc">' + esc(r.opciones) + "</span>" : "") + "</header>" +
-    (varios
+    (conPags
+      ? '<div class="pr-cifra"><span class="pr-uni" style="flex-basis:auto">Precio por pieza' + (r.moneda === "USD" ? " (USD)" : "") + " según páginas y cuántas pidas" + envioTxt(r) + "</span>" + matriz(r) + "</div>"
+      : varios
       ? '<div class="pr-cifra"><span class="pr-uni" style="flex-basis:auto">Precio por pieza según cuántas pidas' + envioTxt(r) + "</span>" + escalera(r) + "</div>"
       : '<div class="pr-cifra"><span class="pr-cant">' + n0(r.cantidad).toLocaleString("es-CL") + ' u.</span><span class="pr-total">' + dinero(r.moneda, r.precio) + "</span>" +
         '<span class="pr-uni">' + porUnidad(r) + " c/u" + envioTxt(r) + "</span></div>") +
+    (r.paginasLista && r.paginasLista.length === 1 ? '<p class="pr-spec">' + r.paginasLista[0] + " páginas</p>" : "") +
     (r.especificaciones ? '<p class="pr-spec">' + esc(r.especificaciones) + "</p>" : "") +
     '<footer><span>' + (r.origen === "chile" ? "Chile" : "Extranjero") + (r.incluye_iva ? " · con IVA" : "") + (r.plazo ? " · " + esc(r.plazo) : "") + " · " + revisadoTxt(r) + "</span>" +
     (mio ? '<span class="pr-mio">Lo compartiste tú</span>' : reportado ? '<span class="pr-mio pr-ya">Reportado</span>' : '<button type="button" class="pr-rep-btn" data-reportar="' + esc(r.id) + '" data-prov="' + esc(r.proveedor) + '">Reportar</button>') +
@@ -134,6 +152,13 @@ export const CSS_PRECIOS = `
 .pr-prov{font-size:14px;color:var(--muted)}
 .pr-prov a{color:var(--fg);font-weight:700}
 .pr-opc{font-size:13px;color:var(--fg);background:var(--suave);border-radius:6px;padding:3px 8px;margin-top:4px;align-self:flex-start;overflow-wrap:anywhere}
+.pr-talon.ancho{grid-column:span 2}
+@media (max-width:620px){.pr-talon.ancho{grid-column:auto}}
+.pr-matriz{flex-basis:100%;overflow-x:auto;margin-top:6px}
+.pr-matriz table{border-collapse:collapse;font:600 12.5px var(--f-num);min-width:100%}
+.pr-matriz th,.pr-matriz td{border:1px solid var(--line);padding:5px 7px;text-align:right;white-space:nowrap}
+.pr-matriz thead th{color:var(--muted);font-weight:600;background:var(--bg)}
+.pr-matriz tbody th{color:var(--muted);background:var(--bg)}
 .pr-tramos{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:4px;flex-basis:100%}
 .pr-tramos li{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:7px;padding:4px 7px;background:var(--bg)}
 .pr-tramos span{font:600 11.5px var(--f-num);color:var(--muted)}
