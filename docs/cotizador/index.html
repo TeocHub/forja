@@ -525,6 +525,10 @@ navApp("cotizaciones");
       if(t.dataset.field==="nombre"){c.nombre=t.value.trim()||TIPOS[c.tipo].nombre;save();renderResumen();}
     }
     if(t.name==="origen"){var f=t.form;f.moneda.value=t.value==="chile"?"CLP":"USD";}
+    // Al cambiar entre «por pieza» y «del pedido completo», los precios ya escritos se convierten (no se reinterpretan).
+    if(t.name==="modo"&&t.form&&t.form.dataset.addq){var fm=t.form,cs=fm.querySelectorAll('[name="t-cant"]'),ps=fm.querySelectorAll('[name="t-precio"]');
+      for(var k=0;k<cs.length;k++){var ca=num(cs[k].value),pv=ps[k].value.trim();if(!ca||pv==="")continue;
+        ps[k].value=t.value==="pieza"?String(Math.round(num(pv)/ca*10000)/10000):String(Math.round(num(pv)*ca*100)/100);}}
     if(t.dataset&&t.dataset.opc){var qo=S.cotizaciones.filter(function(x){return x.id===t.dataset.opc;})[0];if(!qo)return;
       var v=t.value.trim().slice(0,300);delGrupo(qo).forEach(function(x){if(v)x.opciones=v;else delete x.opciones;});save();renderComps();sincronizar(qo.compId);toast(delGrupo(qo).length>1?"Opciones guardadas en sus "+delGrupo(qo).length+" tramos":"Opciones guardadas");}
   });
