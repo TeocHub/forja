@@ -180,10 +180,10 @@ async function comunidad(MIOS) {
   const plano = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   box.innerHTML = '<div class="estante" role="group" aria-label="Elegir pieza"><button type="button" class="pz" data-pz="" aria-pressed="true">Todas <span>' + R.length + "</span></button>" +
     orden.map((k) => '<button type="button" class="pz" data-pz="' + esc(k) + '" aria-pressed="false">' + esc(nombrePieza(k)) + " <span>" + cuenta[k] + "</span></button>").join("") + "</div>" +
-    '<div class="buscar"><input type="search" id="comu-q" placeholder="Buscar proveedor, opción o detalle" aria-label="Buscar proveedor, opción o detalle"><small id="comu-n" aria-live="polite"></small></div><div class="talones" id="talones"></div>';
+    '<div class="buscar"><input type="search" id="comu-q" placeholder="Buscar producto, proveedor u opción" aria-label="Buscar producto, proveedor u opción"><small id="comu-n" aria-live="polite"></small></div><div class="talones" id="talones"></div>';
   const pintar = () => {
     const q = plano(texto);
-    const vis = R.filter((r) => (!pieza || r.componente === pieza) && (!q || plano(r.proveedor + " " + (r.opciones || "") + " " + (r.especificaciones || "")).includes(q)));
+    const vis = R.filter((r) => (!pieza || r.componente === pieza) && (!q || plano((r.producto || "") + " " + r.proveedor + " " + (r.opciones || "") + " " + (r.especificaciones || "")).includes(q)));
     $("comu-n").textContent = vis.length === R.length ? "" : vis.length ? vis.length + " de " + R.length : "";
     $("talones").innerHTML = vis.length ? vis.slice(0, 120).map((r) => talon(r, { mio: r.ids.some((i) => MIOS.has(i)), pieza: !pieza, reportado: r.ids.some((i) => YA.has(i)) })).join("")
       : '<div class="vacio" style="grid-column:1/-1">Nada con «' + esc(texto) + '». Prueba con otra palabra o elige otra pieza.</div>';

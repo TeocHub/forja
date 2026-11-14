@@ -1,5 +1,5 @@
 -- Forja · esquema de la base (Supabase, proyecto "forja", id gfkiwldxxvffnkjcesws).
--- Sacado de la base en vivo el 2026-11-11 (y al día con las migraciones taller_fichas_enlazados y pizarra_fichas_enlazadas del 2026-11-12, y reportes_precios_y_cotizaciones_aparte, mod_panel_precios, mod_precio_cerrar y precios_tramos_opciones del 2026-11-13, y precios_editar_y_revisado del 2026-11-14): es la foto completa de la estructura y las reglas de acceso, sin ningún dato
+-- Sacado de la base en vivo el 2026-11-11 (y al día con las migraciones taller_fichas_enlazados y pizarra_fichas_enlazadas del 2026-11-12, y reportes_precios_y_cotizaciones_aparte, mod_panel_precios, mod_precio_cerrar y precios_tramos_opciones del 2026-11-13, y precios_editar_y_revisado y precios_producto del 2026-11-14): es la foto completa de la estructura y las reglas de acceso, sin ningún dato
 -- (ni oportunidades, ni cuentas, ni privado.config, que guarda la clave de la cola de correos y se genera dentro de la base).
 -- La fuente sigue siendo la base: todo cambio se aplica como migración y después se vuelve a sacar este archivo.
 -- Orden: extensiones y esquemas, tablas, funciones, restricciones, índices, triggers, reglas (RLS) y permisos.
@@ -242,7 +242,8 @@ create table public.precios_comunidad(
   opciones text,
   grupo uuid,
   envio_pendiente boolean default false not null,
-  revisado date default ((now() AT TIME ZONE 'America/Santiago'::text))::date not null
+  revisado date default ((now() AT TIME ZONE 'America/Santiago'::text))::date not null,
+  producto text
 );
 
 create table public.proyecto_accesos(
@@ -2715,6 +2716,7 @@ alter table public.precios_comunidad add constraint precios_comunidad_plazo_chec
 alter table public.precios_comunidad add constraint precios_comunidad_precio_check CHECK (((precio >= (0)::numeric) AND (precio <= (1000000000)::numeric)));
 alter table public.precios_comunidad add constraint precios_comunidad_opciones_check CHECK ((char_length(opciones) <= 300));
 alter table public.precios_comunidad add constraint precios_comunidad_revisado_check CHECK (((revisado <= (((now() AT TIME ZONE 'America/Santiago'::text))::date + 1)) AND (revisado >= '2025-01-01'::date)));
+alter table public.precios_comunidad add constraint precios_comunidad_producto_check CHECK ((char_length(producto) <= 120));
 alter table public.precios_comunidad add constraint precios_comunidad_proveedor_check CHECK (((char_length(proveedor) >= 1) AND (char_length(proveedor) <= 120)));
 alter table public.proyecto_accesos add constraint proyecto_accesos_pkey PRIMARY KEY (proyecto_id, user_id);
 alter table public.proyecto_accesos add constraint proyecto_accesos_rol_check CHECK ((rol = ANY (ARRAY['editor'::text, 'lector'::text])));
@@ -3238,9 +3240,9 @@ grant SELECT (acento, busqueda, datos, en_explorar, estado, firma, formato, lema
 grant SELECT (acento, busqueda, datos, en_explorar, estado, firma, formato, lema, portada, publicado_en, slug, tipo, titulo) on public.vitrinas_publicadas to authenticated;
 grant SELECT (aceptado_en, documento, version) on public.aceptaciones to authenticated;
 grant SELECT (actualizado_en, boletin, boletin_desde, funciones, vitrinas) on public.correo_prefs to authenticated;
-grant SELECT (cantidad, componente, creado_en, enlace, envio, envio_pendiente, especificaciones, grupo, id, incluye_iva, moneda, opciones, origen, plazo, precio, proveedor, revisado) on public.precios_comunidad to authenticated;
-grant INSERT (envio_pendiente, grupo, opciones, revisado) on public.precios_comunidad to authenticated;
-grant UPDATE (cantidad, enlace, envio, envio_pendiente, especificaciones, grupo, incluye_iva, moneda, opciones, origen, plazo, precio, proveedor, revisado) on public.precios_comunidad to authenticated;
+grant SELECT (cantidad, componente, creado_en, enlace, envio, envio_pendiente, especificaciones, grupo, id, incluye_iva, moneda, opciones, origen, plazo, precio, producto, proveedor, revisado) on public.precios_comunidad to authenticated;
+grant INSERT (envio_pendiente, grupo, opciones, producto, revisado) on public.precios_comunidad to authenticated;
+grant UPDATE (cantidad, enlace, envio, envio_pendiente, especificaciones, grupo, incluye_iva, moneda, opciones, origen, plazo, precio, producto, proveedor, revisado) on public.precios_comunidad to authenticated;
 grant SELECT (creado_en, detalle, estado, id, motivo, revisado_en, vitrina_id) on public.reportes to authenticated;
 grant SELECT (copia, creado_en, detalle, estado, id, motivo, precio_ref, revisado_en) on public.reportes_precios to authenticated;
 grant SELECT (creado_en, enlace, id, leido, texto, tipo, titulo) on public.avisos to authenticated;

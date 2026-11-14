@@ -50,6 +50,8 @@ tfoot td{font-weight:700;background:var(--field)}
 .comp-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .comp-head input.name{font-family:var(--f-display);font-weight:700;font-size:18px;background:transparent;border-color:transparent;padding:4px 6px;max-width:420px}
 .comp-head input.name:hover{border-color:var(--line)}
+.comp-head input.name{border-bottom:1.5px dashed var(--line)}
+.nombra{margin:2px 0 0}
 details{border-top:1px solid var(--line);padding-top:10px}
 details summary{cursor:pointer;color:var(--accent);font-size:14px}
 .addq{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
@@ -466,7 +468,8 @@ navApp("cotizaciones");
         '<div class="empty">Aún sin precios de proveedores para esta pieza.</div>';
       var sug=(t.s||[]).map(function(s){return '<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[0]+'</a>';}).join("");
       return '<article class="panel comp" data-comp="'+c.id+'">'+
-        '<div class="comp-head"><input class="name" data-c="'+c.id+'" data-field="nombre" id="n-'+c.id+'" value="'+esc(c.nombre)+'" aria-label="Nombre del componente"><div class="row"><span class="pill">'+qs.length+(qs.length===1?' precio':' precios')+'</span><button type="button" class="link danger" data-delc="'+c.id+'">Quitar</button></div></div>'+
+        '<div class="comp-head"><input class="name" data-c="'+c.id+'" data-field="nombre" id="n-'+c.id+'" value="'+esc(c.nombre)+'" aria-label="Nombre de la pieza (si compartes un precio, es el nombre que ve la comunidad)" title="Si compartes un precio, la comunidad ve este nombre: ponle lo que es, como «Llavero acrílico transparente»"><div class="row"><span class="pill">'+qs.length+(qs.length===1?' precio':' precios')+'</span><button type="button" class="link danger" data-delc="'+c.id+'">Quitar</button></div></div>'+
+        (c.nombre===t.nombre?'<p class="hint nombra">Toca el nombre para decir qué es exactamente, como «Llavero acrílico transparente». Si compartes un precio, la comunidad ve ese nombre.</p>':'')+
         '<details data-k="spec-'+c.id+'"><summary>Especificaciones</summary><div class="grid" style="margin-top:10px">'+specs+'</div>'+
         '<div class="row" style="margin-top:10px"><button type="button" data-copy="'+c.id+'">Copiar solicitud de cotización (inglés)</button><span class="hint">Pégala en el formulario o correo del proveedor.</span></div></details>'+
         tabla+
@@ -484,7 +487,7 @@ navApp("cotizaciones");
           '<label class="f" title="Solo lo ves tú (y tu equipo): nunca se comparte">Contacto<input name="contacto" id="q-'+c.id+'-contacto" maxlength="120" placeholder="Solo para ti: correo, WhatsApp…"></label>'+
           '<label class="f" style="grid-column:1/-1">Notas<input name="notas" id="q-'+c.id+'-notas" placeholder="Ej.: precio de calculadora en línea, incluye muestra"></label>'+
           '<label class="check" style="grid-column:1/-1"><input type="checkbox" name="incluyeIva" id="q-'+c.id+'-iva"> El precio ya incluye IVA (solo para proveedores en Chile)</label>'+
-          (EDITANDO[c.id]?'':'<label class="check" style="grid-column:1/-1"><input type="checkbox" name="compartir" id="q-'+c.id+'-share"><span>Compartir este precio con la comunidad, para que otros sepan dónde cotizar <span class="hint">(se muestra el proveedor, el enlace, las opciones, las cantidades, los precios y las especificaciones; nunca tu nombre, tu proyecto ni el contacto)</span></span></label>')+
+          (EDITANDO[c.id]?'':'<label class="check" style="grid-column:1/-1"><input type="checkbox" name="compartir" id="q-'+c.id+'-share"><span>Compartir este precio con la comunidad, para que otros sepan dónde cotizar <span class="hint">(se muestra el nombre de la pieza, el proveedor, el enlace, las opciones, las cantidades, los precios y las especificaciones; nunca tu nombre, tu proyecto ni el contacto)</span></span></label>')+
           '<div class="row" style="grid-column:1/-1"><button type="submit" class="primary">'+(EDITANDO[c.id]?'Guardar cambios':'Guardar precio')+'</button>'+(EDITANDO[c.id]?' <button type="button" data-cancelar-ed="'+c.id+'">Cancelar</button>':'')+'</div>'+
         '</form></details>'+
         ''+(sug?'<div class="sugs"><span class="hint">Dónde cotizar:</span>'+sug+'</div>':'')+''+comunidadHTML(c)+
@@ -522,7 +525,8 @@ navApp("cotizaciones");
     var t=e.target,c;
     if(t.dataset&&t.dataset.c){c=S.componentes.filter(function(x){return x.id===t.dataset.c;})[0];if(!c)return;
       if(t.dataset.spec){c.specs=c.specs||{};c.specs[t.dataset.spec]=t.value.trim();save();sincronizar(c.id);}
-      if(t.dataset.field==="nombre"){c.nombre=t.value.trim()||TIPOS[c.tipo].nombre;save();renderResumen();}
+      if(t.dataset.field==="nombre"){c.nombre=t.value.trim()||TIPOS[c.tipo].nombre;save();renderResumen();sincronizar(c.id);
+        var art=t.closest("[data-comp]"),pn=art&&art.querySelector(".nombra");if(pn&&c.nombre!==TIPOS[c.tipo].nombre)pn.remove();}
     }
     if(t.name==="origen"){var f=t.form;f.moneda.value=t.value==="chile"?"CLP":"USD";}
     // Al cambiar entre «por pieza» y «del pedido completo», los precios ya escritos se convierten (no se reinterpretan).
@@ -654,7 +658,7 @@ navApp("cotizaciones");
       var bruto=(r.moneda==="USD"?"USD "+num(r.precio).toLocaleString("es-CL",{maximumFractionDigits:2}):clp(num(r.precio)));
       var nom=r.enlace&&/^https:\/\//.test(r.enlace)?'<a href="'+esc(r.enlace)+'" target="_blank" rel="noopener noreferrer nofollow">'+esc(r.proveedor)+'</a>':esc(r.proveedor);
       var env=r.envio_pendiente?' · envío según destino':'';
-      return '<div class="ref-p"><b>'+nom+'</b>'+(r.opciones?'<span class="pr-opc">'+esc(r.opciones)+'</span>':'')+
+      return '<div class="ref-p">'+(r.producto?'<b>'+esc(r.producto)+'</b><span class="sp">de '+nom+'</span>':'<b>'+nom+'</b>')+(r.opciones?'<span class="pr-opc">'+esc(r.opciones)+'</span>':'')+
         (r.tramos.length>1?'<span class="cif">Desde '+num(r.cantidad).toLocaleString("es-CL")+' u. · ≈ '+clp2(u)+' c/u en Chile'+env+'</span>'+escalera(r)
           :'<span class="cif">'+num(r.cantidad).toLocaleString("es-CL")+' u. · '+bruto+(u!=null?' · ≈ '+clp2(u)+' c/u en Chile':'')+env+'</span>')+
         (r.especificaciones?'<span class="sp">'+esc(r.especificaciones)+'</span>':'')+
@@ -674,7 +678,9 @@ navApp("cotizaciones");
   }
   // Lo que se muestra a la comunidad de un precio (sin cantidad ni monto, que no cambian después de compartir).
   function descripcion(q,c){
-    return {proveedor:(q.proveedor||"Sin nombre").slice(0,120),enlace:limpiarEnlace(q.enlace)||null,especificaciones:specsTexto(c),
+    // El producto que ve la comunidad es el nombre de la pieza (nunca el de la cotización, que puede ser el del proyecto).
+    var prod=(c.nombre||"").trim(),def=(TIPOS[c.tipo]||TIPOS.otro).nombre;
+    return {producto:prod&&prod!==def?prod.slice(0,120):null,proveedor:(q.proveedor||"Sin nombre").slice(0,120),enlace:limpiarEnlace(q.enlace)||null,especificaciones:specsTexto(c),
       opciones:(q.opciones||"").slice(0,300)||null,plazo:(q.plazo||"").slice(0,80)||null,envio_pendiente:!!q.envioPend};
   }
   function filaCompartida(x,c){

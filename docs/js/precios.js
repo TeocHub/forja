@@ -4,7 +4,7 @@ import { sb, esc, u, limite } from "./forja.js";
 import { nombrePieza } from "./piezas.js";
 
 // Campos que se leen de public.precios_comunidad (la columna autor no es legible).
-export const CAMPOS_PRECIO = "id,componente,proveedor,enlace,origen,moneda,cantidad,precio,envio,envio_pendiente,incluye_iva,especificaciones,opciones,grupo,plazo,revisado,creado_en";
+export const CAMPOS_PRECIO = "id,componente,proveedor,enlace,origen,moneda,cantidad,precio,envio,envio_pendiente,incluye_iva,especificaciones,opciones,grupo,plazo,revisado,creado_en,producto";
 
 // Quita del enlace lo que solo sirve para seguir visitas (utm, _pos, _sid…) y deja lo que elige el producto (como variant).
 const RASTREO = /^(utm_|_pos$|_sid$|_ss$|_psq$|_v$|fbclid$|gclid$|igshid$|mc_|ref$|ref_)/i;
@@ -70,7 +70,8 @@ export function talon(r, { mio = false, pieza = true, reportado = false } = {}) 
     ? '<a href="' + esc(r.enlace) + '" target="_blank" rel="noopener noreferrer nofollow">' + esc(r.proveedor) + "</a>" : esc(r.proveedor);
   const varios = (r.tramos || []).length > 1;
   return '<article class="pr-talon" data-precio="' + esc(r.id) + '">' +
-    '<header>' + (pieza ? '<small class="pr-pieza">' + esc(nombrePieza(r.componente)) + "</small>" : "") + "<b>" + enl + "</b>" +
+    '<header>' + (pieza ? '<small class="pr-pieza">' + esc(nombrePieza(r.componente)) + "</small>" : "") +
+      (r.producto ? "<b>" + esc(r.producto) + '</b><span class="pr-prov">de ' + enl + "</span>" : "<b>" + enl + "</b>") +
       (r.opciones ? '<span class="pr-opc">' + esc(r.opciones) + "</span>" : "") + "</header>" +
     (varios
       ? '<div class="pr-cifra"><span class="pr-uni" style="flex-basis:auto">Precio por pieza según cuántas pidas' + envioTxt(r) + "</span>" + escalera(r) + "</div>"
@@ -130,6 +131,8 @@ export const CSS_PRECIOS = `
 .pr-talon header{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pr-talon header b{font-family:var(--f-display);font-weight:800;font-stretch:105%;font-size:17px;line-height:1.2;overflow-wrap:anywhere}
 .pr-talon header a{color:var(--fg)}
+.pr-prov{font-size:14px;color:var(--muted)}
+.pr-prov a{color:var(--fg);font-weight:700}
 .pr-opc{font-size:13px;color:var(--fg);background:var(--suave);border-radius:6px;padding:3px 8px;margin-top:4px;align-self:flex-start;overflow-wrap:anywhere}
 .pr-tramos{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:4px;flex-basis:100%}
 .pr-tramos li{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:7px;padding:4px 7px;background:var(--bg)}

@@ -250,7 +250,7 @@ const papeletas = (rs, motivos) => '<div class="papeles">' + rs.map((r) => { con
     (sosp ? '<small class="sosp">Ojo: cuenta nueva o con reportes desestimados. Revisa con cuidado.</small>' : "") + "</div>"; }).join("") + "</div>";
 function casoPrecio(c, i) {
   const x = c.copia || {};
-  return '<article class="caso" data-precio="' + esc(c.precio) + '"><div class="caso-cab"><div><span class="ficha">Precio N.º ' + num(i + 1) + " · " + esc(nombrePieza(x.componente)) + " · " + c.reportes.length + (c.reportes.length === 1 ? " reporte" : " reportes") + "</span><h2>" + esc(x.proveedor || "Sin nombre") + "</h2></div>" +
+  return '<article class="caso" data-precio="' + esc(c.precio) + '"><div class="caso-cab"><div><span class="ficha">Precio N.º ' + num(i + 1) + " · " + esc(nombrePieza(x.componente)) + " · " + c.reportes.length + (c.reportes.length === 1 ? " reporte" : " reportes") + "</span><h2>" + (x.producto ? esc(x.producto) + " · " : "") + esc(x.proveedor || "Sin nombre") + "</h2></div>" +
     (c.existe ? '<span class="timbre tinta">Se muestra</span>' : '<span class="timbre">Ya no está</span>') + "</div>" +
     '<div class="carta">' + (x.opciones ? "Opciones: " + esc(x.opciones) + "\n" : "") +
       ((x.tramos || []).length > 1 ? "Tramos: " + x.tramos.map((t) => esc(Number(t.cantidad).toLocaleString("es-CL")) + "+ a " + esc(porUnidad({ moneda: x.moneda, cantidad: t.cantidad, precio: t.precio }))).join(" · ") + " c/u"
