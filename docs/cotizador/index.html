@@ -483,7 +483,7 @@ navApp("cotizaciones");
     var ps=Array.from(new Set(S.cotizaciones.filter(function(q){return q.compId===c.id&&q.paginas;}).map(function(q){return q.paginas;}))).sort(function(a,b){return a-b;});
     return '<label class="f pags-ctl">Páginas de tu '+(c.tipo==="comic"?"cómic":"libro")+(dup?' <span class="hint">('+esc(c.nombre)+')</span>':'')+
       '<input type="number" min="1" max="5000" step="1" inputmode="numeric" data-pags="'+c.id+'" value="'+(paginasPieza(c)||"")+'" placeholder="Ej.: 150">'+
-      (ps.length?'<span class="hint">Cotizaste '+ps.join(", ")+' páginas. Con otra cantidad, Forja estima entre las más cercanas.</span>':'')+'</label>';
+      (ps.length?'<span class="hint">Cotizaste '+(ps.length>1?ps.slice(0,-1).join(", ")+" y "+ps[ps.length-1]:ps[0])+' páginas. Con otra cantidad, Forja estima entre las más cercanas.</span>':'')+'</label>';
   }
   function piezasConPaginas(){return S.componentes.filter(function(c){return conPaginas(c)&&S.cotizaciones.some(function(q){return q.compId===c.id&&q.paginas;});});}
   function delGrupo(q){return q.grupo?S.cotizaciones.filter(function(x){return x.grupo===q.grupo;}):[q];}
