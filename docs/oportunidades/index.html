@@ -21,11 +21,32 @@
 header h1{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,5vw,44px);line-height:1.02;letter-spacing:-.03em;margin:0;text-wrap:balance}
 header p{margin:6px 0 0;color:var(--muted)}
 .meta{font-size:13px;color:var(--muted)}
-/* frase viva: lo que pasa ahora, en una frase (nunca un contador en 0) */
-.viva{font-family:var(--f-display);font-stretch:var(--ancho);font-weight:700;font-size:20px;line-height:1.3;margin:0;max-width:44ch;text-wrap:pretty;min-height:2.6em}
-.viva b{font-weight:800}
-.viva .n{white-space:nowrap;font-variant-numeric:tabular-nums}
-.viva .y{display:block;margin-top:4px;font-family:var(--f-body);font-stretch:100%;font-weight:400;font-size:15px;color:var(--muted)}
+/* lo que viene: una regla de días desde hoy; cada fecha cuelga en su día como un talón (cierra, abre o evento). Se desliza en el celular. */
+.proximo{display:flex;flex-direction:column;gap:6px}
+.px-cab{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.px-cab h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0}
+.px-ley{display:flex;gap:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.px-ley span{display:inline-flex;align-items:center;gap:6px}
+.px-ley i{width:9px;height:9px;border-radius:50%;background:var(--k)}
+.px-riel{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;margin:0 -4px;padding:4px 4px 2px}
+.px-regla{position:relative;min-width:680px;height:var(--alto,140px)}
+.px-linea{position:absolute;left:0;right:0;bottom:30px;height:2px;background:var(--fg);border-radius:2px}
+.px-marca{position:absolute;bottom:32px;width:1.5px;height:7px;background:var(--fg);transform:translateX(-50%)}
+.px-marca.mes{height:13px}
+.px-mes{position:absolute;bottom:6px;transform:translateX(-50%);font-family:var(--f-num);font-size:12px;color:var(--muted);white-space:nowrap}
+.px-mes.hoy{transform:none;color:var(--fg);font-weight:700}
+.px-tallo{position:absolute;width:1.5px;background:var(--k);bottom:32px;transform:translateX(-50%);opacity:.55}
+.px-punto{position:absolute;bottom:27px;width:9px;height:9px;border-radius:50%;background:var(--k);border:2px solid var(--bg);transform:translateX(-50%);box-sizing:content-box}
+.px-talon{position:absolute;display:flex;flex-direction:column;justify-content:center;min-height:44px;max-width:min(240px,62vw);padding:4px 10px;background:var(--card);border:1px solid var(--line);border-top:3px solid var(--k);border-radius:4px;text-decoration:none;color:var(--fg);line-height:1.2}
+.px-talon:hover{border-color:var(--fg);border-top-color:var(--k)}
+.px-talon b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.px-talon small{font-size:12px;color:var(--muted);white-space:nowrap}
+.px-talon small em{font-style:normal;font-family:var(--f-num);color:var(--k);font-weight:700}
+.px-vacio{font-size:15px;color:var(--muted);margin:4px 0 0}
+.px-regla.vacia{min-width:0;height:auto}
+.k-cierra{--k:var(--soon)} .k-abre{--k:var(--wait)} .k-evento{--k:var(--fg)} .k-curso{--k:var(--open)}
+.item:target,.item.visto{outline:2px solid var(--fg);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:0 14px;min-height:44px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
@@ -56,7 +77,7 @@ dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:10px 0
 dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
 .empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:24px;color:var(--muted);text-align:center}
 .legend{font-size:13px;color:var(--muted)}
-@media (max-width:560px){.viva{font-size:18px}.clocks{grid-template-columns:1fr}.toggle{margin-left:0}dl{grid-template-columns:1fr}dt{margin-top:6px}}
+@media (max-width:560px){.clocks{grid-template-columns:1fr}.toggle{margin-left:0}dl{grid-template-columns:1fr}dt{margin-top:6px}}
 .logo{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em}
 </style>
 <link rel="stylesheet" href="../css/forja.css">
@@ -71,7 +92,11 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
     <div class="meta" id="meta">Cargando…</div>
   </header>
 
-  <p class="viva" id="viva" aria-live="polite">Revisando las fechas…</p>
+  <section class="proximo" aria-labelledby="px-t">
+    <div class="px-cab"><h2 id="px-t">Lo que viene</h2><div class="px-ley" id="px-ley" aria-hidden="true"></div></div>
+    <p class="sr" id="viva" aria-live="polite">Revisando las fechas…</p>
+    <div class="px-riel" id="px-riel"><div class="px-regla" id="px-regla"></div></div>
+  </section>
 
   <div class="filters" role="group" aria-label="Filtrar por área">
     <button class="chip" data-area="" aria-pressed="true" id="f-all">Todo</button>
@@ -127,32 +152,73 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
   function sortKey(p,e){var c=[];if(p.next)c.push(+p.next);if(e.next)c.push(+e.next);return c.length?Math.min.apply(null,c):9e15;}
 
   function enDias(n,est){return n===0?"hoy":n===1?"mañana":(est?"en unos ":"en ")+n+" días";}
-  function fraseViva(rows){
-    function nom(r){return "<b>"+esc(r.it.nombre)+"</b>";}
-    function cuando(n,est){return '<span class="n">'+enDias(n,est)+"</span>";}
-    var ab=rows.filter(function(r){return r.p.k==="open"&&r.p.left!=null;}).sort(function(a,b){return a.p.left-b.p.left;});
-    var ev=rows.filter(function(r){return r.e.k==="future"&&r.e.left<=90;}).length;
-    var y=ev?'<span class="y">'+(ev===1?"Hay un evento":"Hay "+ev+" eventos")+" en los próximos tres meses.</span>":"";
-    if(ab.length){
-      var o=ab[0],hot=ab.filter(function(r){return r.p.left<=14;}).length;
-      if(ab.length===1)return "Hay una postulación abierta: "+nom(o)+", cierra "+cuando(o.p.left)+"."+y;
-      return "Hay "+ab.length+" postulaciones abiertas; la primera en cerrar es "+nom(o)+", "+cuando(o.p.left)+"."+(hot>1?" "+hot+" cierran en dos semanas.":"")+y;
+  // Fechas que vienen: cierres de postulaciones abiertas, aperturas y eventos (y los eventos en curso, en «hoy»).
+  function proximas(rows){
+    var f=[];
+    rows.forEach(function(r){
+      var est=!!r.it.fechas_estimadas;
+      if(r.p.k==="open"&&r.p.left!=null)f.push({r:r,n:r.p.left,k:"cierra",q:"cierra",est:false});
+      if(r.p.k==="wait")f.push({r:r,n:diff(r.p.next),k:"abre",q:"abre",est:est});
+      if(r.e.k==="future")f.push({r:r,n:r.e.left,k:"evento",q:"evento",est:est});
+      if(r.e.k==="now")f.push({r:r,n:0,k:"curso",q:"en curso",est:false});
+    });
+    return f.sort(function(a,b){return a.n-b.n||(a.k==="curso"?-1:1);});
+  }
+  function fraseViva(rows,f){
+    var ab=f.filter(function(x){return x.k==="cierra";});
+    if(ab.length)return (ab.length===1?"Hay una postulación abierta":"Hay "+ab.length+" postulaciones abiertas")+"; la primera cierra "+enDias(ab[0].n)+": "+ab[0].r.it.nombre+".";
+    var x=f.filter(function(x){return x.k!=="curso";})[0];
+    return "Ahora no hay postulaciones abiertas"+(x?"; la próxima fecha es "+x.r.it.nombre+", "+enDias(x.n,x.est)+".":".");
+  }
+  var MESL=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  function pintarRegla(rows){
+    var f=proximas(rows),reg=document.getElementById("px-regla");
+    document.getElementById("viva").textContent=fraseViva(rows,f);
+    var lejos=f.filter(function(x){return x.k!=="curso";});
+    // 90 días; si no hay nada en ese plazo, se estira hasta la próxima fecha (máximo un año)
+    var rango=90;if(lejos.length&&lejos[0].n>80)rango=Math.min(365,lejos[0].n+21);
+    f=f.filter(function(x){return x.n<=rango;});
+    reg.classList.toggle("vacia",!f.length);if(!f.length)document.getElementById("px-ley").innerHTML="";
+    if(!f.length){reg.innerHTML='<p class="px-vacio">No hay fechas en los próximos meses. Abajo están todas, también las que ya pasaron.</p>';return;}
+    var pct=function(n){return (n/rango*100)+"%";},h="",t=today();
+    h+='<div class="px-linea"></div><span class="px-mes hoy" style="left:0">hoy</span>';
+    for(var d=1;d<=rango;d++){
+      var dia=new Date(t.getFullYear(),t.getMonth(),t.getDate()+d);
+      if(dia.getDate()===1){h+='<span class="px-marca mes" style="left:'+pct(d)+'"></span>';if(d>6&&d<rango-4)h+='<span class="px-mes" style="left:'+pct(d)+'">'+MESL[dia.getMonth()]+'</span>';}
+      else if(rango<=120&&dia.getDay()===1)h+='<span class="px-marca" style="left:'+pct(d)+'"></span>';
     }
-    var prox=[];
-    rows.forEach(function(r){if(r.p.k==="wait")prox.push({r:r,n:diff(r.p.next),abre:true});if(r.e.k==="future")prox.push({r:r,n:r.e.left});});
-    prox.sort(function(a,b){return a.n-b.n;});
-    var ahora=rows.filter(function(r){return r.e.k==="now";});
-    var ini=ahora.length?"Ahora no hay postulaciones abiertas, pero "+nom(ahora[0])+" está en curso. ":"Ahora no hay postulaciones abiertas; ";
-    if(!prox.length)return ahora.length?ini+y:"Ahora no hay postulaciones abiertas ni fechas próximas."+y;
-    var x=prox[0];
-    return ini+(ahora.length?"La próxima":"la próxima")+(x.abre?" en abrir es ":" fecha es ")+nom(x.r)+", "+cuando(x.n,x.r.it.fechas_estimadas)+"."+y;
+    h+=f.map(function(x,i){
+      var cuando=x.k==="curso"?"ahora":(x.n===0?"hoy":(x.est?"≈":"")+x.n+(x.n===1?" día":" días"));
+      return '<span class="px-tallo k-'+x.k+'" data-i="'+i+'" style="left:'+pct(x.n)+'"></span><span class="px-punto k-'+x.k+'" style="left:'+pct(x.n)+'"></span>'+
+        '<a class="px-talon k-'+x.k+'" data-i="'+i+'" title="'+esc(x.r.it.nombre)+'" href="#op-'+esc(x.r.it.id)+'" data-id="'+esc(x.r.it.id)+'" style="left:'+pct(x.n)+'"><b>'+esc(x.r.it.nombre)+'</b><small>'+x.q+' · <em>'+cuando+'</em></small></a>';
+    }).join("");
+    reg.innerHTML=h;
+    var LEY={curso:"En curso",cierra:"Cierra la postulación",abre:"Abre la postulación",evento:"Evento"};
+    document.getElementById("px-ley").innerHTML=Object.keys(LEY).filter(function(k){return f.some(function(x){return x.k===k;});}).map(function(k){return '<span class="k-'+k+'"><i></i>'+LEY[k]+'</span>';}).join("");
+    acomodar(reg);
+  }
+  // Pone cada talón en la primera fila libre (de abajo hacia arriba) para que no se encimen.
+  function acomodar(reg){
+    var W=reg.clientWidth,tal=[].slice.call(reg.querySelectorAll(".px-talon")),filas=[],FILA=52,BASE=48;
+    tal.forEach(function(el){
+      var x=parseFloat(el.style.left)/100*W,w=el.offsetWidth,ini=Math.min(x,W-w),f=0;
+      while(filas[f]!=null&&filas[f]>ini-8)f++;
+      filas[f]=ini+w;el.style.left=ini+"px";el.dataset.f=f;
+    });
+    var n=Math.max(1,filas.length),alto=BASE+n*FILA;
+    reg.style.setProperty("--alto",alto+"px");
+    tal.forEach(function(el){
+      var f=+el.dataset.f,arriba=(n-1-f)*FILA;el.style.top=arriba+"px";
+      var tallo=reg.querySelector('.px-tallo[data-i="'+el.dataset.i+'"]');
+      if(tallo)tallo.style.height=(alto-32-arriba-el.offsetHeight)+"px";
+    });
   }
   function render(){
     document.querySelectorAll(".chip").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.area===state.area));});
     document.getElementById("f-tipo").value=state.tipo;
     document.getElementById("f-past").checked=state.hidePast;
     var rows=items.map(function(it){var p=postul(it),e=evento(it);return {it:it,p:p,e:e,key:sortKey(p,e),done:finished(it,p,e)};});
-    if(items.length)document.getElementById("viva").innerHTML=fraseViva(rows);
+    if(items.length)pintarRegla(rows);
     var vis=rows.filter(function(r){
       if(state.area&&(r.it.areas||[]).indexOf(state.area)<0)return false;
       if(state.tipo&&r.it.tipo!==state.tipo)return false;
@@ -168,12 +234,21 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
       var tags='<span class="tag tipo">'+esc(TIPO[it.tipo]||it.tipo)+'</span>'+(it.areas||[]).map(function(a){return '<span class="tag">'+esc(AREA[a]||a)+'</span>';}).join("")+(it.fechas_estimadas?'<span class="tag est">Fechas estimadas</span>':'');
       var det=[["Premio o apoyo",it.premio],["Costo",it.costo],["Requisitos",it.requisitos],["Qué llevar o preparar",it.que_llevar],["Lugar",it.lugar],["Notas",it.notas]].filter(function(x){return x[1];}).map(function(x){return "<dt>"+x[0]+"</dt><dd>"+esc(x[1])+"</dd>";}).join("");
       if(it.fuente)det+='<dt>Fuente</dt><dd><a href="'+esc(it.fuente)+'" target="_blank" rel="noopener">'+esc(it.fuente.replace(/^https?:\/\/(www\.)?/,"").split("/")[0])+'</a>'+(it.revisado?' · revisado '+esc(it.revisado):'')+'</dd>';
-      return '<article class="item '+s+'"><div class="top">'+tags+'</div><div><h2>'+esc(it.nombre)+'</h2><div class="org">'+esc(it.organiza||"")+'</div></div>'+
+      return '<article class="item '+s+'" id="op-'+esc(it.id)+'" tabindex="-1"><div class="top">'+tags+'</div><div><h2>'+esc(it.nombre)+'</h2><div class="org">'+esc(it.organiza||"")+'</div></div>'+
         '<div class="clocks"><div class="clock '+p.cls+'"><div class="lbl">Postulación</div><div class="big">'+esc(p.big)+'</div><div class="dates">'+esc(p.dates)+'</div></div>'+
         '<div class="clock '+e.cls+'"><div class="lbl">Evento</div><div class="big">'+esc(e.big)+'</div><div class="dates">'+esc(e.dates)+'</div></div></div>'+
         (det?'<details><summary>Ver premios, requisitos y detalles</summary><dl>'+det+'</dl></details>':'')+'</article>';
     }).join("");
   }
+  document.getElementById("px-regla").addEventListener("click",function(ev){
+    var a=ev.target.closest(".px-talon");if(!a)return;ev.preventDefault();
+    var id="op-"+a.dataset.id;
+    if(!document.getElementById(id)){state.area="";state.tipo="";save();render();}
+    var el=document.getElementById(id);if(!el)return;
+    document.querySelectorAll(".item.visto").forEach(function(x){x.classList.remove("visto");});
+    el.classList.add("visto");el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});el.focus({preventScroll:true});
+  });
+  var rz;addEventListener("resize",function(){clearTimeout(rz);rz=setTimeout(function(){var r=document.getElementById("px-regla");if(r.children.length){render();}},150);});
   function save(){try{localStorage.setItem("radar-f",JSON.stringify(state));}catch(e){}}
   document.querySelectorAll(".chip").forEach(function(b){b.addEventListener("click",function(){state.area=b.dataset.area;save();render();});});
   document.getElementById("f-tipo").addEventListener("change",function(ev){state.tipo=ev.target.value;save();render();});
@@ -191,7 +266,7 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
   var met=getJ(SB+"meta?clave=eq.estado&select=*",KEYH).then(function(a){return a&&a[0]||null;}).catch(function(){return getJ("../data/meta.json",{cache:"no-cache"}).catch(function(){return null;});});
   Promise.all([opp,met])
     .then(function(res){items=(res[0]||[]).map(function(o){Object.keys(o).forEach(function(k){if(o[k]===null)delete o[k];});return o;});metaDoc=res[1];if(metaDoc&&metaDoc.ultima_revision){var d=pd(metaDoc.ultima_revision);if(d)metaDoc.ultima_revision=fmt(d);}render();renderMeta();})
-    .catch(function(){document.getElementById("viva").textContent="Las fechas no cargaron.";document.getElementById("list").innerHTML='<div class="empty">No se pudieron cargar los datos. Revisa tu conexión y recarga la página.</div>';document.getElementById("meta").textContent="";});
+    .catch(function(){document.getElementById("viva").textContent="Las fechas no cargaron.";document.getElementById("px-regla").innerHTML="";document.getElementById("list").innerHTML='<div class="empty">No se pudieron cargar los datos. Revisa tu conexión y recarga la página.</div>';document.getElementById("meta").textContent="";});
   setInterval(render,36e5);
 })();
 </script>
