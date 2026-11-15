@@ -22,11 +22,11 @@ button{cursor:pointer}
 :where(button,select,input,textarea,a,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hint{font-size:13px;color:var(--muted)}
 #app{display:flex;flex-direction:column;gap:18px}
-.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 14px;min-height:40px;font-size:14px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 14px;min-height:44px;font-size:14px}
 .btn:hover{border-color:var(--fg)}
 .btn.prim{background:var(--btn);border-color:var(--btn);color:var(--btn-tx);font-weight:700}
 .btn.peligro{color:var(--bad)}
-.btn.chico{padding:3px 11px;min-height:34px;font-size:13px}
+.btn.chico{padding:3px 12px;min-height:44px;font-size:13px}
 .vol{font-size:14px;text-decoration:none}
 
 /* costado: la F de avance y las cinco partes */
@@ -82,9 +82,7 @@ button{cursor:pointer}
 .eq-fila{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;border:1px dashed var(--line);border-radius:12px;padding:8px 12px;font-size:14px}
 .eq-que{color:var(--muted)}.eq-que b{color:var(--fg)}
 .eq-presencia{display:inline-flex;align-items:center;gap:6px;color:var(--good);font-size:13.5px}
-.eq-presencia i{width:8px;height:8px;border-radius:50%;background:var(--good);animation:eqlat 2s ease-in-out infinite}
-@keyframes eqlat{50%{opacity:.35}}
-@media (prefers-reduced-motion:reduce){.eq-presencia i{animation:none}}
+.eq-presencia i{width:8px;height:8px;border-radius:50%;background:var(--good)}
 .eq-acc{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
 .eq-conf{flex-basis:100%;display:flex;flex-direction:column;gap:10px;padding-top:6px}
 .eq-conf[hidden]{display:none}
@@ -148,7 +146,7 @@ button.ar-chip{cursor:pointer}
 .sigue .btn{background:transparent;color:var(--btn-tx);border-color:color-mix(in srgb,var(--btn-tx) 45%,transparent)}
 .sigue .btn.prim{background:var(--btn-tx);color:var(--btn);border-color:var(--btn-tx)}
 .sg-acc{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.sg-x{border:0;background:none;color:inherit;opacity:.75;font-size:22px;line-height:1;min-width:40px;min-height:40px;border-radius:8px}
+.sg-x{border:0;background:none;color:inherit;opacity:.75;font-size:22px;line-height:1;min-width:44px;min-height:44px;border-radius:8px}
 .sg-x:hover{opacity:1;background:color-mix(in srgb,var(--btn-tx) 12%,transparent)}
 .ruta{margin-top:14px;display:flex;flex-direction:column;gap:14px}
 .rt-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 18px}

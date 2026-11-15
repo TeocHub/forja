@@ -126,10 +126,10 @@ h1,h2,h3{font-weight:800;letter-spacing:-.02em}
 .vitrina{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:28px;align-items:start}
 @media (max-width:860px){.vitrina{grid-template-columns:minmax(0,1fr)}}
 .vitrina h2{font-size:clamp(28px,4.5vw,40px);line-height:1.05}
-.big{display:flex;gap:22px;margin:18px 0}
-.big div b{display:block;font-family:var(--f-num);font-size:44px;line-height:1}
-.big div span{font-size:13px;color:var(--muted)}
-.big .hot b{color:var(--cat)}
+/* frase viva: lo que pasa ahora con las oportunidades, en una frase (nunca un contador en 0) */
+.viva{font-family:var(--f-display);font-stretch:var(--ancho);font-weight:700;font-size:20px;line-height:1.3;margin:18px 0;max-width:30ch;text-wrap:pretty;min-height:2.6em}
+.viva b{font-weight:800}
+.viva .n{white-space:nowrap;font-variant-numeric:tabular-nums}
 .carril{display:grid;gap:10px}
 .op{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-decoration:none;color:var(--fg)}
 .op:hover{border-color:var(--fg)}
@@ -175,7 +175,9 @@ h1,h2,h3{font-weight:800;letter-spacing:-.02em}
 .cierre h2{font-size:clamp(26px,4vw,36px);line-height:1.1;margin-bottom:12px}
 .cierre p{margin:0;opacity:.8;max-width:60ch}
 .cierre .cta.main{background:var(--btn-tx);border-color:var(--btn-tx);color:var(--btn);white-space:nowrap}
-footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
+footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between;align-items:center}
+footer span:last-child{display:flex;flex-wrap:wrap;align-items:center;column-gap:10px;margin-left:-6px}
+footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 @media (prefers-reduced-motion:reduce){.parada .pto,.hero h1 em{transition:none}}
 </style>
 </head>
@@ -210,7 +212,7 @@ footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:
     <div>
       <span class="kicker">Abierto para todos</span>
       <h2 id="vit-t" style="margin-top:8px">Ferias, fondos y convocatorias en Chile.</h2>
-      <div class="big"><div><b id="n-open">–</b><span>postulaciones abiertas</span></div><div class="hot"><b id="n-hot">–</b><span>cierran en dos semanas</span></div></div>
+      <p class="viva" id="viva" aria-live="polite">Revisando las fechas…</p>
       <p style="color:var(--muted);margin:0 0 14px">Se revisan cada mañana en fuentes oficiales. No necesitas cuenta para verlas; con cuenta, cada proyecto te sugiere a cuáles presentarte y Eventos te muestra las fechas.</p>
       <a class="cta alt" href="oportunidades/">Ver todas</a>
     </div>
@@ -236,7 +238,7 @@ footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:
     <a class="cta main" href="entrar/">Plantar mi primera idea</a>
   </section>
 
-  <footer><span>forja · un taller para crear, hecho en Chile</span><span><a href="guia/">Guía</a> · <a href="terminos/">Términos</a> · <a href="privacidad/">Privacidad</a> · <a href="normas/">Normas</a> · <a href="documentos/">Documentos</a> · <a href="boletin/">Boletín</a></span></footer>
+  <footer><span>forja · un taller para crear, hecho en Chile</span><span><a href="guia/">Guía</a><a href="terminos/">Términos</a><a href="privacidad/">Privacidad</a><a href="normas/">Normas</a><a href="documentos/">Documentos</a><a href="boletin/">Boletín</a></span></footer>
 </div>
 
 <script type="module">
@@ -336,18 +338,34 @@ $("planes").innerHTML =
 const SB = "https://gfkiwldxxvffnkjcesws.supabase.co/rest/v1/", H = { headers: { apikey: "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j" } };
 const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
 const dd = (s) => { if (!s) return null; const [y, m, d] = s.split("-"); return Math.round((new Date(+y, m - 1, +d) - hoy) / 864e5); };
-fetch(SB + "oportunidades?select=nombre,tipo,organiza,postul_inicio,postul_fin,evento_inicio,fechas_estimadas", H).then((r) => { if (!r.ok) throw 0; return r.json(); })
+const enDias = (n, est) => n === 0 ? "hoy" : n === 1 ? "mañana" : (est ? "en unos " : "en ") + n + " días";
+function fraseViva(ops, abiertas) {
+  const nom = (o) => "<b>" + esc(o.nombre) + "</b>", n = (o, k) => '<span class="n">' + enDias(dd(o[k]), o.fechas_estimadas) + "</span>";
+  if (abiertas.length) {
+    const o = abiertas[0], hot = abiertas.filter((x) => dd(x.postul_fin) <= 14).length;
+    if (abiertas.length === 1) return "Hay una postulación abierta: " + nom(o) + ", cierra " + n(o, "postul_fin") + ".";
+    return "Hay " + abiertas.length + " postulaciones abiertas; la primera en cerrar es " + nom(o) + ", " + n(o, "postul_fin") + "." + (hot > 1 ? " " + hot + " cierran en dos semanas." : "");
+  }
+  const prox = [];
+  ops.forEach((o) => { if (dd(o.postul_inicio) > 0) prox.push({ o, k: "postul_inicio" }); if (dd(o.evento_inicio) > 0) prox.push({ o, k: "evento_inicio" }); });
+  prox.sort((a, b) => dd(a.o[a.k]) - dd(b.o[b.k]));
+  const ahora = ops.filter((o) => o.evento_inicio && dd(o.evento_inicio) <= 0 && dd(o.evento_fin || o.evento_inicio) >= 0);
+  const ini = ahora.length ? "Ahora no hay postulaciones abiertas, pero " + nom(ahora[0]) + " está en curso. " : "Ahora no hay postulaciones abiertas; ";
+  if (!prox.length) return ahora.length ? ini.trim() : "Ahora no hay postulaciones abiertas ni fechas próximas.";
+  const { o, k } = prox[0];
+  return ini + (ahora.length ? "La próxima" : "la próxima") + (k === "postul_inicio" ? " en abrir es " : " fecha es ") + nom(o) + ", " + n(o, k) + ".";
+}
+fetch(SB + "oportunidades?select=nombre,tipo,organiza,postul_inicio,postul_fin,evento_inicio,evento_fin,fechas_estimadas", H).then((r) => { if (!r.ok) throw 0; return r.json(); })
   .catch(() => fetch("data/oportunidades.json").then((r) => r.json()))
   .then((ops) => {
     const abiertas = ops.filter((o) => { const a = dd(o.postul_inicio), b = dd(o.postul_fin); return b != null && b >= 0 && (a == null || a <= 0); }).sort((a, b) => dd(a.postul_fin) - dd(b.postul_fin));
-    $("n-open").textContent = abiertas.length;
-    $("n-hot").textContent = abiertas.filter((o) => dd(o.postul_fin) <= 14).length;
+    $("viva").innerHTML = fraseViva(ops, abiertas);
     let carril = abiertas.slice(0, 4).map((o) => ({ o, n: dd(o.postul_fin), q: "para postular" }));
     if (carril.length < 4) carril = carril.concat(ops.filter((o) => dd(o.evento_inicio) > 0 && !abiertas.includes(o)).sort((a, b) => dd(a.evento_inicio) - dd(b.evento_inicio)).slice(0, 4 - carril.length).map((o) => ({ o, n: dd(o.evento_inicio), q: "para el evento" })));
     const TIPO = { fondo: "Fondo", feria: "Feria", convocatoria: "Convocatoria" };
     $("carril").innerHTML = carril.length ? carril.map(({ o, n, q }) => '<a class="op' + (n <= 14 ? " hot" : "") + '" href="oportunidades/"><div class="dias"><b>' + (o.fechas_estimadas ? "≈" : "") + n + "</b><small>" + (n === 1 ? "día" : "días") + "</small></div><div><h3>" + esc(o.nombre) + "</h3><p>" + esc(TIPO[o.tipo] || "") + (o.organiza ? " · " + esc(o.organiza) : "") + " · " + q + "</p></div></a>").join("")
       : '<div class="fx-empty">Ahora no hay convocatorias abiertas. Revisa el calendario completo.</div>';
-  }).catch(() => { $("carril").innerHTML = '<div class="fx-empty">No se pudieron cargar las oportunidades.</div>'; });
+  }).catch(() => { $("viva").textContent = "Las fechas no cargaron; revisa el calendario completo."; $("carril").innerHTML = '<div class="fx-empty">No se pudieron cargar las oportunidades.</div>'; });
 </script>
 </body>
 </html>

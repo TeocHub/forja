@@ -129,7 +129,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .fx-pronto.listo .fx-pronto-tag{color:var(--good)}
 .fx-pronto.listo .libre{font-size:13px;color:var(--fg);border-top:1px dashed var(--line);padding-top:6px;margin-top:2px}
 .fx-pronto.chico b{font-size:14px}
-.fx-avisame{align-self:flex-start;font:inherit;font-size:14px;font-weight:700;border:1px solid var(--fg);color:var(--fg);background:transparent;border-radius:10px;padding:0 14px;min-height:40px;cursor:pointer;margin-top:2px}
+.fx-avisame{align-self:flex-start;font:inherit;font-size:14px;font-weight:700;border:1px solid var(--fg);color:var(--fg);background:transparent;border-radius:10px;padding:0 14px;min-height:44px;cursor:pointer;margin-top:2px}
 .fx-avisame[aria-pressed="true"]{background:var(--btn);color:var(--btn-tx);border-color:var(--btn)}
 .fx-avisame:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 

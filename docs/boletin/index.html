@@ -34,8 +34,8 @@ body{font-size:16px;line-height:1.55}
 /* la carta */
 .carta{position:relative;background:#fffdf8;color:#1a1d29;border-radius:6px;padding:30px clamp(20px,4vw,34px) 26px;box-shadow:0 1px 0 #e3e1da,0 18px 40px -18px rgba(22,26,38,.35);transform:rotate(.6deg)}
 .carta::before{content:"";position:absolute;inset:10px;border:1px dashed #e3e1da;border-radius:3px;pointer-events:none}
-.c-sello{position:absolute;top:18px;right:20px;width:62px;height:62px;border-radius:50%;border:2px solid var(--ember);color:var(--ember);display:grid;place-items:center;text-align:center;font-family:var(--f-num);font-size:9.5px;line-height:1.2;letter-spacing:.06em;transform:rotate(-12deg);opacity:.85}
-.c-de{font-family:var(--f-num);font-size:12px;color:#6b7080;margin:0 0 4px}
+.c-sello{position:absolute;top:18px;right:20px;width:84px;height:84px;border-radius:50%;border:2px solid #3a3a3a;color:#3a3a3a;display:grid;place-items:center;text-align:center;font-family:var(--f-num);font-size:12px;font-weight:700;line-height:1;letter-spacing:.08em;transform:rotate(-8deg)}
+.c-de{font-family:var(--f-num);font-size:12px;color:#6b7080;margin:0 0 4px;padding-right:96px;overflow-wrap:anywhere}
 .c-marca{font-family:var(--f-display);font-weight:700;font-size:24px;margin:0 0 18px}
 .c-sec{border-top:1px solid #e9e6de;padding-top:14px;margin-top:16px}
 .c-sec h2{font-family:var(--f-display);font-size:16px;margin:0 0 8px}
@@ -43,7 +43,7 @@ body{font-size:16px;line-height:1.55}
 .c-fila{display:flex;justify-content:space-between;gap:14px;padding:6px 0;border-bottom:1px solid #f0ede6;font-size:14.5px}
 .c-fila:last-child{border-bottom:0}
 .c-fila span:last-child{color:#6b7080;white-space:nowrap;font-family:var(--f-num);font-size:12.5px;padding-top:2px}
-.c-pie{margin-top:18px;font-size:12px;color:#8a8f9c}
+.c-pie{margin-top:18px;font-size:13px;color:#575757}
 @media (prefers-reduced-motion:no-preference){.carta{transition:transform .4s ease}.carta:hover{transform:rotate(0)}}
 </style>
 </head>
@@ -59,7 +59,7 @@ body{font-size:16px;line-height:1.55}
       <div class="b-accion" id="accion"></div>
     </section>
     <article class="carta" aria-label="Así se ve el boletín">
-      <div class="c-sello">MUES<br>TRA</div>
+      <div class="c-sello">MUESTRA</div>
       <p class="c-de">De: Forja &lt;forja@digitalmonster.cl&gt;</p>
       <p class="c-marca">Forja</p>
       <div class="c-sec"><h2>Novedades de Forja</h2><p>Las herramientas nuevas y los cambios, contados en corto.</p></div>
