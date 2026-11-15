@@ -610,10 +610,14 @@ dialog.an-d::backdrop{background:var(--velo)}
 .es-comp select{border:1px solid var(--line);background:var(--card);border-radius:var(--r-s);padding:5px 8px}
 
 /* brújula */
-.brujula{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:center}
+.brujula{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
 @media (max-width:760px){.brujula{grid-template-columns:minmax(0,1fr)}}
-.leyenda-b{display:flex;justify-content:center;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:10px 0 0}
-.leyenda-b i{display:inline-block;width:0;height:0;border:5px solid transparent;border-bottom:6px solid var(--muted);border-top:0}
+.bru-der{display:flex;flex-direction:column;gap:10px;align-items:center}
+.brujula .radar{max-height:min(46vh,360px)}
+.brujula .dial{max-height:min(42vh,340px)}
+.leyenda-b{display:flex;justify-content:center;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:0}
+.leyenda-b i{display:inline-block;width:18px;height:0;border-top:1.5px solid var(--muted)}
+.leyenda-b[hidden]{display:none}
 .veredicto{font-size:15px;max-width:58ch;margin:0 auto;text-align:center}
 .formatos{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .formatos button{border:1px solid var(--line);background:var(--card);border-radius:var(--r-m);padding:5px 12px;font-size:15px;display:inline-flex;gap:6px;align-items:baseline}
@@ -666,7 +670,7 @@ dialog.an-d::backdrop{background:var(--velo)}
 import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, tope, NOMBRE_PLAN, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen, equipo, ico, fAvance, chispa, colorDe, timbrar } from "../js/forja.js";
 import { funcion, tarjetaFuncion, pendientes } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
-import { FORMATOS, balanzas, dial, veredicto, lectura, tocado, sinRumbo, perfil, CSS_BRUJULA } from "../js/brujula.js";
+import { FORMATOS, brujula as brujulaRadar, dial, veredicto, lectura, tocado, sinRumbo, perfil, CSS_BRUJULA } from "../js/brujula.js";
 import { montar, MODOS, cuentaTarjetas, normal as normalPiz, CSS_PIZARRA } from "../js/pizarra.js";
 import { pista, abrirTemasEquipo, icono } from "../js/ayuda.js";
 import * as R from "../js/ruta.js";
@@ -763,7 +767,7 @@ function armar() {
     '<a class="vol" href="../proyectos/">← Proyectos</a>' +
     '<div class="proy" style="--tc:' + tc(P.tipo) + '"><aside class="lado" aria-label="Partes del proyecto"><div class="lado-f" id="lado-f"></div><div class="partes" role="tablist" id="tabs" aria-label="Partes del proyecto" aria-orientation="vertical"></div></aside><div class="cuerpo">' +
     '<section class="cabeza" id="cabeza" style="--tc:' + tc(P.tipo) + ";--ec:var(--e-" + P.estado + ')">' +
-    '<div class="cab-sup"><label class="fx-etq etq-sel" id="etq-tipo" style="--tc:' + tc(P.tipo) + '"><span class="fx-sr">Categoría</span><select id="f-tipo">' + Object.entries(TIPOS).map(([k, n]) => '<option value="' + k + '"' + (k === P.tipo ? " selected" : "") + ">" + n + "</option>").join("") + "</select></label>" +
+    '<div class="cab-sup"><label class="fx-etq etq-sel" id="etq-tipo" style="--tc:' + tc(P.tipo) + '"><span class="fx-sr">Categoría</span><select id="f-tipo">' + Object.entries(TIPOS).map(([k, n]) => '<option value="' + k + '"' + (k === P.tipo ? " selected" : "") + ">" + (k === "otro" && sinDecidir() ? "Por decidir" : n) + "</option>").join("") + "</select></label>" +
     '<label class="sel" id="w-formato"><span>Formato</span><select id="f-formato"></select></label></div>' +
     '<div class="cab-tit"><label class="fx-sr" for="f-nombre">Nombre del proyecto</label><input class="nombre" id="f-nombre" maxlength="160" value="' + esc(P.nombre) + '"><div class="avance-w" id="avance-w"></div></div>' +
     '<div class="estado-w"><div class="estados" role="radiogroup" aria-label="Estado del proyecto">' + Object.entries(ESTADOS).map(([k, n]) => '<button type="button" role="radio" class="e-' + k + '" data-est="' + k + '" aria-checked="' + (k === P.estado) + '">' + n + "</button>").join("") + "</div></div>" +
@@ -1136,12 +1140,17 @@ function pintarAvance() {
 // El color del proyecto sigue a su categoría: la chispa, las marcas de la F, la etiqueta y la mesa.
 function tenir(t) {
   colorDe(t);
+  const ot = $("f-tipo") && $("f-tipo").querySelector('option[value="otro"]'); if (ot) ot.textContent = sinDecidir() ? "Por decidir" : TIPOS.otro;
   document.querySelectorAll(".proy, #cabeza, #etq-tipo, #mesa").forEach((el) => el.style.setProperty("--tc", tc(t)));
   pintarLado();
 }
 // Cambiar de categoría: si el formato ya no calza se suelta, y el Taller sugiere las secciones nuevas.
+// Un proyecto plantado con «Aún no lo sé» nace como «otro» con ruta.porDecidir; elegir categoría o formato lo decide.
+const sinDecidir = () => !!(P.ruta && P.ruta.porDecidir);
+const rutaDecidida = () => { const r = { ...(P.ruta || {}) }; delete r.porDecidir; return r; };
 async function cambiarTipo(t, silencio) {
   const cambios = { tipo: t };
+  if (sinDecidir()) cambios.ruta = rutaDecidida();
   if (!formatoCabe(t, P.formato)) cambios.formato = null;
   const unico = FORMATOS_DE[t] && FORMATOS_DE[t].length === 1 ? FORMATOS_DE[t][0] : null;
   if (unico && !cambios.formato && P.formato !== unico) cambios.formato = unico;
@@ -1151,9 +1160,9 @@ async function cambiarTipo(t, silencio) {
 }
 // Elegir formato (desde la cabecera o la brújula): si es de otra categoría, la categoría lo sigue.
 async function elegirFormato(f) {
-  if (f && !formatoCabe(P.tipo, f)) {
+  if (f && (!formatoCabe(P.tipo, f) || sinDecidir())) {
     const t = tipoDe(f);
-    await guardar({ formato: f, tipo: t });
+    await guardar(sinDecidir() ? { formato: f, tipo: t, ruta: rutaDecidida() } : { formato: f, tipo: t });
     $("f-tipo").value = t; tenir(t);
     toast("Formato: " + FORMATOS.find((x) => x.k === f).n + ". La categoría pasó a " + TIPOS[t].toLowerCase() + ".");
   } else { await guardar({ formato: f }); if (f) toast("Formato: " + FORMATOS.find((x) => x.k === f).n); }
@@ -2279,9 +2288,9 @@ function tarjeta(r) {
 
 /* ================= BRÚJULA ================= */
 function brujula() {
-  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Brújula de formatos</h2><span class="hint">Para cuando aún no sabes en qué convertir tu idea. Mueve cada balanza hacia donde se incline; si una te da lo mismo, déjala al medio.</span></div>' +
-    '<div class="brujula"><div><div id="balanzas"></div><p class="leyenda-b" id="leyenda-b" hidden><i></i><span></span></p></div><div><svg class="dial" id="dial"></svg></div></div>' +
-    '<p class="veredicto" id="veredicto" aria-live="polite"></p>' +
+  const nose = !!(P.ruta && P.ruta.porDecidir);
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Brújula de formatos</h2><span class="hint">' + (nose ? "Aún no decides qué será tu proyecto. Imagina a alguien disfrutándolo, mueve los puntos y, cuando un formato te convenza, elígelo abajo: la categoría se ajusta sola." : "Para cuando aún no sabes en qué convertir tu idea. Toca un eje para ver qué pregunta y arrastra su punto.") + '</span></div>' +
+    '<div class="brujula"><div id="bj"></div><div class="bru-der"><svg class="dial" id="dial"></svg><p class="veredicto" id="veredicto" aria-live="polite"></p><p class="leyenda-b" id="leyenda-b" hidden><i></i><span></span></p></div></div>' +
     '<div style="border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px;align-items:center"><b style="font-family:var(--f-display)">¿Qué vas a hacer?</b>' +
     '<p class="hint" style="margin:0;text-align:center;max-width:58ch">La brújula solo compara cómo imaginas tu idea con cómo suele ser cada formato. Elige el que tú quieras, aunque no sea al que apunta. Si eliges uno de otra categoría (por ejemplo, juego de mesa en una historia), el proyecto cambia de categoría y el Taller te sugiere las secciones que le faltan.</p>' + (P.tipo === "producto" ? '<p class="hint" style="margin:0;text-align:center">Para un producto la brújula sirve poco; úsala si tu producto también cuenta una historia.</p>' : "") + '' +
     '<div class="formatos" id="formatos"></div></div></section>';
@@ -2291,17 +2300,17 @@ function brujula() {
     if (repintar) repintar();
     dial($("dial"), P.ejes, P.formato);
     const fm = FORMATOS.find((x) => x.k === P.formato), ley = $("leyenda-b");
-    ley.hidden = !fm; if (fm) ley.querySelector("span").textContent = "Así suele ser " + fm.n.toLowerCase();
+    ley.hidden = !fm; if (fm) ley.querySelector("span").textContent = "La línea gris es cómo suele ser " + fm.n.toLowerCase();
     $("veredicto").innerHTML = veredicto(P.ejes) +
-      (tocado(P.ejes) ? ' <button type="button" class="btn chico" id="b-reset">Dejar todo al medio</button>' : "");
-    if ($("b-reset")) $("b-reset").onclick = () => { P.ejes = {}; guardar({ ejes: {} }, "Balanzas al medio"); pintarLectura(); };
+      (tocado(P.ejes) && !RO ? ' <button type="button" class="btn chico" id="b-reset">Volver a empezar</button>' : "");
+    if ($("b-reset")) $("b-reset").onclick = () => { P.ejes = {}; guardar({ ejes: {} }, "Brújula en blanco"); pintarLectura(); };
     const l = lectura(P.ejes), cerca = sinRumbo(P.ejes) ? [] : l.slice(0, 3).filter((f) => f.s >= .65).map((f) => f.k);
     $("formatos").innerHTML = FORMATOS.map((f) => '<button type="button" data-f="' + f.k + '" aria-pressed="' + (P.formato === f.k) + '">' + f.n + (cerca.includes(f.k) ? " <small>cerca</small>" : "") + "</button>").join("") +
       '<button type="button" data-f="" aria-pressed="' + (!P.formato) + '">Aún no decido</button>';
     $("formatos").querySelectorAll("[data-f]").forEach((b) => b.onclick = async () => { await elegirFormato(b.dataset.f || null); pintarLectura(); });
   };
   const subir = debounce(() => guardar({ ejes: P.ejes }), 700);
-  repintar = balanzas($("balanzas"), () => P.ejes, (e) => { P.ejes = e; pintarLectura(); subir(); }, REF, { soloVer: !!RO });
+  repintar = brujulaRadar($("bj"), () => P.ejes, (e) => { P.ejes = e; pintarLectura(); subir(); }, REF, { soloVer: !!RO });
   pintarLectura();
 }
 

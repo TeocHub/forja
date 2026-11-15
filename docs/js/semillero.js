@@ -45,13 +45,18 @@ export function detonante(para = "todo", antes = null) {
 
 // Planta un proyecto con las secciones de su categoría. Devuelve { id } o { error }.
 // extra: { resumen, hechos } (por ejemplo, la idea del Semillero y la técnica ya hecha en la ruta).
+// tipo = NOSE («Aún no lo sé»): nace como «otro», con ruta.porDecidir, y abre en la Brújula (la página lo decide con `brujula: true`).
+export const NOSE = "nose";
 export async function plantarProyecto({ espacio, nombre, tipo, creador, resumen = null, hechos = null }) {
+  const nose = tipo === NOSE;
+  if (nose) tipo = "otro";
   const ruta = { creador, abrir: "ruta" };
+  if (nose) ruta.porDecidir = true;
   if (hechos) ruta.hechos = hechos;
   const fila = { espacio_id: espacio, nombre: nombre.slice(0, 160), tipo, ruta };
   if (resumen) fila.resumen = resumen.slice(0, 4000);
   const { data, error } = await sb.from("proyectos").insert(fila).select("id").single();
   if (error) return { error };
   await sb.from("secciones").insert((PLANTILLA[tipo] || []).map((g, i) => ({ espacio_id: espacio, proyecto_id: data.id, titulo: SECCIONES[g].t, guia: g, orden: i, peso: pesoDe(g) })));
-  return { id: data.id };
+  return { id: data.id, brujula: nose };
 }

@@ -345,12 +345,12 @@ async function dialogoPlantar(i) {
     d.innerHTML = '<form method="dialog"><span class="k">Plantar la idea</span>' +
       '<label><span>Nombre del proyecto</span><input type="text" id="p-nombre" maxlength="160" value="' + esc(d.dataset.nombre || i.texto) + '"></label>' +
       '<p class="hint" style="margin:-8px 0 0">La frase de la idea queda como resumen del proyecto. Puedes cambiarla después.</p>' +
-      '<div><span class="hint">¿Qué es?</span><div class="tipos" role="group" aria-label="Categoría">' + Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipo) + '">' + n + "</button>").join("") + "</div></div>" +
+      '<div><span class="hint">¿Qué es?</span><div class="tipos" role="group" aria-label="Categoría">' + Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipo) + '">' + n + "</button>").join("") + '<button type="button" class="tipo" data-t="nose" style="--tc:var(--muted)" aria-pressed="' + (tipo === "nose") + '">Aún no lo sé</button></div>' + '<p class="hint" id="p-nose" style="margin:6px 0 0"' + (tipo === "nose" ? "" : " hidden") + '>Se abrirá en la Brújula para ayudarte a decidir qué será. Puedes elegirlo cuando quieras.</p></div>' +
       '<div><span class="hint">¿Cómo trabajas en este proyecto?</span><div class="como" role="radiogroup" aria-label="Cómo trabajas">' + Object.entries(CREADORES).map(([k, c]) => '<button type="button" role="radio" data-cr="' + k + '" aria-checked="' + (k === creador) + '">' + c.n + "</button>").join("") + '</div><p class="como-d">' + esc(CREADORES[creador].d) + "</p></div>" +
       (destinos.length > 1 ? '<label><span>Plantarlo en</span><select id="p-dest">' + destinos.map((x) => '<option value="' + x.id + '"' + (x.id === destino.id ? " selected" : "") + ">" + esc(x.tipo === "personal" ? "Mi forja" : x.nombre) + "</option>").join("") + "</select></label>" : "") +
       (lleno !== null ? '<p class="aviso">' + (destino.tipo === "personal" ? "Tienes " : "El equipo tiene ") + lleno + " proyectos en curso y su plan permite " + tope(destino, "proyectos") + ". Archiva uno en Proyectos para plantar esta idea; mientras, sigue guardada aquí.</p>" : "") +
       '<div class="acc"><button type="button" class="btn" data-x>Ahora no</button><button type="submit" class="btn prim" id="p-ok"' + (lleno !== null ? " disabled" : "") + ">Plantar y abrir</button></div></form>";
-    d.querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { tipo = b.dataset.t; d.querySelectorAll("[data-t]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
+    d.querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { tipo = b.dataset.t; d.querySelectorAll("[data-t]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); d.querySelector("#p-nose").hidden = tipo !== "nose"; });
     d.querySelectorAll("[data-cr]").forEach((b) => b.onclick = () => { creador = b.dataset.cr; try { localStorage.setItem("forja-creador", creador); } catch (e) {} d.querySelectorAll("[data-cr]").forEach((x) => x.setAttribute("aria-checked", String(x === b))); d.querySelector(".como-d").textContent = CREADORES[creador].d; });
     if (d.querySelector("#p-dest")) d.querySelector("#p-dest").onchange = (e) => { d.dataset.nombre = d.querySelector("#p-nombre").value; destino = destinos.find((x) => x.id === e.target.value); pintarD(); };
     d.querySelector("[data-x]").onclick = () => d.close();
@@ -361,7 +361,7 @@ async function dialogoPlantar(i) {
       const r = await plantarProyecto({ espacio: destino.id, nombre, tipo, creador, resumen: i.texto, hechos: { semillero: new Date().toISOString().slice(0, 10) } });
       if (r.error) { ok.disabled = false; ok.textContent = "Plantar y abrir"; toast(limite(r.error) || "No se pudo plantar. Revisa tu conexión."); return; }
       await sb.from("ideas").update({ proyecto_id: r.id }).eq("id", i.id);
-      location.href = "../proyecto/?p=" + r.id;
+      location.href = "../proyecto/?p=" + r.id + (r.brujula ? "#brujula" : "");
     };
   };
   d.addEventListener("close", () => d.remove());

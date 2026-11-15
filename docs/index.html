@@ -115,7 +115,7 @@ h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 @media (max-width:620px){.bru h2{font-size:26px}}
 .bru p{color:var(--muted);margin:0}
 .demo{padding:4px 0}
-.demo .pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center}
+.demo .pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:start}
 @media (max-width:760px){.demo .pair{grid-template-columns:minmax(0,1fr)}}
 .demo .ver{font-size:13px;color:var(--muted);text-align:center;margin:6px 8px 0;min-height:3em}
 .demo .ver b{color:var(--fg)}
@@ -176,8 +176,8 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
   </section>
 
   <section class="bru" aria-labelledby="bru-t">
-    <div><span class="fx-marcas" aria-hidden="true"></span><h2 id="bru-t">¿Tu idea es novela, cómic o juego de mesa?</h2><p>Una idea puede ser muchas cosas. Imagina cómo la viviría alguien, mueve las balanzas y mira hacia dónde apunta la aguja. Es una referencia para pensar: el formato lo eliges tú.</p></div>
-    <div class="demo"><div class="pair"><div id="balanzas"></div><div><svg class="dial" id="dial"></svg><p class="ver" id="ver" aria-live="polite"></p></div></div></div>
+    <div><span class="fx-marcas" aria-hidden="true"></span><h2 id="bru-t">¿Tu idea es novela, cómic o juego de mesa?</h2><p>Una idea puede ser muchas cosas. Imagina a alguien disfrutándola, toca cada eje para ver qué pregunta, arrastra su punto y mira hacia dónde apunta la aguja. Es una referencia para pensar: el formato lo eliges tú.</p></div>
+    <div class="demo"><div class="pair"><div id="bj"></div><div><svg class="dial" id="dial"></svg><p class="ver" id="ver" aria-live="polite"></p></div></div></div>
   </section>
 
   <section aria-labelledby="planes-t">
@@ -201,7 +201,7 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 
 <script type="module">
 import { nav, esc, toast, fAvance, regla, boleto, tira, ico, fechasDe, rangoFechas, reglaFechas, leyendaFechas } from "./js/forja.js";
-import { balanzas, dial, veredicto, CSS_BRUJULA } from "./js/brujula.js";
+import { brujula, dial, veredicto, CSS_BRUJULA } from "./js/brujula.js";
 import { ETAPAS, etapaNombre } from "./js/ruta.js";
 import { dibujo, CSS_ESTRUCTURA } from "./js/estructura.js";
 import { quienes } from "./js/lectores.js";
@@ -276,7 +276,7 @@ ruta();
 /* ---------- brújula de prueba (no se guarda nada) ---------- */
 let ejes = {};
 const pintarDial = () => { dial($("dial"), ejes); $("ver").innerHTML = veredicto(ejes); };
-balanzas($("balanzas"), () => ejes, (e) => { ejes = e; pintarDial(); });
+brujula($("bj"), () => ejes, (e) => { ejes = e; pintarDial(); });
 pintarDial();
 
 /* ---------- planes: tres boletos sobre la mesa ---------- */

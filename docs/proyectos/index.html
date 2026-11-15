@@ -34,6 +34,8 @@ button{cursor:pointer}
 .plantar{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:17px;border:1px solid var(--btn);background:var(--btn);color:var(--btn-tx);border-radius:var(--r-m);padding:0 20px;min-height:48px;white-space:nowrap}
 .plantar .fx-chispa{fill:var(--tc);stroke:var(--tc)}
 .plantar:disabled{opacity:.6}
+.nose-d{margin:0;font-size:13px;color:var(--muted)}
+.nose-d[hidden]{display:none}
 .a-semillero{font-size:13px;color:var(--muted);text-decoration:none;border-top:1px solid var(--line);padding-top:8px}
 .a-semillero b{color:var(--fg)}
 .a-semillero:hover{color:var(--fg)}
@@ -188,16 +190,18 @@ function proyectos() {
   const sinCupo = tope(PL, "proyectos") !== null && activos() >= tope(PL, "proyectos"), lector = EQUIPO() && EA.rol === "lector";
   $("panel").innerHTML = cupo() + (lector ? '<div id="semilla" hidden></div>' :
     '<form class="semilla" id="semilla"><div class="line"><label class="fx-sr" for="s-nombre">Nombre de la idea</label>' +
-    '<input type="text" id="s-nombre" maxlength="160" placeholder="' + (sinCupo ? "Archiva un proyecto para plantar otra idea" : "¿Qué idea traes hoy?") + '" autocomplete="off"' + (sinCupo ? " disabled" : "") + '><button class="plantar" type="submit" style="--tc:' + tc(tipoNuevo) + '"' + (sinCupo ? " disabled" : "") + ">" + chispa(16) + "Plantar</button></div>" +
+    '<input type="text" id="s-nombre" maxlength="160" placeholder="' + (sinCupo ? "Archiva un proyecto para plantar otra idea" : "¿Qué idea traes hoy?") + '" autocomplete="off"' + (sinCupo ? " disabled" : "") + '><button class="plantar" type="submit" style="--tc:' + (tipoNuevo === "nose" ? "var(--muted)" : tc(tipoNuevo)) + '"' + (sinCupo ? " disabled" : "") + ">" + chispa(16) + "Plantar</button></div>" +
     '<div class="tipos" role="group" aria-label="Tipo de proyecto">' +
     Object.entries(TIPOS).map(([k, n]) => '<button type="button" class="tipo fx-etq" data-t="' + k + '" style="--tc:' + tc(k) + '" aria-pressed="' + (k === tipoNuevo) + '">' + n + "</button>").join("") +
-    '</div><div class="como" role="radiogroup" aria-label="Cómo trabajas en este proyecto"><span class="como-t">¿Cómo trabajas?</span>' +
+    '<button type="button" class="tipo fx-etq" data-t="nose" style="--tc:var(--muted)" aria-pressed="' + (tipoNuevo === "nose") + '">Aún no lo sé</button>' +
+    '</div><p class="nose-d" id="nose-d"' + (tipoNuevo === "nose" ? "" : " hidden") + '>Se abrirá en la Brújula para ayudarte a decidir qué será. Puedes elegirlo cuando quieras.</p><div class="como" role="radiogroup" aria-label="Cómo trabajas en este proyecto"><span class="como-t">¿Cómo trabajas?</span>' +
     Object.entries(CREADORES).map(([k, c]) => '<button type="button" role="radio" data-cr="' + k + '" aria-checked="' + (k === creadorNuevo) + '" title="' + esc(c.d) + '">' + c.n + "</button>").join("") +
     '<span class="como-d" id="como-d">' + esc(CREADORES[creadorNuevo].d) + '</span></div>' +
     '<a class="a-semillero' + (sinCupo ? " fuerte" : "") + '" href="../semillero/">' + (sinCupo ? "Mientras tanto, anota la idea en el <b>Semillero</b>: las ideas sueltas no gastan cupo." : "¿Todavía es solo una frase? Anótala en el <b>Semillero</b> y plántala cuando te siga dando vueltas.") + "</a></form>") + '<div class="buscador" id="buscador"></div><div id="mosaico" style="margin-top:12px"></div>';
   if (!lector) $("semilla").querySelectorAll(".tipo").forEach((b) => b.onclick = () => {
     tipoNuevo = b.dataset.t; $("semilla").querySelectorAll(".tipo").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-    $("semilla").querySelector(".plantar").style.setProperty("--tc", tc(tipoNuevo));
+    $("semilla").querySelector(".plantar").style.setProperty("--tc", tipoNuevo === "nose" ? "var(--muted)" : tc(tipoNuevo));
+    $("nose-d").hidden = tipoNuevo !== "nose";
   });
   if (!lector) $("semilla").querySelectorAll("[data-cr]").forEach((b) => b.onclick = () => {
     creadorNuevo = b.dataset.cr; try { localStorage.setItem("forja-creador", creadorNuevo); } catch (e) {}
@@ -212,7 +216,7 @@ function proyectos() {
     // Nace con las secciones que suele necesitar su tipo (la misma función que usa el Semillero).
     const r = await plantarProyecto({ espacio: ESP, nombre, tipo: tipoNuevo, creador: creadorNuevo });
     if (r.error) { btn.disabled = false; toast(limite(r.error) || "No se pudo guardar. Revisa tu conexión."); return; }
-    location.href = "../proyecto/?p=" + r.id;
+    location.href = "../proyecto/?p=" + r.id + (r.brujula ? "#brujula" : "");
   };
   const ESTO = ["semilla", "desarrollo", "pausa", "listo", "archivado"];
   const cuenta = (e) => PROYS.filter((p) => p.estado === e).length;
@@ -252,7 +256,7 @@ function tile(p) {
   const elegido = FORMATOS.find((f) => f.k === p.formato), av = AV[p.id] || 0, ro = !editable(p, activos(), PL);
   const et = estadoRuta(p.ruta).etapa, ei = et ? etapaIndice(et) : -1, enom = et ? etapaNombre(et, p.tipo) : "";
   return '<a class="tile e-' + p.estado + '" href="../proyecto/?p=' + p.id + '" style="--tc:' + tc(p.tipo) + ";--ec:var(--e-" + p.estado + ')">' +
-    '<span class="arriba">' + etiqueta(p.tipo, TIPOS[p.tipo] + (elegido && elegido.n !== TIPOS[p.tipo] ? " · " + elegido.n : "")) + '<span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span>" +
+    '<span class="arriba">' + etiqueta(p.tipo, (p.tipo === "otro" && p.ruta && p.ruta.porDecidir ? "Por decidir" : TIPOS[p.tipo]) + (elegido && elegido.n !== TIPOS[p.tipo] ? " · " + elegido.n : "")) + '<span class="fx-estado e-' + p.estado + '">' + esc(ESTADOS[p.estado]) + "</span></span>" +
     fAvance(ei, 52, ei >= 0 ? "Etapa " + (ei + 1) + " de 7: " + enom : "Sin etapa marcada en la Ruta") +
     "<h3>" + (ro ? '<svg class="candado" viewBox="0 0 16 16" width="15" height="15" aria-label="Solo lectura" role="img"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' : "") + esc(p.nombre) + "</h3>" + (VIT.has(p.id) ? '<span class="en-vitrina">' + ico("vitrina", 14) + "En vitrina</span>" : "") + (p.acceso === "reservado" ? '<span class="reservado">Reservado</span>' : "") + (p.resumen ? '<span class="res">' + esc(p.resumen) + "</span>" : "") +
     '<span class="pie"><span class="av"><span class="fx-avance" role="img" aria-label="Avance ' + av + '%"><i style="width:' + av + '%"></i></span><b>' + av + '%</b></span><span>' + (ei >= 0 ? esc(enom) + " · " : "") + hace(p.actualizado_en) + "</span></span></a>";
