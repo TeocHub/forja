@@ -668,7 +668,7 @@ dialog.an-d::backdrop{background:var(--velo)}
 import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, tope, NOMBRE_PLAN, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen, equipo, ico, fAvance, chispa, colorDe, timbrar } from "../js/forja.js";
 import { funcion, tarjetaFuncion, pendientes } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
-import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, CSS_BRUJULA } from "../js/brujula.js";
+import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, vals, vacia as sinIdea, CSS_BRUJULA } from "../js/brujula.js";
 import { montar, MODOS, cuentaTarjetas, normal as normalPiz, CSS_PIZARRA } from "../js/pizarra.js";
 import { pista, abrirTemasEquipo, icono } from "../js/ayuda.js";
 import * as R from "../js/ruta.js";
@@ -2296,8 +2296,8 @@ function brujula() {
     $("veredicto").innerHTML = veredicto(P.ejes, B(), etiqueta()) +
       (tocado(P.ejes) ? ' <button type="button" class="btn chico" id="b-reset" title="Vuelve a cómo suele ser este formato">Volver a la configuración inicial</button>' : "");
     if ($("b-reset")) $("b-reset").onclick = () => { P.ejes = {}; guardar({ ejes: {} }, "Configuración inicial restaurada"); pintarLectura(); };
-    const l = Object.fromEntries(lectura(P.ejes, B()).map((f) => [f.k, f.s]));
-    $("formatos").innerHTML = FORMATOS.map((f) => '<button type="button" data-f="' + f.k + '" aria-pressed="' + (P.formato === f.k) + '">' + f.n + " <small>" + pct(l[f.k]) + "</small></button>").join("") +
+    const l = Object.fromEntries(lectura(P.ejes, B()).map((f) => [f.k, f.s])), nada = sinIdea(vals(P.ejes, B()));
+    $("formatos").innerHTML = FORMATOS.map((f) => '<button type="button" data-f="' + f.k + '" aria-pressed="' + (P.formato === f.k) + '">' + f.n + (nada ? "" : " <small>" + pct(l[f.k]) + "</small>") + "</button>").join("") +
       '<button type="button" data-f="" aria-pressed="' + (!P.formato) + '">Aún no decido</button>';
     $("formatos").querySelectorAll("[data-f]").forEach((b) => b.onclick = async () => { await elegirFormato(b.dataset.f || null); pintarLectura(); });
   };

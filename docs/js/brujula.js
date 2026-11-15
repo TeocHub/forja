@@ -33,9 +33,20 @@ export function base(tipo, formato) {
   return f ? f.p.slice() : (BASE_TIPO[tipo] || BASE_TIPO.otro).slice();
 }
 export const vals = (ejes, b) => EJES.map((e, i) => (ejes && e.k in ejes ? +ejes[e.k] : b ? b[i] : 2));
+// Encaje = lo que tu idea y el formato comparten / lo que suman entre los dos (en cada eje, el menor sobre el mayor).
+// Así un eje en 0 no "regala" parecido: si tu idea no pide nada, ningún formato encaja mucho.
+// La escala va de 1 a 5 en la cuenta, porque una escena suelta también es un tamaño, no una ausencia.
+const ESC = EJES.findIndex((e) => e.k === "escala");
+export function encaje(v, p) {
+  let comun = 0, total = 0;
+  v.forEach((x, i) => { const a = i === ESC ? x + 1 : x, b = i === ESC ? p[i] + 1 : p[i]; comun += Math.min(a, b); total += Math.max(a, b); });
+  return total ? comun / total : 0;
+}
+// Sin nada en los cinco ejes de contenido, no hay idea que comparar.
+export const vacia = (v) => v.every((x, i) => i === ESC || !x);
 export function lectura(ejes, b) {
   const v = vals(ejes, b);
-  return FORMATOS.map((f) => ({ ...f, s: 1 - f.p.reduce((a, p, i) => a + Math.abs(p - v[i]), 0) / 24 })).sort((a, b) => b.s - a.s);
+  return FORMATOS.map((f) => ({ ...f, s: encaje(v, f.p) })).sort((a, b) => b.s - a.s);
 }
 export const pct = (s) => Math.round(s * 100) + "%";
 const ang = (i, n) => (-90 + (360 / n) * i) * Math.PI / 180;
@@ -127,7 +138,7 @@ export function radar(svg, get, set, pregunta, getBase) {
 export function dial(svg, ejes, elegido, b) {
   svg.setAttribute("viewBox", "0 0 " + W + " 336");
   svg.setAttribute("aria-hidden", "true");
-  const n = FORMATOS.length, sin = !tocado(ejes) && !b, l = lectura(ejes, b), max = l[0].s, min = l[l.length - 1].s;
+  const n = FORMATOS.length, sin = (!tocado(ejes) && !b) || vacia(vals(ejes, b)), l = lectura(ejes, b), max = l[0].s, min = l[l.length - 1].s;
   const by = Object.fromEntries(l.map((f) => [f.k, f]));
   let s = '<circle class="borde" cx="' + C[0] + '" cy="' + C[1] + '" r="' + R + '"/>';
   FORMATOS.forEach((f, i) => {
@@ -156,6 +167,7 @@ export function veredicto(ejes, base0, etiqueta) {
   if (!tocado(ejes)) return base0 && etiqueta
     ? "Esta es la <b>configuración inicial</b> de " + etiqueta + ": así suele verse en estos seis ejes. Ajusta los puntos para que se parezca a tu idea; la línea punteada queda como referencia."
     : "Mueve los puntos del radar y la aguja apuntará al formato donde, según tus respuestas, la idea podría lucirse más.";
+  if (vacia(vals(ejes, base0))) return "Con todo en cero no hay nada que comparar: sube al menos un punto según lo que pese en tu idea y la aguja buscará su formato.";
   const [a, b, c] = lectura(ejes, base0);
   const cerca = a.s - b.s < .05;
   return "Por cómo la describes, se acerca a <b>" + a.n.toLowerCase() + "</b> (" + pct(a.s) + ")" +
