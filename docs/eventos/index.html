@@ -23,30 +23,30 @@ section{margin-top:30px;display:flex;flex-direction:column;gap:12px}
 :where(button,a,select):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .linea{position:relative;padding-left:26px;display:flex;flex-direction:column;gap:6px}
 .linea::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--line)}
-.mes{font-family:var(--f-num);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:14px 0 2px -26px;padding-left:26px;position:relative}
+.mes{font-family:var(--f-num);font-size:12px;color:var(--muted);margin:14px 0 2px -26px;padding-left:26px;position:relative}
 .mes:first-child{margin-top:0}
-.hito{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.hito{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--card);border:0;border-radius:0;padding:10px 14px}
 .hito::before{content:"";position:absolute;left:-23px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--card);border:2.5px solid var(--hc)}
 .hito.cierre{--hc:var(--ember)} .hito.evento{--hc:var(--accent)}
 .hito.pronto{border-color:var(--fg);box-shadow:inset 3px 0 0 var(--fg)}
 .dia{text-align:center;line-height:1.05}
-.dia b{display:block;font-family:var(--f-num);font-size:22px}
-.dia small{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.hito .que{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--hc)}
-.hito h3{font-family:var(--f-display);font-size:16px;margin:1px 0;line-height:1.25}
+.dia b{display:block;font-family:var(--f-num);font-size:20px}
+.dia small{font-size:12px;color:var(--muted)}
+.hito .que{font-size:12px;font-weight:700;color:var(--hc)}
+.hito h3{font-family:var(--f-display);font-size:17px;margin:1px 0;line-height:1.25}
 .hito .para{font-size:13px;color:var(--muted)}
 .hito .para a{color:inherit}
 .faltan{font-family:var(--f-num);font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
 .hito.pronto .faltan{color:var(--fg);font-weight:700}
 @media (max-width:560px){.hito{grid-template-columns:52px minmax(0,1fr)}.faltan{grid-column:2;text-align:left}}
-.vacio{border:1.5px dashed var(--line);border-radius:16px;padding:24px;color:var(--muted);text-align:center}
-.grupo{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;border-left:5px solid var(--tc)}
+.vacio{border:0;background:var(--mesa);border-radius:0;padding:24px;color:var(--muted);text-align:center}
+.grupo{background:var(--card);border:0;border-radius:0;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .grupo h3{font-family:var(--f-display);font-size:17px;margin:0}
 .sugs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
-.sug{background:var(--field);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
-.sug b{font-size:14px}
+.sug{background:var(--field);border:1px solid var(--line);border-radius:0;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.sug b{font-size:15px}
 .sug span{font-family:var(--f-num);font-size:12px;color:var(--muted)}
-.sug button{align-self:flex-start;font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:3px 10px;cursor:pointer;margin-top:2px}
+.sug button{align-self:flex-start;font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);border-radius:var(--r-m);padding:3px 10px;cursor:pointer;margin-top:2px}
 .sug button:hover{border-color:var(--accent)}
 .cab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
 </style>
@@ -116,7 +116,7 @@ function pintar() {
 
   $("app").innerHTML =
     '<header><h1>Eventos</h1><p class="lead">Las fechas de las ferias, fondos y convocatorias que siguen tus proyectos, de la más cercana a la más lejana.</p></header>' +
-    '<section aria-labelledby="t-fechas"><div class="cab"><h2 id="t-fechas">Próximas fechas</h2><a href="../oportunidades/" style="font-size:14px">Ver el calendario completo</a></div>' +
+    '<section aria-labelledby="t-fechas"><div class="cab"><h2 id="t-fechas">Próximas fechas</h2><a href="../oportunidades/" style="font-size:15px">Ver el calendario completo</a></div>' +
     (H.length ? '<div class="linea">' + linea + "</div>" : '<div class="vacio">Todavía no sigues oportunidades con fechas próximas. Abajo hay algunas que calzan con tus proyectos; también puedes seguirlas desde cada proyecto, en Mostrar → Oportunidades.</div>') + "</section>" +
     (sug.length ? '<section aria-labelledby="t-sug"><h2 id="t-sug">Para tus proyectos</h2>' + sug.map(({ pr, l }) =>
       '<div class="grupo" style="--tc:' + tc(pr.tipo) + '"><h3>' + esc(pr.nombre) + ' <span style="font-size:12px;color:var(--muted);font-family:var(--f-body);font-weight:400">' + esc(TIPOS[pr.tipo]) + '</span></h3><div class="sugs">' +

@@ -43,6 +43,8 @@ export const ICONOS = {
   calendario: "M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5", flecha: "M4 12h15 M13 6l6 6-6 6", persona: "M12 4a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7z M5 20c.8-4 3.6-6 7-6s6.2 2 7 6",
   semilla: "M12 20v-6 M12 14c-4 0-6-2.5-6-6 3.5 0 6 2 6 6z M12 14c0-3 2-5.5 6-5.5 0 3.5-2.5 5.5-6 5.5z", desarrollo: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z M12 4v16",
   pausa: "M9 6v12 M15 6v12", tablero: "M3.5 4h5v9h-5z M9.5 4h5v15h-5z M15.5 4h5v6h-5z", listo: "M5 12.5l4.5 4.5L19 7.5", archivado: "M4 5h16v4H4z M5.5 9v10h13V9 M10 13h4",
+  cerrar: "M6.5 6.5l11 11 M17.5 6.5l-11 11", nota: "M9 17.5V5.5l10-2v12 M9 17.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z M19 15.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z",
+  play: "M8 5.5v13l10.5-6.5z", alerta: "M12 3.5 21.5 20h-19z M12 10v4.5 M12 17.2v.1",
 };
 // Ícono de cada parte del proyecto y de cada herramienta (la mesa de boletos y la guía).
 export const ICONO_DE = { ruta: "regla", idea: "chispa", crear: "martillo", probar: "lupa", mostrar: "vitrina",
@@ -68,6 +70,8 @@ export function regla(etapa, nombres, { botones = false, chica = false, pie = tr
     nombres.map((n, i) => "<" + tag + (botones ? ' type="button" data-etapa="' + i + '" aria-pressed="' + (i === etapa) + '" aria-label="' + (i + 1) + ": " + esc(n) + '"' : ' aria-hidden="true"') + ' class="' + (i === etapa ? "aqui" : i < etapa ? "ya" : "") + '">' + chispa(18) + "<i></i><span>" + (i + 1) + "</span></" + tag + ">").join("") +
     "</div>" + (pie ? '<div class="fx-regla-pie"><span>Primera chispa</span><span>Listo para mostrar</span></div>' : "") + "</div>";
 }
+// Timbre: solo el que acaba de cambiar cae girado (250 ms); los demás quedan rectos. Llamar después de pintar el timbre nuevo.
+export function timbrar(el) { if (!el) return; el.classList.remove("fx-cae"); void el.offsetWidth; el.classList.add("fx-cae"); }
 // Etiqueta colgante: la categoría del proyecto.
 export const etiqueta = (tipo, nombre) => '<span class="fx-etq" style="--tc:var(--t-' + esc(tipo || "otro") + ')">' + esc(nombre) + "</span>";
 // Boleto numerado: una herramienta con su ícono.
@@ -220,7 +224,7 @@ const MSG = {
   FORJA_LIMITE_APARTE: "Llegaste al máximo de 30 cotizaciones aparte en este espacio. Borra alguna que ya no uses o lígala a un proyecto.",
   FORJA_MENSAJES_LIMITE: "Enviaste varios mensajes hoy. Espera nuestra respuesta o escribe mañana.",
   FORJA_FALTA_MENSAJE: "Escribe el mensaje para la persona.",
-  FORJA_CONFIRMAR: "Escribe BORRAR para confirmar.",
+  FORJA_CONFIRMAR: "Escribe  para confirmar.",
   FORJA_SEGUIR_SIN_CUENTA: "Entra a Forja para seguir proyectos.",
   FORJA_ANOTAR_SIN_CUENTA: "Entra a Forja para anotarte.",
   FORJA_ANOTAR_CERRADO: "Esta recompensa ya no recibe interesados.",
@@ -277,7 +281,7 @@ export async function activarAvisame(root) {
   if (!session) { botones.forEach((b) => { b.textContent = "Entra para que te avisemos"; b.onclick = () => { location.href = u("entrar/?siguiente=" + encodeURIComponent("planes/")); }; }); return; }
   if (!intereses) intereses = sb.from("interes_funciones").select("funcion").then(({ data }) => new Set((data || []).map((x) => x.funcion)));
   intereses = await intereses;
-  const marcar = (b) => { const on = intereses.has(b.dataset.avisame); b.textContent = on ? "Te avisaremos ✓" : "Avísame"; b.setAttribute("aria-pressed", String(on)); };
+  const marcar = (b) => { const on = intereses.has(b.dataset.avisame); b.innerHTML = on ? '<span class="fx-i" style="--i:var(--i-listo)" aria-hidden="true"></span> Te avisaremos' : "Avísame"; b.setAttribute("aria-pressed", String(on)); };
   botones.forEach((b) => {
     marcar(b);
     b.onclick = async () => {
@@ -504,7 +508,7 @@ export function probarImagen(url, salida) {
     salida.textContent = "Revisando la imagen…"; salida.className = "fx-imgprueba";
     const im = new Image(), t = setTimeout(() => fin(false), 9000);
     const fin = (bien) => { clearTimeout(t); im.onload = im.onerror = null;
-      salida.textContent = bien ? "✓ La imagen carga bien." : /drive\.google|instagram\.com|pinterest\.|facebook\.com|discord/i.test(url) ? "Ese enlace es de una página, no de la imagen. Mira «¿Dónde subo mis imágenes?»." : "No pudimos abrir la imagen. ¿Es el enlace directo? Mira «¿Dónde subo mis imágenes?».";
+      if (bien) { salida.innerHTML = '<span class="fx-i" style="--i:var(--i-listo)" aria-hidden="true"></span> La imagen carga bien.'; } else salida.textContent = /drive\.google|instagram\.com|pinterest\.|facebook\.com|discord/i.test(url) ? "Ese enlace es de una página, no de la imagen. Mira «¿Dónde subo mis imágenes?»." : "No pudimos abrir la imagen. ¿Es el enlace directo? Mira «¿Dónde subo mis imágenes?».";
       salida.className = "fx-imgprueba " + (bien ? "bien" : "mal"); ok(bien); };
     im.referrerPolicy = "no-referrer"; im.onload = () => fin(im.naturalWidth > 0); im.onerror = () => fin(false); im.src = url;
   });

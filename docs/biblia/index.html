@@ -15,18 +15,18 @@
 
 .wrap{max-width:900px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 :where(button,input,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.opciones{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
+.opciones{background:var(--card);border:0;border-radius:0;padding:16px;display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
 .opciones h1{font-family:var(--f-display);font-weight:800;font-size:26px;margin:0}
 .opciones p{margin:0;color:var(--muted)}
 .partes{display:flex;flex-wrap:wrap;gap:6px}
-.partes label{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:0 12px;min-height:38px;font-size:14px;cursor:pointer;background:var(--field)}
+.partes label{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:var(--r-m);padding:0 12px;min-height:38px;font-size:15px;cursor:pointer;background:var(--field)}
 .partes label:has(input:checked){border-color:var(--fg);background:var(--suave);font-weight:700}
 .acciones{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.imprimir{font:inherit;font-weight:700;border:1px solid var(--btn);background:var(--btn);color:var(--btn-tx);border-radius:10px;padding:0 18px;min-height:44px;cursor:pointer}
+.imprimir{font:inherit;font-weight:700;border:1px solid var(--btn);background:var(--btn);color:var(--btn-tx);border-radius:var(--r-m);padding:0 18px;min-height:44px;cursor:pointer}
 
 /* el documento: siempre claro, como papel */
-.doc{--ink:#1b1d24;--soft:#5d6271;--rule:#d9dbe2;--paper:#fffdf8;--acc:#161616;--emb:var(--tc,#7A3FC4);
-  background:var(--paper);color:var(--ink);font-family:"Literata",Georgia,serif;font-size:11.5pt;line-height:1.65;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 8px 30px rgba(0,0,0,.06);padding:clamp(22px,6vw,64px)}
+.doc{--ink:var(--papel-tinta);--soft:var(--papel-suave);--rule:var(--papel-linea);--paper:var(--papel);--acc:var(--negro);--emb:var(--tc,#7A3FC4);
+  background:var(--paper);color:var(--ink);font-family:"Literata",Georgia,serif;font-size:11.5pt;line-height:1.65;border-radius:var(--r-s);box-shadow:0 1px 3px var(--sombra),0 8px 30px var(--sombra);padding:clamp(22px,6vw,64px)}
 .doc h1,.doc h2,.doc h3{font-family:"Mona Sans",system-ui,sans-serif;font-weight:800;font-stretch:110%;letter-spacing:-.015em;color:var(--ink);text-wrap:balance}
 .portada{min-height:70vh;display:flex;flex-direction:column;justify-content:space-between;gap:30px;border-left:6px solid var(--tc);padding-left:22px}
 .portada .k{font-family:"Geist Mono",monospace;font-size:9.5pt;letter-spacing:.12em;text-transform:uppercase;color:var(--emb)}
@@ -46,7 +46,7 @@
 .sec p.preg{font-style:italic;color:var(--soft);margin-bottom:.2em}
 .vacia{color:var(--soft);font-style:italic;font-size:10pt}
 .refs{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-.obra{break-inside:avoid;margin:0 0 20px;padding:0 0 14px;border-bottom:1px solid #e3e5ea}
+.obra{break-inside:avoid;margin:0 0 20px;padding:0 0 14px;border-bottom:1px solid var(--rule)}
 .obra .ref-apa{font-weight:700;padding-left:1.6em;text-indent:-1.6em;margin:0 0 6px}
 .obra h4{font-family:"Atkinson Hyperlegible",sans-serif;font-size:9.5pt;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin:10px 0 2px}
 .obra .apr{margin:4px 0 0;padding-left:18px}
@@ -56,7 +56,7 @@
 .solo-print{display:none}
 @media print{.no-print{display:none}.solo-print{display:inline}}
 
-.ref{break-inside:avoid;border:1px solid var(--rule);border-radius:8px;overflow:hidden;font-size:10pt;font-family:"Atkinson Hyperlegible",sans-serif;background:#fff}
+.ref{break-inside:avoid;border:1px solid var(--rule);border-radius:var(--r-m);overflow:hidden;font-size:10pt;font-family:"Atkinson Hyperlegible",sans-serif;background:var(--blanco)}
 .ref img{display:block;width:100%;max-height:260px;object-fit:cover}
 .ref .sw{height:70px;display:flex;align-items:flex-end;padding:8px 10px;font-family:"Geist Mono",monospace;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .ref blockquote{margin:0;padding:12px 14px 4px;font-family:"Literata",serif;font-style:italic;font-size:11pt}
@@ -70,7 +70,7 @@
 .tabla th,.tabla td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
 .tabla th{font-size:8.5pt;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
 .hilo .n{break-inside:avoid;margin-bottom:12px;padding-left:12px;border-left:2px solid var(--rule)}
-.hilo .bt-url{font-size:11px;color:#666;overflow-wrap:anywhere;margin-top:2px}
+.hilo .bt-url{font-size:12px;color:var(--soft);overflow-wrap:anywhere;margin-top:2px}
 .hilo time{font-family:"Geist Mono",monospace;font-size:8.5pt;color:var(--soft)}
 .hilo p{margin:2px 0 0;white-space:pre-wrap}
 .pie-doc{margin-top:48px;font-family:"Atkinson Hyperlegible",sans-serif;font-size:8.5pt;color:var(--soft);border-top:1px solid var(--rule);padding-top:8px}
@@ -79,10 +79,10 @@
 
 @page{size:A4;margin:18mm 16mm 18mm}
 @media print{
-  body{background:#fff}
+  body{background:var(--blanco)}
   .wrap{max-width:none;padding:0}
   header,.opciones,.fx-toast{display:none!important}
-  .doc{box-shadow:none;border-radius:0;padding:0;background:#fff;font-size:11pt}
+  .doc{box-shadow:none;border-radius:0;padding:0;background:var(--blanco);font-size:11pt}
   .portada{min-height:240mm;break-after:page}
   .parte{break-before:page;margin-top:0}
   .sec h3,.parte > h2{break-after:avoid}
@@ -108,7 +108,7 @@ import { EJES, FORMATOS, radar, dial, lectura, tocado, vals, pct, base, CSS_BRUJ
 import { MODOS, estatica, cuentaTarjetas, CSS_PIZARRA } from "../js/pizarra.js";
 import { etiqueta as etqNota } from "../js/bitacora.js";
 navApp("proyectos");
-document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + ".doc .mapa{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:6px 14px;margin:0}.doc .mapa dt{font-weight:700;font-family:'Atkinson Hyperlegible',sans-serif;font-size:10pt}.doc .mapa dd{margin:0}.doc .centro{font-size:13pt;font-style:italic;margin:0 0 12px}.doc .es-bib{max-width:520px;margin:0 0 14px}.doc .es-dib .es-p .es-lbl{stroke:#fff}" + ".doc .piz{break-inside:avoid;margin:0 0 22px}.doc .piz h3{margin:0 0 2px}.doc .piz .modo{font-family:'Atkinson Hyperlegible',sans-serif;font-size:9pt;color:var(--soft);margin:0 0 8px}.doc .radar text,.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .radar .forma{fill:rgba(42,63,209,.15);stroke:#2a3fd1}.doc .dial .petalo{fill:#e6e9fb}.doc .dial .petalo.top{fill:#f6cdb9}.doc .dial .borde{fill:#fafafa;stroke:#d9dbe2}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + ".doc .mapa{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:6px 14px;margin:0}.doc .mapa dt{font-weight:700;font-family:'Atkinson Hyperlegible',sans-serif;font-size:10pt}.doc .mapa dd{margin:0}.doc .centro{font-size:13pt;font-style:italic;margin:0 0 12px}.doc .es-bib{max-width:520px;margin:0 0 14px}.doc .es-dib .es-p .es-lbl{stroke:var(--blanco)}" + ".doc .piz{break-inside:avoid;margin:0 0 22px}.doc .piz h3{margin:0 0 2px}.doc .piz .modo{font-family:'Atkinson Hyperlegible',sans-serif;font-size:9pt;color:var(--soft);margin:0 0 8px}.doc .radar text,.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .radar .forma{fill:color-mix(in srgb,var(--emb) 15%,transparent);stroke:var(--emb)}.doc .dial .petalo{fill:var(--papel-linea)}.doc .dial .petalo.top{fill:color-mix(in srgb,var(--emb) 30%,var(--papel))}.doc .dial .borde{fill:var(--papel);stroke:var(--rule)}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
 
 const ID = new URLSearchParams(location.search).get("p");
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };

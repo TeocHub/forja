@@ -15,19 +15,19 @@
 <link rel="stylesheet" href="../css/forja.css">
 <style>
 /* Layout: puerta de entrada — la tarjeta del correo a un lado y, al otro, lo que hay dentro de la cuenta */
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;min-height:100vh}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.55;min-height:100vh}
 .wrap{max-width:980px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .puerta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px;align-items:center;margin-top:min(8vh,64px)}
 @media (max-width:780px){.puerta{grid-template-columns:minmax(0,1fr);gap:28px;margin-top:12px}}
 #caja .fx-entrada{max-width:none}
 .dentro{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.cuarto{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.cuarto{background:var(--card);border:0;border-radius:0;padding:14px;display:flex;flex-direction:column;gap:6px}
 .cuarto svg{color:var(--fg)}
 .cuarto.plan svg{color:var(--cat)}
 .cuarto b{font-family:var(--f-display);font-weight:800;font-size:17px}
-.cuarto span{font-size:14px;color:var(--muted)}
-.dentro-t{font-family:var(--f-num);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
-.ya{font-size:14px;color:var(--muted);margin-top:12px}
+.cuarto span{font-size:13px;color:var(--muted)}
+.dentro-t{font-family:var(--f-body);font-size:12px;color:var(--muted);margin:0 0 10px}
+.ya{font-size:13px;color:var(--muted);margin-top:12px}
 </style>
 </head>
 <body>

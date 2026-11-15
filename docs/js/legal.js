@@ -174,7 +174,7 @@ export async function legal(id) {
     };
 
     app.innerHTML =
-      '<span class="l-k">Documentos de Forja</span>' +
+      '<span class="fx-marcas cat" aria-hidden="true"></span>' +
       '<nav class="l-docs" aria-label="Documentos">' + DOCUMENTOS.map((d) => '<a href="' + u(d + "/") + (v.id !== E.vigente && v.docs.includes(d) ? "?v=" + encodeURIComponent(v.id) : "") + '"' + (d === id ? ' aria-current="page"' : "") + ">" + CORTO[d] + "</a>").join("") + '<a href="' + u("documentos/") + '" class="l-todos">Qué cambia</a></nav>' +
       "<h1>" + esc(doc.titulo) + "</h1>" +
       '<p class="l-ver">' + esc(estadoTexto(v, E, lista)) + "</p>" +
@@ -245,7 +245,7 @@ export async function paginaDocumentos() {
       return doc ? { d, doc, base, ...marcas(doc, base) } : null;
     }));
     const titulo = v.estado === "proxima" ? "Los documentos de Forja cambian el " + fechaDia(v.rige) : v.estado === "vigente" ? "Documentos vigentes desde el " + fechaDia(v.rige) : v.estado === "borrador" ? "Borrador de una versión nueva" : "Versión del " + fechaDia(v.rige);
-    app.innerHTML = '<span class="l-k">Documentos de Forja</span>' +
+    app.innerHTML = '<span class="fx-marcas cat" aria-hidden="true"></span>' +
       '<nav class="l-docs" aria-label="Documentos">' + DOCUMENTOS.map((d) => '<a href="' + u(d + "/") + '">' + CORTO[d] + "</a>").join("") + '<a href="' + u("documentos/") + '" aria-current="page">Qué cambia</a></nav>' +
       "<h1>" + esc(titulo) + "</h1><p class=\"l-ver\">" + esc(estadoTexto(v, E, lista)) + "</p>" +
       (v.estado === "borrador" ? '<p class="l-borrador">Borrador · solo Moderación lo ve</p>' : "") +

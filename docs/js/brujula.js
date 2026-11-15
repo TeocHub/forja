@@ -188,7 +188,7 @@ export const CSS_BRUJULA = `
 .radar .h.on{fill:var(--accent)}
 .radar .h:focus-visible{outline:none;stroke:var(--ember);stroke-width:4}
 .radar text{font-size:13px;fill:var(--fg);font-family:var(--f-body)}
-.radar text .v,.radar tspan.v{font-family:var(--f-num);font-size:11px;fill:var(--muted)}
+.radar text .v,.radar tspan.v{font-family:var(--f-num);font-size:12px;fill:var(--muted)}
 .dial .borde{fill:var(--field);stroke:var(--line)}
 .dial .petalo{fill:var(--accent-soft);transition:d .35s ease}
 .dial .petalo.top{fill:color-mix(in srgb,var(--ember) 32%,transparent)}
@@ -196,7 +196,7 @@ export const CSS_BRUJULA = `
 .dial text{font-size:12px;fill:var(--muted);font-family:var(--f-body)}
 .dial text.top{fill:var(--fg);font-weight:700}
 .dial text.mio{text-decoration:underline}
-.dial text.pct{font-family:var(--f-num);font-size:10.5px}
+.dial text.pct{font-family:var(--f-num);font-size:12px}
 .dial .aguja{transition:transform .6s cubic-bezier(.3,1.4,.5,1)}
 .dial .aguja path{fill:var(--ember)}
 .dial .aguja path.cola{fill:var(--muted)}

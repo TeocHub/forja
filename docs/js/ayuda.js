@@ -271,7 +271,7 @@ export function abrirAyuda(id = temaDe()) {
   }
   const pintar = (tid, q = "") => {
     const t = tema(tid) || TEMAS[0], res = q ? buscar(q) : null;
-    cajon.innerHTML = '<div class="ay-c"><div class="ay-c-cab"><b>Ayuda</b><button type="button" class="ay-x" aria-label="Cerrar ayuda">×</button></div>' +
+    cajon.innerHTML = '<div class="ay-c"><div class="ay-c-cab"><b>Ayuda</b><button type="button" class="ay-x" aria-label="Cerrar ayuda"><span class="fx-i" style="--i:var(--i-cerrar)" aria-hidden="true"></span></button></div>' +
       '<label class="ay-buscar"><span class="ay-sr">Buscar en la ayuda</span><input type="search" placeholder="¿Qué quieres hacer? Ej.: calcular el precio" value="' + esc(q) + '"></label>' +
       (res ? '<div class="ay-res">' + (res.length ? res.slice(0, 5).map((r) => '<button type="button" data-t="' + r.id + '">' + icono(r.id, 18) + "<span><b>" + esc(r.n) + "</b><small>" + esc(r.corto) + "</small></span></button>").join("") : '<p class="ay-nada">No encontré eso. Prueba con otras palabras o abre la guía completa.</p>') + "</div>" : temaHTML(t)) +
       '<div class="ay-otros"><span>Otros temas</span><div>' + TEMAS.filter((x) => x.id !== t.id || res).map((x) => '<button type="button" data-t="' + x.id + '" title="' + esc(x.n) + '">' + icono(x.id, 16) + "<span>" + esc(x.n) + "</span></button>").join("") + "</div></div>" +
@@ -333,14 +333,14 @@ export const CSS_AYUDA = `
 .ay-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .ay-cajon{margin:0 0 0 auto;height:100%;max-height:100%;width:min(460px,100vw);border:0;border-left:1px solid var(--line);border-radius:0;padding:0;background:var(--card);color:var(--fg)}
 .ay-cajon[open]{animation:ay-entra .18s ease-out}
-.ay-cajon::backdrop{background:rgba(10,12,20,.35)}
+.ay-cajon::backdrop{background:var(--velo)}
 @keyframes ay-entra{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.ay-cajon[open]{animation:none}}
 .ay-c{height:100%;overflow:auto;padding:16px 20px 28px;display:flex;flex-direction:column;gap:16px;font-family:var(--f-body);font-size:15px;line-height:1.5}
 .ay-c-cab{display:flex;justify-content:space-between;align-items:center}
-.ay-c-cab b{font-family:var(--f-num);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.ay-c-cab b{font-family:var(--f-body);font-size:12px;color:var(--muted)}
 .ay-x{border:0;background:none;color:var(--muted);font-size:26px;line-height:1;cursor:pointer;padding:0 4px}
-.ay-buscar input{width:100%;font:inherit;font-size:15px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:10px;padding:9px 12px}
+.ay-buscar input{width:100%;font:inherit;font-size:15px;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:var(--r-s);padding:9px 12px}
 .ay-tema{display:flex;flex-direction:column;gap:12px}
 .ay-donde{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em}
 .ay-tema h2{font-family:var(--f-display);font-size:26px;line-height:1.1;margin:0}
@@ -349,18 +349,18 @@ export const CSS_AYUDA = `
 .ay-paso{display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;align-items:start;padding:0 0 12px;margin-left:-13px}
 .ay-paso b{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--fg);color:var(--bg);font-family:var(--f-num);font-size:12px}
 .ay-paso span{padding-top:1px}
-.ay-consejo{margin:0;background:var(--accent-soft);border-radius:12px;padding:10px 12px;font-size:14px}
+.ay-consejo{margin:0;background:var(--accent-soft);border-radius:0;padding:10px 12px;font-size:15px}
 .ay-consejo b{color:var(--accent);margin-right:4px}
-.ay-plan{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13.5px}
+.ay-plan{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:0;overflow:hidden;font-size:13px}
 .ay-plan span{padding:9px 12px;display:flex;flex-direction:column;gap:2px}
 .ay-plan span+span{border-left:1px solid var(--line)}
 .ay-plan.tres{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media (max-width:420px){.ay-plan.tres{grid-template-columns:minmax(0,1fr)}.ay-plan.tres span+span{border-left:0;border-top:1px solid var(--line)}}
-.ay-plan small{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.ay-plan small{font-size:12px;color:var(--muted);font-weight:700}
 .ay-plan .mas small{color:var(--ember)}
 .ay-ir{align-self:flex-start;font-weight:700;text-decoration:none;color:var(--accent)}
 .ay-res{display:flex;flex-direction:column;gap:8px}
-.ay-res button{font:inherit;text-align:left;display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;padding:10px 12px;cursor:pointer}
+.ay-res button{font:inherit;text-align:left;display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:var(--r-m);padding:10px 12px;cursor:pointer}
 .ay-res button:hover{border-color:var(--accent)}
 .ay-res button svg{flex:none;color:var(--accent);margin-top:2px}
 .ay-res span{display:flex;flex-direction:column}
@@ -368,35 +368,35 @@ export const CSS_AYUDA = `
 .ay-nada{margin:0;color:var(--muted)}
 .ay-otros>span{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px}
 .ay-otros>div{display:flex;flex-wrap:wrap;gap:6px}
-.ay-otros button{font:inherit;font-size:13px;display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:10px;padding:4px 10px 4px 8px;cursor:pointer}
+.ay-otros button{font:inherit;font-size:13px;display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);background:var(--field);color:var(--fg);border-radius:var(--r-m);padding:4px 10px 4px 8px;cursor:pointer}
 .ay-otros button:hover{border-color:var(--accent)}
 .ay-otros svg{color:var(--muted)}
-.ay-guia{font-size:14px;text-decoration:none;color:var(--accent);font-weight:700;border-top:1px solid var(--line);padding-top:14px}
-.ay-pista{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px 12px;align-items:center;border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));background:var(--accent-soft);border-radius:14px;padding:10px 12px;margin:12px 0 0;font-size:14px}
+.ay-guia{font-size:15px;text-decoration:none;color:var(--accent);font-weight:700;border-top:1px solid var(--line);padding-top:14px}
+.ay-pista{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px 12px;align-items:center;border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));background:var(--accent-soft);border-radius:0;padding:10px 12px;margin:12px 0 0;font-size:15px}
 .ay-pista p{margin:0}
-.ay-pista-ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--card);color:var(--accent)}
+.ay-pista-ico{width:36px;height:36px;border-radius:var(--r-m);display:grid;place-items:center;background:var(--card);color:var(--accent)}
 .ay-pista-b{display:flex;gap:6px}
-.ay-pista button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.ay-pista button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:var(--r-m);padding:5px 10px;cursor:pointer;white-space:nowrap}
 .ay-pista button[data-a=ver]{border-color:var(--accent);color:var(--accent);font-weight:700}
 @media (max-width:640px){.ay-pista{grid-template-columns:auto minmax(0,1fr)}.ay-pista-b{grid-column:1/-1;justify-content:flex-end}}
-.ay-sendero{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:16px 18px;margin:0 0 18px}
+.ay-sendero{border:0;background:var(--card);border-radius:0;padding:16px 18px;margin:0 0 18px}
 .ay-s-cab{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
 .ay-s-cab h2{font-family:var(--f-display);font-size:20px;margin:0}
-.ay-s-cab p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.ay-s-cab p{margin:2px 0 0;color:var(--muted);font-size:13px}
 .ay-s-n{font-family:var(--f-num);font-size:13px;color:var(--muted);white-space:nowrap}
 .ay-ruta{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:16px 0 6px}
 .ay-ruta::before{content:"";position:absolute;left:10%;right:10%;top:21px;height:2px;background:var(--line)}
-.ay-hito{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;text-decoration:none;color:var(--fg);padding:0 4px;border-radius:12px}
+.ay-hito{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;text-decoration:none;color:var(--fg);padding:0 4px;border-radius:0}
 .ay-hito[aria-disabled=true]{opacity:.5;pointer-events:none}
 .ay-punto{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:2px solid var(--line);color:var(--muted);transition:transform .15s}
 .ay-hito:hover .ay-punto{transform:translateY(-2px)}
 .ay-hito-t{display:flex;flex-direction:column;gap:2px;margin-top:4px}
-.ay-hito b{font-size:13.5px;line-height:1.25}
+.ay-hito b{font-size:13px;line-height:1.25}
 .ay-hito small{font-size:12px;color:var(--muted);line-height:1.3}
 .ay-hito.hecho .ay-punto{background:var(--good);border-color:var(--good);color:var(--card)}
 .ay-hito.siguiente .ay-punto{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 5px var(--accent-soft)}
 .ay-hito.siguiente b{color:var(--accent)}
-.ay-s-pie{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:14px}
+.ay-s-pie{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:15px}
 .ay-s-pie a{color:var(--accent);font-weight:700;text-decoration:none}
 .ay-s-pie button{font:inherit;font-size:13px;border:0;background:none;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 @media (max-width:640px){

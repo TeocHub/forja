@@ -161,27 +161,27 @@ export const mesaHTML = (items, actual, etiqueta) => '<div class="mesa-in" role=
   '<span class="mesa-t"><b>' + x.n + (x.nota ? '<i class="mesa-p" title="' + x.nota + '"></i>' : "") + "</b><small>" + (x.d || "") + "</small></span>" +
   (x.dato !== "" && x.dato != null ? '<span class="mesa-n">' + x.dato + "</span>" : "") + "</button>").join("") + "</div>";
 export const CSS_MESA = `
-.mesa-in{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;padding:18px;border-radius:14px;background:var(--mesa)}
-.mesa-h{font:inherit;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:132px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-left:3px dashed var(--line);border-radius:10px;box-shadow:0 6px 16px var(--sombra);padding:14px 16px 14px 18px;cursor:pointer;transform:rotate(var(--giro,0deg));transition:transform .18s ease,box-shadow .18s ease}
-.mesa-h:hover{transform:rotate(0) translateY(-2px)}
+.mesa-in{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;padding:18px;border-radius:0;background:var(--mesa)}
+.mesa-h{font:inherit;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:132px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-left:3px dashed var(--line);border-radius:var(--r-m);box-shadow:0 6px 16px var(--sombra);padding:14px 16px 14px 18px;cursor:pointer);transition:transform .18s ease,box-shadow .18s ease}
+.mesa-h:hover{ translateY(-2px)}
 .mesa-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.mesa-ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:var(--fg);background:var(--suave)}
+.mesa-ico{width:40px;height:40px;border-radius:var(--r-m);display:grid;place-items:center;color:var(--fg);background:var(--suave)}
 .mesa-num{font:700 12px var(--f-num);color:var(--muted)}
 .mesa-t{display:flex;flex-direction:column;gap:2px;min-width:0}
-.mesa-t b{font-family:var(--f-display);font-weight:800;font-size:19px;line-height:1.12;display:flex;align-items:center;gap:6px}
-.mesa-t small{color:var(--muted);font-size:13.5px;line-height:1.35}
-.mesa-n{margin-top:auto;font:700 12.5px var(--f-num);color:var(--fg)}
+.mesa-t b{font-family:var(--f-display);font-weight:800;font-size:20px;line-height:1.12;display:flex;align-items:center;gap:6px}
+.mesa-t small{color:var(--muted);font-size:13px;line-height:1.35}
+.mesa-n{margin-top:auto;font:700 13px var(--f-num);color:var(--fg)}
 .mesa-p{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--tc,var(--cat))}
-.mesa-h[aria-current="true"]{transform:none;border-color:var(--fg);border-left:3px solid var(--tc,var(--cat));box-shadow:0 0 0 1px var(--fg),0 8px 20px var(--sombra)}
+.mesa-h[aria-current="true"]{transform:none;border-color:var(--fg);box-shadow:0 0 0 1px var(--fg),0 8px 20px var(--sombra)}
 .mesa-h[aria-current="true"] .mesa-ico{background:var(--tc,var(--cat));color:var(--card)}
 @media (max-width:640px){
   .mesa-in{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:max-content;overflow-x:auto;scrollbar-width:none;gap:10px;padding:12px;scroll-snap-type:x proximity}
   .mesa-in::-webkit-scrollbar{display:none}
   .mesa-h{min-height:0;flex-direction:row;align-items:center;gap:10px;padding:8px 12px 8px 10px;scroll-snap-align:start;box-shadow:0 3px 8px var(--sombra)}
   .mesa-top{flex:none}.mesa-num,.mesa-t small{display:none}
-  .mesa-ico{width:32px;height:32px;border-radius:8px}
-  .mesa-t b{font-size:16px}
-  .mesa-n{margin:0;font-size:11.5px;color:var(--muted)}
+  .mesa-ico{width:32px;height:32px;border-radius:var(--r-m)}
+  .mesa-t b{font-size:17px}
+  .mesa-n{margin:0;font-size:12px;color:var(--muted)}
 }
 @media (prefers-reduced-motion:reduce){.mesa-h{transition:none}}
 `;

@@ -135,7 +135,7 @@ export function dibujo(k, { llenos = new Set(), sel = -1, etiquetas = true } = {
 export const CSS_ESTRUCTURA = `
 .es-dib{width:100%;height:auto;display:block;overflow:visible}
 .es-dib .es-eje{stroke:var(--line);stroke-width:1.5}
-.es-dib .es-ejet{font-size:11px;fill:var(--muted)}
+.es-dib .es-ejet{font-size:12px;fill:var(--muted)}
 .es-dib .es-area{fill:color-mix(in srgb,var(--tc,var(--accent)) 9%,transparent)}
 .es-dib .es-linea{fill:none;stroke:var(--tc,var(--accent));stroke-width:3;stroke-linecap:round}
 .es-dib .es-orbita{fill:color-mix(in srgb,var(--tc,var(--accent)) 6%,transparent);stroke:none}
@@ -146,7 +146,7 @@ export const CSS_ESTRUCTURA = `
 .es-dib .es-p.lleno circle{fill:var(--tc,var(--accent))}
 .es-dib .es-p .es-num{font-family:var(--f-num);font-size:12px;font-weight:700;text-anchor:middle;fill:var(--tc,var(--accent))}
 .es-dib .es-p.lleno .es-num{fill:var(--card)}
-.es-dib .es-p .es-lbl{font-size:12.5px;font-weight:700;fill:var(--fg);paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+.es-dib .es-p .es-lbl{font-size:13px;font-weight:700;fill:var(--fg);paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
 .es-dib .es-p.sel circle,.es-dib .es-p:focus-visible circle{stroke:var(--ember);stroke-width:4}
 @media (max-width:560px){.es-dib .es-p .es-lbl{font-size:15px}}
 `;

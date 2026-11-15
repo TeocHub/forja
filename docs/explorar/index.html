@@ -20,31 +20,31 @@
 :where(button,a,select,input):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .cab{margin:28px 0 18px;display:grid;gap:14px}
 h1{font-family:var(--f-display);font-weight:800;font-size:clamp(36px,6.5vw,66px);line-height:.98;margin:0;letter-spacing:-.035em;max-width:16ch}
-.lead{margin:0;color:var(--muted);max-width:58ch;font-size:16px}
+.lead{margin:0;color:var(--muted);max-width:58ch;font-size:17px}
 .busca{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.busca input{flex:1 1 260px;min-width:0;font:inherit;font-size:17px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;padding:11px 14px}
-.busca select{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;padding:10px 12px}
+.busca input{flex:1 1 260px;min-width:0;font:inherit;font-size:17px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:var(--r-s);padding:11px 14px}
+.busca select{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:var(--r-s);padding:10px 12px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chips .fx-etq{min-height:40px}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:20px}
-.ficha{display:flex;flex-direction:column;text-decoration:none;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:transform .15s ease,border-color .15s}
+.ficha{display:flex;flex-direction:column;text-decoration:none;color:var(--fg);background:var(--card);border:0;border-radius:0;overflow:hidden;transition:transform .15s ease,border-color .15s}
 .ficha:hover{transform:translateY(-2px);border-color:var(--ac)}
-.ficha .img{aspect-ratio:16/10;background:linear-gradient(135deg,var(--ac),color-mix(in srgb,var(--ac) 45%,#0b0d14));position:relative;display:flex;align-items:flex-end;padding:12px}
+.ficha .img{aspect-ratio:16/10;background:linear-gradient(135deg,var(--ac),color-mix(in srgb,var(--ac) 45%,var(--negro)));position:relative;display:flex;align-items:flex-end;padding:12px}
 .ficha .img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ficha .img span{position:relative;font-family:var(--f-display);font-size:34px;font-weight:800;color:#fff;opacity:.85;line-height:1}
+.ficha .img span{position:relative;font-family:var(--f-display);font-size:36px;font-weight:800;color:var(--blanco);opacity:.85;line-height:1}
 .ficha .img.con span{display:none}
 .ficha .txt{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
-.ficha h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.12;letter-spacing:-.02em;margin:0}
-.ficha p{margin:0;color:var(--muted);font-size:14.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.ficha .meta{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.ficha h2{font-family:var(--f-display);font-weight:800;font-size:20px;line-height:1.12;letter-spacing:-.02em;margin:0}
+.ficha p{margin:0;color:var(--muted);font-size:15px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ficha .meta{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted)}
 .ficha .meta b{color:var(--ac);font-weight:700}
-.vacio{border:1.5px dashed var(--line);border-radius:18px;padding:36px 20px;text-align:center;color:var(--muted);margin-top:20px}
-.vacio b{display:block;color:var(--fg);font-family:var(--f-display);font-size:19px;margin-bottom:4px}
+.vacio{border:0;background:var(--mesa);border-radius:0;padding:36px 20px;text-align:center;color:var(--muted);margin-top:20px}
+.vacio b{display:block;color:var(--fg);font-family:var(--f-display);font-size:20px;margin-bottom:4px}
 .mas{display:flex;justify-content:center;margin-top:22px}
 .mas[hidden]{display:none}
-.mas button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:9px 18px;cursor:pointer}
-.pie{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.mas button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:var(--r-m);padding:9px 18px;cursor:pointer}
+.pie{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 </style>
 </head>
 <body>

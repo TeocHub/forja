@@ -50,68 +50,68 @@ const esImagen = (u) => /\.(png|jpe?g|gif|webp|avif)(\?|#|$)/i.test(u) || /^http
 
 export const CSS_BITACORA = `
 .bt{display:grid;gap:18px}
-.bt-sem{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:14px}
+.bt-sem{background:var(--card);border:0;border-radius:0;padding:16px 18px;display:grid;gap:14px}
 .bt-sem-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.bt-sem-top h3{margin:0;font-family:var(--f-display);font-weight:800;font-stretch:110%;font-size:19px}
+.bt-sem-top h3{margin:0;font-family:var(--f-display);font-weight:800;font-stretch:110%;font-size:20px}
 .bt-sem-top .rango{display:flex;align-items:center;gap:4px;font:600 13px var(--f-num);color:var(--muted)}
-.bt-sem-top .rango button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;width:36px;height:36px;cursor:pointer}
+.bt-sem-top .rango button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:var(--r-m);width:36px;height:36px;cursor:pointer}
 .bt-sem-top .rango button:disabled{opacity:.35;cursor:default}
-.bt-regla{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--mesa)}
+.bt-regla{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden;background:var(--mesa)}
 .bt-dia{font:inherit;color:var(--fg);background:transparent;border:0;border-left:1px solid var(--line);padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-height:96px}
 .bt-dia:first-child{border-left:0}
 .bt-dia:disabled{cursor:default}
 .bt-dia .marcas{flex:1;display:flex;flex-direction:column-reverse;align-items:center;gap:3px;width:100%}
 .bt-dia .marcas{gap:4px;justify-content:flex-start}
-.bt-dia .marcas i{display:block;height:7px;width:62%;border-radius:2px;background:var(--tc)}
+.bt-dia .marcas i{display:block;height:7px;width:62%;border-radius:var(--r-s);background:var(--tc)}
 .bt-dia .marcas i.media{width:40%}
 .bt-dia .marcas i.vacia{background:var(--line);width:26%;height:3px}
-.bt-dia .mas{font:700 11px var(--f-num);color:var(--muted)}
+.bt-dia .mas{font:700 12px var(--f-num);color:var(--muted)}
 .bt-dia b{font:700 12px var(--f-num);color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:1px}
-.bt-dia b small{font:500 11px var(--f-num)}
+.bt-dia b small{font:500 12px var(--f-num)}
 .bt-dia.hoy b{color:var(--fg)}
-.bt-dia.hoy b small{color:var(--card);background:var(--tc);border-radius:999px;padding:0 6px}
+.bt-dia.hoy b small{color:var(--card);background:var(--tc);border-radius:var(--r-m);padding:0 6px}
 .bt-dia[aria-pressed="true"]{background:color-mix(in srgb,var(--tc) 14%,var(--card))}
-.bt-dice{margin:0;color:var(--muted);font-size:14.5px;line-height:1.45}
+.bt-dice{margin:0;color:var(--muted);font-size:15px;line-height:1.45}
 .bt-dice strong{color:var(--fg)}
 .bt-filtros{display:flex;flex-wrap:wrap;gap:8px}
-.bt-f{font:inherit;font-size:13.5px;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.bt-f{font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:var(--r-m);border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
 .bt-f small{font:700 12px var(--f-num);color:var(--muted)}
 .bt-f[aria-pressed="true"]{border-color:var(--fg);background:var(--fg);color:var(--bg)}
 .bt-f[aria-pressed="true"] small{color:inherit}
 .bt-f svg{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 a.bt-f{text-decoration:none}
-.bt-nueva{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:12px}
-.bt-nueva textarea{width:100%;min-height:84px;resize:vertical;font:inherit;font-size:16px;color:var(--fg);border:1px solid var(--line);background:var(--field);border-radius:10px;padding:10px 12px}
+.bt-nueva{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:16px 18px;display:grid;gap:12px}
+.bt-nueva textarea{width:100%;min-height:84px;resize:vertical;font:inherit;font-size:17px;color:var(--fg);border:1px solid var(--line);background:var(--field);border-radius:var(--r-s);padding:10px 12px}
 .bt-grupo{display:grid;gap:6px}
-.bt-grupo>span{font:700 12px var(--f-num);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.bt-grupo>span{font:700 12px var(--f-body);color:var(--muted)}
 .bt-sellos{display:flex;flex-wrap:wrap;gap:6px}
-.bt-sello{font:inherit;font-size:14px;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 13px;border-radius:8px;border:1px dashed var(--line);background:transparent;color:var(--fg);cursor:pointer}
+.bt-sello{font:inherit;font-size:15px;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 13px;border-radius:var(--r-m);border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
 .bt-sello svg{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .bt-sello[aria-checked="true"],.bt-sello[aria-pressed="true"]{border:1px solid var(--tc);background:color-mix(in srgb,var(--tc) 14%,var(--card));font-weight:700}
 .bt-enlace{display:flex;gap:8px;align-items:center}
-.bt-enlace input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:9px 12px;min-height:44px}
+.bt-enlace input{flex:1;min-width:0;font:inherit;font-size:17px;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:var(--r-s);padding:9px 12px;min-height:44px}
 .bt-pie{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .bt-pie .hint{font-size:13px;color:var(--muted)}
 .bt-hilo{position:relative;display:flex;flex-direction:column;gap:16px;padding-left:22px}
-.bt-hilo::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:var(--line);border-radius:2px}
-.bt-dia-t{position:relative;font:700 12px var(--f-num);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:6px 0 -6px}
-.bt-n{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px}
+.bt-hilo::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:var(--line);border-radius:var(--r-s)}
+.bt-dia-t{position:relative;font:700 12px var(--f-num);color:var(--muted);margin:6px 0 -6px}
+.bt-n{position:relative;background:var(--card);border:0;border-radius:0;padding:12px 14px;display:grid;gap:6px}
 .bt-n::before{content:"";position:absolute;left:-22px;top:15px;width:12px;height:12px;border-radius:50%;background:var(--card);border:2px solid var(--tc)}
 .bt-n.t-version::before{background:var(--tc)}
-.bt-n.t-problema:not(.resuelta){border-left:3px solid var(--warn,#B4561B)}
-.bt-n.t-problema:not(.resuelta)::before{border-color:var(--warn,#B4561B)}
+.bt-n.t-problema:not(.resuelta){}
+.bt-n.t-problema:not(.resuelta)::before{border-color:var(--warn)}
 .bt-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .bt-cab .tp{display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--fg)}
 .bt-cab .tp svg{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.bt-cab .of{border:1px solid var(--line);border-radius:4px;padding:1px 7px;font-size:12px}
+.bt-cab .of{border:1px solid var(--line);border-radius:var(--r-s);padding:1px 7px;font-size:12px}
 .bt-cab time{font:600 12px var(--f-num);margin-left:auto}
 .bt-n p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
-.bt-link{display:flex;align-items:center;gap:10px;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--mesa);color:var(--fg);text-decoration:none;font-size:14px}
-.bt-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-family:var(--f-num);font-size:12.5px}
+.bt-link{display:flex;align-items:center;gap:10px;justify-content:space-between;border:1px solid var(--line);border-radius:var(--r-m);padding:8px 12px;background:var(--mesa);color:var(--fg);text-decoration:none;font-size:15px}
+.bt-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-family:var(--f-num);font-size:13px}
 .bt-link b{flex:none}
-.bt-img{max-width:100%;max-height:260px;border-radius:10px;border:1px solid var(--line);display:block;object-fit:cover}
+.bt-img{max-width:100%;max-height:260px;border-radius:var(--r-m);border:1px solid var(--line);display:block;object-fit:cover}
 .bt-acc{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
-.bt-acc button{font:inherit;font-size:13px;border:1px solid transparent;background:none;color:var(--muted);border-radius:8px;min-height:34px;padding:0 10px;cursor:pointer}
+.bt-acc button{font:inherit;font-size:13px;border:1px solid transparent;background:none;color:var(--muted);border-radius:var(--r-m);min-height:34px;padding:0 10px;cursor:pointer}
 .bt-acc button:hover{border-color:var(--line);color:var(--fg)}
 .bt-acc .res{border-color:var(--line);color:var(--fg)}
 .bt-vacio{margin:0;color:var(--muted)}
@@ -185,7 +185,7 @@ export function vista(ctx) {
     const filtro = F.dia || F.oficio || F.tipo;
     if (!xs.length) { $("bt-hilo").innerHTML = '<p class="bt-vacio">' + (filtro ? 'Nada con ese filtro. <button type="button" class="btn chico" data-limpiar>Ver todo</button>' : "La primera entrada puede ser por qué te gusta esta idea.") + "</p>"; return; }
     let ult = "";
-    $("bt-hilo").innerHTML = (filtro ? '<p class="bt-vacio" style="font-size:14px">' + xs.length + (xs.length === 1 ? " entrada" : " entradas") + ' con este filtro. <button type="button" class="btn chico" data-limpiar>Ver todo</button></p>' : "") + xs.map((n) => {
+    $("bt-hilo").innerHTML = (filtro ? '<p class="bt-vacio" style="font-size:15px">' + xs.length + (xs.length === 1 ? " entrada" : " entradas") + ' con este filtro. <button type="button" class="btn chico" data-limpiar>Ver todo</button></p>' : "") + xs.map((n) => {
       const k = dia(n.creado_en), d = new Date(n.creado_en);
       const sep = k !== ult ? '<div class="bt-dia-t">' + (k === dia(new Date()) ? "Hoy" : DIAS_N[(d.getDay() + 6) % 7] + " " + d.getDate() + " " + MES[d.getMonth()] + (d.getFullYear() !== new Date().getFullYear() ? " " + d.getFullYear() : "")) + "</div>" : "";
       ult = k;

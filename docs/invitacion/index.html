@@ -15,24 +15,24 @@
 <link rel="stylesheet" href="../css/forja.css">
 <style>
 /* Layout: invitación — una tarjeta tipo boleto con el proyecto, quién invita y una sola acción */
-body{font-size:16px;line-height:1.55}
+body{font-size:17px;line-height:1.55}
 .wrap{max-width:680px;margin:0 auto;padding-block:24px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
-.boleto{margin-top:clamp(24px,7vw,64px);display:grid;grid-template-columns:1fr auto;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.boleto{margin-top:clamp(24px,7vw,64px);display:grid;grid-template-columns:1fr auto;background:var(--card);border:0;border-radius:0;overflow:hidden}
 .b-cuerpo{padding:clamp(20px,5vw,34px);display:flex;flex-direction:column;gap:12px;min-width:0}
 .b-talon{width:clamp(56px,12vw,86px);border-left:2px dashed var(--line);background:var(--accent-soft);display:grid;place-items:center;position:relative}
-.b-talon span{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--f-num);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.b-talon span{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--f-body);font-size:12px;color:var(--accent)}
 .b-talon::before,.b-talon::after{content:"";position:absolute;left:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg)}
 .b-talon::before{top:-10px}.b-talon::after{bottom:-10px}
-.k{margin:0;font-family:var(--f-num);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.k{margin:0;font-family:var(--f-body);font-size:12px;color:var(--muted)}
 h1{font-family:var(--f-display);font-size:clamp(28px,6vw,42px);line-height:1.05;margin:0;overflow-wrap:anywhere}
 .b-cuerpo p{margin:0;color:var(--muted)}
 .b-cuerpo p b{color:var(--fg)}
 .acc{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-.acc button,.acc a{font:inherit;font-size:15px;border-radius:12px;padding:11px 18px;cursor:pointer;text-decoration:none;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.acc button,.acc a{font:inherit;font-size:15px;border-radius:var(--r-m);padding:11px 18px;cursor:pointer;text-decoration:none;border:1px solid var(--line);background:var(--card);color:var(--fg)}
 .acc .si{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
 .acc button:disabled{opacity:.5}
-.nota{font-size:13.5px}
+.nota{font-size:13px}
 </style>
 </head>
 <body>

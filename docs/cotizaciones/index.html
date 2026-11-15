@@ -23,55 +23,55 @@ h2{font-family:var(--f-display);font-size:20px;margin:0}
 :where(button,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .mesa{margin-top:26px}
 .mesa-cab{display:flex;align-items:baseline;justify-content:space-between;gap:4px 14px;flex-wrap:wrap}
-.mesa-cab p{margin:2px 0 0;color:var(--muted);font-size:14px;max-width:60ch}
+.mesa-cab p{margin:2px 0 0;color:var(--muted);font-size:13px;max-width:60ch}
 .cots{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:12px}
-.cot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-decoration:none;color:var(--fg);display:flex;flex-direction:column;gap:7px;border-top:4px solid var(--tc)}
+.cot{background:var(--card);border:0;border-radius:0;padding:14px;text-decoration:none;color:var(--fg);display:flex;flex-direction:column;gap:7px;border-top:4px solid var(--tc)}
 .cot:hover{border-color:var(--tc)}
 .cot.aparte{--tc:var(--fg);border-top-style:dotted}
 .cot h3{font-family:var(--f-display);font-size:17px;margin:0;line-height:1.2;overflow-wrap:anywhere}
-.cot .fx-etq,.nueva .fx-etq{align-self:flex-start;font-size:12.5px;padding:3px 12px 3px 22px}
+.cot .fx-etq,.nueva .fx-etq{align-self:flex-start;font-size:13px;padding:3px 12px 3px 22px}
 .cot .fx-etq::before,.nueva .fx-etq::before{left:8px}
 .chips{display:flex;flex-wrap:wrap;gap:4px}
-.chips span{font-size:12px;border-radius:6px;padding:1px 7px;background:var(--field);border:1px solid var(--line)}
+.chips span{font-size:12px;border-radius:var(--r-s);padding:1px 7px;background:var(--field);border:1px solid var(--line)}
 .chips span.ok{border-color:var(--good);background:var(--good-soft)}
 .cot small{color:var(--muted);font-size:12px;margin-top:auto}
-.nueva{font:inherit;text-align:left;cursor:pointer;background:transparent;border:1.5px dashed var(--line);border-radius:14px;padding:14px;color:var(--muted);display:flex;flex-direction:column;gap:4px;min-height:120px}
-.nueva b{color:var(--fg);font-family:var(--f-display);font-size:16px}
+.nueva{font:inherit;text-align:left;cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:var(--r-m);padding:14px;color:var(--muted);display:flex;flex-direction:column;gap:4px;min-height:120px}
+.nueva b{color:var(--fg);font-family:var(--f-display);font-size:17px}
 .nueva:hover{border-color:var(--fg);color:var(--fg)}
 .nueva.grande{justify-content:center;align-items:flex-start;gap:6px}
 .nueva .mas{font:700 26px var(--f-num);line-height:1;color:var(--fg)}
-.vacio{border:1.5px dashed var(--line);border-radius:16px;padding:22px;color:var(--muted);text-align:center;margin-top:12px}
+.vacio{border:0;background:var(--mesa);border-radius:0;padding:22px;color:var(--muted);text-align:center;margin-top:12px}
 .extras{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
 
 /* precios de la comunidad */
-.comu{margin-top:34px;background:var(--mesa);border-radius:18px;padding:18px 16px 20px}
+.comu{margin-top:34px;background:var(--mesa);border-radius:0;padding:18px 16px 20px}
 .estante{display:flex;gap:8px;overflow-x:auto;padding:12px 2px 6px;margin:0 -2px;scrollbar-width:thin;scroll-snap-type:x proximity}
-.pz{flex:0 0 auto;scroll-snap-align:start;font:inherit;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);white-space:nowrap}
+.pz{flex:0 0 auto;scroll-snap-align:start;font:inherit;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:var(--r-m);border:1px solid var(--line);background:var(--card);color:var(--fg);white-space:nowrap}
 .pz span{font:600 12px var(--f-num);color:var(--muted)}
 .pz[aria-pressed="true"]{background:var(--btn);color:var(--btn-tx);border-color:var(--btn)}
 .pz[aria-pressed="true"] span{color:inherit;opacity:.75}
 .buscar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
-.buscar input{flex:1 1 220px;min-width:0;font:inherit;font-size:16px;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0 12px;min-height:44px}
+.buscar input{flex:1 1 220px;min-width:0;font:inherit;font-size:17px;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);padding:0 12px;min-height:44px}
 .buscar small{color:var(--muted);font-size:13px}
 .talones{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:14px}
 .comu .vacio{background:var(--card)}
 
 /* diálogo de cotización aparte */
-.dlg{border:0;border-radius:18px;padding:0;width:min(560px,94vw);max-height:92vh;background:var(--card);color:var(--fg);box-shadow:0 24px 60px rgba(0,0,0,.3)}
-.dlg::backdrop{background:rgba(10,12,20,.55)}
+.dlg{border:0;border-radius:0;padding:0;width:min(560px,94vw);max-height:92vh;background:var(--card);color:var(--fg);box-shadow:0 24px 60px var(--sombra)}
+.dlg::backdrop{background:var(--velo)}
 .dlg form{padding:22px;display:flex;flex-direction:column;gap:14px}
-.dlg h2{font-size:23px}
-.dlg p{margin:0;color:var(--muted);font-size:14.5px}
-.dlg label.f{display:flex;flex-direction:column;gap:5px;font-weight:700;font-size:14px}
-.dlg input[type=text]{font:inherit;font-size:16px;font-weight:400;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:0 12px;min-height:46px}
+.dlg h2{font-size:26px}
+.dlg p{margin:0;color:var(--muted);font-size:15px}
+.dlg label.f{display:flex;flex-direction:column;gap:5px;font-weight:700;font-size:15px}
+.dlg input[type=text]{font:inherit;font-size:17px;font-weight:400;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:var(--r-s);padding:0 12px;min-height:46px}
 .grupo{display:flex;flex-direction:column;gap:6px}
-.grupo small{font:500 11.5px var(--f-num);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.grupo small{font:500 12px var(--f-body);color:var(--muted)}
 .grupo div{display:flex;flex-wrap:wrap;gap:6px}
-.toca{font:inherit;font-size:14px;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.toca{font:inherit;font-size:15px;min-height:40px;padding:0 12px;border-radius:var(--r-m);border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
 .toca[aria-pressed="true"]{background:var(--btn);color:var(--btn-tx);border-color:var(--btn)}
 .piezas{display:flex;flex-direction:column;gap:12px;max-height:38vh;overflow:auto;padding:2px}
 .pie{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-.pie button{font:inherit;font-size:15px;min-height:46px;padding:0 18px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.pie button{font:inherit;font-size:15px;min-height:46px;padding:0 18px;border-radius:var(--r-m);cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--fg)}
 .pie .si{background:var(--btn);color:var(--btn-tx);border-color:var(--btn);font-weight:700}
 </style>
 </head>
@@ -146,7 +146,7 @@ function dialogoAparte(ESP) {
   Object.entries(PIEZAS).forEach(([k, t]) => { if (!t.oculto) (grupos[t.g] = grupos[t.g] || []).push(k); });
   dl.innerHTML = '<form><h2>Cotización aparte</h2><p>Ponle un nombre que te ayude a encontrarla, como el del proveedor o lo que vas a mandar a hacer.</p>' +
     '<label class="f">Nombre<input type="text" name="n" maxlength="80" required placeholder="Ej.: Imprenta del barrio, pines para la feria"></label>' +
-    '<div class="f" style="font-weight:700;font-size:14px">¿Qué vas a cotizar? <span style="font-weight:400;color:var(--muted)">Toca una o varias piezas (opcional).</span></div>' +
+    '<div class="f" style="font-weight:700;font-size:13px">¿Qué vas a cotizar? <span style="font-weight:400;color:var(--muted)">Toca una o varias piezas (opcional).</span></div>' +
     '<div class="piezas">' + Object.entries(grupos).map(([g, ks]) => '<div class="grupo"><small>' + esc(g) + "</small><div>" + ks.map((k) => '<button type="button" class="toca" data-k="' + k + '" aria-pressed="false">' + esc(PIEZAS[k].nombre) + "</button>").join("") + "</div></div>").join("") + "</div>" +
     '<div class="pie"><button type="button" class="no">Cancelar</button><button type="submit" class="si">Crear y abrir</button></div></form>';
   document.body.appendChild(dl); dl.showModal();

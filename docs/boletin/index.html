@@ -15,36 +15,35 @@
 <link rel="stylesheet" href="../css/forja.css">
 <style>
 /* Layout: boletín — a la izquierda qué es y el botón; a la derecha una carta que muestra cómo llega, con oportunidades reales */
-body{font-size:16px;line-height:1.55}
+body{font-size:17px;line-height:1.55}
 .wrap{max-width:1040px;margin:0 auto;padding-block:24px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
 .b-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(24px,5vw,64px);align-items:start;margin-top:clamp(20px,5vw,56px)}
 @media (max-width:820px){.b-grid{grid-template-columns:1fr}}
-.b-kicker{font-family:var(--f-num);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
 .b-texto h1{font-family:var(--f-display);font-size:clamp(34px,6vw,54px);line-height:1.02;margin:0 0 18px;letter-spacing:-.01em}
 .b-texto p{margin:0 0 14px;color:var(--muted);max-width:46ch}
 .b-texto p b{color:var(--fg)}
 .b-accion{margin-top:24px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
-.b-btn{font:inherit;font-weight:700;font-size:16px;border-radius:14px;padding:13px 22px;cursor:pointer;border:1px solid var(--fg);background:var(--fg);color:var(--bg);text-decoration:none;display:inline-flex;align-items:center;gap:10px}
+.b-btn{font:inherit;font-weight:700;font-size:17px;border-radius:var(--r-m);padding:13px 22px;cursor:pointer;border:1px solid var(--fg);background:var(--fg);color:var(--bg);text-decoration:none;display:inline-flex;align-items:center;gap:10px}
 .b-btn.fuera{background:transparent;color:var(--fg);border-color:var(--line);font-weight:400}
 .b-btn:disabled{opacity:.55;cursor:default}
-.b-nota{font-size:13.5px;color:var(--muted);max-width:44ch;margin:0}
-.b-estado{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--good);font-weight:700}
+.b-nota{font-size:13px;color:var(--muted);max-width:44ch;margin:0}
+.b-estado{display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--good);font-weight:700}
 .b-estado::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--good)}
 /* la carta */
-.carta{position:relative;background:#fffdf8;color:#1a1d29;border-radius:6px;padding:30px clamp(20px,4vw,34px) 26px;box-shadow:0 1px 0 #e3e1da,0 18px 40px -18px rgba(22,26,38,.35);transform:rotate(.6deg)}
-.carta::before{content:"";position:absolute;inset:10px;border:1px dashed #e3e1da;border-radius:3px;pointer-events:none}
-.c-sello{position:absolute;top:18px;right:20px;width:84px;height:84px;border-radius:50%;border:2px solid #3a3a3a;color:#3a3a3a;display:grid;place-items:center;text-align:center;font-family:var(--f-num);font-size:12px;font-weight:700;line-height:1;letter-spacing:.08em;transform:rotate(-8deg)}
-.c-de{font-family:var(--f-num);font-size:12px;color:#6b7080;margin:0 0 4px;padding-right:96px;overflow-wrap:anywhere}
-.c-marca{font-family:var(--f-display);font-weight:700;font-size:24px;margin:0 0 18px}
-.c-sec{border-top:1px solid #e9e6de;padding-top:14px;margin-top:16px}
-.c-sec h2{font-family:var(--f-display);font-size:16px;margin:0 0 8px}
-.c-sec p{margin:0;font-size:14.5px;color:#4a4f5c}
-.c-fila{display:flex;justify-content:space-between;gap:14px;padding:6px 0;border-bottom:1px solid #f0ede6;font-size:14.5px}
+.carta{position:relative;background:var(--papel);color:var(--papel-tinta);border-radius:var(--r-s);padding:30px clamp(20px,4vw,34px) 26px;box-shadow:0 1px 0 var(--papel-linea),0 18px 40px -18px var(--sombra)}
+.carta::before{content:"";position:absolute;inset:10px;border:1px solid var(--papel-linea);pointer-events:none}
+.c-sello{position:absolute;top:18px;right:20px;width:84px;height:84px;border-radius:50%;border:2px solid var(--papel-sello);color:var(--papel-sello);display:grid;place-items:center;text-align:center;font-family:var(--f-num);font-size:12px;font-weight:700;line-height:1;letter-spacing:.08em}
+.c-de{font-family:var(--f-num);font-size:12px;color:var(--papel-suave);margin:0 0 4px;padding-right:96px;overflow-wrap:anywhere}
+.c-marca{font-family:var(--f-display);font-weight:700;font-size:26px;margin:0 0 18px}
+.c-sec{border-top:1px solid var(--papel-linea);padding-top:14px;margin-top:16px}
+.c-sec h2{font-family:var(--f-display);font-size:17px;margin:0 0 8px}
+.c-sec p{margin:0;font-size:15px;color:var(--papel-suave)}
+.c-fila{display:flex;justify-content:space-between;gap:14px;padding:6px 0;border-bottom:1px solid var(--papel-linea);font-size:15px}
 .c-fila:last-child{border-bottom:0}
-.c-fila span:last-child{color:#6b7080;white-space:nowrap;font-family:var(--f-num);font-size:12.5px;padding-top:2px}
-.c-pie{margin-top:18px;font-size:13px;color:#575757}
-@media (prefers-reduced-motion:no-preference){.carta{transition:transform .4s ease}.carta:hover{transform:rotate(0)}}
+.c-fila span:last-child{color:var(--papel-suave);white-space:nowrap;font-family:var(--f-num);font-size:13px;padding-top:2px}
+.c-pie{margin-top:18px;font-size:13px;color:var(--papel-suave)}
+@media (prefers-reduced-motion:no-preference){.carta{transition:transform .4s ease}}
 </style>
 </head>
 <body>
@@ -52,7 +51,7 @@ body{font-size:16px;line-height:1.55}
   <header><nav data-forja-nav></nav></header>
   <main class="b-grid">
     <section class="b-texto">
-      <p class="b-kicker">Boletín de Forja</p>
+      <span class="fx-marcas cat" aria-hidden="true"></span>
       <h1>Lo que se viene, en tu correo.</h1>
       <p>Te contamos <b>qué hay de nuevo en Forja</b>, qué <b>fondos, ferias y convocatorias</b> abren o cierran en las próximas semanas en Chile y algunos <b>proyectos de la comunidad</b> que vale la pena conocer.</p>
       <p>Llega una vez al mes, como mucho. Te das de baja con un toque desde cualquier correo.</p>
@@ -122,7 +121,7 @@ $("c-filas").innerHTML = prox.length ? prox.slice(0, 4).map((o) => '<div class="
 const { data: vit } = await sb.from("vitrinas_publicadas").select("slug,titulo,lema").eq("en_explorar", true).order("publicado_en", { ascending: false }).limit(2);
 if (vit && vit.length) {
   $("c-vit").hidden = false;
-  $("c-vfilas").innerHTML = vit.map((v) => '<p style="margin:0 0 8px"><a href="../vitrina/?v=' + encodeURIComponent(v.slug) + '" style="color:#2a3fd1;font-weight:700">' + esc(v.titulo || "Sin título") + "</a>" + (v.lema ? "<br>" + esc(v.lema) : "") + "</p>").join("");
+  $("c-vfilas").innerHTML = vit.map((v) => '<p style="margin:0 0 8px"><a href="../vitrina/?v=' + encodeURIComponent(v.slug) + '" style="color:var(--papel-tinta);font-weight:700">' + esc(v.titulo || "Sin título") + "</a>" + (v.lema ? "<br>" + esc(v.lema) : "") + "</p>").join("");
 }
 </script>
 </body>
