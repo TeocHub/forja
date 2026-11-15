@@ -27,15 +27,15 @@ h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 /* titular: «De la chispa / a la obra.» siempre en dos líneas; «a la obra.» toma el color de la categoría elegida en la Ruta */
 .obra{margin-top:40px}
 .tit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,34ch);gap:20px 48px;align-items:end}
+.elige{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:22px}
 @media (max-width:900px){.tit{grid-template-columns:minmax(0,1fr)}}
 .tit h1{font-size:clamp(38px,8.6vw,96px);line-height:.95;letter-spacing:-.035em}
 .tit h1 span,.tit h1 em{white-space:nowrap}
 .tit h1 em{font-style:normal;color:var(--cat);transition:color .3s ease}
 .tit .lead{font-size:17px;color:var(--muted);margin:0 0 20px}
 
-/* la Ruta: una hoja a todo el ancho */
-.banco{margin-top:40px;background:var(--card);padding:clamp(16px,3vw,28px);display:flex;flex-direction:column;gap:18px;--f-hueco:var(--card)}
-.banco-cab{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+/* la Ruta: directo sobre la página, sin hoja ni caja; la regla es una regla de verdad (línea con marcas) */
+.banco{margin-top:48px;display:flex;flex-direction:column;gap:20px}
 .banco-q{margin:0;font-weight:700;font-size:15px}
 .tipos{display:flex;gap:8px;flex-wrap:wrap}
 .nombres{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin-top:-10px}
@@ -51,12 +51,12 @@ h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 .escena p b{color:var(--fg)}
 .escena p.que{color:var(--fg)}
 .herrs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.sigue{display:flex;gap:10px;align-items:flex-start;margin:0;background:var(--mesa);padding:12px 16px;font-size:15px;color:var(--muted)}
+.sigue{display:flex;gap:10px;align-items:flex-start;margin:0;font-size:15px;color:var(--muted)}
 .sigue .fx-ico{margin-top:3px;color:var(--fg)}
 .sigue b{color:var(--fg);font-family:var(--f-display);font-weight:800}
 
 /* bocetos de cada etapa (dibujos hechos con las piezas reales) */
-.boceto{border-radius:0;background:var(--mesa);padding:16px;font-size:15px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.boceto{font-size:15px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .hoja{background:var(--card);border-radius:0;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
 .hoja i{font-style:normal;font-size:12px;color:var(--muted)}
 .hoja .linea{height:8px;border-radius:var(--r-s);background:var(--line)}
@@ -99,8 +99,9 @@ h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 .op-regla{display:block;margin:22px 0 6px;text-decoration:none}
 .opor .nota{color:var(--muted);margin:16px 0}
 .carril{display:grid;gap:10px}
-.op{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--card);border:1px solid transparent;border-radius:var(--r-s);padding:12px 14px;text-decoration:none;color:var(--fg)}
-.op:hover{border-color:var(--line)}
+.carril{gap:0;border-top:1px solid var(--line)}
+.op{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;border-bottom:1px solid var(--line);padding:12px 4px;min-height:72px;text-decoration:none;color:var(--fg)}
+.op:hover h3{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
 .op .dias{width:64px;text-align:center;padding:6px 4px;border-right:2px dashed var(--line)}
 .op .dias b{display:block;font-family:var(--f-num);font-size:20px;line-height:1.1;color:var(--k,var(--fg))}
 .op .dias small{font-size:12px;color:var(--muted)}
@@ -113,26 +114,14 @@ h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 .bru h2{font-size:36px;line-height:1.06;margin:8px 0 12px}
 @media (max-width:620px){.bru h2{font-size:26px}}
 .bru p{color:var(--muted);margin:0}
-.demo{background:var(--card);padding:16px 12px 14px}
+.demo{padding:4px 0}
 .demo .pair{display:grid;grid-template-columns:1fr 1fr;gap:4px;align-items:center}
 @media (max-width:520px){.demo .pair{grid-template-columns:1fr}}
 .demo .ver{font-size:13px;color:var(--muted);text-align:center;margin:6px 8px 0;min-height:3em}
 .demo .ver b{color:var(--fg)}
 .q{font-size:13px;color:var(--muted);text-align:center;min-height:2.6em;margin:2px 8px 0}
 
-/* planes: tres boletos sobre la mesa; el gratis, cortado (ya se usa); los pagados, sin cortar (llegan pronto) */
-.mesa-planes{background:var(--mesa);padding:clamp(14px,3vw,24px);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:stretch}
-@media (max-width:820px){.mesa-planes{grid-template-columns:minmax(0,1fr)}}
-.pagados{display:flex;flex-direction:column;gap:14px}
-.pagados .fx-boleto-g{flex:1}
-.mesa-planes h3{font-size:20px;color:var(--fg)}
-.mesa-planes .gratis h3{font-size:26px}
-.mesa-planes .pr{font-family:var(--f-num);font-size:26px;font-weight:600;line-height:1;color:var(--fg)}
-.mesa-planes .pr span{font-family:var(--f-body);font-size:13px;font-weight:400;color:var(--muted)}
-.mesa-planes p{margin:0;font-size:15px;color:var(--muted)}
-.mesa-planes .cuando{font-size:13px;color:var(--muted)}
-.mesa-planes .gratis .fx-boleto-g-c{padding:24px;gap:12px;justify-content:center}
-.mesa-planes .gratis .fx-boleto-g-t b{color:var(--cat)}
+/* planes: una tira de boletos (pieza común .fx-tira); el gratis, en blanco; los pagados, en gris hasta que lleguen */
 .lanz{margin:12px 0 0;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:baseline}
 .lanz .fx-i{flex:none;color:var(--cat);--i:var(--i-chispa)}
 .lanz a{color:inherit}
@@ -159,6 +148,7 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
       <div>
         <span class="fx-marcas cat" aria-hidden="true"></span>
         <h1 id="obra-t"><span>De la chispa</span><br><em>a la obra.</em></h1>
+        <div class="elige"><p class="banco-q" id="banco-q">¿Qué estás creando?</p><div class="tipos" id="tipos" role="group" aria-labelledby="banco-q"></div></div>
       </div>
       <div>
         <p class="lead">Cada proyecto en Forja tiene su Ruta: siete etapas que llevan una historia, un juego o un producto desde la primera idea hasta mostrarlo, con la herramienta justa en cada momento.</p>
@@ -166,7 +156,6 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
       </div>
     </div>
     <div class="banco">
-      <div class="banco-cab"><p class="banco-q" id="banco-q">¿Qué estás creando?</p><div class="tipos" id="tipos" role="group" aria-labelledby="banco-q"></div></div>
       <div id="regla"></div>
       <div class="nombres" id="nombres" aria-hidden="true"></div>
       <div class="escena" id="escena" aria-live="polite"></div>
@@ -194,7 +183,7 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 
   <section aria-labelledby="planes-t">
     <div class="sec-cab"><div><span class="fx-marcas" aria-hidden="true"></span><h2 id="planes-t">Gratis para empezar.</h2></div><p>El plan gratis no vence. Los planes pagados llegan pronto y suben los límites.</p></div>
-    <div class="mesa-planes" id="planes"></div>
+    <div id="planes"></div>
     <p class="lanz"><span class="fx-i" aria-hidden="true"></span><span>Los precios son de lanzamiento y pueden cambiar, igual que lo que trae cada plan. <a href="planes/">Ver los planes lado a lado</a></span></p>
   </section>
 
@@ -212,7 +201,7 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 </div>
 
 <script type="module">
-import { nav, esc, toast, fAvance, regla, boleto, boletoG, ico, fechasDe, rangoFechas, reglaFechas, leyendaFechas } from "./js/forja.js";
+import { nav, esc, toast, fAvance, regla, boleto, tira, ico, fechasDe, rangoFechas, reglaFechas, leyendaFechas } from "./js/forja.js";
 import { radar, dial, veredicto, CSS_BRUJULA } from "./js/brujula.js";
 import { ETAPAS, etapaNombre } from "./js/ruta.js";
 import { dibujo, CSS_ESTRUCTURA } from "./js/estructura.js";
@@ -268,7 +257,7 @@ function ruta(foco) {
   $("wrap").style.setProperty("--cat", "var(--t-" + mt + ")");
   const e = ETAPAS[me], s = SIGUE[e.k], Q = quienes(mt), nombres = ETAPAS.map((x) => etapaNombre(x.k, mt)), x = ESC[me];
   $("tipos").innerHTML = Object.entries(TIPOS_M).map(([k, [n]]) => '<button type="button" class="fx-etq" style="--tc:var(--t-' + k + ')" data-t="' + k + '" aria-pressed="' + (k === mt) + '">' + n + "</button>").join("");
-  $("regla").innerHTML = regla(me, nombres, { botones: true, pie: false, etiqueta: "Etapas de la Ruta de " + TIPOS_M[mt][1] });
+  $("regla").innerHTML = regla(me, nombres, { botones: true, pie: false, abierta: true, etiqueta: "Etapas de la Ruta de " + TIPOS_M[mt][1] });
   $("nombres").innerHTML = nombres.map((n, i) => '<span data-etapa="' + i + '"' + (i === me ? ' class="aqui"' : "") + ">" + esc(n) + "</span>").join("");
   $("escena").innerHTML = '<div><div class="esc-cab">' + fAvance(me, 64) + "<div><small>Etapa " + (me + 1) + " de 7 · " + esc(TIPOS_M[mt][1]) + "</small><h2>" + esc(nombres[me]) + '</h2></div></div><p class="que">' + esc(e.que) + "</p>" + x.t +
     '<div class="herrs">' + x.herrs.map((h, j) => boleto(j + 1, HICO[h] || "chispa", h)).join("") + '</div></div><div class="boceto" aria-hidden="true">' + x.b + "</div>";
@@ -293,12 +282,11 @@ pintarDial();
 
 /* ---------- planes: tres boletos sobre la mesa ---------- */
 const $$ = (n) => "$" + n.toLocaleString("es-CL");
-$("planes").innerHTML =
-  boletoG(1, '<span class="cuando">Para siempre</span><h3>Gratis</h3><span class="pr">$0</span><p>Tres proyectos en curso con su Ruta completa, las herramientas esenciales, tu vitrina y una ronda de lectores beta con tres personas.</p>', { clase: "gratis" }) +
-  '<div class="pagados">' +
-  boletoG(2, '<span class="cuando">Próximamente</span><h3>Forja Más</h3><span class="pr">' + $$(PRECIOS.mas.mes) + ' <span>al mes</span></span><p>Todas las herramientas, quince proyectos en curso, cinco personas por proyecto y rondas de quince lectores. O ' + $$(PRECIOS.mas.anio) + " al año.</p>", { cortado: false }) +
-  boletoG(3, '<span class="cuando">Próximamente</span><h3>Forja Estudio</h3><span class="pr">' + $$(PRECIOS.estudio.mes) + ' <span>al mes</span></span><p>Para estudios, colectivos y cursos: todo lo de Forja Más, sin tope de proyectos ni de ideas, quince personas por proyecto y rondas de cuarenta lectores. O ' + $$(PRECIOS.estudio.anio) + " al año.</p>", { cortado: false }) +
-  "</div>";
+$("planes").innerHTML = tira([
+  { cuerpo: '<span class="fx-tira-cuando">Para siempre</span><h3>Gratis</h3><span class="fx-tira-pr">$0</span><p>Tres proyectos en curso con su Ruta completa, las herramientas esenciales, tu vitrina y una ronda de lectores beta con tres personas.</p>' },
+  { pronto: true, cuerpo: '<span class="fx-tira-cuando">Próximamente</span><h3>Forja Más</h3><span class="fx-tira-pr">' + $$(PRECIOS.mas.mes) + ' <span>al mes</span></span><p>Todas las herramientas, quince proyectos en curso, cinco personas por proyecto y rondas de quince lectores. O ' + $$(PRECIOS.mas.anio) + " al año.</p>" },
+  { pronto: true, cuerpo: '<span class="fx-tira-cuando">Próximamente</span><h3>Forja Estudio</h3><span class="fx-tira-pr">' + $$(PRECIOS.estudio.mes) + ' <span>al mes</span></span><p>Para estudios, colectivos y cursos: todo lo de Forja Más, sin tope de proyectos ni de ideas, quince personas por proyecto y rondas de cuarenta lectores. O ' + $$(PRECIOS.estudio.anio) + " al año.</p>" },
+]);
 
 /* ---------- oportunidades en vivo: la regla de fechas (pieza común) y los talones ---------- */
 const SB = "https://gfkiwldxxvffnkjcesws.supabase.co/rest/v1/", H = { headers: { apikey: "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j" } };

@@ -64,9 +64,10 @@ export const fAvance = (etapa, tam = 56, etiqueta) => '<svg class="fx-f" viewBox
   (etapa >= 0 ? '<path class="ch" transform="translate(12 ' + F_Y[etapa] + ')" d="' + CHISPA + '"/>' : "") + "</svg>";
 // La regla de avance: siete marcas que se tocan. Con `botones`, cada marca es un botón (data-etapa = índice).
 // nombres = los siete nombres de etapa (para leerlos en voz alta). etapa = índice o -1.
-export function regla(etapa, nombres, { botones = false, chica = false, pie = true, etiqueta = "Etapas de la Ruta" } = {}) {
+// Con `abierta`, la regla va sin caja: una línea con marcas que se llena del color del proyecto (portada).
+export function regla(etapa, nombres, { botones = false, chica = false, abierta = false, pie = true, etiqueta = "Etapas de la Ruta" } = {}) {
   const pct = etapa < 0 ? 0 : ((etapa + 0.5) / 7) * 100, tag = botones ? "button" : "span";
-  return '<div class="fx-regla' + (chica ? " chica" : "") + '"><div class="fx-regla-r"' + (botones ? ' role="group"' : ' role="img"') + ' aria-label="' + esc(etiqueta) + (botones || etapa < 0 ? "" : ": etapa " + (etapa + 1) + " de 7, " + esc(nombres[etapa] || "")) + '" style="--pct:' + pct.toFixed(1) + '%">' +
+  return '<div class="fx-regla' + (chica ? " chica" : "") + (abierta ? " abierta" : "") + '"><div class="fx-regla-r"' + (botones ? ' role="group"' : ' role="img"') + ' aria-label="' + esc(etiqueta) + (botones || etapa < 0 ? "" : ": etapa " + (etapa + 1) + " de 7, " + esc(nombres[etapa] || "")) + '" style="--pct:' + pct.toFixed(1) + '%">' +
     nombres.map((n, i) => "<" + tag + (botones ? ' type="button" data-etapa="' + i + '" aria-pressed="' + (i === etapa) + '" aria-label="' + (i + 1) + ": " + esc(n) + '"' : ' aria-hidden="true"') + ' class="' + (i === etapa ? "aqui" : i < etapa ? "ya" : "") + '">' + chispa(18) + "<i></i><span>" + (i + 1) + "</span></" + tag + ">").join("") +
     "</div>" + (pie ? '<div class="fx-regla-pie"><span>Primera chispa</span><span>Listo para mostrar</span></div>' : "") + "</div>";
 }
@@ -76,9 +77,9 @@ export function timbrar(el) { if (!el) return; el.classList.remove("fx-cae"); vo
 export const etiqueta = (tipo, nombre) => '<span class="fx-etq" style="--tc:var(--t-' + esc(tipo || "otro") + ')">' + esc(nombre) + "</span>";
 // Boleto numerado: una herramienta con su ícono.
 export const boleto = (n, k, nombre) => '<span class="fx-boleto">' + ico(k, 16) + "N.º " + String(n).padStart(2, "0") + " · " + esc(nombre) + "</span>";
-// Boleto grande: un plan o una pieza principal. Talón con su número a la izquierda y el corte punteado; sin `cortado`, es un boleto sin cortar
-// (gris, sobre la mesa: «próximamente»). cuerpo = HTML ya escapado.
-export const boletoG = (n, cuerpo, { cortado = true, clase = "" } = {}) => '<div class="fx-boleto-g' + (cortado ? "" : " sin-cortar") + (clase ? " " + clase : "") + '"><span class="fx-boleto-g-t" aria-hidden="true"><small>N.º</small><b>' + String(n).padStart(2, "0") + '</b></span><div class="fx-boleto-g-c">' + cuerpo + "</div></div>";
+// Tira de boletos: varios boletos pegados, separados por su corte (planes). Cada tramo: {cuerpo (HTML ya escapado), pronto}.
+// Un tramo `pronto` va en gris, como un boleto que todavía no se puede usar. Es una sola pieza, no una grilla de tarjetas.
+export const tira = (tramos) => '<div class="fx-tira">' + tramos.map((t, i) => '<div class="fx-tira-t' + (t.pronto ? " pronto" : "") + '"><span class="fx-tira-n" aria-hidden="true">N.º ' + String(i + 1).padStart(2, "0") + "</span>" + t.cuerpo + "</div>").join("") + "</div>";
 
 /* --- regla de fechas: una línea delgada desde hoy, con marcas por semana y por mes y un punto por fecha (portada y Oportunidades) --- */
 // Mide lo mismo con 4 o con 40 fechas. k: curso (en curso, musgo), cierra (ladrillo), abre (ocre), evento (grafito).

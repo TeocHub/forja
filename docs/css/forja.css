@@ -253,15 +253,19 @@ button.fx-etq[aria-pressed="true"]::before,button.fx-etq[aria-checked="true"]::b
 /* Boleto numerado: cada herramienta, con su ícono */
 .fx-boleto{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-num);font-size:12px;font-weight:700;color:var(--fg);background:var(--card);border:1px solid var(--line);border-left:3px dashed var(--line);border-radius:var(--r-s);padding:7px 12px;text-decoration:none;white-space:nowrap}
 .fx-boleto .fx-ico{width:16px;height:16px}
-/* Boleto grande (boletoG en forja.js): talón con el número, corte punteado y el cuerpo. Sin cortar = «próximamente», en gris sobre la mesa. */
-.fx-boleto-g{display:grid;grid-template-columns:auto minmax(0,1fr);background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);color:var(--fg);min-width:0}
-.fx-boleto-g-t{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:64px;padding:16px 0;border-right:2px dashed var(--line);font-family:var(--f-num);line-height:1}
-.fx-boleto-g-t small{font-size:12px;color:var(--muted)}
-.fx-boleto-g-t b{font-size:26px;font-weight:700}
-.fx-boleto-g-c{padding:18px 20px;display:flex;flex-direction:column;gap:8px;min-width:0}
-.fx-boleto-g.sin-cortar{background:var(--mesa);color:var(--muted)}
-.fx-boleto-g.sin-cortar .fx-boleto-g-t{border-right:1px solid var(--line)}
-@media (max-width:520px){.fx-boleto-g-t{width:52px}.fx-boleto-g-t b{font-size:20px}.fx-boleto-g-c{padding:16px}}
+/* Tira de boletos (tira() en forja.js): boletos pegados, separados por su corte punteado. En el celular se apilan y el corte queda horizontal. */
+.fx-tira{display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card)}
+.fx-tira-t{display:flex;flex-direction:column;gap:8px;padding:20px 22px 22px;min-width:0}
+.fx-tira-t+.fx-tira-t{border-left:2px dashed var(--line)}
+.fx-tira-t.pronto{background:var(--mesa);color:var(--muted)}
+.fx-tira-n{font:700 12px var(--f-num);color:var(--muted)}
+.fx-tira-t:not(.pronto) .fx-tira-n{color:var(--cat)}
+.fx-tira-t h3{font-size:20px;color:var(--fg);margin:0}
+.fx-tira-pr{font-family:var(--f-num);font-size:26px;font-weight:600;line-height:1;color:var(--fg)}
+.fx-tira-pr span{font-family:var(--f-body);font-size:13px;font-weight:400;color:var(--muted)}
+.fx-tira-t p{margin:0;font-size:15px;color:var(--muted)}
+.fx-tira-cuando{font-size:13px;color:var(--muted)}
+@media (max-width:720px){.fx-tira{grid-auto-flow:row}.fx-tira-t+.fx-tira-t{border-left:0;border-top:2px dashed var(--line)}}
 /* Regla de fechas (reglaFechas en forja.js): línea delgada desde hoy, marcas por semana y por mes, un punto por fecha. Alto fijo. */
 .fx-fechas{position:relative;height:44px;margin:4px 6px 0}
 .fx-fechas-l{position:absolute;left:0;right:0;top:12px;height:2px;background:var(--fg);border-radius:var(--r-s)}
@@ -291,6 +295,11 @@ button.fx-etq[aria-pressed="true"]::before,button.fx-etq[aria-checked="true"]::b
 .fx-regla-r .aqui .fx-chispa{opacity:1}
 .fx-regla-r button:hover:not(.aqui) .fx-chispa{opacity:.3}
 .fx-regla-pie{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted)}
+/* regla abierta: sin caja, una línea de base que se llena del color del proyecto hasta la etapa actual */
+.fx-regla.abierta .fx-regla-r{border:0;border-radius:0;overflow:visible;background:linear-gradient(var(--line),var(--line)) left bottom/100% 2px no-repeat,linear-gradient(var(--tc),var(--tc)) left bottom/var(--pct,0%) 4px no-repeat}
+.fx-regla.abierta .fx-regla-r>*{border-left:0;border-radius:var(--r-m)}
+.fx-regla.abierta .fx-regla-r .ya i{background:var(--tc)}
+.fx-regla.abierta .fx-regla-r .aqui{color:var(--tc)}
 .fx-regla.chica .fx-regla-r>*{min-height:34px;padding:4px 0 5px;gap:3px;font-size:0}
 .fx-regla.chica .fx-chispa{width:11px;height:11px}
 .fx-regla.chica i{height:6px}.fx-regla.chica .ya i{height:10px}.fx-regla.chica .aqui i{height:16px}
