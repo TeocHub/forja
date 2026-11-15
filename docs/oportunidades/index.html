@@ -25,19 +25,8 @@ header p{margin:6px 0 0;color:var(--muted)}
 .proximo{display:flex;flex-direction:column;gap:6px}
 .px-cab{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 .px-cab h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0}
-.px-ley{display:flex;gap:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
-.px-ley span{display:inline-flex;align-items:center;gap:6px}
-.px-ley i{width:9px;height:9px;border-radius:50%;background:var(--k)}
-/* regla delgada con un punto por fecha; la franja marca qué parte de la regla se está viendo en la fila de talones */
-.px-regla{position:relative;height:44px;margin:4px 6px 0;cursor:pointer;touch-action:pan-y}
-.px-linea{position:absolute;left:0;right:0;top:12px;height:2px;background:var(--fg);border-radius:var(--r-s)}
-.px-marca{position:absolute;top:13px;width:1.5px;height:6px;background:var(--fg);transform:translateX(-50%)}
-.px-marca.mes{height:10px}
-.px-mes{position:absolute;top:26px;transform:translateX(-50%);font-family:var(--f-num);font-size:12px;color:var(--muted);white-space:nowrap}
-.px-mes.hoy{transform:none;color:var(--fg);font-weight:700}
-.px-punto{position:absolute;top:8px;width:8px;height:8px;border-radius:50%;background:var(--k);border:1.5px solid var(--bg);transform:translateX(-50%);box-sizing:content-box}
-.px-ventana{position:absolute;top:2px;height:22px;border-radius:var(--r-s);background:color-mix(in srgb,var(--fg) 10%,transparent);transition:left .2s ease,width .2s ease}
-@media (prefers-reduced-motion:reduce){.px-ventana{transition:none}}
+/* la regla delgada con sus puntos es la pieza común .fx-fechas (forja.css); aquí solo se toca para llevar la fila a esa fecha */
+.px-regla{cursor:pointer;touch-action:pan-y}
 /* fila de talones: uno por fecha, en orden, se desliza */
 .px-fila-w{position:relative}
 .px-fila{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:thin;padding:2px 2px 8px}
@@ -50,6 +39,7 @@ header p{margin:6px 0 0;color:var(--muted)}
 .px-que b{font-size:15px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .px-que small{font-size:12px;color:var(--muted)}
 .px-que small em{font-style:normal;color:var(--k);font-weight:700}
+.px-ahora{color:var(--k);font-size:17px}
 .px-flecha{position:absolute;top:calc(50% - 26px);width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-size:20px;cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 8px var(--sombra)}
 .px-flecha.izq{left:-14px}.px-flecha.der{right:-14px}
 .px-flecha[hidden]{display:none}
@@ -57,7 +47,6 @@ header p{margin:6px 0 0;color:var(--muted)}
 /* en pantallas anchas, dos filas de talones: se ven ocho a la vez */
 @media (min-width:900px){.px-fila{display:grid;grid-template-rows:repeat(2,auto);grid-auto-flow:column;grid-auto-columns:216px}}
 .px-vacio{font-size:15px;color:var(--muted);margin:4px 0 0}
-.k-cierra{--k:var(--soon)} .k-abre{--k:var(--wait)} .k-evento{--k:var(--fg)} .k-curso{--k:var(--open)}
 .item:target,.item.visto{outline:2px solid var(--fg);outline-offset:3px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -106,9 +95,9 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
   </header>
 
   <section class="proximo" aria-labelledby="px-t">
-    <div class="px-cab"><h2 id="px-t">Lo que viene</h2><div class="px-ley" id="px-ley" aria-hidden="true"></div></div>
+    <div class="px-cab"><h2 id="px-t">Lo que viene</h2><div class="fx-fechas-ley" id="px-ley" aria-hidden="true"></div></div>
     <p class="sr" id="viva" aria-live="polite">Revisando las fechas…</p>
-    <div class="px-regla" id="px-regla" aria-hidden="true"></div>
+    <div class="fx-fechas px-regla" id="px-regla" aria-hidden="true"></div>
     <div class="px-fila-w"><div class="px-fila" id="px-fila" role="list" aria-label="Próximas fechas"></div><button type="button" class="px-flecha izq" id="px-izq" aria-label="Fechas anteriores" hidden>‹</button><button type="button" class="px-flecha der" id="px-der" aria-label="Fechas siguientes" hidden>›</button></div>
   </section>
 
@@ -166,58 +155,37 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
   function sortKey(p,e){var c=[];if(p.next)c.push(+p.next);if(e.next)c.push(+e.next);return c.length?Math.min.apply(null,c):9e15;}
 
   function enDias(n,est){return n===0?"hoy":n===1?"mañana":(est?"en unos ":"en ")+n+" días";}
-  // Fechas que vienen: cierres de postulaciones abiertas, aperturas y eventos (y los eventos en curso, en «hoy»).
-  function proximas(rows){
-    var f=[];
-    rows.forEach(function(r){
-      var est=!!r.it.fechas_estimadas;
-      if(r.p.k==="open"&&r.p.left!=null)f.push({r:r,n:r.p.left,k:"cierra",q:"cierra",est:false});
-      if(r.p.k==="wait")f.push({r:r,n:diff(r.p.next),k:"abre",q:"abre",est:est});
-      if(r.e.k==="future")f.push({r:r,n:r.e.left,k:"evento",q:"evento",est:est});
-      if(r.e.k==="now")f.push({r:r,n:0,k:"curso",q:"en curso",est:false});
-    });
-    return f.sort(function(a,b){return a.n-b.n||(a.k==="curso"?-1:1);});
-  }
-  function fraseViva(rows,f){
+  // Las fechas que vienen salen de la pieza común (fechasDe, rangoFechas, reglaFechas y leyendaFechas de forja.js).
+  var FX=null;import("../js/forja.js").then(function(m){FX=m;if(items.length)render();});
+  function fraseViva(f){
     var ab=f.filter(function(x){return x.k==="cierra";});
-    if(ab.length)return (ab.length===1?"Hay una postulación abierta":"Hay "+ab.length+" postulaciones abiertas")+"; la primera cierra "+enDias(ab[0].n)+": "+ab[0].r.it.nombre+".";
+    if(ab.length)return (ab.length===1?"Hay una postulación abierta":"Hay "+ab.length+" postulaciones abiertas")+"; la primera cierra "+enDias(ab[0].n)+": "+ab[0].o.nombre+".";
     var x=f.filter(function(x){return x.k!=="curso";})[0];
-    return "Ahora no hay postulaciones abiertas"+(x?"; la próxima fecha es "+x.r.it.nombre+", "+enDias(x.n,x.est)+".":".");
+    return "Ahora no hay postulaciones abiertas"+(x?"; la próxima fecha es "+x.o.nombre+", "+enDias(x.n,x.est)+".":".");
   }
   var MESL=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
   var FECHAS=[],RANGO=90;
-  function pintarRegla(rows){
-    var f=proximas(rows),reg=document.getElementById("px-regla"),fila=document.getElementById("px-fila");
-    document.getElementById("viva").textContent=fraseViva(rows,f);
-    var lejos=f.filter(function(x){return x.k!=="curso";});
-    // 90 días; si no hay nada en ese plazo, se estira hasta la próxima fecha (máximo un año)
-    RANGO=90;if(lejos.length&&lejos[0].n>80)RANGO=Math.min(365,lejos[0].n+21);
-    f=f.filter(function(x){return x.n<=RANGO;});FECHAS=f;
-    var LEY={curso:"En curso",cierra:"Cierra",abre:"Abre",evento:"Evento"};
-    document.getElementById("px-ley").innerHTML=Object.keys(LEY).filter(function(k){return f.some(function(x){return x.k===k;});}).map(function(k){return '<span class="k-'+k+'"><i></i>'+LEY[k]+'</span>';}).join("");
+  function pintarRegla(){
+    if(!FX)return;
+    var reg=document.getElementById("px-regla"),fila=document.getElementById("px-fila"),todas=FX.fechasDe(items),r=FX.rangoFechas(todas),f=r.fechas,t=today();
+    document.getElementById("viva").textContent=fraseViva(todas);
+    RANGO=r.rango;FECHAS=f;
+    document.getElementById("px-ley").innerHTML=FX.leyendaFechas(f);
     if(!f.length){reg.innerHTML="";fila.innerHTML='<p class="px-vacio">No hay fechas en los próximos meses. Abajo están todas, también las que ya pasaron.</p>';flechas();return;}
-    var pct=function(n){return (n/RANGO*100)+"%";},h="",t=today();
-    h+='<div class="px-ventana" id="px-ventana"></div><div class="px-linea"></div><span class="px-mes hoy" style="left:0">hoy</span>';
-    for(var d=1;d<=RANGO;d++){
-      var dia=new Date(t.getFullYear(),t.getMonth(),t.getDate()+d);
-      if(dia.getDate()===1){h+='<span class="px-marca mes" style="left:'+pct(d)+'"></span>';if(d>6&&d<RANGO-4)h+='<span class="px-mes" style="left:'+pct(d)+'">'+MESL[dia.getMonth()]+'</span>';}
-      else if(RANGO<=120&&dia.getDay()===1)h+='<span class="px-marca" style="left:'+pct(d)+'"></span>';
-    }
-    h+=f.map(function(x){return '<span class="px-punto k-'+x.k+'" style="left:'+pct(x.n)+'"></span>';}).join("");
-    reg.innerHTML=h;
+    reg.innerHTML=FX.reglaFechas(f,RANGO,{ventana:true});
     fila.innerHTML=f.map(function(x,i){
       var dia=new Date(t.getFullYear(),t.getMonth(),t.getDate()+x.n);
       var num=x.k==="curso"?"·":x.n===0?"hoy":(x.est?"≈":"")+x.n,unidad=x.k==="curso"||x.n===0?"":(x.n===1?"día":"días");
-      var cuando=x.k==="curso"?"ahora":dia.getDate()+" "+MESL[dia.getMonth()];
-      return '<a role="listitem" class="px-talon k-'+x.k+'" data-i="'+i+'" data-id="'+esc(x.r.it.id)+'" href="#op-'+esc(x.r.it.id)+'" title="'+esc(x.r.it.nombre)+'">'+
-        '<span class="px-dias"><b>'+(x.k==="curso"?'<em style="font-style:normal;color:var(--k)">●</em>':num)+'</b><small>'+unidad+'</small></span>'+
-        '<span class="px-que"><b>'+esc(x.r.it.nombre)+'</b><small><em>'+x.q+'</em> · '+cuando+'</small></span></a>';
+      var cuando=x.k==="curso"?"ahora":dia.getDate()+" "+MESL[dia.getMonth()],q=x.k==="curso"?"en curso":x.k;
+      return '<a role="listitem" class="px-talon fk-'+x.k+'" data-i="'+i+'" data-id="'+esc(x.o.id)+'" href="#op-'+esc(x.o.id)+'" title="'+esc(x.o.nombre)+'">'+
+        '<span class="px-dias"><b>'+(x.k==="curso"?'<span class="fx-i px-ahora" style="--i:var(--i-chispa)"></span>':num)+'</b><small>'+unidad+'</small></span>'+
+        '<span class="px-que"><b>'+esc(x.o.nombre)+'</b><small><em>'+q+'</em> · '+cuando+'</small></span></a>';
     }).join("");
     ventana();
   }
   // Franja sobre la regla: va de la primera a la última fecha que se ve en la fila.
   function ventana(){
-    var fila=document.getElementById("px-fila"),v=document.getElementById("px-ventana");flechas();
+    var fila=document.getElementById("px-fila"),v=document.querySelector("#px-regla .fx-fechas-v");flechas();
     if(!v||!FECHAS.length)return;
     var r=fila.getBoundingClientRect(),vis=[].filter.call(fila.querySelectorAll(".px-talon"),function(el){var b=el.getBoundingClientRect();return b.right>r.left+20&&b.left<r.right-20;});
     if(!vis.length)return;
@@ -234,7 +202,7 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
     document.getElementById("f-tipo").value=state.tipo;
     document.getElementById("f-past").checked=state.hidePast;
     var rows=items.map(function(it){var p=postul(it),e=evento(it);return {it:it,p:p,e:e,key:sortKey(p,e),done:finished(it,p,e)};});
-    if(items.length)pintarRegla(rows);
+    if(items.length)pintarRegla();
     var vis=rows.filter(function(r){
       if(state.area&&(r.it.areas||[]).indexOf(state.area)<0)return false;
       if(state.tipo&&r.it.tipo!==state.tipo)return false;

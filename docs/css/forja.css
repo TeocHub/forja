@@ -89,6 +89,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .fx-entrada .fx-f{--f-hueco:var(--card)}
 .fx-entrada h2{font-family:var(--f-display);font-weight:800;font-size:26px;margin:0}
 .fx-entrada p{margin:0}
+.fx-entrada [hidden]{display:none}
 .fx-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .fx-row input{flex:1 1 220px;font:inherit;font-size:17px;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:var(--r-s);padding:10px 12px;min-height:44px;min-width:0}
 .fx-primary{font:inherit;font-size:15px;font-weight:700;border-radius:var(--r-m);padding:9px 18px;min-height:44px;cursor:pointer;border:1px solid var(--btn);background:var(--btn);color:var(--btn-tx)}
@@ -252,6 +253,29 @@ button.fx-etq[aria-pressed="true"]::before,button.fx-etq[aria-checked="true"]::b
 /* Boleto numerado: cada herramienta, con su ícono */
 .fx-boleto{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-num);font-size:12px;font-weight:700;color:var(--fg);background:var(--card);border:1px solid var(--line);border-left:3px dashed var(--line);border-radius:var(--r-s);padding:7px 12px;text-decoration:none;white-space:nowrap}
 .fx-boleto .fx-ico{width:16px;height:16px}
+/* Boleto grande (boletoG en forja.js): talón con el número, corte punteado y el cuerpo. Sin cortar = «próximamente», en gris sobre la mesa. */
+.fx-boleto-g{display:grid;grid-template-columns:auto minmax(0,1fr);background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);color:var(--fg);min-width:0}
+.fx-boleto-g-t{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:64px;padding:16px 0;border-right:2px dashed var(--line);font-family:var(--f-num);line-height:1}
+.fx-boleto-g-t small{font-size:12px;color:var(--muted)}
+.fx-boleto-g-t b{font-size:26px;font-weight:700}
+.fx-boleto-g-c{padding:18px 20px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.fx-boleto-g.sin-cortar{background:var(--mesa);color:var(--muted)}
+.fx-boleto-g.sin-cortar .fx-boleto-g-t{border-right:1px solid var(--line)}
+@media (max-width:520px){.fx-boleto-g-t{width:52px}.fx-boleto-g-t b{font-size:20px}.fx-boleto-g-c{padding:16px}}
+/* Regla de fechas (reglaFechas en forja.js): línea delgada desde hoy, marcas por semana y por mes, un punto por fecha. Alto fijo. */
+.fx-fechas{position:relative;height:44px;margin:4px 6px 0}
+.fx-fechas-l{position:absolute;left:0;right:0;top:12px;height:2px;background:var(--fg);border-radius:var(--r-s)}
+.fx-fechas-m{position:absolute;top:13px;width:1.5px;height:6px;background:var(--fg);transform:translateX(-50%)}
+.fx-fechas-m.mes{height:10px}
+.fx-fechas-mes{position:absolute;top:26px;transform:translateX(-50%);font-family:var(--f-num);font-size:12px;color:var(--muted);white-space:nowrap}
+.fx-fechas-mes.hoy{left:0;transform:none;color:var(--fg);font-weight:700}
+.fx-fechas-p{position:absolute;top:8px;width:8px;height:8px;border-radius:50%;background:var(--k);border:1.5px solid var(--bg);transform:translateX(-50%);box-sizing:content-box}
+.fx-fechas-v{position:absolute;top:2px;height:22px;border-radius:var(--r-s);background:color-mix(in srgb,var(--fg) 10%,transparent);transition:left .2s ease,width .2s ease}
+@media (prefers-reduced-motion:reduce){.fx-fechas-v{transition:none}}
+.fx-fechas-ley{display:flex;gap:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.fx-fechas-ley span{display:inline-flex;align-items:center;gap:6px}
+.fx-fechas-ley i{width:9px;height:9px;border-radius:50%;background:var(--k)}
+.fk-cierra{--k:var(--bad)} .fk-abre{--k:var(--warn)} .fk-evento{--k:var(--fg)} .fk-curso{--k:var(--good)}
 /* Regla de avance: siete marcas que se tocan; lo hecho se llena y la chispa queda sobre la etapa actual */
 .fx-regla{display:flex;flex-direction:column;gap:6px;--tc:var(--cat)}
 .fx-regla-r{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--r-m);background:linear-gradient(90deg,var(--suave) var(--pct,0%),var(--field) var(--pct,0%));overflow:hidden}

@@ -14,20 +14,17 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&display=swap">
 <link rel="stylesheet" href="../css/forja.css">
 <style>
-/* Layout: puerta de entrada — la tarjeta del correo a un lado y, al otro, lo que hay dentro de la cuenta */
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.55;min-height:100vh}
+/* Layout: puerta de entrada — el formulario del correo y, al lado, una sola pieza grande: la F-regla, que se va llenando mientras escribes el correo */
+body{font-size:17px;line-height:1.55;min-height:100vh}
 .wrap{max-width:980px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.puerta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px;align-items:center;margin-top:min(8vh,64px)}
-@media (max-width:780px){.puerta{grid-template-columns:minmax(0,1fr);gap:28px;margin-top:12px}}
-#caja .fx-entrada{max-width:none}
-.dentro{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.cuarto{background:var(--card);border:0;border-radius:0;padding:14px;display:flex;flex-direction:column;gap:6px}
-.cuarto svg{color:var(--fg)}
-.cuarto.plan svg{color:var(--cat)}
-.cuarto b{font-family:var(--f-display);font-weight:800;font-size:17px}
-.cuarto span{font-size:13px;color:var(--muted)}
-.dentro-t{font-family:var(--f-body);font-size:12px;color:var(--muted);margin:0 0 10px}
-.ya{font-size:13px;color:var(--muted);margin-top:12px}
+.puerta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:36px 56px;align-items:center;margin-top:min(8vh,64px)}
+#caja .fx-entrada{max-width:none;padding:clamp(20px,3vw,32px)}
+.pieza{display:flex;flex-direction:column;align-items:center;gap:14px;--f-hueco:var(--bg)}
+.pieza .fx-f{width:min(320px,100%);height:auto;aspect-ratio:56/50}
+.pieza p{margin:0;font-size:15px;color:var(--muted);text-align:center;max-width:30ch;min-height:3em}
+.pieza p b{color:var(--fg)}
+/* en tablet angosta y celular, la F va arriba y más chica, para que el teclado no tape el campo */
+@media (max-width:780px){.puerta{grid-template-columns:minmax(0,1fr);gap:16px;margin-top:8px}.pieza{order:-1;flex-direction:row;align-items:center;gap:14px}.pieza .fx-f{width:96px}.pieza p{text-align:left;min-height:0}}
 </style>
 </head>
 <body>
@@ -35,20 +32,11 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17
   <header><nav data-forja-nav></nav></header>
   <main class="puerta">
     <div id="caja"></div>
-    <section aria-labelledby="dentro-t">
-      <p class="dentro-t" id="dentro-t">Con tu cuenta</p>
-      <div class="dentro">
-        <div class="cuarto"><svg class="fx-ico" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M8 3.5h11v14H8z M5 6.5v14h11"/></svg><b>Proyectos</b><span>Escritura guiada, referentes, brújula y bitácora de cada idea.</span></div>
-        <div class="cuarto"><svg class="fx-ico" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5"/></svg><b>Eventos</b><span>Las ferias y fondos que sigues, con cuenta regresiva.</span></div>
-        <div class="cuarto"><svg class="fx-ico" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z M14.5 9.5c0-1.2-1.1-1.8-2.5-1.8s-2.5.7-2.5 1.8 1.1 1.6 2.5 1.9 2.5.8 2.5 2-1.1 1.9-2.5 1.9-2.5-.6-2.5-1.9 M12 6.5v11"/></svg><b>Cotizaciones</b><span>Lo que cuesta producir cada proyecto y a cuánto venderlo.</span></div>
-        <div class="cuarto plan"><svg class="fx-ico" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 3 Q13.2 10.8 21 12 Q13.2 13.2 12 21 Q10.8 13.2 3 12 Q10.8 10.8 12 3 Z"/></svg><b>Tu plan</b><span>Gratis para empezar; Forja Más llega pronto.</span></div>
-      </div>
-      <p class="ya">Tus proyectos son privados: solo los ves tú, desde cualquier dispositivo.</p>
-    </section>
+    <div class="pieza" aria-hidden="true"><div id="f"></div><p id="f-t"></p></div>
   </main>
 </div>
 <script type="module">
-import { sb, $, nav, pintarEntrada, u } from "../js/forja.js";
+import { sb, $, nav, pintarEntrada, u, fAvance } from "../js/forja.js";
 nav("entrar");
 // Solo se vuelve a páginas de Forja (nunca a otro sitio): una carpeta propia, con su ?… o #… (p. ej. proyecto/?p=…#taller).
 // Los enlaces viejos con .html (proyecto.html?p=…) se traducen a la dirección nueva.
@@ -59,7 +47,22 @@ const ir = () => location.replace(destino);
 const { data } = await sb.auth.getSession();
 if (data.session) ir();
 else {
-  pintarEntrada($("caja"));
+  pintarEntrada($("caja"), "", { sinMarca: true });
+  // La F-regla se llena mientras escribes el correo: una marca por cada paso hasta que es un correo de verdad; la chispa queda en el último.
+  const TXT = ["Siete marcas, siete etapas. <b>Escribe tu correo</b> y la F se va llenando.", "Vas bien.", "Vas bien.", "Ahora la <b>@</b>.", "Falta el final, como <b>.cl</b> o <b>.com</b>.", "Falta el final, como <b>.cl</b> o <b>.com</b>.", "<b>Listo.</b> Toca «Enviarme el enlace»."];
+  const pasos = (v) => {
+    const [loc, dom] = v.split("@");
+    if (!v) return -1;
+    if (dom === undefined) return loc.length < 3 ? 0 : loc.length < 6 ? 1 : 2;
+    if (!dom) return 3;
+    if (!/\.[^.]{2,}$/.test(dom)) return dom.includes(".") ? 5 : 4;
+    return $("fx-mail").checkValidity() ? 6 : 5;
+  };
+  const pintarF = () => { const n = pasos($("fx-mail").value.trim()); $("f").innerHTML = fAvance(n, 320); $("f-t").innerHTML = TXT[Math.max(n, 0)]; };
+  $("fx-mail").addEventListener("input", pintarF);
+  // Cuando el correo salió (el formulario se esconde), la F queda llena y dice qué hacer.
+  new MutationObserver(() => { if ($("fx-f1").hidden) $("f-t").innerHTML = "<b>Revisa tu correo.</b> El enlace te deja dentro."; else pintarF(); }).observe($("fx-f1"), { attributes: true, attributeFilter: ["hidden"] });
+  pintarF();
   sb.auth.onAuthStateChange((ev, ses) => { if (ses) ir(); });
 }
 </script>

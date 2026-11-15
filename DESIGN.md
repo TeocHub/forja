@@ -62,6 +62,8 @@ Están en `forja.js` con su estilo en `forja.css`. Se usan, no se copian.
 - **Etiqueta colgante** (`etiqueta(tipo, nombre)`, `.fx-etq`): la categoría.
 - **Boleto numerado** (`boleto(n, ico, nombre)`, `.fx-boleto`): una herramienta. Su corte punteado a la izquierda es el único punteado de Forja.
 - **Timbre** (`.fx-estado.e-<estado>`, y los sellos de Moderación, Planes y documentos): un estado, con su dibujo. Va **derecho**. Solo el que acaba de cambiar cae girado: `timbrar(el)` después de pintarlo (250 ms).
+- **Boleto grande** (`boletoG(n, cuerpo, {cortado})`, `.fx-boleto-g`): un plan o una pieza principal, con talón numerado y corte. Sin cortar (`cortado:false`) es «próximamente»: gris sobre la mesa. Lo usan los planes de la portada.
+- **Regla de fechas** (`fechasDe(ops)`, `rangoFechas(f)`, `reglaFechas(f, rango, {ventana})`, `leyendaFechas(f)`; `.fx-fechas`): línea delgada desde hoy con un punto por fecha (en curso musgo, cierra ladrillo, abre ocre, evento grafito). Alto fijo con 4 o con 40 fechas. La usan la portada y Oportunidades.
 - **Siete marcas** (`.fx-marcas`, `.fx-marcas.cat`): para marcar una sección nueva, en vez de una etiqueta en mayúsculas.
 - **Íconos**: `ico(k)` con `ICONOS` (trazo, viewBox 24). Dentro de un texto o desde CSS: `<span class="fx-i" style="--i:var(--i-listo)"></span>` (`--i-listo`, `--i-cerrar`, `--i-chispa`, `--i-alerta`, `--i-nota`, `--i-play`, `--i-fichas`). Un ícono nuevo se suma a `ICONOS` y, si se usa desde CSS, también como `--i-…`.
 - **Vacío** (`.fx-empty`): fondo `--mesa`, sin borde. **Próximamente** (`.fx-pronto`): un boleto sin cortar, en gris. **Aviso** (`.fx-aviso`): se distingue por su ícono y su texto.

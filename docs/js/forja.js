@@ -76,6 +76,45 @@ export function timbrar(el) { if (!el) return; el.classList.remove("fx-cae"); vo
 export const etiqueta = (tipo, nombre) => '<span class="fx-etq" style="--tc:var(--t-' + esc(tipo || "otro") + ')">' + esc(nombre) + "</span>";
 // Boleto numerado: una herramienta con su ícono.
 export const boleto = (n, k, nombre) => '<span class="fx-boleto">' + ico(k, 16) + "N.º " + String(n).padStart(2, "0") + " · " + esc(nombre) + "</span>";
+// Boleto grande: un plan o una pieza principal. Talón con su número a la izquierda y el corte punteado; sin `cortado`, es un boleto sin cortar
+// (gris, sobre la mesa: «próximamente»). cuerpo = HTML ya escapado.
+export const boletoG = (n, cuerpo, { cortado = true, clase = "" } = {}) => '<div class="fx-boleto-g' + (cortado ? "" : " sin-cortar") + (clase ? " " + clase : "") + '"><span class="fx-boleto-g-t" aria-hidden="true"><small>N.º</small><b>' + String(n).padStart(2, "0") + '</b></span><div class="fx-boleto-g-c">' + cuerpo + "</div></div>";
+
+/* --- regla de fechas: una línea delgada desde hoy, con marcas por semana y por mes y un punto por fecha (portada y Oportunidades) --- */
+// Mide lo mismo con 4 o con 40 fechas. k: curso (en curso, musgo), cierra (ladrillo), abre (ocre), evento (grafito).
+export const FECHA_K = { curso: "En curso", cierra: "Cierra", abre: "Abre", evento: "Evento" };
+const diaDe = (s, hoy) => { if (!s) return null; const [y, m, d] = String(s).split("-"); return Math.round((new Date(+y, m - 1, +d) - hoy) / 864e5); };
+// Las fechas que vienen, desde las filas de `oportunidades`: cierres de lo abierto, aperturas, eventos y los eventos en curso (en «hoy»).
+export function fechasDe(ops) {
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0); const f = [];
+  (ops || []).forEach((o) => {
+    const a = diaDe(o.postul_inicio, hoy), b = diaDe(o.postul_fin, hoy), ea = diaDe(o.evento_inicio, hoy), eb = diaDe(o.evento_fin, hoy) ?? ea, est = !!o.fechas_estimadas;
+    if (a != null && a > 0) f.push({ o, n: a, k: "abre", est });
+    else if (b != null && b >= 0) f.push({ o, n: b, k: "cierra", est: false });
+    if (ea != null && ea > 0) f.push({ o, n: ea, k: "evento", est });
+    else if (ea != null && eb >= 0) f.push({ o, n: 0, k: "curso", est: false });
+  });
+  return f.sort((x, y) => x.n - y.n || (x.k === "curso" ? -1 : y.k === "curso" ? 1 : 0));
+}
+// Mira 90 días; si no hay nada en ese plazo, se estira hasta la próxima fecha (máximo un año). Devuelve el rango y las fechas que caben.
+export function rangoFechas(f) {
+  const lejos = f.filter((x) => x.k !== "curso"); let rango = 90;
+  if (lejos.length && lejos[0].n > 80) rango = Math.min(365, lejos[0].n + 21);
+  return { rango, fechas: f.filter((x) => x.n <= rango) };
+}
+// El interior de un <div class="fx-fechas">. Con `ventana`, suma la franja que marca qué fechas se están viendo (`.fx-fechas-v`).
+export function reglaFechas(f, rango, { ventana = false } = {}) {
+  const t = new Date(); t.setHours(0, 0, 0, 0); const pct = (n) => (n / rango * 100).toFixed(2) + "%";
+  let h = (ventana ? '<div class="fx-fechas-v"></div>' : "") + '<div class="fx-fechas-l"></div><span class="fx-fechas-mes hoy">hoy</span>';
+  for (let d = 1; d <= rango; d++) {
+    const dia = new Date(t.getFullYear(), t.getMonth(), t.getDate() + d);
+    if (dia.getDate() === 1) { h += '<span class="fx-fechas-m mes" style="left:' + pct(d) + '"></span>'; if (d > 6 && d < rango - 4) h += '<span class="fx-fechas-mes" style="left:' + pct(d) + '">' + MES[dia.getMonth()] + "</span>"; }
+    else if (rango <= 120 && dia.getDay() === 1) h += '<span class="fx-fechas-m" style="left:' + pct(d) + '"></span>';
+  }
+  return h + f.map((x) => '<span class="fx-fechas-p fk-' + x.k + '" style="left:' + pct(x.n) + '"' + (x.o && x.o.nombre ? ' title="' + esc(x.o.nombre + " · " + FECHA_K[x.k].toLowerCase()) + '"' : "") + "></span>").join("");
+}
+// Leyenda: solo los tipos de fecha que aparecen.
+export const leyendaFechas = (f) => Object.keys(FECHA_K).filter((k) => f.some((x) => x.k === k)).map((k) => '<span class="fk-' + k + '"><i></i>' + FECHA_K[k] + "</span>").join("");
 // El color de Forja lo pone el proyecto: la chispa toma el color de su categoría. Fuera de un proyecto, el del último que se abrió.
 export function colorDe(tipo) {
   const t = /^[a-z]+$/.test(tipo || "") ? tipo : "historia";
@@ -450,10 +489,11 @@ export async function avisos(caja) {
   return l.length;
 }
 
-export function pintarEntrada(caja, texto) {
+// Con { sinMarca: true } no dibuja la F chica (cuando la página ya muestra una grande al lado, como entrar/).
+export function pintarEntrada(caja, texto, { sinMarca = false } = {}) {
   caja.innerHTML =
     '<section class="fx-entrada">' +
-    marca(44) + '<h2>Entrar a Forja</h2>' +
+    (sinMarca ? "" : marca(44)) + '<h2>Entrar a Forja</h2>' +
     '<p>' + esc(texto || "Tus proyectos y cotizaciones son privados: solo los ves tú, desde cualquier dispositivo.") + "</p>" +
     '<form id="fx-f1" class="fx-row"><label class="fx-sr" for="fx-mail">Correo</label>' +
     '<input id="fx-mail" type="email" autocomplete="email" required placeholder="tu@correo.cl"><button class="fx-primary" type="submit">Enviarme el enlace</button></form>' +

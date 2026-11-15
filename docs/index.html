@@ -14,79 +14,50 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&display=swap">
 <link rel="stylesheet" href="css/forja.css">
 <style>
-/* Layout: portada — titular con la Ruta jugable al lado (la F de avance y la regla de siete marcas; el color lo pone la categoría elegida); las siete etapas como camino vertical con la escena de cada herramienta; oportunidades en vivo; brújula; tres planes; cierre */
+/* Layout: portada — titular a todo el ancho con un solo llamado a la acción; debajo, la Ruta protagonista (categoría, regla de siete marcas y la escena de la etapa; el color lo pone la categoría elegida, en toda la página); oportunidades con la regla de fechas; brújula; planes como boletos sobre la mesa; cierre con la F a medio llenar */
 body{font-size:17px;line-height:1.55}
 .wrap{max-width:1100px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-:where(button,a,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-section{margin-top:84px}
+section{margin-top:80px}
 h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
-h1,h2,h3{font-weight:800;letter-spacing:-.02em}
-.cta{display:inline-flex;align-items:center;justify-content:center;min-height:48px;font-weight:700;font-size:17px;border-radius:var(--r-m);padding:0 22px;text-decoration:none;border:1px solid var(--btn)}
-.cta.main{background:var(--btn);color:var(--btn-tx)}
-.cta.alt{color:var(--fg);background:transparent;border-color:var(--fg)}
 .sec-cab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 28px;align-items:end;margin-bottom:26px}
-.sec-cab h2{font-size:clamp(28px,4.5vw,42px);line-height:1.04;max-width:18ch}
+.sec-cab h2{font-size:36px;line-height:1.04;max-width:18ch}
 .sec-cab p{color:var(--muted);max-width:44ch;margin:0}
+@media (max-width:620px){.sec-cab h2{font-size:26px}}
 
-/* titular */
-.hero{margin-top:36px;display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:40px;align-items:center}
-@media (max-width:900px){.hero{grid-template-columns:minmax(0,1fr);gap:28px}}
-.hero h1{font-size:clamp(46px,8vw,84px);line-height:.95;letter-spacing:-.035em;margin:12px 0 20px}
-.hero h1 em{font-style:normal;color:var(--tc,var(--cat));transition:color .3s ease}
-.hero p.lead{font-size:clamp(17px,2.2vw,19px);color:var(--muted);max-width:42ch;margin:0}
-.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
-.mini{display:flex;flex-direction:column;gap:14px;min-width:0}
-.mini-q{font-size:15px;font-weight:700;margin:0}
-.tipos-mini{display:flex;gap:8px;flex-wrap:wrap}
-.mini-c{background:var(--card);border:0;border-radius:0;padding:22px;display:flex;flex-direction:column;gap:18px;--f-hueco:var(--field)}
-.mini-e{display:flex;gap:20px;align-items:center}
-.mini-f{flex:none;width:140px;height:140px;display:grid;place-items:center;border-radius:0;background:var(--field)}
-.mini-f .fx-f{width:118px;height:118px}
-.mini-t{display:flex;flex-direction:column;gap:4px;min-width:0}
-.mini-t small{font:400 12px var(--f-body);color:var(--fg)}
-.mini-t b{font-family:var(--f-display);font-weight:800;font-size:clamp(22px,3vw,27px);line-height:1.05;letter-spacing:-.02em}
-.mini-t span{font-size:15px;color:var(--muted)}
-@media (max-width:520px){.mini-c{padding:16px}.mini-e{gap:14px;align-items:flex-start}.mini-f{width:92px;height:92px}.mini-f .fx-f{width:80px;height:80px}.mini-t span{font-size:15px}}
-.sigue{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;background:var(--btn);color:var(--btn-tx);border-radius:0;padding:14px 16px}
-.sigue small{grid-column:1/-1;display:flex;align-items:center;gap:6px;font:700 12px var(--f-body)}
-.sigue p{margin:0;font-size:15px;opacity:.92}
-.sigue p b{font-family:var(--f-display);font-weight:800}
-.sigue span.ir{grid-row:2;grid-column:2;justify-self:end;align-self:center;font-size:15px;font-weight:700;border-radius:var(--r-m);padding:0 14px;min-height:40px;display:inline-flex;align-items:center;background:var(--btn-tx);color:var(--btn);white-space:nowrap}
-.sigue .tx{grid-column:1;grid-row:2}
-@media (max-width:520px){.sigue{grid-template-columns:minmax(0,1fr)}.sigue span.ir{grid-row:3;grid-column:1;justify-self:start}}
+/* titular: «De la chispa / a la obra.» siempre en dos líneas; «a la obra.» toma el color de la categoría elegida en la Ruta */
+.obra{margin-top:40px}
+.tit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,34ch);gap:20px 48px;align-items:end}
+@media (max-width:900px){.tit{grid-template-columns:minmax(0,1fr)}}
+.tit h1{font-size:clamp(38px,8.6vw,96px);line-height:.95;letter-spacing:-.035em}
+.tit h1 span,.tit h1 em{white-space:nowrap}
+.tit h1 em{font-style:normal;color:var(--cat);transition:color .3s ease}
+.tit .lead{font-size:17px;color:var(--muted);margin:0 0 20px}
 
-/* las siete etapas: camino vertical a la izquierda, escena a la derecha */
-.ruta{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;align-items:start}
-@media (max-width:860px){.ruta{grid-template-columns:minmax(0,1fr);gap:16px}}
-.paradas{position:relative;display:flex;flex-direction:column;gap:2px;padding-left:4px}
-.paradas::before{content:"";position:absolute;left:25px;top:22px;bottom:22px;width:2px;background:var(--line)}
-.parada{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:center;border:0;background:none;text-align:left;font:inherit;color:var(--muted);padding:6px 4px;border-radius:var(--r-m);cursor:pointer}
-.parada .pto{width:44px;height:44px;border-radius:var(--r-m);background:var(--card);border:1px solid var(--line);display:grid;place-items:center;font:700 13px var(--f-num);color:var(--muted);transition:all .2s ease}
-.parada b{display:block;font-family:var(--f-display);font-weight:800;font-size:17px;color:var(--fg);line-height:1.15}
-.parada small{display:block;font-size:13px;line-height:1.3}
-.parada:hover{background:var(--card)}
-.parada[aria-selected=true] .pto{background:var(--btn);border-color:var(--btn);color:var(--btn-tx)}
-.parada[aria-selected=true]{background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
-.parada .pto .fx-chispa{width:18px;height:18px}
-@media (max-width:860px){
-  .paradas{flex-direction:row;overflow-x:auto;scrollbar-width:none;gap:4px;padding:4px 2px 8px;scroll-snap-type:x proximity}
-  .paradas::-webkit-scrollbar{display:none}
-  .paradas::before{left:24px;right:24px;top:28px;bottom:auto;width:auto;height:2px;background:var(--line)}
-  .parada{grid-template-columns:minmax(0,1fr);justify-items:center;align-items:start;text-align:center;min-width:92px;scroll-snap-align:center}
-  .parada small{display:none}
-  .parada b{font-size:13px}
-}
-.escena{background:var(--card);border:0;border-radius:0;padding:clamp(18px,3.5vw,28px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:26px;align-items:center;min-height:380px}
-@media (max-width:980px){.escena{grid-template-columns:minmax(0,1fr)}}
-.escena .k{font:700 12px var(--f-body);color:var(--muted)}
-.escena h3{font-size:clamp(24px,3.4vw,30px);line-height:1.08;margin:6px 0 12px}
+/* la Ruta: una hoja a todo el ancho */
+.banco{margin-top:40px;background:var(--card);padding:clamp(16px,3vw,28px);display:flex;flex-direction:column;gap:18px;--f-hueco:var(--card)}
+.banco-cab{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.banco-q{margin:0;font-weight:700;font-size:15px}
+.tipos{display:flex;gap:8px;flex-wrap:wrap}
+.nombres{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin-top:-10px}
+.nombres span{font-size:13px;line-height:1.25;color:var(--muted);text-align:center;padding:0 4px;cursor:pointer}
+.nombres span.aqui{color:var(--fg);font-weight:700}
+@media (max-width:700px){.nombres{display:none}}
+.escena{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;align-items:start}
+@media (max-width:900px){.escena{grid-template-columns:minmax(0,1fr);gap:18px}}
+.esc-cab{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.esc-cab small{display:block;font:400 13px var(--f-num);color:var(--muted)}
+.esc-cab h2{font-size:26px;line-height:1.08}
 .escena p{margin:0 0 10px;color:var(--muted)}
 .escena p b{color:var(--fg)}
-.escena .herrs{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
-.escena .herrs{gap:8px}
-.escena .herrs .fx-boleto{font-size:12px;padding:6px 10px}
-.boceto{--tc:var(--cat);border-radius:0;background:var(--mesa);border:0;padding:16px;font-size:15px;display:flex;flex-direction:column;gap:10px;min-width:0}
-.hoja{background:var(--card);border-radius:0;padding:12px 14px;border:0;display:flex;flex-direction:column;gap:6px}
+.escena p.que{color:var(--fg)}
+.herrs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.sigue{display:flex;gap:10px;align-items:flex-start;margin:0;background:var(--mesa);padding:12px 16px;font-size:15px;color:var(--muted)}
+.sigue .fx-ico{margin-top:3px;color:var(--fg)}
+.sigue b{color:var(--fg);font-family:var(--f-display);font-weight:800}
+
+/* bocetos de cada etapa (dibujos hechos con las piezas reales) */
+.boceto{border-radius:0;background:var(--mesa);padding:16px;font-size:15px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.hoja{background:var(--card);border-radius:0;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
 .hoja i{font-style:normal;font-size:12px;color:var(--muted)}
 .hoja .linea{height:8px;border-radius:var(--r-s);background:var(--line)}
 .ref-apa{padding-left:22px;text-indent:-22px;font-size:13px}
@@ -95,7 +66,7 @@ h1,h2,h3{font-weight:800;letter-spacing:-.02em}
 .alv{aspect-ratio:1/1.05;clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 14px;text-align:center;font-size:12px;line-height:1.25}
 .alv svg{width:28px;height:28px;color:var(--good)}
 .alv.flor svg{color:var(--cat)}
-.mapa-b{position:relative;aspect-ratio:1.4;background:var(--card);border-radius:0;border:0}
+.mapa-b{position:relative;aspect-ratio:1.4;background:var(--card)}
 .mapa-b svg{position:absolute;inset:0;width:100%;height:100%}
 .mapa-b span{position:absolute;transform:translate(-50%,-50%);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-m);padding:3px 8px;white-space:nowrap}
 .mapa-b span.c{background:var(--btn);color:var(--btn-tx);border-color:var(--btn);font-weight:700;font-family:var(--f-display);font-size:13px;border-radius:0;padding:6px 10px}
@@ -103,117 +74,115 @@ h1,h2,h3{font-weight:800;letter-spacing:-.02em}
 .taller-q{font-family:var(--f-display);font-weight:700;font-size:17px;line-height:1.3;margin:0}
 .barra{height:8px;border-radius:var(--r-s);background:var(--card);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}.barra i{display:block;height:100%;background:var(--fg)}
 .cifras{display:flex;justify-content:space-between;font:500 13px var(--f-num);color:var(--muted)}
-.sala{background:var(--card);border-radius:0;border:0;padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:15px}
-.sala p{margin:0;line-height:1.55}
-.sala p.marcado{background:color-mix(in srgb,var(--ember) 10%,transparent);border-radius:var(--r-s);padding:4px 6px;margin:0 -6px}
+.sala{background:var(--card);padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.sala p{margin:0;line-height:1.55;color:var(--fg)}
+.sala p.marcado{background:color-mix(in srgb,var(--cat) 10%,transparent);border-radius:var(--r-s);padding:4px 6px;margin:0 -6px}
 .voz{padding-left:8px;font-size:13px;color:var(--muted)}
-.voz.m{}
-.fuerte{font:700 12px var(--f-body);color:var(--ember)}
-.vit{border-radius:0;overflow:hidden;background:var(--negro);color:var(--blanco);padding:16px;display:flex;flex-direction:column;gap:6px}
+.fuerte{font:700 12px var(--f-body);color:var(--cat)}
+.vit{overflow:hidden;background:var(--negro);color:var(--blanco);padding:16px;display:flex;flex-direction:column;gap:6px}
 .vit small{font-size:12px;opacity:.7}
 .vit b{font-family:var(--f-display);font-size:20px;line-height:1.05}
 .vit span{font-size:13px;opacity:.8}
 .meta{display:flex;flex-direction:column;gap:4px}
 .dos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.reloj{border-radius:var(--r-m);padding:10px;background:var(--card);border:1px solid var(--line)}
+.reloj{border-radius:var(--r-s);padding:10px;background:var(--card)}
 .reloj small{display:block;font-size:12px;color:var(--muted)}
 .reloj b{font-family:var(--f-num);font-size:15px}
-.reloj.hot b{color:var(--ember)}
-.es-w{background:var(--card);border:0;border-radius:0;padding:8px 6px 2px}
+.reloj.hot b{color:var(--cat)}
+.es-w{background:var(--card);padding:8px 6px 2px}
 
-/* oportunidades */
-.vitrina{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:28px;align-items:start}
-@media (max-width:860px){.vitrina{grid-template-columns:minmax(0,1fr)}}
-.vitrina h2{font-size:clamp(28px,4.5vw,40px);line-height:1.05}
-/* frase viva: lo que pasa ahora con las oportunidades, en una frase (nunca un contador en 0) */
-.viva{font-family:var(--f-display);font-stretch:var(--ancho);font-weight:700;font-size:20px;line-height:1.3;margin:18px 0;max-width:30ch;text-wrap:pretty;min-height:2.6em}
-.viva b{font-weight:800}
-.viva .n{white-space:nowrap;font-variant-numeric:tabular-nums}
+/* oportunidades: la regla delgada con un punto por fecha y, al lado, los talones con los días que faltan */
+.opor{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:28px 40px;align-items:start}
+@media (max-width:860px){.opor{grid-template-columns:minmax(0,1fr)}}
+.opor h2{font-size:36px;line-height:1.05}
+@media (max-width:620px){.opor h2{font-size:26px}}
+.op-regla{display:block;margin:22px 0 6px;text-decoration:none}
+.opor .nota{color:var(--muted);margin:16px 0}
 .carril{display:grid;gap:10px}
-.op{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--card);border:0;border-radius:0;padding:12px 14px;text-decoration:none;color:var(--fg)}
-.op:hover{border-color:var(--fg)}
-.op .dias{width:64px;text-align:center;border-radius:var(--r-m);padding:6px 4px;background:var(--mesa);border-left:3px dashed var(--line)}
-.op .dias b{display:block;font-family:var(--f-num);font-size:20px;line-height:1.1}
+.op{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--card);border:1px solid transparent;border-radius:var(--r-s);padding:12px 14px;text-decoration:none;color:var(--fg)}
+.op:hover{border-color:var(--line)}
+.op .dias{width:64px;text-align:center;padding:6px 4px;border-right:2px dashed var(--line)}
+.op .dias b{display:block;font-family:var(--f-num);font-size:20px;line-height:1.1;color:var(--k,var(--fg))}
 .op .dias small{font-size:12px;color:var(--muted)}
-.op.hot .dias{background:var(--btn);color:var(--btn-tx);border-left-color:transparent} .op.hot .dias b,.op.hot .dias small{color:var(--btn-tx)}
 .op h3{font-size:17px;line-height:1.25}
 .op p{margin:2px 0 0;font-size:13px;color:var(--muted)}
 
 /* brújula */
 .bru{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:28px;align-items:center}
 @media (max-width:860px){.bru{grid-template-columns:minmax(0,1fr)}}
-.bru h2{font-size:clamp(26px,4vw,36px);line-height:1.06;margin:8px 0 12px}
+.bru h2{font-size:36px;line-height:1.06;margin:8px 0 12px}
+@media (max-width:620px){.bru h2{font-size:26px}}
 .bru p{color:var(--muted);margin:0}
-.demo{background:var(--card);border:0;border-radius:0;padding:16px 12px 14px}
+.demo{background:var(--card);padding:16px 12px 14px}
 .demo .pair{display:grid;grid-template-columns:1fr 1fr;gap:4px;align-items:center}
 @media (max-width:520px){.demo .pair{grid-template-columns:1fr}}
 .demo .ver{font-size:13px;color:var(--muted);text-align:center;margin:6px 8px 0;min-height:3em}
 .demo .ver b{color:var(--fg)}
 .q{font-size:13px;color:var(--muted);text-align:center;min-height:2.6em;margin:2px 8px 0}
 
-/* planes */
-.planes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--card);border:0;border-radius:0;overflow:hidden}
-@media (max-width:820px){.planes{grid-template-columns:minmax(0,1fr)}}
-.plan{padding:22px;display:flex;flex-direction:column;gap:8px}
-.plan+.plan{border-left:1px solid var(--line)}
-@media (max-width:820px){.plan+.plan{border-left:0;border-top:1px solid var(--line)}}
-.plan small{font:700 12px var(--f-body);color:var(--muted)}
-.plan h3{font-size:20px}
-.plan .pr{font-family:var(--f-num);font-size:26px;font-weight:600;line-height:1}
-.plan .pr span{font-family:var(--f-body);font-size:13px;font-weight:400;color:var(--muted)}
-.plan p{margin:0;font-size:15px;color:var(--muted)}
-.plan.mas{background:var(--btn);color:var(--btn-tx)}
-.plan.mas small,.plan.mas p,.plan.mas .pr span{color:color-mix(in srgb,var(--btn-tx) 75%,transparent)}
-.lanz{margin:12px 0 0;font-size:13px;color:var(--muted);padding-left:18px;position:relative}
-.lanz::before{content:"";position:absolute;left:0;top:5px;width:11px;height:11px;background:var(--cat);clip-path:path('M5.5 0Q6.3 4.7 11 5.5Q6.3 6.3 5.5 11Q4.7 6.3 0 5.5Q4.7 4.7 5.5 0Z')}
+/* planes: tres boletos sobre la mesa; el gratis, cortado (ya se usa); los pagados, sin cortar (llegan pronto) */
+.mesa-planes{background:var(--mesa);padding:clamp(14px,3vw,24px);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:stretch}
+@media (max-width:820px){.mesa-planes{grid-template-columns:minmax(0,1fr)}}
+.pagados{display:flex;flex-direction:column;gap:14px}
+.pagados .fx-boleto-g{flex:1}
+.mesa-planes h3{font-size:20px;color:var(--fg)}
+.mesa-planes .gratis h3{font-size:26px}
+.mesa-planes .pr{font-family:var(--f-num);font-size:26px;font-weight:600;line-height:1;color:var(--fg)}
+.mesa-planes .pr span{font-family:var(--f-body);font-size:13px;font-weight:400;color:var(--muted)}
+.mesa-planes p{margin:0;font-size:15px;color:var(--muted)}
+.mesa-planes .cuando{font-size:13px;color:var(--muted)}
+.mesa-planes .gratis .fx-boleto-g-c{padding:24px;gap:12px;justify-content:center}
+.mesa-planes .gratis .fx-boleto-g-t b{color:var(--cat)}
+.lanz{margin:12px 0 0;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:baseline}
+.lanz .fx-i{flex:none;color:var(--cat);--i:var(--i-chispa)}
 .lanz a{color:inherit}
 
-/* cierre */
-.cierre{background:var(--btn);color:var(--btn-tx);border-radius:0;padding:clamp(24px,5vw,48px);display:grid;grid-template-columns:minmax(0,1.3fr) auto;gap:24px;align-items:end}
-@media (max-width:760px){.cierre{grid-template-columns:minmax(0,1fr)}}
-.cierre h2{font-size:clamp(26px,4vw,36px);line-height:1.1;margin-bottom:12px}
-.cierre p{margin:0;opacity:.8;max-width:60ch}
-.cierre .cta.main{background:var(--btn-tx);border-color:var(--btn-tx);color:var(--btn);white-space:nowrap}
-footer{margin-top:40px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between;align-items:center}
+/* cierre: la F a medio llenar, la frase y el botón, sobre el fondo de la página */
+.cierre{display:grid;grid-template-columns:auto minmax(0,1fr);gap:24px 48px;align-items:center;padding-top:40px}
+@media (max-width:700px){.cierre{grid-template-columns:minmax(0,1fr)}.cierre .fx-f{width:140px;height:140px}}
+.cierre h2{font-size:36px;line-height:1.08;margin-bottom:12px}
+@media (max-width:620px){.cierre h2{font-size:26px}}
+.cierre p{margin:0 0 22px;color:var(--muted);max-width:60ch}
+footer{margin-top:64px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between;align-items:center}
 footer span:last-child{display:flex;flex-wrap:wrap;align-items:center;column-gap:10px;margin-left:-6px}
 footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
-@media (prefers-reduced-motion:reduce){.parada .pto,.hero h1 em{transition:none}}
+@media (prefers-reduced-motion:reduce){.tit h1 em{transition:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="wrap">
   <header><nav data-forja-nav></nav></header>
 
-  <div class="hero">
-    <div>
-      <span class="fx-marcas cat" aria-hidden="true"></span>
-      <h1>De la chispa<br><em>a la obra.</em></h1>
-      <p class="lead">Cada proyecto en Forja tiene su Ruta: siete etapas que llevan una historia, un juego o un producto desde la primera idea hasta mostrarlo al mundo, con la herramienta justa en cada momento.</p>
-      <div class="ctas"><a class="cta main" href="entrar/">Empezar gratis</a><a class="cta alt" href="guia/">Ver cómo funciona</a></div>
+  <main>
+  <section class="obra" aria-labelledby="obra-t">
+    <div class="tit">
+      <div>
+        <span class="fx-marcas cat" aria-hidden="true"></span>
+        <h1 id="obra-t"><span>De la chispa</span><br><em>a la obra.</em></h1>
+      </div>
+      <div>
+        <p class="lead">Cada proyecto en Forja tiene su Ruta: siete etapas que llevan una historia, un juego o un producto desde la primera idea hasta mostrarlo, con la herramienta justa en cada momento.</p>
+        <a class="fx-btn" href="entrar/">Empezar gratis</a>
+      </div>
     </div>
-    <div class="mini" id="mini">
-      <p class="mini-q" id="mini-q">¿Qué estás creando?</p>
-      <div class="tipos-mini" id="mini-tipos" role="group" aria-labelledby="mini-q"></div>
-      <div class="mini-c"><div class="mini-e" id="mini-e" aria-live="polite"></div><div id="mini-regla"></div></div>
-      <div class="sigue" id="sigue" aria-live="polite"></div>
-    </div>
-  </div>
-
-  <section aria-labelledby="ruta-t">
-    <div class="sec-cab"><h2 id="ruta-t">Siete etapas, una herramienta para cada momento.</h2><p>La ruta orienta y nunca obliga: marcas en qué vas, saltas o vuelves cuando quieras. Toca cada etapa.</p></div>
-    <div class="ruta">
-      <div class="paradas" id="paradas" role="tablist" aria-label="Etapas de la ruta" aria-orientation="vertical"></div>
-      <div class="escena" id="escena" role="tabpanel"></div>
+    <div class="banco">
+      <div class="banco-cab"><p class="banco-q" id="banco-q">¿Qué estás creando?</p><div class="tipos" id="tipos" role="group" aria-labelledby="banco-q"></div></div>
+      <div id="regla"></div>
+      <div class="nombres" id="nombres" aria-hidden="true"></div>
+      <div class="escena" id="escena" aria-live="polite"></div>
+      <p class="sigue" id="sigue"></p>
     </div>
   </section>
 
-  <section class="vitrina" aria-labelledby="vit-t">
+  <section class="opor" aria-labelledby="op-t">
     <div>
       <span class="fx-marcas" aria-hidden="true"></span>
-      <h2 id="vit-t" style="margin-top:8px">Ferias, fondos y convocatorias en Chile.</h2>
-      <p class="viva" id="viva" aria-live="polite">Revisando las fechas…</p>
-      <p style="color:var(--muted);margin:0 0 14px">Se revisan cada mañana en fuentes oficiales. No necesitas cuenta para verlas; con cuenta, cada proyecto te sugiere a cuáles presentarte y Eventos te muestra las fechas.</p>
-      <a class="cta alt" href="oportunidades/">Ver todas</a>
+      <h2 id="op-t">Ferias, fondos y convocatorias en Chile.</h2>
+      <p class="fx-sr" id="viva" aria-live="polite">Revisando las fechas…</p>
+      <a class="op-regla" href="oportunidades/" tabindex="-1" aria-hidden="true"><div class="fx-fechas" id="fechas"></div></a>
+      <div class="fx-fechas-ley" id="ley" aria-hidden="true"></div>
+      <p class="nota">Se revisan cada mañana en fuentes oficiales. No necesitas cuenta para verlas; con cuenta, cada proyecto te sugiere a cuáles presentarte.</p>
+      <a class="fx-btn borde" href="oportunidades/">Ver todas</a>
     </div>
     <div class="carril" id="carril" aria-live="polite"><div class="fx-empty">Cargando oportunidades…</div></div>
   </section>
@@ -224,24 +193,26 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
   </section>
 
   <section aria-labelledby="planes-t">
-    <div class="sec-cab"><h2 id="planes-t">Gratis para empezar.</h2><p>El plan gratis no vence. Los planes pagados llegan pronto y suben los límites.</p></div>
-    <div class="planes" id="planes"></div>
-    <p class="lanz">Los precios son de lanzamiento y pueden cambiar, igual que lo que trae cada plan. <a href="planes/">Ver los planes lado a lado</a></p>
+    <div class="sec-cab"><div><span class="fx-marcas" aria-hidden="true"></span><h2 id="planes-t">Gratis para empezar.</h2></div><p>El plan gratis no vence. Los planes pagados llegan pronto y suben los límites.</p></div>
+    <div class="mesa-planes" id="planes"></div>
+    <p class="lanz"><span class="fx-i" aria-hidden="true"></span><span>Los precios son de lanzamiento y pueden cambiar, igual que lo que trae cada plan. <a href="planes/">Ver los planes lado a lado</a></span></p>
   </section>
 
   <section class="cierre" aria-labelledby="cierre-t">
+    <div id="cierre-f"></div>
     <div>
       <h2 id="cierre-t">Tus ideas son solo tuyas.</h2>
       <p>Entras con tu correo, sin contraseñas. Tus proyectos se guardan en tu cuenta y nadie más los ve; lo único público es lo que tú publicas en una vitrina, y quienes leen una ronda ven solo una copia con su nombre. Forja no guarda archivos: los referentes son enlaces, así que nada pesa ni se pierde, y la abres desde el celular, la tablet o el computador.</p>
+      <a class="fx-btn" href="entrar/">Plantar mi primera idea</a>
     </div>
-    <a class="cta main" href="entrar/">Plantar mi primera idea</a>
   </section>
+  </main>
 
   <footer><span>forja · un taller para crear, hecho en Chile</span><span><a href="guia/">Guía</a><a href="terminos/">Términos</a><a href="privacidad/">Privacidad</a><a href="normas/">Normas</a><a href="documentos/">Documentos</a><a href="boletin/">Boletín</a></span></footer>
 </div>
 
 <script type="module">
-import { nav, esc, toast, fAvance, regla, chispa, boleto, ico } from "./js/forja.js";
+import { nav, esc, toast, fAvance, regla, boleto, boletoG, ico, fechasDe, rangoFechas, reglaFechas, leyendaFechas } from "./js/forja.js";
 import { radar, dial, veredicto, CSS_BRUJULA } from "./js/brujula.js";
 import { ETAPAS, etapaNombre } from "./js/ruta.js";
 import { dibujo, CSS_ESTRUCTURA } from "./js/estructura.js";
@@ -250,10 +221,11 @@ import { PRECIOS } from "./js/planes.js";
 if (new URLSearchParams(location.search).get("cuenta") === "borrada") { toast("Tu cuenta y todos tus datos se borraron. Gracias por haber usado Forja."); history.replaceState(null, "", location.pathname); }
 nav("inicio");
 document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_ESTRUCTURA + "</style>");
+const $ = (id) => document.getElementById(id);
 
-/* ---------- la ruta en miniatura: la misma franja «Lo que sigue» que ve cada proyecto ---------- */
+/* ---------- la Ruta: categoría, regla de siete marcas y la escena de la etapa (la misma franja «Lo que sigue» que ve cada proyecto) ---------- */
 const TIPOS_M = { historia: ["Novela", "tu novela"], comic: ["Cómic", "tu cómic"], videojuego: ["Videojuego", "tu videojuego"], juegomesa: ["Juego de mesa", "tu juego de mesa"], producto: ["Producto", "tu producto"] };
-// Lo que sugiere la franja en cada etapa (la técnica esencial y el botón que abre su herramienta).
+// Lo que sugiere la franja en cada etapa (la técnica esencial).
 const SIGUE = {
   inspirar: ["Analizar una obra", "Elige una obra parecida a lo que quieres hacer y descubre cómo está hecha por dentro.", "Agregar una obra"],
   sembrar: ["Anotar en el Semillero", "Una frase por idea, sin juzgarla. Plantas la que te siga dando vueltas.", "Abrir el Semillero"],
@@ -263,22 +235,6 @@ const SIGUE = {
   revisar: ["Pedir opiniones", "Una copia para pocas personas, un enlace para cada una y preguntas concretas.", "Abrir una ronda"],
   pulir: ["Armar la vitrina", "La página pública de tu proyecto, para ferias, fondos y redes.", "Ir a la Vitrina"],
 };
-let mt = "historia", me = 3;
-function mini() {
-  $("mini").style.setProperty("--tc", "var(--t-" + mt + ")");
-  document.querySelector(".hero").style.setProperty("--tc", "var(--t-" + mt + ")");
-  $("mini-tipos").innerHTML = Object.entries(TIPOS_M).map(([k, [n]]) => '<button type="button" class="fx-etq" style="--tc:var(--t-' + k + ')" data-t="' + k + '" aria-pressed="' + (k === mt) + '">' + n + "</button>").join("");
-  const e = ETAPAS[me], s = SIGUE[e.k], Q = quienes(mt), nombres = ETAPAS.map((x) => etapaNombre(x.k, mt));
-  $("mini-e").innerHTML = '<div class="mini-f">' + fAvance(me, 118) + '</div><div class="mini-t"><small>Etapa ' + (me + 1) + " de 7 · " + esc(TIPOS_M[mt][1]) + "</small><b>" + esc(nombres[me]) + "</b><span>" + esc(e.que) + "</span></div>";
-  $("mini-regla").innerHTML = regla(me, nombres, { botones: true, etiqueta: "Etapas de la Ruta de " + TIPOS_M[mt][1] });
-  $("sigue").innerHTML = "<small>" + ico("flecha", 14) + "Lo que sigue</small>" + '<p class="tx"><b>' + (e.k === "revisar" ? "Pedir opiniones a tus " + Q.plural : s[0]) + ".</b> " + s[1] + '</p><span class="ir">' + s[2] + "</span>";
-  $("mini-tipos").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { mt = b.dataset.t; mini(); $("mini-tipos").querySelector('[data-t="' + mt + '"]').focus(); });
-  $("mini-regla").querySelectorAll("[data-etapa]").forEach((b) => b.onclick = () => { me = +b.dataset.etapa; mini(); $("mini-regla").querySelector('[data-etapa="' + me + '"]').focus(); });
-}
-const $ = (id) => document.getElementById(id);
-mini();
-
-/* ---------- las siete etapas con su escena ---------- */
 const hex = (n) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20v-' + [3, 6, 9, 9][n] + '"/>' + (n >= 1 ? '<path d="M12 ' + (20 - 3) + 'c0-3 2-5 5-5 0 3-2 5-5 5Z"/>' : "") + (n >= 2 ? '<path d="M12 ' + (20 - 5) + 'c0-2.5-2-4.5-4.5-4.5 0 2.5 2 4.5 4.5 4.5Z"/>' : "") + (n >= 3 ? '<circle cx="12" cy="8" r="2.6" fill="currentColor"/>' : "") + '<path d="M6 20h12"/></svg>';
 // Ícono de cada herramienta en su boleto.
 const HICO = { "Analizar una obra": "lupa", Referentes: "chinche", "Brújula": "brujula", Semillero: "semilla", Plantar: "chispa", "Mapa de la idea": "mapa", Estructura: "curva", Pizarra: "pizarra", Taller: "pluma", Tablero: "tablero", "Bitácora": "cuaderno", "Lectores beta": "ojo", Vitrina: "vitrina", "Costos y campaña": "moneda", Oportunidades: "calendario", Biblia: "cuaderno" };
@@ -306,19 +262,28 @@ const ESC = [
     t: "<p>La <b>Vitrina</b> es la página pública de tu proyecto, con enlace propio y QR para tu stand. <b>Costos</b> calcula lo que vale producir una unidad, con IVA y dólar, y arma tu <b>campaña</b> con recompensas y meta.</p><p>Cada proyecto te sugiere <b>ferias y fondos</b> en Chile con su cuenta regresiva, y la <b>biblia</b> junta todo en un PDF.</p>",
     b: '<div class="vit"><small>Vitrina · historia</small><b>Ciudad Sumergida</b><span>Un faro apagado, una ciudad bajo el agua y la capitana que bajará a buscarla.</span></div><div class="meta"><div class="cifras"><span>Campaña · $1.240.000 de $1.800.000</span><span>69%</span></div><div class="barra"><i style="width:69%"></i></div></div><div class="dos"><div class="reloj hot"><small>Postulación</small><b>quedan 9 días</b></div><div class="reloj"><small>Feria</small><b>en 52 días</b></div></div>' },
 ];
-$("paradas").innerHTML = ETAPAS.map((e, i) => '<button class="parada" role="tab" id="p-' + i + '" aria-controls="escena" aria-selected="' + (i === 0) + '"' + (i ? ' tabindex="-1"' : "") + '><span class="pto">' + (i + 1) + "</span><span><b>" + esc(e.n) + "</b><small>" + esc(ESC[i].herrs.join(" · ")) + "</small></span></button>").join("");
-const tabs = [...document.querySelectorAll(".parada")];
-function ir(i, foco) {
-  tabs.forEach((b, j) => { b.setAttribute("aria-selected", String(i === j)); b.tabIndex = i === j ? 0 : -1; });
-  $("escena").setAttribute("aria-labelledby", "p-" + i);
-  $("escena").innerHTML = '<div><span class="k">Etapa ' + (i + 1) + " · " + esc(ETAPAS[i].n) + "</span><h3>" + ESC[i].h + "</h3>" + ESC[i].t + '<div class="herrs">' + ESC[i].herrs.map((h, j) => boleto(j + 1, HICO[h] || "chispa", h)).join("") + '</div></div><div class="boceto" aria-hidden="true">' + ESC[i].b + "</div>";
-  if (foco) { tabs[i].focus(); tabs[i].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" }); }
+let mt = "historia", me = 3;
+function ruta(foco) {
+  // El color de la categoría elegida manda en toda la página: «a la obra.», la regla, la chispa y la F del cierre.
+  $("wrap").style.setProperty("--cat", "var(--t-" + mt + ")");
+  const e = ETAPAS[me], s = SIGUE[e.k], Q = quienes(mt), nombres = ETAPAS.map((x) => etapaNombre(x.k, mt)), x = ESC[me];
+  $("tipos").innerHTML = Object.entries(TIPOS_M).map(([k, [n]]) => '<button type="button" class="fx-etq" style="--tc:var(--t-' + k + ')" data-t="' + k + '" aria-pressed="' + (k === mt) + '">' + n + "</button>").join("");
+  $("regla").innerHTML = regla(me, nombres, { botones: true, pie: false, etiqueta: "Etapas de la Ruta de " + TIPOS_M[mt][1] });
+  $("nombres").innerHTML = nombres.map((n, i) => '<span data-etapa="' + i + '"' + (i === me ? ' class="aqui"' : "") + ">" + esc(n) + "</span>").join("");
+  $("escena").innerHTML = '<div><div class="esc-cab">' + fAvance(me, 64) + "<div><small>Etapa " + (me + 1) + " de 7 · " + esc(TIPOS_M[mt][1]) + "</small><h2>" + esc(nombres[me]) + '</h2></div></div><p class="que">' + esc(e.que) + "</p>" + x.t +
+    '<div class="herrs">' + x.herrs.map((h, j) => boleto(j + 1, HICO[h] || "chispa", h)).join("") + '</div></div><div class="boceto" aria-hidden="true">' + x.b + "</div>";
+  $("sigue").innerHTML = ico("flecha", 18) + "<span>Lo que sigue en tu proyecto: <b>" + (e.k === "revisar" ? "Pedir opiniones a tus " + Q.plural : s[0]) + ".</b> " + s[1] + "</span>";
+  $("tipos").querySelectorAll("[data-t]").forEach((b) => b.onclick = () => { mt = b.dataset.t; ruta(); $("tipos").querySelector('[data-t="' + mt + '"]').focus(); });
+  const etapa = (i, f) => { me = (i + 7) % 7; ruta(f); };
+  $("regla").querySelectorAll("[data-etapa]").forEach((b) => {
+    b.onclick = () => etapa(+b.dataset.etapa, true);
+    b.onkeydown = (ev) => { const m = { ArrowRight: 1, ArrowLeft: -1 }[ev.key]; if (m) { ev.preventDefault(); etapa(me + m, true); } };
+  });
+  $("nombres").querySelectorAll("[data-etapa]").forEach((b) => b.onclick = () => etapa(+b.dataset.etapa));
+  if (foco) $("regla").querySelector('[data-etapa="' + me + '"]').focus();
+  $("cierre-f").innerHTML = fAvance(3, 220);
 }
-tabs.forEach((b, i) => {
-  b.onclick = () => ir(i);
-  b.onkeydown = (e) => { const m = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key]; if (m) { e.preventDefault(); ir((i + m + 7) % 7, true); } };
-});
-ir(0);
+ruta();
 
 /* ---------- brújula de prueba (no se guarda nada) ---------- */
 let ejes = {};
@@ -326,44 +291,37 @@ const pintarDial = () => { dial($("dial"), ejes); $("ver").innerHTML = veredicto
 radar($("radar"), () => ejes, (e) => { ejes = e; pintarDial(); }, $("q"));
 pintarDial();
 
-/* ---------- planes ---------- */
+/* ---------- planes: tres boletos sobre la mesa ---------- */
 const $$ = (n) => "$" + n.toLocaleString("es-CL");
 $("planes").innerHTML =
-  '<div class="plan"><small>Para siempre</small><h3>Gratis</h3><span class="pr">$0</span><p>Tres proyectos en curso con su Ruta completa, las herramientas esenciales, tu vitrina y una ronda de lectores beta con tres personas.</p></div>' +
-  '<div class="plan mas"><small>Próximamente</small><h3>Forja Más</h3><span class="pr">' + $$(PRECIOS.mas.mes) + ' <span>al mes</span></span><p>Todas las herramientas, quince proyectos en curso, cinco personas por proyecto y rondas de quince lectores. O ' + $$(PRECIOS.mas.anio) + " al año.</p></div>" +
-  '<div class="plan"><small>Próximamente</small><h3>Forja Estudio</h3><span class="pr">' + $$(PRECIOS.estudio.mes) + ' <span>al mes</span></span><p>Para estudios, colectivos y cursos: todo lo de Forja Más, sin tope de proyectos ni de ideas, quince personas por proyecto y rondas de cuarenta lectores. O ' + $$(PRECIOS.estudio.anio) + " al año.</p></div>";
+  boletoG(1, '<span class="cuando">Para siempre</span><h3>Gratis</h3><span class="pr">$0</span><p>Tres proyectos en curso con su Ruta completa, las herramientas esenciales, tu vitrina y una ronda de lectores beta con tres personas.</p>', { clase: "gratis" }) +
+  '<div class="pagados">' +
+  boletoG(2, '<span class="cuando">Próximamente</span><h3>Forja Más</h3><span class="pr">' + $$(PRECIOS.mas.mes) + ' <span>al mes</span></span><p>Todas las herramientas, quince proyectos en curso, cinco personas por proyecto y rondas de quince lectores. O ' + $$(PRECIOS.mas.anio) + " al año.</p>", { cortado: false }) +
+  boletoG(3, '<span class="cuando">Próximamente</span><h3>Forja Estudio</h3><span class="pr">' + $$(PRECIOS.estudio.mes) + ' <span>al mes</span></span><p>Para estudios, colectivos y cursos: todo lo de Forja Más, sin tope de proyectos ni de ideas, quince personas por proyecto y rondas de cuarenta lectores. O ' + $$(PRECIOS.estudio.anio) + " al año.</p>", { cortado: false }) +
+  "</div>";
 
-/* oportunidades en vivo */
+/* ---------- oportunidades en vivo: la regla de fechas (pieza común) y los talones ---------- */
 const SB = "https://gfkiwldxxvffnkjcesws.supabase.co/rest/v1/", H = { headers: { apikey: "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j" } };
-const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-const dd = (s) => { if (!s) return null; const [y, m, d] = s.split("-"); return Math.round((new Date(+y, m - 1, +d) - hoy) / 864e5); };
 const enDias = (n, est) => n === 0 ? "hoy" : n === 1 ? "mañana" : (est ? "en unos " : "en ") + n + " días";
-function fraseViva(ops, abiertas) {
-  const nom = (o) => "<b>" + esc(o.nombre) + "</b>", n = (o, k) => '<span class="n">' + enDias(dd(o[k]), o.fechas_estimadas) + "</span>";
-  if (abiertas.length) {
-    const o = abiertas[0], hot = abiertas.filter((x) => dd(x.postul_fin) <= 14).length;
-    if (abiertas.length === 1) return "Hay una postulación abierta: " + nom(o) + ", cierra " + n(o, "postul_fin") + ".";
-    return "Hay " + abiertas.length + " postulaciones abiertas; la primera en cerrar es " + nom(o) + ", " + n(o, "postul_fin") + "." + (hot > 1 ? " " + hot + " cierran en dos semanas." : "");
-  }
-  const prox = [];
-  ops.forEach((o) => { if (dd(o.postul_inicio) > 0) prox.push({ o, k: "postul_inicio" }); if (dd(o.evento_inicio) > 0) prox.push({ o, k: "evento_inicio" }); });
-  prox.sort((a, b) => dd(a.o[a.k]) - dd(b.o[b.k]));
-  const ahora = ops.filter((o) => o.evento_inicio && dd(o.evento_inicio) <= 0 && dd(o.evento_fin || o.evento_inicio) >= 0);
-  const ini = ahora.length ? "Ahora no hay postulaciones abiertas, pero " + nom(ahora[0]) + " está en curso. " : "Ahora no hay postulaciones abiertas; ";
-  if (!prox.length) return ahora.length ? ini.trim() : "Ahora no hay postulaciones abiertas ni fechas próximas.";
-  const { o, k } = prox[0];
-  return ini + (ahora.length ? "La próxima" : "la próxima") + (k === "postul_inicio" ? " en abrir es " : " fecha es ") + nom(o) + ", " + n(o, k) + ".";
+// Para lectores de pantalla: lo que muestra la regla, en una frase.
+function fraseViva(f) {
+  const ab = f.filter((x) => x.k === "cierra"), ahora = f.filter((x) => x.k === "curso"), x = f.find((y) => y.k !== "curso" && y.k !== "cierra");
+  if (ab.length) return (ab.length === 1 ? "Hay una postulación abierta" : "Hay " + ab.length + " postulaciones abiertas") + "; la primera cierra " + enDias(ab[0].n) + ": " + ab[0].o.nombre + ".";
+  return "Ahora no hay postulaciones abiertas" + (ahora.length ? ", pero " + ahora[0].o.nombre + " está en curso" : "") + (x ? ". La próxima fecha es " + x.o.nombre + ", " + enDias(x.n, x.est) + "." : ".");
 }
 fetch(SB + "oportunidades?select=nombre,tipo,organiza,postul_inicio,postul_fin,evento_inicio,evento_fin,fechas_estimadas", H).then((r) => { if (!r.ok) throw 0; return r.json(); })
   .catch(() => fetch("data/oportunidades.json").then((r) => r.json()))
   .then((ops) => {
-    const abiertas = ops.filter((o) => { const a = dd(o.postul_inicio), b = dd(o.postul_fin); return b != null && b >= 0 && (a == null || a <= 0); }).sort((a, b) => dd(a.postul_fin) - dd(b.postul_fin));
-    $("viva").innerHTML = fraseViva(ops, abiertas);
-    let carril = abiertas.slice(0, 4).map((o) => ({ o, n: dd(o.postul_fin), q: "para postular" }));
-    if (carril.length < 4) carril = carril.concat(ops.filter((o) => dd(o.evento_inicio) > 0 && !abiertas.includes(o)).sort((a, b) => dd(a.evento_inicio) - dd(b.evento_inicio)).slice(0, 4 - carril.length).map((o) => ({ o, n: dd(o.evento_inicio), q: "para el evento" })));
+    const todas = fechasDe(ops), { rango, fechas } = rangoFechas(todas);
+    $("viva").textContent = fraseViva(todas);
+    $("fechas").innerHTML = fechas.length ? reglaFechas(fechas, rango) : "";
+    $("ley").innerHTML = leyendaFechas(fechas);
+    // Al lado, cuatro talones: lo que cierra primero y, si falta, lo que viene (sin repetir una oportunidad).
+    const vistos = new Set(), Q = { cierra: "para postular", abre: "abre la postulación", evento: "para el evento" };
+    const carril = todas.filter((x) => x.k !== "curso" && !vistos.has(x.o) && vistos.add(x.o)).sort((a, b) => (a.k === "cierra" ? 0 : 1) - (b.k === "cierra" ? 0 : 1) || a.n - b.n).slice(0, 4);
     const TIPO = { fondo: "Fondo", feria: "Feria", convocatoria: "Convocatoria" };
-    $("carril").innerHTML = carril.length ? carril.map(({ o, n, q }) => '<a class="op' + (n <= 14 ? " hot" : "") + '" href="oportunidades/"><div class="dias"><b>' + (o.fechas_estimadas ? "≈" : "") + n + "</b><small>" + (n === 1 ? "día" : "días") + "</small></div><div><h3>" + esc(o.nombre) + "</h3><p>" + esc(TIPO[o.tipo] || "") + (o.organiza ? " · " + esc(o.organiza) : "") + " · " + q + "</p></div></a>").join("")
-      : '<div class="fx-empty">Ahora no hay convocatorias abiertas. Revisa el calendario completo.</div>';
+    $("carril").innerHTML = carril.length ? carril.map((x) => '<a class="op fk-' + x.k + '" href="oportunidades/"><div class="dias"><b>' + (x.n === 0 ? "hoy" : (x.est ? "≈" : "") + x.n) + "</b><small>" + (x.n === 0 ? "" : x.n === 1 ? "día" : "días") + "</small></div><div><h3>" + esc(x.o.nombre) + "</h3><p>" + esc(TIPO[x.o.tipo] || "") + (x.o.organiza ? " · " + esc(x.o.organiza) : "") + " · " + Q[x.k] + "</p></div></a>").join("")
+      : '<div class="fx-empty">No hay fechas en los próximos meses. Revisa el calendario completo.</div>';
   }).catch(() => { $("viva").textContent = "Las fechas no cargaron; revisa el calendario completo."; $("carril").innerHTML = '<div class="fx-empty">No se pudieron cargar las oportunidades.</div>'; });
 </script>
 </body>
