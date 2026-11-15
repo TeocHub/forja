@@ -52,7 +52,7 @@ export const TECNICAS = {
       pasos: ["Trae tus referentes a la pizarra.", "Agrúpalos por lo que tienen en común.", "Ponle nombre a cada grupo."] },
     { id: "brujula", t: "Probar formatos", min: 10, ir: "brujula",
       d: "Compara tu idea con once formatos. A veces una novela pide ser cómic, o un juego pide ser serie.",
-      pasos: ["Mueve los ejes según tu idea.", "Mira los tres formatos que más calzan, aunque no fueran tu plan."] },
+      pasos: ["Mueve cada balanza según cómo te imaginas tu idea.", "Mira hacia dónde apunta la aguja y los formatos que quedan cerca, aunque no fueran tu plan."] },
     { id: "pagina-ajena", t: "Desarmar una página", min: 20, ir: null, solo: ["comic"],
       d: "Elige una página de un cómic que te guste y dibújala en cajas vacías, sin copiar el dibujo: solo dónde va cada viñeta y cada globo.",
       pasos: ["Cuenta las viñetas y marca cuál es la más grande.", "Sigue con el dedo el camino que hace tu ojo al leerla.", "Anota por qué esa página termina donde termina."] },

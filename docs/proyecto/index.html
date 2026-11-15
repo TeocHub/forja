@@ -612,14 +612,12 @@ dialog.an-d::backdrop{background:var(--velo)}
 /* brújula */
 .brujula{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:center}
 @media (max-width:760px){.brujula{grid-template-columns:minmax(0,1fr)}}
-.leyenda-b{display:flex;justify-content:center;gap:6px 14px;align-items:center;font-size:12px;color:var(--muted);margin:2px 0 0}
-.leyenda-b i{display:inline-block;width:18px;height:0;border-top:2px solid var(--accent);margin-right:-8px}
-.leyenda-b i.l2{border-top:2px dashed var(--ember)}
-.pregunta{min-height:2.8em;text-align:center;font-size:13px;color:var(--muted);max-width:44ch;margin:4px auto 0}
+.leyenda-b{display:flex;justify-content:center;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:10px 0 0}
+.leyenda-b i{display:inline-block;width:0;height:0;border:5px solid transparent;border-bottom:6px solid var(--muted);border-top:0}
 .veredicto{font-size:15px;max-width:58ch;margin:0 auto;text-align:center}
 .formatos{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .formatos button{border:1px solid var(--line);background:var(--card);border-radius:var(--r-m);padding:5px 12px;font-size:15px;display:inline-flex;gap:6px;align-items:baseline}
-.formatos button small{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.formatos button small{font-size:13px;color:var(--ember)}
 .formatos button[aria-pressed="true"]{border-color:var(--ember);background:var(--ember-soft);font-weight:700}
 
 /* costos y oportunidades */
@@ -668,7 +666,7 @@ dialog.an-d::backdrop{background:var(--velo)}
 import { sb, $, esc, toast, debounce, fecha, hace, palabras, navApp, espacio, espacios, accesoProyecto, conSesion, plan, LIMITES, tope, NOMBRE_PLAN, limite, editable, MAS_PRONTO, MAS_LINK, proximamente, activarAvisame, ayudaImagenes, probarImagen, equipo, ico, fAvance, chispa, colorDe, timbrar } from "../js/forja.js";
 import { funcion, tarjetaFuncion, pendientes } from "../js/planes.js";
 import { TIPOS, ESTADOS, tc, areaDe, SECCIONES, PLANTILLA, PLANTILLA_FORMATO, FORMATOS_DE, formatoCabe, tipoDe, sugeridas, pesoDe, ETAPAS, etapaDe, avance } from "../js/guias.js";
-import { FORMATOS, radar, dial, veredicto, lectura, tocado, pct, base, vals, vacia as sinIdea, CSS_BRUJULA } from "../js/brujula.js";
+import { FORMATOS, balanzas, dial, veredicto, lectura, tocado, sinRumbo, perfil, CSS_BRUJULA } from "../js/brujula.js";
 import { montar, MODOS, cuentaTarjetas, normal as normalPiz, CSS_PIZARRA } from "../js/pizarra.js";
 import { pista, abrirTemasEquipo, icono } from "../js/ayuda.js";
 import * as R from "../js/ruta.js";
@@ -2281,28 +2279,29 @@ function tarjeta(r) {
 
 /* ================= BRÚJULA ================= */
 function brujula() {
-  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Brújula de formatos</h2><span class="hint">Parte con la configuración inicial de su categoría o formato. Arrastra cada punto según cuánto pesa en tu idea.</span></div>' +
-    '<div class="brujula"><div><svg class="radar" id="radar"></svg><p class="pregunta" id="pregunta">Toca un eje para ver su pregunta.</p><p class="leyenda-b"><i class="l1"></i>Tu idea <i class="l2"></i>Cómo suele ser este formato</p></div><div><svg class="dial" id="dial"></svg></div></div>' +
+  $("panel").innerHTML = '<section class="bloque" style="margin-top:14px"><div class="cab"><h2>Brújula de formatos</h2><span class="hint">Para cuando aún no sabes en qué convertir tu idea. Mueve cada balanza hacia donde se incline; si una te da lo mismo, déjala al medio.</span></div>' +
+    '<div class="brujula"><div><div id="balanzas"></div><p class="leyenda-b" id="leyenda-b" hidden><i></i><span></span></p></div><div><svg class="dial" id="dial"></svg></div></div>' +
     '<p class="veredicto" id="veredicto" aria-live="polite"></p>' +
     '<div style="border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px;align-items:center"><b style="font-family:var(--f-display)">¿Qué vas a hacer?</b>' +
-    '<p class="hint" style="margin:0;text-align:center;max-width:58ch">La brújula solo compara tus respuestas con lo que suele lucir en cada formato. Elige el que tú quieras, aunque no sea el primero. Si eliges uno de otra categoría (por ejemplo, juego de mesa en una historia), el proyecto cambia de categoría y el Taller te sugiere las secciones que le faltan.</p>' + (P.tipo === "producto" ? '<p class="hint" style="margin:0;text-align:center">Para un producto la brújula sirve poco; úsala si tu producto también cuenta una historia.</p>' : "") + '' +
+    '<p class="hint" style="margin:0;text-align:center;max-width:58ch">La brújula solo compara cómo imaginas tu idea con cómo suele ser cada formato. Elige el que tú quieras, aunque no sea al que apunta. Si eliges uno de otra categoría (por ejemplo, juego de mesa en una historia), el proyecto cambia de categoría y el Taller te sugiere las secciones que le faltan.</p>' + (P.tipo === "producto" ? '<p class="hint" style="margin:0;text-align:center">Para un producto la brújula sirve poco; úsala si tu producto también cuenta una historia.</p>' : "") + '' +
     '<div class="formatos" id="formatos"></div></div></section>';
-  const B = () => base(P.tipo, P.formato);
-  const etiqueta = () => { const f = FORMATOS.find((x) => x.k === P.formato); return f ? "<b>" + esc(f.n.toLowerCase()) + "</b>" : "la categoría <b>" + esc(TIPOS[P.tipo].toLowerCase()) + "</b>"; };
+  const REF = () => perfil(P.formato);
   let repintar = null;
   const pintarLectura = () => {
     if (repintar) repintar();
-    dial($("dial"), P.ejes, P.formato, B());
-    $("veredicto").innerHTML = veredicto(P.ejes, B(), etiqueta()) +
-      (tocado(P.ejes) ? ' <button type="button" class="btn chico" id="b-reset" title="Vuelve a cómo suele ser este formato">Volver a la configuración inicial</button>' : "");
-    if ($("b-reset")) $("b-reset").onclick = () => { P.ejes = {}; guardar({ ejes: {} }, "Configuración inicial restaurada"); pintarLectura(); };
-    const l = Object.fromEntries(lectura(P.ejes, B()).map((f) => [f.k, f.s])), nada = sinIdea(vals(P.ejes, B()));
-    $("formatos").innerHTML = FORMATOS.map((f) => '<button type="button" data-f="' + f.k + '" aria-pressed="' + (P.formato === f.k) + '">' + f.n + (nada ? "" : " <small>" + pct(l[f.k]) + "</small>") + "</button>").join("") +
+    dial($("dial"), P.ejes, P.formato);
+    const fm = FORMATOS.find((x) => x.k === P.formato), ley = $("leyenda-b");
+    ley.hidden = !fm; if (fm) ley.querySelector("span").textContent = "Así suele ser " + fm.n.toLowerCase();
+    $("veredicto").innerHTML = veredicto(P.ejes) +
+      (tocado(P.ejes) ? ' <button type="button" class="btn chico" id="b-reset">Dejar todo al medio</button>' : "");
+    if ($("b-reset")) $("b-reset").onclick = () => { P.ejes = {}; guardar({ ejes: {} }, "Balanzas al medio"); pintarLectura(); };
+    const l = lectura(P.ejes), cerca = sinRumbo(P.ejes) ? [] : l.slice(0, 3).filter((f) => f.s >= .65).map((f) => f.k);
+    $("formatos").innerHTML = FORMATOS.map((f) => '<button type="button" data-f="' + f.k + '" aria-pressed="' + (P.formato === f.k) + '">' + f.n + (cerca.includes(f.k) ? " <small>cerca</small>" : "") + "</button>").join("") +
       '<button type="button" data-f="" aria-pressed="' + (!P.formato) + '">Aún no decido</button>';
     $("formatos").querySelectorAll("[data-f]").forEach((b) => b.onclick = async () => { await elegirFormato(b.dataset.f || null); pintarLectura(); });
   };
   const subir = debounce(() => guardar({ ejes: P.ejes }), 700);
-  repintar = radar($("radar"), () => P.ejes, (e) => { P.ejes = e; pintarLectura(); subir(); }, $("pregunta"), B);
+  repintar = balanzas($("balanzas"), () => P.ejes, (e) => { P.ejes = e; pintarLectura(); subir(); }, REF, { soloVer: !!RO });
   pintarLectura();
 }
 

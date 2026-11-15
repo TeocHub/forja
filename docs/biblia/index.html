@@ -104,11 +104,11 @@ import { textoCompleto } from "../js/cruces.js";
 import * as MP from "../js/mapa.js";
 import * as ES from "../js/estructura.js";
 import { TIPOS, ESTADOS, tc } from "../js/guias.js";
-import { EJES, FORMATOS, radar, dial, lectura, tocado, vals, vacia, pct, base, CSS_BRUJULA } from "../js/brujula.js";
+import { FORMATOS, balanzasFijas, dial, lectura, tocado, sinRumbo, cercania, perfil, CSS_BRUJULA } from "../js/brujula.js";
 import { MODOS, estatica, cuentaTarjetas, CSS_PIZARRA } from "../js/pizarra.js";
 import { etiqueta as etqNota } from "../js/bitacora.js";
 navApp("proyectos");
-document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + ".doc .mapa{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:6px 14px;margin:0}.doc .mapa dt{font-weight:700;font-family:'Atkinson Hyperlegible',sans-serif;font-size:10pt}.doc .mapa dd{margin:0}.doc .centro{font-size:13pt;font-style:italic;margin:0 0 12px}.doc .es-bib{max-width:520px;margin:0 0 14px}.doc .es-dib .es-p .es-lbl{stroke:var(--blanco)}" + ".doc .piz{break-inside:avoid;margin:0 0 22px}.doc .piz h3{margin:0 0 2px}.doc .piz .modo{font-family:'Atkinson Hyperlegible',sans-serif;font-size:9pt;color:var(--soft);margin:0 0 8px}.doc .radar text,.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .radar .forma{fill:color-mix(in srgb,var(--emb) 15%,transparent);stroke:var(--emb)}.doc .dial .petalo{fill:var(--papel-linea)}.doc .dial .petalo.top{fill:color-mix(in srgb,var(--emb) 30%,var(--papel))}.doc .dial .borde{fill:var(--papel);stroke:var(--rule)}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
+document.head.insertAdjacentHTML("beforeend", "<style>" + CSS_BRUJULA + CSS_PIZARRA + ES.CSS_ESTRUCTURA + ".doc .mapa{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:6px 14px;margin:0}.doc .mapa dt{font-weight:700;font-family:'Atkinson Hyperlegible',sans-serif;font-size:10pt}.doc .mapa dd{margin:0}.doc .centro{font-size:13pt;font-style:italic;margin:0 0 12px}.doc .es-bib{max-width:520px;margin:0 0 14px}.doc .es-dib .es-p .es-lbl{stroke:var(--blanco)}" + ".doc .piz{break-inside:avoid;margin:0 0 22px}.doc .piz h3{margin:0 0 2px}.doc .piz .modo{font-family:'Atkinson Hyperlegible',sans-serif;font-size:9pt;color:var(--soft);margin:0 0 8px}.doc .dial text{font-family:'Atkinson Hyperlegible',sans-serif}.doc .bz{--fg:var(--papel-tinta);--bg:var(--papel);--line:var(--papel-linea);--muted:var(--soft);--cat:var(--emb);max-width:none;break-inside:avoid}.doc .bz-q{font-size:10pt}.doc .bz-l{font-size:9pt}.doc .dial .petalo{fill:var(--papel-linea)}.doc .dial .petalo.top{fill:color-mix(in srgb,var(--emb) 30%,var(--papel))}.doc .dial .borde{fill:var(--papel);stroke:var(--rule)}.doc svg *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>");
 
 const ID = new URLSearchParams(location.search).get("p");
 const ESTOP = { interesa: "Me interesa", postulando: "Postulando", postulado: "Postulé", aceptado: "Aceptado", descartado: "Descartado" };
@@ -190,10 +190,9 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
       return '<div class="obra"><p class="ref-apa">' + O.cita(f, "apa", true) + "</p>" + O.MIRADAS.filter((m) => A[m.k]).map((m) => "<h4>" + m.n + "</h4>" + parrafos(A[m.k])).join("") +
         ((A.aprendi || []).length ? '<h4>Lo que aprendí</h4><ul class="apr">' + A.aprendi.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") + (r.nota ? '<p class="nota">' + esc(r.nota) + "</p>" : "") + "</div>"; }).join("") + "</section>" +
 
-    '<section class="parte" data-p="brujula"><h2>Brújula de formatos</h2><p class="bajada">Cómo se describió la idea en seis ejes (0 a 4) y qué formatos se le parecen. Es una referencia; el formato lo decide quien crea.</p>' +
-    '<div class="bru"><svg class="radar" id="d-radar"></svg><svg class="dial" id="d-dial"></svg></div>' +
-    (tocado(P.ejes) ? '<table class="tabla" style="margin-top:12px"><thead><tr><th>Eje</th><th>Valor</th></tr></thead><tbody>' + EJES.map((e, i) => "<tr><td>" + e.n + '<br><span style="color:var(--soft)">' + esc(e.q) + "</span></td><td>" + vals(P.ejes)[i] + "</td></tr>").join("") + "</tbody></table>" +
-      (vacia(vals(P.ejes)) ? '<p style="margin-top:12px">Todos los ejes quedaron en cero, así que no hay formatos que comparar.' : '<p style="margin-top:12px">Formatos más cercanos: ' + lectura(P.ejes).slice(0, 3).map((x) => esc(x.n) + " (" + pct(x.s) + ")").join(", ") + ".") + (f ? " Formato elegido: <b>" + esc(f.n) + "</b>." : "") + "</p>" : (f ? "<p>Formato elegido: <b>" + esc(f.n) + "</b>.</p>" : "")) + "</section>" +
+    '<section class="parte" data-p="brujula"><h2>Brújula de formatos</h2><p class="bajada">Cómo se imaginó la idea en seis balanzas y hacia qué formatos apunta. Es una referencia; el formato lo decide quien crea.</p>' +
+    (tocado(P.ejes) ? '<div class="bru">' + balanzasFijas(P.ejes, perfil(P.formato)) + '<svg class="dial" id="d-dial"></svg></div>' +
+      (sinRumbo(P.ejes) ? '<p style="margin-top:12px">Las balanzas quedaron cerca del medio, así que la aguja aún no se inclina.' : '<p style="margin-top:12px">Formatos más cercanos: ' + lectura(P.ejes).slice(0, 3).map((x) => esc(x.n) + " (" + cercania(x.s) + ")").join(", ") + ".") + (f ? " Formato elegido: <b>" + esc(f.n) + "</b>." : "") + "</p>" : (f ? "<p>Formato elegido: <b>" + esc(f.n) + "</b>.</p>" : "")) + "</section>" +
 
     '<section class="parte" data-p="pizarras"><h2>Pizarras</h2><p class="bajada">Los tableros del proyecto, tal como quedaron ordenados.</p>' +
     PZ.map((z) => '<div class="piz"><h3>' + esc(z.nombre) + '</h3><p class="modo">' + MODOS[z.modo].n + " · " + cuentaTarjetas(z.datos) + (z.modo === "escaleta" ? " escenas" : z.modo === "relaciones" ? " personajes" : z.modo === "mapa" ? " lugares" : " tarjetas") + "</p>" + estatica(z, { secciones: SECS, referentes: REFS }) + "</div>").join("") + "</section>" +
@@ -214,8 +213,7 @@ function pintar(P, SECS, REFS, NOTAS, COT, SEGS, OPS, PIZ) {
     '<section class="parte" data-p="bibliografia"><h2>Bibliografía</h2><p class="bajada">Las obras citadas y analizadas, en formato <select id="b-estilo" class="no-print" aria-label="Formato">' + Object.entries(O.ESTILOS).map(([k, n]) => '<option value="' + k + '">' + n + "</option>").join("") + '</select><span class="solo-print" id="b-estilo-n">APA 7</span>.</p><div class="biblio" id="biblio"></div></section>' +
     '<p class="pie-doc">Hecho con Forja · forja.digitalmonster.cl</p></article>';
 
-  if (tocado(P.ejes) || f) { const B = base(P.tipo, P.formato); radar($("d-radar"), () => P.ejes, () => {}, null, () => B); dial($("d-dial"), P.ejes, P.formato, B); $("d-radar").style.pointerEvents = "none"; }
-  else $("d-radar").remove();
+  if ($("d-dial")) dial($("d-dial"), P.ejes, P.formato);
 
   const aplicar = () => {
     const on = {};

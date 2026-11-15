@@ -92,7 +92,7 @@ export function avance(secs) {
 
 // Formatos que caben en cada categoría, y la categoría natural de cada formato.
 export const FORMATOS_DE = {
-  historia: ["novela", "cuento", "corto", "largo", "serie", "animacion", "podcast"],
+  historia: ["novela", "cuento", "corto", "largo", "serie", "animacion", "podcast", "video"],
   comic: ["comic"],
   videojuego: ["videojuego"],
   juegomesa: ["mesa"],
@@ -101,9 +101,9 @@ export const FORMATOS_DE = {
   otro: null, // cualquiera
 };
 export const formatoCabe = (tipo, f) => !f || FORMATOS_DE[tipo] === null || (FORMATOS_DE[tipo] || []).includes(f);
-export const tipoDe = (f) => ({ videojuego: "videojuego", mesa: "juegomesa", video: "contenido", comic: "comic" })[f] || "historia";
+export const tipoDe = (f) => ({ videojuego: "videojuego", mesa: "juegomesa", comic: "comic" })[f] || "historia";
 // Secciones extra que sugiere cada formato.
-export const PLANTILLA_FORMATO = { novela: ["capitulos"], cuento: [], comic: ["vinetas"], corto: ["escaleta"], largo: ["escaleta"], serie: ["temporada"], animacion: ["escaleta", "estetica"], podcast: ["episodio", "guion"], video: ["gancho", "guion"], videojuego: [], mesa: [] };
+export const PLANTILLA_FORMATO = { novela: ["capitulos"], cuento: [], comic: ["vinetas"], corto: ["escaleta"], largo: ["escaleta"], serie: ["temporada"], animacion: ["escaleta", "estetica"], podcast: ["episodio", "guion"], video: ["temporada", "guion"], videojuego: [], mesa: [] };
 export const sugeridas = (tipo, f) => [...new Set([...(PLANTILLA[tipo] || []), ...((f && PLANTILLA_FORMATO[f]) || [])])];
 
 // Secciones con las que nace un proyecto de cada tipo.

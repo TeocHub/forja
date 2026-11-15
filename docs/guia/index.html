@@ -114,7 +114,7 @@ body{font-size:17px;line-height:1.55}
 .d-ref-res b{display:block;font-family:var(--f-display)}
 .d-ref-res small{color:var(--muted)}
 .d-radar{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
-.d-radar svg{width:100%;height:auto;max-height:300px}
+.d-radar svg{width:100%;height:auto;max-height:260px}
 .d-top{display:flex;gap:6px;flex-wrap:wrap}
 .d-top span{font-size:13px;border-radius:var(--r-m);padding:4px 11px;background:var(--card);border:1px solid var(--line)}
 .d-top span:first-child{background:var(--accent);color:var(--card);border-color:var(--accent);font-weight:700}
@@ -251,7 +251,7 @@ body{font-size:17px;line-height:1.55}
 import { sb, nav, navApp, equipo } from "../js/forja.js";
 import { TEMAS, tema, temaHTML, buscar, icono, CSS_AYUDA, abrirTemasEquipo } from "../js/ayuda.js";
 import { TIPOS, SECCIONES, PLANTILLA, ETAPAS, etapaDe } from "../js/guias.js";
-import { EJES, radar, lectura, base, pct, vals, vacia, CSS_BRUJULA } from "../js/brujula.js";
+import { balanzas, dial, lectura, sinRumbo, cercania, CSS_BRUJULA } from "../js/brujula.js";
 import { montar } from "../js/pizarra.js";
 import { pintarVitrina, detectar, yt, CSS_VITRINA } from "../js/vitrina.js";
 import { ETAPAS as ETAPAS_R, CREADORES, tecnicasDe, etapaNombre } from "../js/ruta.js";
@@ -553,10 +553,13 @@ const DEMOS = {
     c.querySelectorAll("[data-v]").forEach((b) => b.onclick = () => { $("d-r").value = b.dataset.v; ver(b.dataset.v); });
   },
   brujula(c) {
-    let ejes = {}; const b = base("historia");
-    c.innerHTML = '<div class="d-radar"><svg id="d-radar"></svg><p class="d-q" id="d-q">Mueve los puntos de cada eje. Toca o arrastra.</p><div class="d-top" id="d-top"></div></div>';
-    const top = () => { $("d-top").innerHTML = vacia(vals(ejes, b)) ? "<span>Sube algún punto para comparar</span>" : lectura(ejes, b).slice(0, 3).map((f) => "<span>" + esc(f.n) + " " + pct(f.s) + "</span>").join(""); };
-    radar($("d-radar"), () => ejes, (e) => { ejes = e; top(); }, $("d-q"), () => b);
+    let ejes = {};
+    c.innerHTML = '<div class="d-radar"><div id="d-bz"></div><svg class="dial" id="d-dial"></svg><p class="d-q">Imagina una idea y mueve cada balanza hacia donde se incline.</p><div class="d-top" id="d-top"></div></div>';
+    const top = () => {
+      dial($("d-dial"), ejes);
+      $("d-top").innerHTML = sinRumbo(ejes) ? "<span>La aguja aún no se inclina</span>" : lectura(ejes).slice(0, 3).map((f) => "<span>" + esc(f.n) + " · " + cercania(f.s) + "</span>").join("");
+    };
+    balanzas($("d-bz"), () => ejes, (e) => { ejes = e; top(); });
     top();
   },
   pizarra(c) {
