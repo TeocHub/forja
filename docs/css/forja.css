@@ -56,6 +56,8 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
   --i-nota:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 17.5V5.5l10-2v12 M9 17.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z M19 15.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z'/%3E%3C/svg%3E");
   --i-play:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M8 5.5v13l10.5-6.5z'/%3E%3C/svg%3E");
   --i-fichas:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 3.5h11v14H8z M5 6.5v14h11'/%3E%3C/svg%3E");
+  --i-flecha:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h15 M13 6l6 6-6 6'/%3E%3C/svg%3E");
+  --i-atras:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12H5 M11 6l-6 6 6 6'/%3E%3C/svg%3E");
   --i-chispa:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3 Q13.2 10.8 21 12 Q13.2 13.2 12 21 Q10.8 13.2 3 12 Q10.8 10.8 12 3 Z' fill='%23000'/%3E%3C/svg%3E");
 }
 /* Un ícono dentro del texto (desde CSS): class="fx-i" style="--i:var(--i-listo)" o como ::before con estas mismas reglas. */
@@ -309,3 +311,55 @@ button.fx-etq[aria-pressed="true"]::before,button.fx-etq[aria-checked="true"]::b
 .fx-btn:hover{opacity:.9}
 /* Rótulo chico (ya no en mayúsculas: Geist Mono queda para números y datos) */
 .fx-rot{font-family:var(--f-body);font-size:12px;color:var(--muted)}
+
+/* Línea de tiempo (lineaTiempo en forja.js; Oportunidades y Eventos): una línea vertical con una marca por mes y una fila por fecha,
+   separadas por líneas finas, sin cajas. La fila .grande (cierra en 14 días o menos) crece y toma el color de lo que pasa; .pasada va en gris. */
+.fx-linea{--tl-d:56px;--tl-p:22px;position:relative;display:flex;flex-direction:column}
+.fx-linea::before{content:"";position:absolute;left:calc(var(--tl-d) + var(--tl-p)/2 - 1px);top:6px;bottom:6px;width:2px;background:var(--line)}
+.fx-linea-mes{position:relative;margin:0;padding:22px 0 6px calc(var(--tl-d) + var(--tl-p) + 10px);font:700 13px var(--f-num);color:var(--muted)}
+.fx-linea-mes::before{content:"";position:absolute;left:calc(var(--tl-d) + var(--tl-p)/2 - 8px);bottom:13px;width:16px;height:2px;background:var(--fg)}
+.fx-linea>.fx-linea-mes:first-child{padding-top:4px}
+.fx-hito{position:relative;display:grid;grid-template-columns:var(--tl-d) var(--tl-p) minmax(0,1fr) auto;align-items:center;min-height:60px;padding:10px 12px 10px 0;color:var(--fg);text-decoration:none;
+  background-image:linear-gradient(var(--line),var(--line));background-size:calc(100% - var(--tl-d) - var(--tl-p)) 1px;background-position:right top;background-repeat:no-repeat}
+.fx-hito::before{content:"";grid-column:2;grid-row:1;justify-self:center;width:10px;height:10px;border-radius:50%;background:var(--k,var(--fg));box-shadow:0 0 0 3px var(--bg)}
+.fx-hito-dia{grid-column:1;grid-row:1;text-align:right;padding-right:4px;line-height:1.05;font-family:var(--f-num)}
+.fx-hito-dia b{display:block;font-size:20px;font-weight:700}
+.fx-hito-dia small{font-size:12px;color:var(--muted)}
+.fx-hito-c{grid-column:3;min-width:0;padding-left:10px;display:flex;flex-direction:column;gap:2px}
+.fx-hito-c h3,.fx-hito-n{font-family:var(--f-display);font-weight:800;font-stretch:var(--ancho);font-size:17px;line-height:1.25;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fx-hito-c small{font-size:13px;color:var(--muted)}
+.fx-hito-c small em{font-style:normal;font-weight:700;color:var(--k,var(--fg))}
+.fx-hito-dato{grid-column:4;padding-left:12px;font-family:var(--f-num);font-size:13px;color:var(--muted);text-align:right;white-space:nowrap}
+a.fx-hito:hover,button.fx-hito:hover{background-color:var(--suave)}
+.fx-hito[aria-current="true"]{background-color:var(--suave)}
+.fx-hito[aria-current="true"]::before{box-shadow:0 0 0 3px var(--suave),0 0 0 5px var(--k,var(--fg))}
+.fx-hito.grande{min-height:88px;padding-block:16px}
+.fx-hito.grande::before{width:14px;height:14px}
+.fx-hito.grande .fx-hito-dia b{font-size:36px;color:var(--k)}
+.fx-hito.grande .fx-hito-c h3,.fx-hito.grande .fx-hito-n{font-size:20px}
+.fx-hito.grande .fx-hito-dato{font-size:17px;font-weight:700;color:var(--k)}
+.fx-hito.pasada{color:var(--muted)}
+.fx-hito.pasada::before,.fx-hito.sin::before{background:var(--bg);box-shadow:inset 0 0 0 2px var(--line),0 0 0 3px var(--bg)}
+.fx-hito.pasada .fx-hito-c small em{color:var(--muted)}
+/* un mes lejano (o lo que ya pasó) queda plegado en una sola fila: el mes y los primeros nombres */
+.fx-linea-pliegue>summary{list-style:none;cursor:pointer}
+.fx-linea-pliegue>summary::-webkit-details-marker{display:none}
+.fx-linea-pliegue>summary .fx-hito-c b{font:700 13px var(--f-num);color:var(--fg)}
+.fx-linea-pliegue>summary .fx-hito-c small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.fx-linea-pliegue>summary .fx-hito-dato::after{content:"";display:inline-block;width:14px;height:14px;margin-left:6px;vertical-align:-2px;background:currentColor;-webkit-mask:var(--i-flecha) center/contain no-repeat;mask:var(--i-flecha) center/contain no-repeat}
+.fx-linea-pliegue[open]>summary .fx-hito-dato::after{-webkit-mask-image:var(--i-cerrar);mask-image:var(--i-cerrar)}
+.fx-linea-pliegue>summary:hover{background-color:var(--suave)}
+/* angosta (celular, o la columna junto a la ficha en la tablet): «en N días» baja bajo el nombre */
+.fx-linea{container-type:inline-size}
+@container (max-width:520px){
+  .fx-hito{grid-template-columns:var(--tl-d) var(--tl-p) minmax(0,1fr);padding-right:4px}
+  .fx-hito-dato{grid-column:3;grid-row:2;text-align:left;padding:2px 0 0 10px}
+  .fx-hito::before,.fx-hito-dia{grid-row:1/span 2}
+}
+@media (max-width:560px){.fx-linea{--tl-d:44px;--tl-p:18px}.fx-hito.grande .fx-hito-dia b{font-size:26px}}
+/* Cierre de página: la F a medio llenar, la frase y el botón, sobre el fondo de la página (sin bloque negro) */
+.fx-cierre{display:grid;grid-template-columns:auto minmax(0,1fr);gap:24px 48px;align-items:center;padding-top:40px}
+.fx-cierre h2{font-family:var(--f-display);font-size:36px;line-height:1.08;margin:0 0 12px;text-wrap:balance}
+.fx-cierre p{margin:0 0 22px;color:var(--muted);max-width:60ch}
+@media (max-width:700px){.fx-cierre{grid-template-columns:minmax(0,1fr)}.fx-cierre .fx-f{width:140px;height:140px}}
+@media (max-width:620px){.fx-cierre h2{font-size:26px}}

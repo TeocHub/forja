@@ -44,7 +44,7 @@ export const ICONOS = {
   semilla: "M12 20v-6 M12 14c-4 0-6-2.5-6-6 3.5 0 6 2 6 6z M12 14c0-3 2-5.5 6-5.5 0 3.5-2.5 5.5-6 5.5z", desarrollo: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z M12 4v16",
   pausa: "M9 6v12 M15 6v12", tablero: "M3.5 4h5v9h-5z M9.5 4h5v15h-5z M15.5 4h5v6h-5z", listo: "M5 12.5l4.5 4.5L19 7.5", archivado: "M4 5h16v4H4z M5.5 9v10h13V9 M10 13h4",
   cerrar: "M6.5 6.5l11 11 M17.5 6.5l-11 11", nota: "M9 17.5V5.5l10-2v12 M9 17.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z M19 15.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z",
-  play: "M8 5.5v13l10.5-6.5z", alerta: "M12 3.5 21.5 20h-19z M12 10v4.5 M12 17.2v.1",
+  play: "M8 5.5v13l10.5-6.5z", atras: "M20 12H5 M11 6l-6 6 6 6", alerta: "M12 3.5 21.5 20h-19z M12 10v4.5 M12 17.2v.1",
 };
 // Ícono de cada parte del proyecto y de cada herramienta (la mesa de boletos y la guía).
 export const ICONO_DE = { ruta: "regla", idea: "chispa", crear: "martillo", probar: "lupa", mostrar: "vitrina",
@@ -116,6 +116,26 @@ export function reglaFechas(f, rango, { ventana = false } = {}) {
 }
 // Leyenda: solo los tipos de fecha que aparecen.
 export const leyendaFechas = (f) => Object.keys(FECHA_K).filter((k) => f.some((x) => x.k === k)).map((k) => '<span class="fk-' + k + '"><i></i>' + FECHA_K[k] + "</span>").join("");
+/* --- línea de tiempo: una fila por fecha, agrupadas por mes sobre una línea vertical (Oportunidades y Eventos; estilos .fx-linea en forja.css) --- */
+const MES_L = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+// hitos (ya ordenados): {d (Date o null), k (curso|cierra|abre|evento), grande, pasada, cuerpo (HTML ya escapado), dato (HTML), nombre (para el pliegue),
+// tag ("a" por defecto, o "article"), attrs (atributos ya escapados)}. Los sin fecha van en «sinFecha»; los `pasada` al final, plegados.
+// Con `plegarDesde` (Date), cada mes que parte después queda plegado en una fila con su nombre y los primeros nombres: la línea no se alarga sin tope.
+export function lineaTiempo(hitos, { plegarDesde = null, sinFecha = "Sin fecha fija", pasadas = "Ya pasaron" } = {}) {
+  const fila = (h) => { const t = h.tag || "a"; return "<" + t + ' class="fx-hito' + (h.k ? " fk-" + h.k : "") + (h.grande ? " grande" : "") + (h.pasada ? " pasada" : "") + (h.d ? "" : " sin") + '"' + (h.attrs ? " " + h.attrs : "") + ">" +
+    '<span class="fx-hito-dia">' + (h.d ? "<b>" + h.d.getDate() + "</b><small>" + MES[h.d.getMonth()] + "</small>" : "") + '</span><span class="fx-hito-c">' + h.cuerpo + "</span>" +
+    '<span class="fx-hito-dato">' + (h.dato || "") + "</span></" + t + ">"; };
+  const pliegue = (titulo, hs, abierto) => '<details class="fx-linea-pliegue"' + (abierto ? " open" : "") + '><summary class="fx-hito sin"><span class="fx-hito-dia"></span><span class="fx-hito-c"><b>' + esc(titulo) + "</b><small>" +
+    esc(hs.slice(0, 3).map((h) => h.nombre).join(" · ") + (hs.length > 3 ? " …" : "")) + '</small></span><span class="fx-hito-dato">' + hs.length + "</span></summary>" + hs.map(fila).join("") + "</details>";
+  const grupos = [];
+  hitos.forEach((h) => {
+    const clave = h.pasada ? "pasada" : h.d ? h.d.getFullYear() * 12 + h.d.getMonth() : "sin", g = grupos[grupos.length - 1];
+    if (g && g.clave === clave) g.hs.push(h); else grupos.push({ clave, hs: [h], titulo: h.pasada ? pasadas : h.d ? MES_L[h.d.getMonth()] + " " + h.d.getFullYear() : sinFecha, inicio: h.d && new Date(h.d.getFullYear(), h.d.getMonth(), 1) });
+  });
+  return '<div class="fx-linea">' + grupos.map((g) => g.clave === "pasada" ? pliegue(g.titulo, g.hs)
+    : plegarDesde && g.inicio && g.inicio > plegarDesde ? pliegue(g.titulo, g.hs)
+    : '<p class="fx-linea-mes">' + esc(g.titulo) + "</p>" + g.hs.map(fila).join("")).join("") + "</div>";
+}
 // El color de Forja lo pone el proyecto: la chispa toma el color de su categoría. Fuera de un proyecto, el del último que se abrió.
 export function colorDe(tipo) {
   const t = /^[a-z]+$/.test(tipo || "") ? tipo : "historia";

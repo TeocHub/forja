@@ -13,21 +13,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@100..125,500..900&family=Atkinson+Hyperlegible:wght@400;700&family=Geist+Mono:wght@400..700&display=swap">
 <style>
-/* Layout: cartelera de convocatorias — resumen arriba, filtros, lista de fichas con dos contadores (postulación / evento) */
-/* Colores de estado de cada convocatoria; el resto (grafito, letras) viene de forja.css */
-:root{--open:var(--good); --open-soft:var(--good-soft); --soon:var(--bad); --soon-soft:color-mix(in srgb,var(--bad) 12%,var(--card)); --closed:var(--muted); --closed-soft:var(--suave); --wait:var(--warn); --wait-soft:var(--warn-soft)}
-
-.wrap{max-width:900px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
-header h1{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,5vw,44px);line-height:1.02;letter-spacing:-.03em;margin:0;text-wrap:balance}
-header p{margin:6px 0 0;color:var(--muted)}
-.meta{font-size:13px;color:var(--muted)}
-/* lo que viene: una regla de días desde hoy; cada fecha cuelga en su día como un talón (cierra, abre o evento). Se desliza en el celular. */
+/* Layout: oportunidades — arriba «Lo que viene» (regla de fechas común + fila de talones); debajo, una sola línea de tiempo por mes (lineaTiempo de forja.js)
+   con una fila por oportunidad en su próxima fecha; al tocar una, su ficha se abre en un panel al costado (abajo en el celular). Cierre con la F-regla. */
+.wrap{max-width:1180px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+header h1{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,5vw,36px);line-height:1.05;letter-spacing:-.03em;margin:0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.meta{font-size:13px;color:var(--muted);margin-top:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* lo que viene: la regla delgada (.fx-fechas, pieza común) y una fila de talones que se desliza */
 .proximo{display:flex;flex-direction:column;gap:6px}
 .px-cab{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 .px-cab h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0}
-/* la regla delgada con sus puntos es la pieza común .fx-fechas (forja.css); aquí solo se toca para llevar la fila a esa fecha */
 .px-regla{cursor:pointer;touch-action:pan-y}
-/* fila de talones: uno por fecha, en orden, se desliza */
 .px-fila-w{position:relative}
 .px-fila{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:thin;padding:2px 2px 8px}
 .px-talon{flex:none;scroll-snap-align:start;width:216px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;min-height:76px;padding:8px 12px 8px 10px;background:var(--card);border:1px solid var(--line);border-top:3px solid var(--k);border-radius:var(--r-s);text-decoration:none;color:var(--fg);line-height:1.25}
@@ -40,47 +37,64 @@ header p{margin:6px 0 0;color:var(--muted)}
 .px-que small{font-size:12px;color:var(--muted)}
 .px-que small em{font-style:normal;color:var(--k);font-weight:700}
 .px-ahora{color:var(--k);font-size:17px}
-.px-flecha{position:absolute;top:calc(50% - 26px);width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-size:20px;cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 8px var(--sombra)}
+.px-flecha{position:absolute;top:calc(50% - 26px);width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 8px var(--sombra);padding:0}
+.px-flecha .fx-i{font-size:20px}
 .px-flecha.izq{left:-14px}.px-flecha.der{right:-14px}
 .px-flecha[hidden]{display:none}
 @media (hover:none),(max-width:720px){.px-flecha{display:none}}
-/* en pantallas anchas, dos filas de talones: se ven ocho a la vez */
 @media (min-width:900px){.px-fila{display:grid;grid-template-rows:repeat(2,auto);grid-auto-flow:column;grid-auto-columns:216px}}
 .px-vacio{font-size:15px;color:var(--muted);margin:4px 0 0}
-.item:target,.item.visto{outline:2px solid var(--fg);outline-offset:3px}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+/* filtros */
+.filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .chip{font:inherit;font-size:15px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:var(--r-m);padding:0 14px;min-height:44px;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
-.chip:focus-visible,select:focus-visible,summary:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.chip[aria-pressed="true"]{background:var(--btn);border-color:var(--btn);color:var(--btn-tx)}
 select{font:inherit;font-size:15px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:var(--r-s);padding:0 8px;min-height:44px}
-.toggle{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-left:auto;border-radius:var(--r-s);min-height:44px;cursor:pointer}
-.toggle input{width:20px;height:20px;margin:0}
-.list{display:flex;flex-direction:column;gap:12px}
-.item{background:var(--card);border:0;border-radius:0;padding:16px;display:flex;flex-direction:column;gap:12px}
-.item.s-open{} .item.s-soon{} .item.s-wait{}
-.top{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:var(--r-s);padding:1px 6px}
-.tag.tipo{color:var(--accent);border-color:var(--accent)}
-.tag.est{}
-.item h2{font-family:var(--f-display);font-size:20px;line-height:1.2;margin:0;text-wrap:balance}
-.org{font-size:13px;color:var(--muted)}
-.clocks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.clock{border-radius:var(--r-m);padding:10px 12px;background:var(--closed-soft);min-width:0}
-.clock .lbl{font-size:12px;color:var(--muted)}
-.clock .big{font-family:var(--f-num);font-weight:700;font-size:17px;line-height:1.3}
-.clock .dates{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-.clock.open{background:var(--open-soft)} .clock.open .big{color:var(--open)}
-.clock.soon{background:var(--soon-soft)} .clock.soon .big{color:var(--soon)}
-.clock.wait{background:var(--wait-soft)} .clock.wait .big{color:var(--wait)}
-.clock.closed .big{color:var(--closed)}
-details summary{cursor:pointer;color:var(--accent);font-size:15px;border-radius:var(--r-s);min-height:44px;display:flex;align-items:center}
-dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:10px 0 0;font-size:15px}
-dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
-.empty{background:var(--card);border:0;border-radius:0;padding:24px;color:var(--muted);text-align:center}
-.legend{font-size:13px;color:var(--muted)}
-@media (max-width:560px){.clocks{grid-template-columns:1fr}.toggle{margin-left:0}dl{grid-template-columns:1fr}dt{margin-top:6px}}
-.logo{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em}
+:where(.chip,select):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nota{font-size:13px;color:var(--muted);margin:0}
+/* la línea de tiempo y la ficha al costado */
+.cuerpo{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:40px;align-items:start}
+@media (max-width:1040px){.cuerpo{grid-template-columns:minmax(0,1fr) 330px;gap:28px}}
+.lista{min-width:0}
+.lista .fx-hito{cursor:pointer}
+.lista .fx-hito-c small b{font-weight:400;color:var(--fg)}
+.vacio{background:var(--mesa);padding:24px;color:var(--muted);text-align:center;margin:0}
+.ficha{position:sticky;top:16px;max-height:calc(100dvh - 32px);overflow:auto;background:var(--card);padding:20px 22px 26px;display:flex;flex-direction:column;gap:16px;overscroll-behavior:contain}
+.ficha[hidden]{display:none}
+.fi-cab{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fi-tipo{font-size:13px;color:var(--muted)}
+.fi-botones{display:flex;gap:6px}
+.ib{width:44px;height:44px;flex:none;border-radius:var(--r-m);border:1px solid var(--line);background:transparent;color:var(--fg);display:grid;place-items:center;cursor:pointer;padding:0}
+.ib .fx-i{font-size:20px}
+.ib:disabled{opacity:.35;cursor:default}
+.ib.cerrar{display:none}
+.ficha h2{font-family:var(--f-display);font-size:26px;line-height:1.12;margin:0;text-wrap:balance;outline:0}
+.fi-org{margin:4px 0 0;color:var(--muted)}
+.fi-fechas{margin:0}
+.fi-f{display:grid;grid-template-columns:96px minmax(0,1fr);gap:2px 12px;padding:12px 0;border-top:1px solid var(--line)}
+.fi-f>span{font-size:13px;color:var(--muted);padding-top:2px}
+.fi-f b{font-size:17px;color:var(--k,var(--fg))}
+.fi-f small{grid-column:2;font-family:var(--f-num);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.fi-f.apagada b{color:var(--muted);font-weight:400;font-size:15px}
+.fi-est{font-size:13px;color:var(--muted);margin:0}
+.fi-dl{margin:0;display:flex;flex-direction:column}
+.fi-dl div{padding:10px 0;border-top:1px solid var(--line)}
+.fi-dl dt{font-size:13px;color:var(--muted)}
+.fi-dl dd{margin:2px 0 0;overflow-wrap:anywhere}
+.fi-fuente{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;border-top:1px solid var(--line);padding-top:16px}
+.fi-fuente small{font-size:13px;color:var(--muted)}
+.velo{display:none}
+/* en el celular la ficha sube desde abajo, sobre un velo */
+@media (max-width:759px){
+  .cuerpo{grid-template-columns:minmax(0,1fr)}
+  .ficha{position:fixed;z-index:70;left:0;right:0;bottom:0;top:auto;max-height:82dvh;padding:14px 18px calc(24px + env(safe-area-inset-bottom,0px));box-shadow:var(--sombra-alta);transform:translateY(105%);transition:transform .22s ease;visibility:hidden}
+  .ficha.abierta{transform:none;visibility:visible}
+  .ib.cerrar{display:grid}
+  .ficha h2{font-size:20px}
+  .velo{display:block;position:fixed;inset:0;z-index:69;background:var(--velo);opacity:0;pointer-events:none;transition:opacity .22s ease}
+  .velo.abierta{opacity:1;pointer-events:auto}
+  .fi-f{grid-template-columns:84px minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){.ficha,.velo{transition:none}}
 </style>
 <link rel="stylesheet" href="../css/forja.css">
 <script type="module">import { nav } from "../js/forja.js"; nav("oportunidades");</script>
@@ -98,171 +112,263 @@ dt{color:var(--muted)} dd{margin:0;min-width:0;overflow-wrap:anywhere}
     <div class="px-cab"><h2 id="px-t">Lo que viene</h2><div class="fx-fechas-ley" id="px-ley" aria-hidden="true"></div></div>
     <p class="sr" id="viva" aria-live="polite">Revisando las fechas…</p>
     <div class="fx-fechas px-regla" id="px-regla" aria-hidden="true"></div>
-    <div class="px-fila-w"><div class="px-fila" id="px-fila" role="list" aria-label="Próximas fechas"></div><button type="button" class="px-flecha izq" id="px-izq" aria-label="Fechas anteriores" hidden>‹</button><button type="button" class="px-flecha der" id="px-der" aria-label="Fechas siguientes" hidden>›</button></div>
+    <div class="px-fila-w"><div class="px-fila" id="px-fila" role="list" aria-label="Próximas fechas"></div><button type="button" class="px-flecha izq" id="px-izq" aria-label="Fechas anteriores" hidden><span class="fx-i" style="--i:var(--i-atras)" aria-hidden="true"></span></button><button type="button" class="px-flecha der" id="px-der" aria-label="Fechas siguientes" hidden><span class="fx-i" style="--i:var(--i-flecha)" aria-hidden="true"></span></button></div>
   </section>
 
-  <div class="filters" role="group" aria-label="Filtrar por área">
-    <button class="chip" data-area="" aria-pressed="true" id="f-all">Todo</button>
-    <button class="chip" data-area="videojuego" aria-pressed="false" id="f-vj">Videojuegos</button>
-    <button class="chip" data-area="comic" aria-pressed="false" id="f-comic">Cómic y libro</button>
-    <button class="chip" data-area="juegomesa" aria-pressed="false" id="f-jm">Juegos de mesa</button>
-    <button class="chip" data-area="general" aria-pressed="false" id="f-gen">Emprendimiento</button>
-    <select id="f-tipo" aria-label="Tipo">
-      <option value="">Todos los tipos</option>
-      <option value="fondo">Fondos</option>
-      <option value="feria">Ferias y festivales</option>
-      <option value="convocatoria">Convocatorias</option>
-    </select>
-    <label class="toggle"><input type="checkbox" id="f-past" checked> Ocultar lo ya terminado</label>
-  </div>
+  <section aria-labelledby="todas-t" style="display:flex;flex-direction:column;gap:14px">
+    <h2 id="todas-t" class="sr">Todas, por fecha</h2>
+    <div class="filtros" role="group" aria-label="Filtrar">
+      <button type="button" class="chip" data-area="" aria-pressed="true">Todo</button>
+      <button type="button" class="chip" data-area="videojuego" aria-pressed="false">Videojuegos</button>
+      <button type="button" class="chip" data-area="comic" aria-pressed="false">Cómic y libro</button>
+      <button type="button" class="chip" data-area="juegomesa" aria-pressed="false">Juegos de mesa</button>
+      <button type="button" class="chip" data-area="general" aria-pressed="false">Emprendimiento</button>
+      <select id="f-tipo" aria-label="Tipo">
+        <option value="">Todos los tipos</option>
+        <option value="fondo">Fondos</option>
+        <option value="feria">Ferias y festivales</option>
+        <option value="convocatoria">Convocatorias</option>
+      </select>
+    </div>
+    <p class="nota">Las fechas con ≈ son estimaciones por ediciones anteriores; se cambian cuando el organizador las confirma.</p>
+    <div class="cuerpo">
+      <div class="lista" id="lista"><p class="vacio">Cargando oportunidades…</p></div>
+      <aside class="ficha" id="ficha" aria-labelledby="fi-t" hidden></aside>
+    </div>
+  </section>
+  <div class="velo" id="velo"></div>
 
-  <p class="legend">Las fechas con ≈ son estimaciones basadas en ediciones anteriores; se reemplazan cuando el organizador las confirma.</p>
-
-  <div class="list" id="list"><div class="empty">Cargando oportunidades…</div></div>
+  <section class="fx-cierre" aria-labelledby="cierre-t">
+    <div id="cierre-f"></div>
+    <div>
+      <h2 id="cierre-t">Que ninguna fecha te pille.</h2>
+      <p>En Forja, cada proyecto sigue las ferias, fondos y convocatorias que le sirven. Sus aperturas, cierres y eventos quedan juntos en Eventos, de la fecha más cercana a la más lejana.</p>
+      <a class="fx-btn" id="cierre-b" href="../entrar/">Plantar mi primera idea</a>
+    </div>
+  </section>
 </div>
 
-<script>
-(function(){
-  var items=[], state={area:"",tipo:"",hidePast:true}, metaDoc=null;
-  var MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
-  try{var saved=JSON.parse(localStorage.getItem("radar-f")||"null");if(saved){state.area=saved.area||"";state.tipo=saved.tipo||"";state.hidePast=saved.hidePast!==false;}}catch(e){}
+<script type="module">
+import { esc, sb, fAvance, fechasDe, rangoFechas, reglaFechas, leyendaFechas, lineaTiempo } from "../js/forja.js";
+const $ = (id) => document.getElementById(id);
+const MES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+const TIPO = { fondo: "Fondo", feria: "Feria", convocatoria: "Convocatoria" };
+const AREA = { videojuego: "Videojuegos", comic: "Cómic y libro", juegomesa: "Juegos de mesa", general: "Emprendimiento" };
+const QUE = { cierra: "Cierra la postulación", abre: "Abre la postulación", evento: "Evento", curso: "En curso" };
+let items = [], metaDoc = null, FILAS = [], ACTUAL = null, FECHAS = [], RANGO = 90;
+const state = { area: "", tipo: "" };
+try { const g = JSON.parse(localStorage.getItem("radar-f") || "null"); if (g) { state.area = g.area || ""; state.tipo = g.tipo || ""; } } catch (e) {}
+const save = () => { try { localStorage.setItem("radar-f", JSON.stringify(state)); } catch (e) {} };
+const ancho = () => matchMedia("(min-width:760px)").matches;
+const suave = () => matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
 
-  function today(){var d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
-  function pd(s){if(!s)return null;var p=String(s).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
-  function diff(d){return Math.round((d-today())/864e5);}
-  function fmt(d){return d?d.getDate()+" "+MES[d.getMonth()]+" "+d.getFullYear():"";}
-  function dias(n){return n===1?"1 día":n+" días";}
-  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+const hoy = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const pd = (s) => { if (!s) return null; const [y, m, d] = String(s).split("-"); return new Date(+y, m - 1, +d); };
+const diff = (d) => Math.round((d - hoy()) / 864e5);
+const fmt = (d) => d ? d.getDate() + " " + MES[d.getMonth()] + " " + d.getFullYear() : "";
+const corto = (d) => d.getDate() + " " + MES[d.getMonth()] + (d.getFullYear() !== hoy().getFullYear() ? " " + d.getFullYear() : "");
+const tramo = (a, b) => a && b && +a !== +b ? (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() ? a.getDate() + "–" + corto(b) : corto(a) + " al " + corto(b)) : a ? corto(a) : "";
+const dias = (n) => n === 1 ? "1 día" : n + " días";
+const enDias = (n, est) => n === 0 ? "hoy" : n === 1 ? "mañana" : (est ? "≈ en " : "en ") + n + " días";
 
-  function postul(it){
-    var a=pd(it.postul_inicio),b=pd(it.postul_fin),est=it.fechas_estimadas?"≈ ":"";
-    if(!a&&!b) return {cls:"closed",big:it.postul_texto||"Sin convocatoria publicada",dates:"",k:"none"};
-    var dates=(a?fmt(a):"?")+" → "+(b?fmt(b):"?");
-    if(a&&diff(a)>0) return {cls:"wait",big:est+"Abre en "+dias(diff(a)),dates:dates,k:"wait",next:a};
-    if(b&&diff(b)>=0){var n=diff(b);return {cls:n<=14?"soon":"open",big:(n===0?"Cierra hoy":"Abierta · quedan "+dias(n)),dates:dates,k:"open",next:b,left:n};}
-    if(b) return {cls:"closed",big:"Cerrada",dates:dates,k:"closed"};
-    return {cls:"open",big:"Abierta",dates:dates,k:"open"};
-  }
-  function evento(it){
-    var a=pd(it.evento_inicio),b=pd(it.evento_fin)||a,est=it.fechas_estimadas?"≈ ":"";
-    if(!a) return {cls:"closed",big:it.evento_texto||"Sin evento asociado",dates:"",k:"none"};
-    var dates=fmt(a)+(b&&+b!==+a?" → "+fmt(b):"");
-    if(diff(a)>0) return {cls:"wait",big:est+"En "+dias(diff(a)),dates:dates,k:"future",next:a,left:diff(a)};
-    if(diff(b)>=0) return {cls:"open",big:"En curso",dates:dates,k:"now",next:b};
-    return {cls:"closed",big:"Terminado",dates:dates,k:"past"};
-  }
-  function finished(it,p,e){return (p.k==="closed"||p.k==="none")&&(e.k==="past"||e.k==="none");}
-  function sortKey(p,e){var c=[];if(p.next)c.push(+p.next);if(e.next)c.push(+e.next);return c.length?Math.min.apply(null,c):9e15;}
+// Estado de la postulación y del evento, para la ficha y para la fila.
+function postul(it) {
+  const a = pd(it.postul_inicio), b = pd(it.postul_fin), est = it.fechas_estimadas ? "≈ " : "";
+  if (!a && !b) return { k: "", txt: it.postul_texto || "Sin convocatoria pública", dates: "", nada: true };
+  const dates = (a ? fmt(a) : "?") + " → " + (b ? fmt(b) : "?");
+  if (a && diff(a) > 0) return { k: "abre", txt: est + "Abre en " + dias(diff(a)), dates, fin: b };
+  if (b && diff(b) >= 0) { const n = diff(b); return { k: n <= 14 ? "cierra" : "curso", txt: n === 0 ? "Cierra hoy" : "Abierta · quedan " + dias(n), dates, fin: b, abierta: true }; }
+  if (b) return { k: "", txt: "Cerrada", dates, pasada: b };
+  return { k: "curso", txt: "Abierta", dates, abierta: true };
+}
+function evento(it) {
+  const a = pd(it.evento_inicio), b = pd(it.evento_fin) || a, est = it.fechas_estimadas ? "≈ " : "";
+  if (!a) return { k: "", txt: it.evento_texto || "Sin evento asociado", dates: "", nada: true };
+  const dates = fmt(a) + (b && +b !== +a ? " → " + fmt(b) : "");
+  if (diff(a) > 0) return { k: "evento", txt: est + "En " + dias(diff(a)), dates, a, b };
+  if (diff(b) >= 0) return { k: "curso", txt: "En curso", dates, a, b };
+  return { k: "", txt: "Terminado", dates, pasada: b, a, b };
+}
 
-  function enDias(n,est){return n===0?"hoy":n===1?"mañana":(est?"en unos ":"en ")+n+" días";}
-  // Las fechas que vienen salen de la pieza común (fechasDe, rangoFechas, reglaFechas y leyendaFechas de forja.js).
-  var FX=null;import("../js/forja.js").then(function(m){FX=m;if(items.length)render();});
-  function fraseViva(f){
-    var ab=f.filter(function(x){return x.k==="cierra";});
-    if(ab.length)return (ab.length===1?"Hay una postulación abierta":"Hay "+ab.length+" postulaciones abiertas")+"; la primera cierra "+enDias(ab[0].n)+": "+ab[0].o.nombre+".";
-    var x=f.filter(function(x){return x.k!=="curso";})[0];
-    return "Ahora no hay postulaciones abiertas"+(x?"; la próxima fecha es "+x.o.nombre+", "+enDias(x.n,x.est)+".":".");
-  }
-  var MESL=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
-  var FECHAS=[],RANGO=90;
-  function pintarRegla(){
-    if(!FX)return;
-    var reg=document.getElementById("px-regla"),fila=document.getElementById("px-fila"),todas=FX.fechasDe(items),r=FX.rangoFechas(todas),f=r.fechas,t=today();
-    document.getElementById("viva").textContent=fraseViva(todas);
-    RANGO=r.rango;FECHAS=f;
-    document.getElementById("px-ley").innerHTML=FX.leyendaFechas(f);
-    if(!f.length){reg.innerHTML="";fila.innerHTML='<p class="px-vacio">No hay fechas en los próximos meses. Abajo están todas, también las que ya pasaron.</p>';flechas();return;}
-    reg.innerHTML=FX.reglaFechas(f,RANGO,{ventana:true});
-    fila.innerHTML=f.map(function(x,i){
-      var dia=new Date(t.getFullYear(),t.getMonth(),t.getDate()+x.n);
-      var num=x.k==="curso"?"·":x.n===0?"hoy":(x.est?"≈":"")+x.n,unidad=x.k==="curso"||x.n===0?"":(x.n===1?"día":"días");
-      var cuando=x.k==="curso"?"ahora":dia.getDate()+" "+MESL[dia.getMonth()],q=x.k==="curso"?"en curso":x.k;
-      return '<a role="listitem" class="px-talon fk-'+x.k+'" data-i="'+i+'" data-id="'+esc(x.o.id)+'" href="#op-'+esc(x.o.id)+'" title="'+esc(x.o.nombre)+'">'+
-        '<span class="px-dias"><b>'+(x.k==="curso"?'<span class="fx-i px-ahora" style="--i:var(--i-chispa)"></span>':num)+'</b><small>'+unidad+'</small></span>'+
-        '<span class="px-que"><b>'+esc(x.o.nombre)+'</b><small><em>'+q+'</em> · '+cuando+'</small></span></a>';
-    }).join("");
-    ventana();
-  }
-  // Franja sobre la regla: va de la primera a la última fecha que se ve en la fila.
-  function ventana(){
-    var fila=document.getElementById("px-fila"),v=document.querySelector("#px-regla .fx-fechas-v");flechas();
-    if(!v||!FECHAS.length)return;
-    var r=fila.getBoundingClientRect(),vis=[].filter.call(fila.querySelectorAll(".px-talon"),function(el){var b=el.getBoundingClientRect();return b.right>r.left+20&&b.left<r.right-20;});
-    if(!vis.length)return;
-    var a=FECHAS[+vis[0].dataset.i].n,b=FECHAS[+vis[vis.length-1].dataset.i].n;
-    v.style.left="calc("+(a/RANGO*100)+"% - 6px)";v.style.width="calc("+((b-a)/RANGO*100)+"% + 12px)";
-  }
-  function flechas(){
-    var fila=document.getElementById("px-fila");
-    document.getElementById("px-izq").hidden=fila.scrollLeft<8;
-    document.getElementById("px-der").hidden=fila.scrollLeft+fila.clientWidth>=fila.scrollWidth-8;
-  }
-  function render(){
-    document.querySelectorAll(".chip").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.area===state.area));});
-    document.getElementById("f-tipo").value=state.tipo;
-    document.getElementById("f-past").checked=state.hidePast;
-    var rows=items.map(function(it){var p=postul(it),e=evento(it);return {it:it,p:p,e:e,key:sortKey(p,e),done:finished(it,p,e)};});
-    if(items.length)pintarRegla();
-    var vis=rows.filter(function(r){
-      if(state.area&&(r.it.areas||[]).indexOf(state.area)<0)return false;
-      if(state.tipo&&r.it.tipo!==state.tipo)return false;
-      if(state.hidePast&&r.done)return false;return true;
-    }).sort(function(a,b){return a.key-b.key||String(a.it.nombre).localeCompare(b.it.nombre);});
-    var list=document.getElementById("list");
-    if(!items.length){list.innerHTML='<div class="empty">Todavía no hay oportunidades guardadas. Aparecerán aquí cuando la revisión diaria las agregue.</div>';return;}
-    if(!vis.length){list.innerHTML='<div class="empty">Nada coincide con estos filtros. Prueba con "Todo" o muestra lo ya terminado.</div>';return;}
-    var TIPO={fondo:"Fondo",feria:"Feria / festival",convocatoria:"Convocatoria"};
-    var AREA={videojuego:"Videojuegos",comic:"Cómic y libro",juegomesa:"Juegos de mesa",general:"Emprendimiento"};
-    list.innerHTML=vis.map(function(r){
-      var it=r.it,p=r.p,e=r.e,s=p.k==="open"?(p.cls==="soon"?"s-soon":"s-open"):(p.k==="wait"?"s-wait":"");
-      var tags='<span class="tag tipo">'+esc(TIPO[it.tipo]||it.tipo)+'</span>'+(it.areas||[]).map(function(a){return '<span class="tag">'+esc(AREA[a]||a)+'</span>';}).join("")+(it.fechas_estimadas?'<span class="tag est">Fechas estimadas</span>':'');
-      var det=[["Premio o apoyo",it.premio],["Costo",it.costo],["Requisitos",it.requisitos],["Qué llevar o preparar",it.que_llevar],["Lugar",it.lugar],["Notas",it.notas]].filter(function(x){return x[1];}).map(function(x){return "<dt>"+x[0]+"</dt><dd>"+esc(x[1])+"</dd>";}).join("");
-      if(it.fuente)det+='<dt>Fuente</dt><dd><a href="'+esc(it.fuente)+'" target="_blank" rel="noopener">'+esc(it.fuente.replace(/^https?:\/\/(www\.)?/,"").split("/")[0])+'</a>'+(it.revisado?' · revisado '+esc(it.revisado):'')+'</dd>';
-      return '<article class="item '+s+'" id="op-'+esc(it.id)+'" tabindex="-1"><div class="top">'+tags+'</div><div><h2>'+esc(it.nombre)+'</h2><div class="org">'+esc(it.organiza||"")+'</div></div>'+
-        '<div class="clocks"><div class="clock '+p.cls+'"><div class="lbl">Postulación</div><div class="big">'+esc(p.big)+'</div><div class="dates">'+esc(p.dates)+'</div></div>'+
-        '<div class="clock '+e.cls+'"><div class="lbl">Evento</div><div class="big">'+esc(e.big)+'</div><div class="dates">'+esc(e.dates)+'</div></div></div>'+
-        (det?'<details><summary>Ver premios, requisitos y detalles</summary><dl>'+det+'</dl></details>':'')+'</article>';
-    }).join("");
-  }
-  var suave=function(){return matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth";};
-  document.getElementById("px-fila").addEventListener("click",function(ev){
-    var a=ev.target.closest(".px-talon");if(!a)return;ev.preventDefault();
-    var id="op-"+a.dataset.id;
-    if(!document.getElementById(id)){state.area="";state.tipo="";save();render();}
-    var el=document.getElementById(id);if(!el)return;
-    document.querySelectorAll(".item.visto").forEach(function(x){x.classList.remove("visto");});
-    el.classList.add("visto");el.scrollIntoView({behavior:suave(),block:"start"});el.focus({preventScroll:true});
+// Una fila por oportunidad, en su próxima fecha. Lo que ya pasó va al final, en gris; lo que no tiene fechas, aparte.
+function filas() {
+  const t = hoy();
+  return items.map((o) => {
+    const p = postul(o), e = evento(o), f = fechasDe([o])[0];
+    const tipo = TIPO[o.tipo] || o.tipo || "";
+    if (f) {
+      const d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + f.n);
+      // la otra fecha que importa, en una línea corta
+      let otra = "";
+      if (f.k === "cierra" || f.k === "abre") otra = e.a && diff(e.b) >= 0 ? "evento " + tramo(e.a, e.b) : "";
+      else if (p.abierta && p.fin) otra = "postulación hasta " + corto(p.fin);
+      else if (p.k === "abre") otra = "postulación desde " + corto(pd(o.postul_inicio));
+      const que = f.k === "curso" ? "En curso hasta " + corto(e.b) : f.k === "cierra" && p.fin ? "Cierra la postulación" : QUE[f.k];
+      return { o, d, n: f.n, k: f.k, est: f.est, grande: f.k === "cierra" && f.n <= 14, que, otra, tipo };
+    }
+    const fin = [p.pasada, e.pasada].filter(Boolean).sort((x, y) => y - x)[0];
+    if (fin) return { o, d: fin, n: diff(fin), k: "", pasada: true, que: e.pasada && +fin === +e.pasada ? "Fue el evento" : "Cerró la postulación", otra: "", tipo };
+    return { o, d: null, n: 9e9, k: "", sin: true, que: (o.postul_texto || o.evento_texto || "Sin fechas publicadas"), otra: "", tipo };
   });
-  // tocar la regla lleva la fila a esa fecha
-  document.getElementById("px-regla").addEventListener("click",function(ev){
-    if(!FECHAS.length)return;var r=this.getBoundingClientRect(),dia=(ev.clientX-r.left)/r.width*RANGO,mejor=0;
-    FECHAS.forEach(function(x,i){if(Math.abs(x.n-dia)<Math.abs(FECHAS[mejor].n-dia))mejor=i;});
-    var fila=document.getElementById("px-fila"),el=fila.querySelector('.px-talon[data-i="'+mejor+'"]');
-    if(el)fila.scrollTo({left:el.offsetLeft-fila.offsetLeft-2,behavior:suave()});
-  });
-  var tv;document.getElementById("px-fila").addEventListener("scroll",function(){cancelAnimationFrame(tv);tv=requestAnimationFrame(ventana);},{passive:true});
-  addEventListener("resize",function(){cancelAnimationFrame(tv);tv=requestAnimationFrame(ventana);});
-  ["izq","der"].forEach(function(k,i){document.getElementById("px-"+k).addEventListener("click",function(){var f=document.getElementById("px-fila");f.scrollBy({left:(i?1:-1)*(f.clientWidth-60),behavior:suave()});});});
-  function save(){try{localStorage.setItem("radar-f",JSON.stringify(state));}catch(e){}}
-  document.querySelectorAll(".chip").forEach(function(b){b.addEventListener("click",function(){state.area=b.dataset.area;save();render();});});
-  document.getElementById("f-tipo").addEventListener("change",function(ev){state.tipo=ev.target.value;save();render();});
-  document.getElementById("f-past").addEventListener("change",function(ev){state.hidePast=ev.target.checked;save();render();});
-  function renderMeta(){
-    var m=document.getElementById("meta");
-    if(metaDoc&&metaDoc.ultima_revision){m.textContent="Última revisión automática: "+metaDoc.ultima_revision+(metaDoc.resumen?" · "+metaDoc.resumen:"");}
-    else m.textContent="Las fechas se recalculan cada vez que abres la página.";
-  }
-  render();
-  // Datos en Supabase (lectura pública); si falla, usa la copia local del repo.
-  var SB="https://gfkiwldxxvffnkjcesws.supabase.co/rest/v1/",KEYH={headers:{apikey:"sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j"}};
-  function getJ(u,o){return fetch(u,o).then(function(r){if(!r.ok)throw r.status;return r.json();});}
-  var opp=getJ(SB+"oportunidades?select=*",KEYH).catch(function(){return getJ("../data/oportunidades.json",{cache:"no-cache"});});
-  var met=getJ(SB+"meta?clave=eq.estado&select=*",KEYH).then(function(a){return a&&a[0]||null;}).catch(function(){return getJ("../data/meta.json",{cache:"no-cache"}).catch(function(){return null;});});
-  Promise.all([opp,met])
-    .then(function(res){items=(res[0]||[]).map(function(o){Object.keys(o).forEach(function(k){if(o[k]===null)delete o[k];});return o;});metaDoc=res[1];if(metaDoc&&metaDoc.ultima_revision){var d=pd(metaDoc.ultima_revision);if(d)metaDoc.ultima_revision=fmt(d);}render();renderMeta();})
-    .catch(function(){document.getElementById("viva").textContent="Las fechas no cargaron.";document.getElementById("px-regla").innerHTML="";document.getElementById("px-fila").innerHTML="";document.getElementById("list").innerHTML='<div class="empty">No se pudieron cargar los datos. Revisa tu conexión y recarga la página.</div>';document.getElementById("meta").textContent="";});
-  setInterval(render,36e5);
-})();
+}
+function visibles() {
+  return FILAS.filter((r) => (!state.area || (r.o.areas || []).includes(state.area)) && (!state.tipo || r.o.tipo === state.tipo))
+    .sort((a, b) => (!!a.pasada - !!b.pasada) || (!!a.sin - !!b.sin) || (a.pasada ? b.d - a.d : a.n - b.n) || String(a.o.nombre).localeCompare(b.o.nombre));
+}
+
+function pintarLista() {
+  document.querySelectorAll(".chip").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.area === state.area)));
+  $("f-tipo").value = state.tipo;
+  const lista = $("lista");
+  if (!items.length) { lista.innerHTML = '<p class="vacio">Todavía no hay oportunidades guardadas. Aparecerán aquí cuando la revisión diaria las agregue.</p>'; mostrarFicha(null); return; }
+  const vis = visibles();
+  if (!vis.length) { lista.innerHTML = '<p class="vacio">Nada coincide con estos filtros. Prueba con «Todo» y «Todos los tipos».</p>'; mostrarFicha(null); return; }
+  const t = hoy(), plegar = new Date(t.getFullYear(), t.getMonth(), t.getDate() + RANGO);
+  lista.innerHTML = lineaTiempo(vis.map((r) => ({
+    d: r.d, k: r.k, grande: r.grande, pasada: r.pasada, nombre: r.o.nombre,
+    attrs: 'href="#op-' + esc(r.o.id) + '" id="op-' + esc(r.o.id) + '" data-id="' + esc(r.o.id) + '" aria-controls="ficha"',
+    cuerpo: '<span class="fx-hito-n">' + esc(r.o.nombre) + "</span><small>" + (r.sin ? esc(r.que) : "<em>" + esc(r.que) + "</em>") + (r.tipo ? " · " + esc(r.tipo) : "") + (r.otra ? " · " + esc(r.otra) : "") + "</small>",
+    dato: r.pasada || r.sin ? "" : r.k === "curso" ? "ahora" : esc(enDias(r.n, r.est)),
+  })), { plegarDesde: plegar });
+  const sigue = ACTUAL && vis.some((r) => r.o.id === ACTUAL);
+  if (sigue) marcar(ACTUAL); else if (ancho()) mostrarFicha(vis[0].o.id, { quieto: true }); else mostrarFicha(null);
+}
+
+function marcar(id) {
+  document.querySelectorAll('.lista .fx-hito[aria-current]').forEach((x) => x.removeAttribute("aria-current"));
+  const el = id && $("op-" + id); if (el) el.setAttribute("aria-current", "true");
+  return el;
+}
+function fichaHTML(o) {
+  const p = postul(o), e = evento(o), vis = visibles(), i = vis.findIndex((r) => r.o.id === o.id);
+  const areas = (o.areas || []).map((a) => AREA[a] || a).join(", ");
+  const fila = (lbl, x) => '<div class="fi-f' + (x.k ? " fk-" + x.k : " apagada") + '"><span>' + lbl + "</span><b>" + esc(x.txt) + "</b>" + (x.dates ? "<small>" + esc(x.dates) + "</small>" : "") + "</div>";
+  const det = [["Premio o apoyo", o.premio], ["Costo", o.costo], ["Requisitos", o.requisitos], ["Qué llevar o preparar", o.que_llevar], ["Lugar", o.lugar], ["Notas", o.notas]]
+    .filter((x) => x[1]).map((x) => "<div><dt>" + x[0] + "</dt><dd>" + esc(x[1]) + "</dd></div>").join("");
+  const dom = o.fuente ? String(o.fuente).replace(/^https?:\/\/(www\.)?/, "").split("/")[0] : "";
+  return '<div class="fi-cab"><span class="fi-tipo">' + esc([TIPO[o.tipo] || o.tipo, areas].filter(Boolean).join(" · ")) + '</span><span class="fi-botones">' +
+    '<button type="button" class="ib" data-mover="-1" aria-label="Anterior"' + (i <= 0 ? " disabled" : "") + '><span class="fx-i" style="--i:var(--i-atras)" aria-hidden="true"></span></button>' +
+    '<button type="button" class="ib" data-mover="1" aria-label="Siguiente"' + (i < 0 || i >= vis.length - 1 ? " disabled" : "") + '><span class="fx-i" style="--i:var(--i-flecha)" aria-hidden="true"></span></button>' +
+    '<button type="button" class="ib cerrar" data-cerrar aria-label="Cerrar la ficha"><span class="fx-i" style="--i:var(--i-cerrar)" aria-hidden="true"></span></button></span></div>' +
+    '<div><h2 id="fi-t" tabindex="-1">' + esc(o.nombre) + "</h2>" + (o.organiza ? '<p class="fi-org">' + esc(o.organiza) + "</p>" : "") + "</div>" +
+    '<div class="fi-fechas">' + fila("Postulación", p) + fila("Evento", e) + "</div>" +
+    (o.fechas_estimadas ? '<p class="fi-est">≈ Fechas estimadas por ediciones anteriores; se cambian cuando el organizador las confirma.</p>' : "") +
+    (det ? '<dl class="fi-dl">' + det + "</dl>" : "") +
+    (o.fuente ? '<div class="fi-fuente"><a class="fx-btn borde" href="' + esc(o.fuente) + '" target="_blank" rel="noopener">Ver en ' + esc(dom) + "</a>" + (o.revisado ? "<small>Revisado el " + esc(fmt(pd(o.revisado))) + "</small>" : "") + "</div>" : "");
+}
+let VUELTA = null;
+function mostrarFicha(id, { quieto = false, foco = false } = {}) {
+  const f = $("ficha"), o = id && items.find((x) => x.id === id);
+  ACTUAL = o ? id : null; marcar(ACTUAL);
+  if (!o) { f.hidden = !ancho() ? false : true; f.classList.remove("abierta"); $("velo").classList.remove("abierta"); if (!ancho()) f.innerHTML = ""; document.documentElement.style.overflow = ""; return; }
+  f.hidden = false; f.innerHTML = fichaHTML(o); f.scrollTop = 0;
+  if (!ancho() && !quieto) { f.classList.add("abierta"); $("velo").classList.add("abierta"); document.documentElement.style.overflow = "hidden"; f.setAttribute("role", "dialog"); f.setAttribute("aria-modal", "true"); }
+  else { f.removeAttribute("role"); f.removeAttribute("aria-modal"); }
+  if (!quieto) try { history.replaceState(null, "", "#op-" + id); } catch (e) {}
+  if (foco || (!ancho() && !quieto)) $("fi-t").focus({ preventScroll: true });
+}
+function cerrarFicha() {
+  const el = ACTUAL && $("op-" + ACTUAL);
+  if (ancho()) return;
+  mostrarFicha(null); try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  if (el) el.focus({ preventScroll: true });
+}
+// abrir una oportunidad desde un talón, la dirección o la lista: si un filtro la esconde, muestra todo; si su mes está plegado, lo abre
+function abrir(id, { bajar = true } = {}) {
+  if (!items.some((x) => x.id === id)) return;
+  if (!visibles().some((r) => r.o.id === id)) { state.area = ""; state.tipo = ""; save(); pintarLista(); }
+  const el = $("op-" + id); if (!el) return;
+  const pl = el.closest("details"); if (pl) pl.open = true;
+  mostrarFicha(id, { foco: ancho() });
+  if (bajar) el.scrollIntoView({ behavior: suave(), block: ancho() ? "center" : "nearest" });
+}
+
+$("lista").addEventListener("click", (ev) => { const a = ev.target.closest("a.fx-hito"); if (!a) return; ev.preventDefault(); mostrarFicha(a.dataset.id); });
+$("ficha").addEventListener("click", (ev) => {
+  if (ev.target.closest("[data-cerrar]")) return cerrarFicha();
+  const m = ev.target.closest("[data-mover]"); if (!m) return;
+  const vis = visibles(), i = vis.findIndex((r) => r.o.id === ACTUAL), sig = vis[i + +m.dataset.mover]; if (!sig) return;
+  abrir(sig.o.id, { bajar: ancho() }); const b = $("ficha").querySelector('[data-mover="' + m.dataset.mover + '"]'); if (b && !b.disabled) b.focus({ preventScroll: true });
+});
+$("velo").addEventListener("click", cerrarFicha);
+addEventListener("keydown", (ev) => { if (ev.key === "Escape" && $("ficha").classList.contains("abierta")) cerrarFicha(); });
+addEventListener("hashchange", () => { const m = location.hash.match(/^#op-(.+)$/); if (m && m[1] !== ACTUAL) abrir(decodeURIComponent(m[1])); });
+let anchoAntes = ancho();
+addEventListener("resize", () => { const a = ancho(); if (a === anchoAntes) return; anchoAntes = a; document.documentElement.style.overflow = ""; $("velo").classList.remove("abierta"); $("ficha").classList.remove("abierta"); if (a && !ACTUAL) { const v = visibles(); if (v.length) mostrarFicha(v[0].o.id, { quieto: true }); } else if (a && ACTUAL) mostrarFicha(ACTUAL, { quieto: true }); else if (!a) mostrarFicha(null); });
+
+/* --- lo que viene: regla de fechas común + fila de talones --- */
+function fraseViva(f) {
+  const ab = f.filter((x) => x.k === "cierra");
+  if (ab.length) return (ab.length === 1 ? "Hay una postulación abierta" : "Hay " + ab.length + " postulaciones abiertas") + "; la primera cierra " + enDias(ab[0].n) + ": " + ab[0].o.nombre + ".";
+  const x = f.filter((x) => x.k !== "curso")[0];
+  return "Ahora no hay postulaciones abiertas" + (x ? "; la próxima fecha es " + x.o.nombre + ", " + enDias(x.n, x.est) + "." : ".");
+}
+function pintarRegla() {
+  const reg = $("px-regla"), fila = $("px-fila"), todas = fechasDe(items), r = rangoFechas(todas), f = r.fechas, t = hoy();
+  $("viva").textContent = fraseViva(todas);
+  RANGO = r.rango; FECHAS = f;
+  $("px-ley").innerHTML = leyendaFechas(f);
+  if (!f.length) { reg.innerHTML = ""; fila.innerHTML = '<p class="px-vacio">No hay fechas en los próximos meses. Abajo están todas, también las que ya pasaron.</p>'; flechas(); return; }
+  reg.innerHTML = reglaFechas(f, RANGO, { ventana: true });
+  fila.innerHTML = f.map((x, i) => {
+    const dia = new Date(t.getFullYear(), t.getMonth(), t.getDate() + x.n);
+    const num = x.k === "curso" ? "" : x.n === 0 ? "hoy" : (x.est ? "≈" : "") + x.n, unidad = x.k === "curso" || x.n === 0 ? "" : x.n === 1 ? "día" : "días";
+    const cuando = x.k === "curso" ? "ahora" : dia.getDate() + " " + MES[dia.getMonth()], q = x.k === "curso" ? "en curso" : x.k;
+    return '<a role="listitem" class="px-talon fk-' + x.k + '" data-i="' + i + '" data-id="' + esc(x.o.id) + '" href="#op-' + esc(x.o.id) + '" title="' + esc(x.o.nombre) + '">' +
+      '<span class="px-dias"><b>' + (x.k === "curso" ? '<span class="fx-i px-ahora" style="--i:var(--i-chispa)"></span>' : num) + "</b><small>" + unidad + "</small></span>" +
+      '<span class="px-que"><b>' + esc(x.o.nombre) + "</b><small><em>" + q + "</em> · " + cuando + "</small></span></a>";
+  }).join("");
+  ventana();
+}
+// franja sobre la regla: de la primera a la última fecha que se ve en la fila
+function ventana() {
+  const fila = $("px-fila"), v = document.querySelector("#px-regla .fx-fechas-v"); flechas();
+  if (!v || !FECHAS.length) return;
+  const r = fila.getBoundingClientRect(), vis = [...fila.querySelectorAll(".px-talon")].filter((el) => { const b = el.getBoundingClientRect(); return b.right > r.left + 20 && b.left < r.right - 20; });
+  if (!vis.length) return;
+  const a = FECHAS[+vis[0].dataset.i].n, b = FECHAS[+vis[vis.length - 1].dataset.i].n;
+  v.style.left = "calc(" + (a / RANGO * 100) + "% - 6px)"; v.style.width = "calc(" + ((b - a) / RANGO * 100) + "% + 12px)";
+}
+function flechas() { const f = $("px-fila"); $("px-izq").hidden = f.scrollLeft < 8; $("px-der").hidden = f.scrollLeft + f.clientWidth >= f.scrollWidth - 8; }
+$("px-fila").addEventListener("click", (ev) => { const a = ev.target.closest(".px-talon"); if (!a) return; ev.preventDefault(); abrir(a.dataset.id); });
+$("px-regla").addEventListener("click", function (ev) {
+  if (!FECHAS.length) return; const r = this.getBoundingClientRect(), dia = (ev.clientX - r.left) / r.width * RANGO; let mejor = 0;
+  FECHAS.forEach((x, i) => { if (Math.abs(x.n - dia) < Math.abs(FECHAS[mejor].n - dia)) mejor = i; });
+  const fila = $("px-fila"), el = fila.querySelector('.px-talon[data-i="' + mejor + '"]');
+  if (el) fila.scrollTo({ left: el.offsetLeft - fila.offsetLeft - 2, behavior: suave() });
+});
+let tv; const re = () => { cancelAnimationFrame(tv); tv = requestAnimationFrame(ventana); };
+$("px-fila").addEventListener("scroll", re, { passive: true }); addEventListener("resize", re);
+["izq", "der"].forEach((k, i) => $("px-" + k).addEventListener("click", () => { const f = $("px-fila"); f.scrollBy({ left: (i ? 1 : -1) * (f.clientWidth - 60), behavior: suave() }); }));
+
+document.querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { state.area = b.dataset.area; save(); pintarLista(); }));
+$("f-tipo").addEventListener("change", (ev) => { state.tipo = ev.target.value; save(); pintarLista(); });
+
+function pintar() { FILAS = filas(); if (items.length) pintarRegla(); pintarLista(); }
+function pintarMeta() {
+  const m = $("meta");
+  m.textContent = metaDoc && metaDoc.ultima_revision ? "Última revisión automática: " + metaDoc.ultima_revision + (metaDoc.resumen ? " · " + metaDoc.resumen : "") : "Las fechas se recalculan cada vez que abres la página.";
+}
+
+// cierre: la F de la etapa «Pulir y mostrar»; con sesión, el botón lleva a Eventos
+$("cierre-f").innerHTML = fAvance(6, 200);
+sb.auth.getSession().then(({ data }) => { if (data && data.session) { const b = $("cierre-b"); b.href = "../eventos/"; b.textContent = "Ver mis eventos"; } }).catch(() => {});
+
+// Datos en Supabase (lectura pública); si falla, la copia de respaldo del repo.
+const SB = "https://gfkiwldxxvffnkjcesws.supabase.co/rest/v1/", KEYH = { headers: { apikey: "sb_publishable_dwtoMBdzb5V50q-tMuE1SQ_Y55x1G_j" } };
+const getJ = (u, o) => fetch(u, o).then((r) => { if (!r.ok) throw r.status; return r.json(); });
+const opp = getJ(SB + "oportunidades?select=*", KEYH).catch(() => getJ("../data/oportunidades.json", { cache: "no-cache" }));
+const met = getJ(SB + "meta?clave=eq.estado&select=*", KEYH).then((a) => a && a[0] || null).catch(() => getJ("../data/meta.json", { cache: "no-cache" }).catch(() => null));
+Promise.all([opp, met]).then(([o, m]) => {
+  items = (o || []).map((x) => { Object.keys(x).forEach((k) => { if (x[k] === null) delete x[k]; }); return x; });
+  metaDoc = m; if (metaDoc && metaDoc.ultima_revision) { const d = pd(metaDoc.ultima_revision); if (d) metaDoc.ultima_revision = fmt(d); }
+  pintar(); pintarMeta();
+  const h = location.hash.match(/^#op-(.+)$/); if (h) abrir(decodeURIComponent(h[1]));
+}).catch(() => {
+  $("viva").textContent = "Las fechas no cargaron."; $("px-regla").innerHTML = ""; $("px-fila").innerHTML = "";
+  $("lista").innerHTML = '<p class="vacio">No se pudieron cargar los datos. Revisa tu conexión y recarga la página.</p>'; $("meta").textContent = "";
+});
+setInterval(pintar, 36e5);
 </script>
 </body>
 </html>

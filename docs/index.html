@@ -125,12 +125,6 @@ h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 .lanz .fx-i{flex:none;color:var(--cat);--i:var(--i-chispa)}
 .lanz a{color:inherit}
 
-/* cierre: la F a medio llenar, la frase y el botón, sobre el fondo de la página */
-.cierre{display:grid;grid-template-columns:auto minmax(0,1fr);gap:24px 48px;align-items:center;padding-top:40px}
-@media (max-width:700px){.cierre{grid-template-columns:minmax(0,1fr)}.cierre .fx-f{width:140px;height:140px}}
-.cierre h2{font-size:36px;line-height:1.08;margin-bottom:12px}
-@media (max-width:620px){.cierre h2{font-size:26px}}
-.cierre p{margin:0 0 22px;color:var(--muted);max-width:60ch}
 footer{margin-top:64px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between;align-items:center}
 footer span:last-child{display:flex;flex-wrap:wrap;align-items:center;column-gap:10px;margin-left:-6px}
 footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
@@ -186,7 +180,7 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
     <p class="lanz"><span class="fx-i" aria-hidden="true"></span><span>Los precios son de lanzamiento y pueden cambiar, igual que lo que trae cada plan. <a href="planes/">Ver los planes lado a lado</a></span></p>
   </section>
 
-  <section class="cierre" aria-labelledby="cierre-t">
+  <section class="fx-cierre" aria-labelledby="cierre-t">
     <div id="cierre-f"></div>
     <div>
       <h2 id="cierre-t">Tus ideas son solo tuyas.</h2>
@@ -307,7 +301,7 @@ fetch(SB + "oportunidades?select=nombre,tipo,organiza,postul_inicio,postul_fin,e
     const vistos = new Set(), Q = { cierra: "para postular", abre: "abre la postulación", evento: "para el evento" };
     const carril = todas.filter((x) => x.k !== "curso" && !vistos.has(x.o) && vistos.add(x.o)).sort((a, b) => (a.k === "cierra" ? 0 : 1) - (b.k === "cierra" ? 0 : 1) || a.n - b.n).slice(0, 4);
     const TIPO = { fondo: "Fondo", feria: "Feria", convocatoria: "Convocatoria" };
-    $("carril").innerHTML = carril.length ? carril.map((x) => '<a class="op fk-' + x.k + '" href="oportunidades/"><div class="dias"><b>' + (x.n === 0 ? "hoy" : (x.est ? "≈" : "") + x.n) + "</b><small>" + (x.n === 0 ? "" : x.n === 1 ? "día" : "días") + "</small></div><div><h3>" + esc(x.o.nombre) + "</h3><p>" + esc(TIPO[x.o.tipo] || "") + (x.o.organiza ? " · " + esc(x.o.organiza) : "") + " · " + Q[x.k] + "</p></div></a>").join("")
+    $("carril").innerHTML = carril.length ? carril.map((x) => '<a class="op fk-' + x.k + '" href="oportunidades/#op-' + esc(x.o.id) + '"><div class="dias"><b>' + (x.n === 0 ? "hoy" : (x.est ? "≈" : "") + x.n) + "</b><small>" + (x.n === 0 ? "" : x.n === 1 ? "día" : "días") + "</small></div><div><h3>" + esc(x.o.nombre) + "</h3><p>" + esc(TIPO[x.o.tipo] || "") + (x.o.organiza ? " · " + esc(x.o.organiza) : "") + " · " + Q[x.k] + "</p></div></a>").join("")
       : '<div class="fx-empty">No hay fechas en los próximos meses. Revisa el calendario completo.</div>';
   }).catch(() => { $("viva").textContent = "Las fechas no cargaron; revisa el calendario completo."; $("carril").innerHTML = '<div class="fx-empty">No se pudieron cargar las oportunidades.</div>'; });
 </script>
