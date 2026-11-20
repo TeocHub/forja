@@ -314,7 +314,7 @@ td .opc:focus{background:var(--card)}
 <script type="module">
 import { sb, espacio, accesoProyecto, conSesion, navApp, debounce, plan, editable, limite, LIMITES, tope, NOMBRE_PLAN } from "../js/forja.js";
 import { TIPOS as PIEZAS, CON_PAGINAS, paginasDe } from "../js/piezas.js";
-import { CAMPOS_PRECIO, reportarPrecio, misReportados, estilosPrecios, agrupar, escalera, matriz, limpiarEnlace, revisadoTxt } from "../js/precios.js";
+import { CAMPOS_PRECIO, reportarPrecio, misReportados, estilosPrecios, agrupar, escalera, matriz, limpiarEnlace, revisadoTxt, sinPaginas } from "../js/precios.js";
 estilosPrecios();
 navApp("cotizaciones");
 (function(){
@@ -404,11 +404,11 @@ navApp("cotizaciones");
     if(el&&!todas.some(function(q){return (q.proveedor||"Sin nombre").trim().toLowerCase()===el;}))el="";
     todas.filter(function(q){return !el||(q.proveedor||"Sin nombre").trim().toLowerCase()===el;}).forEach(function(q){
       var L=landed(q);if(L.total==null||!num(q.cantidad))return;
-      var pv=(q.proveedor||"Sin nombre").trim().toLowerCase(),k=q.paginas?pv:pv+"|"+(q.opciones||"").trim().toLowerCase();
-      var e=byProv[k]=byProv[k]||{nombre:q.proveedor||"Sin nombre",vars:{}},vk=q.paginas?String(q.paginas):"";
+      var pv=(q.proveedor||"Sin nombre").trim().toLowerCase(),k=pv+"|"+opcBase(q);
+      var e=byProv[k]=byProv[k]||{nombre:q.proveedor||"Sin nombre",opc:sinPaginas(q.opciones||""),vars:{}},vk=q.paginas?String(q.paginas):"";
       (e.vars[vk]=e.vars[vk]||[]).push({q:num(q.cantidad),t:L.total});
     });
-    var best=null;
+    var best=null,fams={};Object.keys(byProv).forEach(function(k){var pv=k.split("|")[0];fams[pv]=(fams[pv]||0)+1;});
     Object.keys(byProv).forEach(function(k){
       var e=byProv[k],ks=Object.keys(e.vars),r=null,nota="";
       if(ks.length===1&&!ks[0]){r=unidadEn(e.vars[""],qty);}
@@ -419,16 +419,21 @@ navApp("cotizaciones");
         else{
           var ex=vs.filter(function(v){return v.p===pag;})[0];
           if(ex)r=ex.u;
-          else if(vs.length===1){r={unit:vs[0].u.unit,est:true};nota="precio de "+vs[0].p+" páginas";}
+          else if(vs.length===1){r={unit:vs[0].u.unit,est:true,fuera:pag>vs[0].p*1.25||pag<vs[0].p/1.25};nota="precio de "+vs[0].p+" páginas";}
           else{
+            // Fuera de las páginas cotizadas (con margen de un 25 %), esa encuadernación no sirve: un corchete hasta 80 páginas no estima un libro de 340.
+            var fuera=pag>vs[vs.length-1].p*1.25||pag<vs[0].p/1.25;
             var bajo=vs.filter(function(v){return v.p<pag;}).pop(),alto=vs.filter(function(v){return v.p>pag;})[0];
             if(!bajo){bajo=vs[0];alto=vs[1];}else if(!alto){alto=vs[vs.length-1];bajo=vs[vs.length-2];}
             var u=bajo.u.unit+(alto.u.unit-bajo.u.unit)*(pag-bajo.p)/(alto.p-bajo.p);
-            r={unit:Math.max(u,Math.min(bajo.u.unit,alto.u.unit)*0.5),est:true};nota="estimado entre "+bajo.p+" y "+alto.p+" páginas";
+            r={unit:Math.max(u,Math.min(bajo.u.unit,alto.u.unit)*0.5),est:true,fuera:fuera};nota=fuera?"fuera de las páginas cotizadas ("+vs[0].p+" a "+vs[vs.length-1].p+")":"estimado entre "+bajo.p+" y "+alto.p+" páginas";
           }
         }
       }
-      if(r&&(!best||r.unit<best.unit))best={unit:r.unit,prov:e.nombre,est:r.est,nota:nota};
+      if(!r)return;
+      var cand={unit:r.unit,prov:e.nombre,est:r.est,nota:(e.opc&&fams[k.split("|")[0]]>1?e.opc+(nota?" · ":""):"")+nota,fuera:!!r.fuera};
+      // Gana lo que sí cubre las páginas; lo que queda fuera solo se usa si no hay otra cosa.
+      if(!best||(best.fuera&&!cand.fuera)||(best.fuera===cand.fuera&&cand.unit<best.unit))best=cand;
     });
     return best;
   }
@@ -492,7 +497,10 @@ navApp("cotizaciones");
   function hoy(){return new Date().toLocaleDateString("es-CL");}
   var EDITANDO={};// compId → id de un precio (o tramo) que se está editando
   // Variante de un precio: el proveedor, sus páginas (libros y cómics) y sus opciones. Los tramos de una misma variante se calculan juntos.
-  function claveVar(q){return (q.proveedor||"").trim().toLowerCase()+"|"+String(q.paginas||0).padStart(5,"0")+"|"+(q.paginas?"":(q.opciones||"").trim().toLowerCase());}
+  // Variante de un precio: proveedor + opciones sin las páginas (corchete, hotmelt, tapa dura…) + páginas.
+  // Así un mismo proveedor puede tener varias encuadernaciones sin que se mezclen.
+  function opcBase(q){return sinPaginas(q.opciones||"").trim().toLowerCase();}
+  function claveVar(q){return (q.proveedor||"").trim().toLowerCase()+"|"+opcBase(q)+"|"+String(q.paginas||0).padStart(5,"0");}
   function conPaginas(c){return c&&CON_PAGINAS.indexOf(c.tipo)>=0;}
   function paginasPieza(c){return c?paginasDe((c.specs||{}).cantidad):null;}
   // Familia: todas las variantes de un proveedor para una pieza (se comparten como una sola tabla). Huella corta, sin ids a la vista.
@@ -772,8 +780,10 @@ navApp("cotizaciones");
 
   /* --- precios de la comunidad --- */
   var COMU=[],COMU_TIPOS={},YA_REP=new Set();
+  // Libros y cómics se imprimen en las mismas imprentas: sus precios de la comunidad sirven para ambos.
+  function parientes(t){return CON_PAGINAS.indexOf(t)>=0?CON_PAGINAS:[t];}
   function cargarComunidad(){
-    var tipos=Array.from(new Set(S.componentes.map(function(c){return c.tipo;}))).filter(function(t){return !COMU_TIPOS[t];});
+    var tipos=Array.from(new Set([].concat.apply([],S.componentes.map(function(c){return parientes(c.tipo);})))).filter(function(t){return !COMU_TIPOS[t];});
     if(!tipos.length)return Promise.resolve();
     tipos.forEach(function(t){COMU_TIPOS[t]=1;});
     return Promise.all([sb.from("precios_comunidad").select(CAMPOS_PRECIO).in("componente",tipos).order("creado_en",{ascending:false}).limit(200),misReportados()])
@@ -784,7 +794,7 @@ navApp("cotizaciones");
   function comunidadHTML(c){
     // Se ocultan los que salen de esta cotización: los que compartiste desde aquí y los que ya trajiste.
     var mias={};S.cotizaciones.forEach(function(q){if(q.compartido)mias[q.compartido]=1;if(q.comu)mias[q.comu]=1;});
-    var refs=agrupar(COMU.filter(function(r){return r.componente===c.tipo;})).filter(function(g){return !g.ids.some(function(i){return mias[i];});}).slice(0,6);
+    var refs=agrupar(COMU.filter(function(r){return parientes(c.tipo).indexOf(r.componente)>=0;})).filter(function(g){return !g.ids.some(function(i){return mias[i];});}).slice(0,6);
     if(!refs.length)return "";
     return '<div class="comu"><span class="hint"><b style="color:var(--fg)">Precios de la comunidad</b> para '+esc((TIPOS[c.tipo]||TIPOS.otro).nombre.toLowerCase())+', también los que compartiste en otras cotizaciones. Tráelos para hacerte una idea; el precio real te lo da el proveedor.</span><div class="lista">'+refs.map(function(r){
       var L=landed({moneda:r.moneda,precio:r.precio,envio:r.envio,incluyeIva:r.incluye_iva}),u=L.total!=null?L.total/num(r.cantidad):null;
@@ -802,7 +812,7 @@ navApp("cotizaciones");
   // Queda marcado con «comu» (el id compartido de origen): no se vuelve a compartir y se puede editar cuando llegue la cotización real.
   function usarReferencia(id,compId){
     var c=S.componentes.filter(function(x){return x.id===compId;})[0];if(!c)return;
-    var g=agrupar(COMU.filter(function(x){return x.componente===c.tipo;})).filter(function(x){return x.ids.indexOf(id)>=0;})[0];if(!g)return;
+    var g=agrupar(COMU.filter(function(x){return parientes(c.tipo).indexOf(x.componente)>=0;})).filter(function(x){return x.ids.indexOf(id)>=0;})[0];if(!g)return;
     var filas=g.ids.map(function(i){return COMU.filter(function(x){return x.id===i;})[0];}).filter(Boolean);
     var grupos={};filas.forEach(function(r){var k=r.paginas||0;(grupos[k]=grupos[k]||[]).push(r);});
     var nuevos=[];

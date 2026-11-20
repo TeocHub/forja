@@ -20,7 +20,8 @@ export function limpiarEnlace(url) {
 export function agrupar(filas) {
   const vistos = new Map(), salida = [];
   (filas || []).forEach((r) => {
-    const k = r.familia || r.grupo || r.id;
+    // Una familia (mismo proveedor y pieza) se separa por encuadernación u opciones: corchete y hotmelt no van en la misma tabla.
+    const k = r.familia ? r.familia + "|" + sinPaginas(r.opciones).toLowerCase() : (r.grupo || r.id);
     if (!vistos.has(k)) { const g = { ...r, tramos: [], ids: [] }; vistos.set(k, g); salida.push(g); }
     const g = vistos.get(k); g.tramos.push({ id: r.id, cantidad: n0(r.cantidad), precio: n0(r.precio), paginas: r.paginas || null }); g.ids.push(r.id);
     if (String(r.creado_en) > String(g.creado_en)) g.creado_en = r.creado_en;
