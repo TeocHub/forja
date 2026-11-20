@@ -506,7 +506,7 @@ navApp("cotizaciones");
           '<td class="num">'+(q.moneda==="USD"?"USD "+(num(q.precio)+num(q.envio)).toLocaleString("es-CL",{maximumFractionDigits:2}):clp(num(q.precio)+num(q.envio)))+(q.envioPend?'<span class="sub">+ envío según destino</span>':'')+'</td>'+
           '<td class="num">'+clp(L.total)+'<span class="sub">'+esc(L.detalle)+'</span></td>'+
           '<td class="num">'+clp2(u)+'</td><td>'+esc(q.plazo||"")+'</td>'+
-          '<td style="white-space:nowrap">'+(q.compartido?'<span class="compartido" title="Visible para otros, sin tu nombre ni tu proyecto">Compartido <span class="fx-i" style="--i:var(--i-listo)" aria-hidden="true"></span></span> <button type="button" class="link" data-noshare="'+q.id+'">Dejar de compartir'+(delGrupo(q).length>1?' los '+delGrupo(q).length+' tramos':'')+'</button>':'<button type="button" class="link" data-share="'+q.id+'" title="Otras personas verán proveedor, opciones, cantidad y precio, sin tu nombre ni tu proyecto">Compartir'+(delGrupo(q).length>1?' los '+delGrupo(q).length+' tramos':'')+'</button>')+' <button type="button" class="link" data-editq="'+q.id+'">Editar</button> <button type="button" class="link danger" data-delq="'+q.id+'" aria-label="Eliminar precio">Eliminar</button></td></tr>';}).join("")+'</tbody></table></div>':
+          '<td style="white-space:nowrap">'+(q.comu&&!q.compartido?'<span class="sub" title="Lo trajiste de los precios de la comunidad: ya es público, por eso no se vuelve a compartir">De la comunidad</span>':q.compartido?'<span class="compartido" title="Visible para otros, sin tu nombre ni tu proyecto">Compartido <span class="fx-i" style="--i:var(--i-listo)" aria-hidden="true"></span></span> <button type="button" class="link" data-noshare="'+q.id+'">Dejar de compartir'+(delGrupo(q).length>1?' los '+delGrupo(q).length+' tramos':'')+'</button>':'<button type="button" class="link" data-share="'+q.id+'" title="Otras personas verán proveedor, opciones, cantidad y precio, sin tu nombre ni tu proyecto">Compartir'+(delGrupo(q).length>1?' los '+delGrupo(q).length+' tramos':'')+'</button>')+' <button type="button" class="link" data-editq="'+q.id+'">Editar</button> <button type="button" class="link danger" data-delq="'+q.id+'" aria-label="Eliminar precio">Eliminar</button></td></tr>';}).join("")+'</tbody></table></div>':
         '<div class="empty">Aún sin precios de proveedores para esta pieza.</div>';
       var sug=(t.s||[]).map(function(s){return '<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[0]+'</a>';}).join("");
       return '<article class="panel comp" data-comp="'+c.id+'">'+
@@ -704,10 +704,11 @@ navApp("cotizaciones");
         if(!$("comps").contains(document.activeElement))renderComps();}});
   }
   function comunidadHTML(c){
-    var mias={};S.cotizaciones.forEach(function(q){if(q.compartido)mias[q.compartido]=1;});
+    // Se ocultan los que salen de esta cotización: los que compartiste desde aquí y los que ya trajiste.
+    var mias={};S.cotizaciones.forEach(function(q){if(q.compartido)mias[q.compartido]=1;if(q.comu)mias[q.comu]=1;});
     var refs=agrupar(COMU.filter(function(r){return r.componente===c.tipo;})).filter(function(g){return !g.ids.some(function(i){return mias[i];});}).slice(0,6);
     if(!refs.length)return "";
-    return '<div class="comu"><span class="hint"><b style="color:var(--fg)">Precios que otras personas cotizaron</b> para '+esc((TIPOS[c.tipo]||TIPOS.otro).nombre.toLowerCase())+'. Son referencias: pide siempre tu propia cotización.</span><div class="lista">'+refs.map(function(r){
+    return '<div class="comu"><span class="hint"><b style="color:var(--fg)">Precios de la comunidad</b> para '+esc((TIPOS[c.tipo]||TIPOS.otro).nombre.toLowerCase())+', también los que compartiste en otras cotizaciones. Tráelos para hacerte una idea; el precio real te lo da el proveedor.</span><div class="lista">'+refs.map(function(r){
       var L=landed({moneda:r.moneda,precio:r.precio,envio:r.envio,incluyeIva:r.incluye_iva}),u=L.total!=null?L.total/num(r.cantidad):null;
       var bruto=(r.moneda==="USD"?"USD "+num(r.precio).toLocaleString("es-CL",{maximumFractionDigits:2}):clp(num(r.precio)));
       var nom=r.enlace&&/^https:\/\//.test(r.enlace)?'<a href="'+esc(r.enlace)+'" target="_blank" rel="noopener noreferrer nofollow">'+esc(r.proveedor)+'</a>':esc(r.proveedor);
@@ -716,16 +717,32 @@ navApp("cotizaciones");
         ((r.paginasLista||[]).length>1?'<span class="cif">Precio por pieza'+(r.moneda==="USD"?" (USD)":"")+' según páginas y cantidad'+env+'</span>'+matriz(r):r.tramos.length>1?'<span class="cif">Desde '+num(r.cantidad).toLocaleString("es-CL")+' u. · ≈ '+clp2(u)+' c/u en Chile'+env+'</span>'+escalera(r)
           :'<span class="cif">'+num(r.cantidad).toLocaleString("es-CL")+' u. · '+bruto+(u!=null?' · ≈ '+clp2(u)+' c/u en Chile':'')+env+'</span>')+
         (r.especificaciones?'<span class="sp">'+esc(r.especificaciones)+'</span>':'')+
-        '<span class="pie"><span>'+(r.origen==="chile"?"Chile":"Extranjero")+(r.plazo?' · '+esc(r.plazo):'')+' · '+revisadoTxt(r)+'</span><span>'+(r.ids.some(function(i){return YA_REP.has(i);})?'<span class="pr-mio pr-ya">Reportado</span>':'<button type="button" class="link" data-reportar="'+r.id+'" data-prov="'+esc(r.proveedor)+'">Reportar</button> ')+'<button type="button" class="link" data-usar="'+r.id+'" data-comp="'+c.id+'">Usar proveedor</button></span></span></div>';
+        '<span class="pie"><span>'+(r.origen==="chile"?"Chile":"Extranjero")+(r.plazo?' · '+esc(r.plazo):'')+' · '+revisadoTxt(r)+'</span><span>'+(r.ids.some(function(i){return YA_REP.has(i);})?'<span class="pr-mio pr-ya">Reportado</span>':'<button type="button" class="link" data-reportar="'+r.id+'" data-prov="'+esc(r.proveedor)+'">Reportar</button> ')+'<button type="button" class="link" data-usar="'+r.id+'" data-comp="'+c.id+'">Traer'+(r.tramos.length>1?' sus '+r.tramos.length+' precios':' este precio')+'</button></span></span></div>';
     }).join("")+'</div></div>';
   }
+  // Trae un precio de la comunidad (con todos sus tramos y páginas) a esta pieza, como referencia para hacerse una idea.
+  // Queda marcado con «comu» (el id compartido de origen): no se vuelve a compartir y se puede editar cuando llegue la cotización real.
   function usarReferencia(id,compId){
-    var r=COMU.filter(function(x){return x.id===id;})[0];if(!r)return;
-    var d=document.querySelector('details[data-k="add-'+compId+'"]');if(d)d.open=true;
-    var set=function(k,v){var el=$("q-"+compId+"-"+k);if(el)el.value=v;};
-    set("prov",r.proveedor);set("orig",r.origen);set("mon",r.moneda);if(r.enlace)set("link",r.enlace);if(r.opciones)set("opc",r.opciones);
-    var cant=$("q-"+compId+"-cant");if(cant){cant.focus();cant.scrollIntoView({block:"center",behavior:"smooth"});}
-    toast("Proveedor listo. Anota la cantidad y el precio que te den a ti.");
+    var c=S.componentes.filter(function(x){return x.id===compId;})[0];if(!c)return;
+    var g=agrupar(COMU.filter(function(x){return x.componente===c.tipo;})).filter(function(x){return x.ids.indexOf(id)>=0;})[0];if(!g)return;
+    var filas=g.ids.map(function(i){return COMU.filter(function(x){return x.id===i;})[0];}).filter(Boolean);
+    var grupos={};filas.forEach(function(r){var k=r.paginas||0;(grupos[k]=grupos[k]||[]).push(r);});
+    var nuevos=[];
+    Object.keys(grupos).forEach(function(k){
+      var fs=grupos[k],gid=fs.length>1?nuevoGrupo():null;
+      fs.forEach(function(r){
+        var f=r.revisado?String(r.revisado).slice(0,10).split("-").reverse().join("-"):hoy();
+        var q={id:uid(),compId:compId,proveedor:r.proveedor||"Sin nombre",origen:r.origen==="chile"?"chile":"extranjero",moneda:r.moneda==="CLP"?"CLP":"USD",
+          cantidad:num(r.cantidad),precio:num(r.precio),envio:num(r.envio),incluyeIva:!!r.incluye_iva,plazo:r.plazo||"",enlace:r.enlace||"",contacto:"",
+          notas:"De la comunidad: confírmalo con el proveedor",modo:"total",fecha:f,comu:r.id};
+        if(r.opciones)q.opciones=r.opciones;if(r.envio_pendiente)q.envioPend=true;if(r.paginas)q.paginas=r.paginas;if(gid)q.grupo=gid;
+        nuevos.push(q);
+      });
+    });
+    if(!nuevos.length)return;
+    S.cotizaciones=S.cotizaciones.concat(nuevos);save();renderResumen();renderComps();
+    var el=document.querySelector('[data-comp="'+compId+'"]');if(el)el.scrollIntoView({block:"start",behavior:"smooth"});
+    toast((nuevos.length>1?nuevos.length+" precios traídos":"Precio traído")+(nuevos[0].moneda==="USD"&&!S.dolar?". Ingresa el dólar para verlo en pesos.":". Sirve para hacerte una idea: edítalo cuando el proveedor te cotice."));
   }
   function specsTexto(c){
     return CAMPOS.map(function(f){var v=(c.specs||{})[f[0]];return v?f[1]+": "+v:"";}).filter(Boolean).join(" · ").slice(0,600)||null;
